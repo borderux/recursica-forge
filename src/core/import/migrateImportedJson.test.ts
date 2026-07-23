@@ -269,6 +269,55 @@ describe('migrateImportedJson — uikit 1.x → 2.x', () => {
     expect(c['border-color']).toBeDefined()
   })
 
+  it('splits modal background into separate header/content/footer colours', () => {
+    const data = {
+      'ui-kit': {
+        components: {
+          modal: {
+            properties: {
+              colors: {
+                'layer-0': {
+                  'background-color': { $type: 'color', $value: '{brand.layers.layer-1.properties.surface}' },
+                  title: { $type: 'color', $value: '{brand.layers.layer-0.elements.text.color}' },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    const out = migrateImportedJson(data, 'uikit')
+    const c = out['ui-kit'].components.modal.properties.colors['layer-0']
+    expect(c['background-color']).toBeUndefined()
+    expect(c['header-background-color'].$value).toBe('{brand.layers.layer-1.properties.surface}')
+    expect(c['content-background-color'].$value).toBe('{brand.layers.layer-1.properties.surface}')
+    expect(c['footer-background-color'].$value).toBe('{brand.layers.layer-1.properties.surface}')
+    expect(c.title).toBeDefined()
+  })
+
+  it('splits modal padding into header/footer and content padding', () => {
+    const data = {
+      'ui-kit': {
+        components: {
+          modal: {
+            properties: {
+              'horizontal-padding': { $type: 'dimension', $value: '{brand.dimensions.general.xl}' },
+              'vertical-padding': { $type: 'dimension', $value: '{brand.dimensions.general.lg}' },
+            },
+          },
+        },
+      },
+    }
+    const out = migrateImportedJson(data, 'uikit')
+    const p = out['ui-kit'].components.modal.properties
+    expect(p['horizontal-padding']).toBeUndefined()
+    expect(p['vertical-padding']).toBeUndefined()
+    expect(p['header-footer-horizontal-padding'].$value).toBe('{brand.dimensions.general.xl}')
+    expect(p['content-horizontal-padding'].$value).toBe('{brand.dimensions.general.xl}')
+    expect(p['header-footer-vertical-padding'].$value).toBe('{brand.dimensions.general.lg}')
+    expect(p['content-vertical-padding'].$value).toBe('{brand.dimensions.general.lg}')
+  })
+
   it('moves pagination active-page button ref to properties.active-pages and drops variants', () => {
     const data = {
       'ui-kit': {

@@ -52,7 +52,9 @@ export default function ModalPreview({
     }, [])
 
     // Get CSS variable names for the static preview
-    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'background-color')
+    const headerBgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'header-background-color')
+    const contentBgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'content-background-color')
+    const footerBgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'footer-background-color')
     const titleColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'title')
     const borderColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'border-color')
     const dividerColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'scroll-divider')
@@ -61,8 +63,10 @@ export default function ModalPreview({
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
     const borderSizeVar = getComponentLevelCssVar('Modal', 'border-size')
     const scrollDividerThicknessVar = getComponentLevelCssVar('Modal', 'scroll-divider-size')
-    const horizontalPaddingVar = getComponentLevelCssVar('Modal', 'horizontal-padding')
-    const verticalPaddingVar = getComponentLevelCssVar('Modal', 'vertical-padding')
+    const hfHPaddingVar = getComponentLevelCssVar('Modal', 'header-footer-horizontal-padding')
+    const hfVPaddingVar = getComponentLevelCssVar('Modal', 'header-footer-vertical-padding')
+    const contentHPaddingVar = getComponentLevelCssVar('Modal', 'content-horizontal-padding')
+    const contentVPaddingVar = getComponentLevelCssVar('Modal', 'content-vertical-padding')
     const buttonGapVar = getComponentLevelCssVar('Modal', 'button-gap')
     const minWidthVar = getComponentLevelCssVar('Modal', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Modal', 'max-width')
@@ -131,7 +135,7 @@ export default function ModalPreview({
     } as any
 
     const staticModalStyles = {
-        background: `var(${bgVar})`,
+        background: `var(${contentBgVar})`,
         borderRadius: `var(${borderRadiusVar})`,
         boxShadow: elevationBoxShadow || 'none',
         border: `var(${borderSizeVar}) solid var(${borderColorVar})`,
@@ -158,12 +162,12 @@ export default function ModalPreview({
                     {/* Header */}
                     {showHeader && (
                         <div style={{
-                            padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
-                            background: `var(${bgVar})`,
+                            padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
+                            background: `var(${headerBgVar})`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            borderBottom: scrollable ? `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})` : 'none',
+                            borderBottom: `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})`,
                         }}>
                             <HeadingTag style={headerStyle}>
                                 The Legend of Zog
@@ -187,7 +191,7 @@ export default function ModalPreview({
 
                     {/* Body */}
                     <div style={{
-                        padding: padding ? `var(${verticalPaddingVar}) var(${horizontalPaddingVar})` : 0,
+                        padding: padding ? `var(${contentVPaddingVar}) var(${contentHPaddingVar})` : 0,
                         flex: 1,
                         minHeight: 0,
                         overflowY: scrollable ? 'auto' : 'visible',
@@ -203,10 +207,10 @@ export default function ModalPreview({
                     {/* Footer */}
                     {showFooter && (
                         <div style={{
-                            padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
-                            background: `var(${bgVar})`,
+                            padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
+                            background: `var(${footerBgVar})`,
                             marginTop: 'auto',
-                            borderTop: scrollable ? `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})` : 'none',
+                            borderTop: `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})`,
                         }}>
                             <Group justify="flex-end" gap={`var(${buttonGapVar})`}>
                                 <Button
@@ -233,8 +237,8 @@ export default function ModalPreview({
                 <div key={`${updateKey}-scrolling`} style={staticModalStyles}>
                     {/* Header with mandatory divider for scrolling example */}
                     <div style={{
-                        padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
-                        background: `var(${bgVar})`,
+                        padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
+                        background: `var(${headerBgVar})`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -261,7 +265,7 @@ export default function ModalPreview({
 
                     {/* Body with forced scrolling */}
                     <div style={{
-                        padding: padding ? `var(${verticalPaddingVar}) var(${horizontalPaddingVar})` : 0,
+                        padding: padding ? `var(${contentVPaddingVar}) var(${contentHPaddingVar})` : 0,
                         flex: 1,
                         minHeight: 0,
                         overflowY: 'auto',
@@ -276,8 +280,8 @@ export default function ModalPreview({
 
                     {/* Footer with mandatory divider for scrolling example */}
                     <div style={{
-                        padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
-                        background: `var(${bgVar})`,
+                        padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
+                        background: `var(${footerBgVar})`,
                         marginTop: 'auto',
                         borderTop: `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})`,
                     }}>

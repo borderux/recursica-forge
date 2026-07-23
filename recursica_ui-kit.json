@@ -12825,7 +12825,15 @@
         "properties": {
           "colors": {
             "layer-0": {
-              "background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.surface}"
+              },
+              "content-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.surface}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.properties.surface}"
               },
@@ -12847,7 +12855,15 @@
               }
             },
             "layer-1": {
-              "background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.surface}"
+              },
+              "content-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.surface}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.properties.surface}"
               },
@@ -12869,7 +12885,15 @@
               }
             },
             "layer-2": {
-              "background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "content-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.properties.surface}"
               },
@@ -12891,7 +12915,15 @@
               }
             },
             "layer-3": {
-              "background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "content-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.properties.surface}"
               },
@@ -12935,11 +12967,19 @@
               "unit": "px"
             }
           },
-          "horizontal-padding": {
+          "header-footer-horizontal-padding": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.xl}"
           },
-          "vertical-padding": {
+          "content-horizontal-padding": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.xl}"
+          },
+          "header-footer-vertical-padding": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.lg}"
+          },
+          "content-vertical-padding": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.lg}"
           },

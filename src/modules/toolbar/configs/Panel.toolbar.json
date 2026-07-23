@@ -213,11 +213,11 @@
       "group": {
         "properties.divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Divider color"
+          "label": "Color"
         },
         "properties.divider-size": {
           "icon": "rows",
-          "label": "Divider size",
+          "label": "Size",
           "propertyType": "slider",
           "range": [
             0,

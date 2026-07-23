@@ -348,6 +348,31 @@ export function migrateUikitTo2x(root: any): any {
     }
   }
 
+  // Modal: the single background split into separate header, content, and footer colours.
+  const modalColors = components?.modal?.properties?.colors
+  if (modalColors && typeof modalColors === 'object') {
+    for (const layer of Object.values<any>(modalColors)) {
+      if (!layer || typeof layer !== 'object' || !layer['background-color']) continue
+      const shared = layer['background-color']
+      if (!layer['header-background-color']) layer['header-background-color'] = clone(shared)
+      if (!layer['content-background-color']) layer['content-background-color'] = clone(shared)
+      if (!layer['footer-background-color']) layer['footer-background-color'] = clone(shared)
+      delete layer['background-color']
+    }
+  }
+
+  // Modal: the single horizontal/vertical padding split into header/footer + content padding.
+  const modalProps = components?.modal?.properties
+  if (modalProps && typeof modalProps === 'object') {
+    for (const axis of ['horizontal', 'vertical']) {
+      const shared = modalProps[`${axis}-padding`]
+      if (!shared) continue
+      if (!modalProps[`header-footer-${axis}-padding`]) modalProps[`header-footer-${axis}-padding`] = clone(shared)
+      if (!modalProps[`content-${axis}-padding`]) modalProps[`content-${axis}-padding`] = clone(shared)
+      delete modalProps[`${axis}-padding`]
+    }
+  }
+
   const REMOVED_STATES = new Set(['hover', 'focus', 'visited-hover'])
   const prune = (node: any): void => {
     if (!node || typeof node !== 'object' || Array.isArray(node) || '$value' in node) return

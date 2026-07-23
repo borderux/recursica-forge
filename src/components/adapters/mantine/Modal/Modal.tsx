@@ -101,7 +101,9 @@ export default function Modal({
     }
 
     // Build CSS variable names
-    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'background-color')
+    const headerBgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'header-background-color')
+    const contentBgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'content-background-color')
+    const footerBgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'footer-background-color')
     const titleColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'title')
     const contentColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'content')
     const borderColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'border-color')
@@ -110,8 +112,10 @@ export default function Modal({
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
     const borderSizeVar = getComponentLevelCssVar('Modal', 'border-size')
     const scrollDividerThicknessVar = getComponentLevelCssVar('Modal', 'scroll-divider-size')
-    const horizontalPaddingVar = getComponentLevelCssVar('Modal', 'horizontal-padding')
-    const verticalPaddingVar = getComponentLevelCssVar('Modal', 'vertical-padding')
+    const hfHorizontalPaddingVar = getComponentLevelCssVar('Modal', 'header-footer-horizontal-padding')
+    const hfVerticalPaddingVar = getComponentLevelCssVar('Modal', 'header-footer-vertical-padding')
+    const contentHorizontalPaddingVar = getComponentLevelCssVar('Modal', 'content-horizontal-padding')
+    const contentVerticalPaddingVar = getComponentLevelCssVar('Modal', 'content-vertical-padding')
     const buttonGapVar = getComponentLevelCssVar('Modal', 'button-gap')
     const minWidthVar = getComponentLevelCssVar('Modal', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Modal', 'max-width')
@@ -166,15 +170,19 @@ export default function Modal({
 
     // Custom styles for Mantine Modal
     const modalStyles = {
-        '--modal-bg': `var(${bgVar})`,
+        '--modal-header-bg': `var(${headerBgVar})`,
+        '--modal-content-bg': `var(${contentBgVar})`,
+        '--modal-footer-bg': `var(${footerBgVar})`,
         '--modal-title-color': `var(${titleColorVar})`,
         '--modal-border-color': `var(${borderColorVar})`,
         '--modal-divider': `var(${dividerColorVar})`,
         '--modal-divider-thickness': `var(${scrollDividerThicknessVar})`,
         '--modal-border-radius': `var(${borderRadiusVar})`,
         '--modal-border-size': `var(${borderSizeVar})`,
-        '--modal-padding-x': `var(${horizontalPaddingVar})`,
-        '--modal-padding-y': `var(${verticalPaddingVar})`,
+        '--modal-hf-padding-x': `var(${hfHorizontalPaddingVar})`,
+        '--modal-hf-padding-y': `var(${hfVerticalPaddingVar})`,
+        '--modal-content-padding-x': `var(${contentHorizontalPaddingVar})`,
+        '--modal-content-padding-y': `var(${contentVerticalPaddingVar})`,
         '--modal-button-gap': `var(${buttonGapVar}, 0px)`,
         '--modal-content-min-width': effectivePos ? 'auto' : `var(${minWidthVar})`,
         '--modal-content-max-width': effectivePos ? 'auto' : `var(${maxWidthVar})`,
@@ -314,10 +322,13 @@ export default function Modal({
                     pointerEvents: withOverlay ? 'auto' : 'none',
                 },
                 content: {
-                    backgroundColor: 'var(--modal-bg)',
+                    backgroundColor: 'var(--modal-content-bg)',
                     borderRadius: 'var(--modal-border-radius)',
                     border: 'var(--modal-border-size) solid var(--modal-border-color)',
-                    overflow: 'visible',
+                    // Clip to the rounded corners so the per-region header/footer backgrounds
+                    // don't square off the top/bottom corners. (Mantine portals popovers, so
+                    // nested dropdowns aren't affected.)
+                    overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
                     pointerEvents: 'auto',
@@ -325,10 +336,11 @@ export default function Modal({
                     // Note: dynamic positioning is now handled via CSS variables and Modal.css
                 },
                 header: {
-                    backgroundColor: 'transparent',
-                    padding: 'var(--modal-padding-y) var(--modal-padding-x)',
+                    backgroundColor: 'var(--modal-header-bg)',
+                    padding: 'var(--modal-hf-padding-y) var(--modal-hf-padding-x)',
                     margin: 0,
-                    borderBottom: scrollable ? 'var(--modal-divider-thickness) solid var(--modal-divider)' : 'none',
+                    // Divider reflects its set size — a 0px border is invisible, so no scrollable gate.
+                    borderBottom: 'var(--modal-divider-thickness) solid var(--modal-divider)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -341,7 +353,7 @@ export default function Modal({
                     overflow: 'hidden', // Contain the group
                 },
                 body: {
-                    backgroundColor: 'transparent',
+                    backgroundColor: 'var(--modal-content-bg)',
                     padding: 0,
                     display: 'flex',
                     flexDirection: 'column',
@@ -368,7 +380,7 @@ export default function Modal({
                 className="recursica-modal-body"
                 style={{
                     backgroundColor: 'transparent',
-                    padding: padding ? 'var(--modal-padding-y) var(--modal-padding-x)' : 0,
+                    padding: padding ? 'var(--modal-content-padding-y) var(--modal-content-padding-x)' : 0,
                     color: 'var(--modal-content-color)',
                     fontFamily: 'var(--modal-content-font-family)',
                     fontSize: 'var(--modal-content-font-size)',
@@ -387,9 +399,9 @@ export default function Modal({
                 <Box
                     className="recursica-modal-footer"
                     style={{
-                        padding: 'var(--modal-padding-y) var(--modal-padding-x)',
-                        borderTop: scrollable ? 'var(--modal-divider-thickness) solid var(--modal-divider)' : 'none',
-                        backgroundColor: 'transparent',
+                        padding: 'var(--modal-hf-padding-y) var(--modal-hf-padding-x)',
+                        borderTop: 'var(--modal-divider-thickness) solid var(--modal-divider)',
+                        backgroundColor: 'var(--modal-footer-bg)',
                     }}
                 >
                     <Group justify="flex-end" gap="var(--modal-button-gap)">
