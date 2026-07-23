@@ -280,6 +280,14 @@ export default function ComponentToolbar({
   ): ComponentProp | null => {
     const normalized = normalizeToolbarKey(rawKey)
     const leaf = (normalized.split('.').pop() || rawKey).toLowerCase()
+    // Intermediate path segments in the key (excluding the generic "properties"/"colors"
+    // wrappers and the leaf) let a config disambiguate same-leaf props living under different
+    // parents — e.g. MenuItem's selected-item vs unselected-item background-color, which would
+    // otherwise both resolve to whichever "background-color" prop parses first.
+    const GENERIC_KEY_SEGS = new Set(['properties', 'colors'])
+    const scopeSegments = normalized.split('.').slice(0, -1)
+      .map(s => s.toLowerCase())
+      .filter(s => !GENERIC_KEY_SEGS.has(s))
     const keyImpliesColor = normalized.includes('.colors') || leaf.endsWith('-color')
     const isStateTab = !!activeState && activeState !== 'base'
     // A typography key (e.g. "text", "title-text") resolves ONLY to a text-STYLE group — never a
@@ -295,6 +303,10 @@ export default function ComponentToolbar({
 
     const matches = liveStructure.props.filter(p => {
       if (!nameCandidates.has(p.name.toLowerCase())) return false
+      if (scopeSegments.length) {
+        const pathLower = p.path.map(s => s.toLowerCase())
+        if (!scopeSegments.every(seg => pathLower.includes(seg))) return false
+      }
       const inState = p.path.includes('states')
       if (isStateTab) {
         if (!inState || !p.path.includes(activeState)) return false

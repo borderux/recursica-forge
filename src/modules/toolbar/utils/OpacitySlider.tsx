@@ -12,6 +12,7 @@ import { tokenOpacity, parseTokenCssVar } from '../../../core/css/cssVarBuilder'
 import { useVars } from '../../vars/VarsContext'
 import { Slider } from '../../../components/adapters/Slider'
 import { Label } from '../../../components/adapters/Label'
+import { useGlobalRefControl } from '../../../core/css/globalRefInterceptor'
 
 interface OpacitySliderProps {
   targetCssVar: string
@@ -26,8 +27,12 @@ export default function OpacitySlider({
   label,
   layer = 'layer-1',
 }: OpacitySliderProps) {
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, uikit } = useVars()
   const justSetValueRef = useRef<string | null>(null)
+
+  // When the value is a ui-kit global reference (e.g. {ui-kit.globals.states.disabled}), lock the
+  // slider and surface the globe control so the user can edit the global or detach to override.
+  const globalRef = useGlobalRefControl(targetCssVar, uikit)
   
   // Get available opacity tokens
   const opacityTokens = useMemo(() => {
@@ -207,7 +212,8 @@ export default function OpacitySlider({
       minLabel={minToken?.label || '0%'}
       maxLabel={maxToken?.label || '100%'}
       showMinMaxLabels={false}
-      label={<Label layer={layer} layout="stacked">{label}</Label>}
+      disabled={globalRef.isAttached}
+      label={<Label layer={layer} layout="stacked" editIcon={globalRef.editIcon} onEditIconClick={globalRef.handleGlobeClick} editIconTitle={globalRef.editIconTitle}>{label}</Label>}
     />
   )
 }

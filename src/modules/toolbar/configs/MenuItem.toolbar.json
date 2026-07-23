@@ -1,9 +1,18 @@
 {
-  "variants": {},
+  "variants": {
+    "selection-states": {
+      "icon": "check-square",
+      "label": "State",
+      "options": [
+        "unselected",
+        "selected"
+      ]
+    }
+  },
   "properties": {
-    "unselected-item": {
-      "icon": "paint-bucket",
-      "label": "Unselected item",
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
       "group": {
         "properties.colors.background-color": {
           "icon": "paint-bucket",
@@ -13,41 +22,15 @@
           "icon": "text-aa",
           "label": "Text"
         },
-        "properties.supporting-text-color": {
+        "properties.colors.supporting-text-color": {
           "icon": "text-aa",
           "label": "Supporting text"
         },
-        "properties.leading-icon-color": {
+        "properties.colors.leading-icon-color": {
           "icon": "image-square",
           "label": "Leading icon"
         },
-        "properties.trailing-icon-color": {
-          "icon": "image-square",
-          "label": "Trailing icon"
-        }
-      }
-    },
-    "selected-item": {
-      "icon": "paint-bucket",
-      "label": "Selected item",
-      "group": {
-        "properties.colors.background-color": {
-          "icon": "paint-bucket",
-          "label": "Background"
-        },
-        "properties.colors.text-color": {
-          "icon": "text-aa",
-          "label": "Text"
-        },
-        "properties.supporting-text-color": {
-          "icon": "text-aa",
-          "label": "Supporting text"
-        },
-        "properties.leading-icon-color": {
-          "icon": "image-square",
-          "label": "Leading icon"
-        },
-        "properties.trailing-icon-color": {
+        "properties.colors.trailing-icon-color": {
           "icon": "image-square",
           "label": "Trailing icon"
         }
@@ -62,8 +45,8 @@
       "label": "Supporting text style"
     },
     "icon": {
-      "icon": "image-square",
-      "label": "Icon sizes",
+      "icon": "star",
+      "label": "Icons",
       "group": {
         "properties.icon-leading-size": {
           "icon": "image-square",
@@ -101,15 +84,12 @@
         }
       }
     },
-    "properties.opacity": {
+    "disabled": {
       "icon": "eye",
-      "label": "Disabled opacity"
-    },
-    "opacity": {
-      "icon": "eye",
-      "label": "Disabled opacity",
+      "label": "Opacity",
       "group": {
-        "properties.opacity": {
+        "properties.colors.opacity": {
+          "icon": "eye",
           "label": "Opacity"
         }
       }

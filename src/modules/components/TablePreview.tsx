@@ -180,6 +180,14 @@ export default function TablePreview({
     return result
   }, [filterText, sortField, sortAsc, singleRowMode])
 
+  // Total loot for the footer. Must be a top-level hook — it was previously called
+  // inline inside the conditional `<tfoot>` JSX, which changed the hook count whenever
+  // `showFooter` toggled and crashed React with "Rendered fewer hooks than expected".
+  const totalLoot = useMemo(
+    () => processedData.reduce((sum, r) => sum + r.loot, 0).toLocaleString(),
+    [processedData]
+  )
+
   // Get sort chevron icons
   const ChevronUp = iconNameToReactComponent('chevron-up')
   const ChevronDown = iconNameToReactComponent('chevron-down')
@@ -472,7 +480,7 @@ export default function TablePreview({
               <TableFooter layer={selectedLayer as any} />
               <TableFooter variant="currency" style={{ textAlign: 'right' }} layer={selectedLayer as any}>
                 <span style={{ fontWeight: 'bold' }}>
-                  {useMemo(() => processedData.reduce((sum, r) => sum + r.loot, 0).toLocaleString(), [processedData])} GP
+                  {totalLoot} GP
                 </span>
               </TableFooter>
               <TableFooter layer={selectedLayer as any} />

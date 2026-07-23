@@ -22,6 +22,25 @@ import { cssVarToRef } from './cssVarBuilder'
 import { getVarsStore } from '../store/varsStore'
 import { cssVarToUIKitPath } from './updateUIKitValue'
 import { updateCssVar } from './updateCssVar'
+import { readCssVarResolved } from './readCssVar'
+import { contrastRatio } from '../../modules/theme/contrastUtil'
+
+/** WCAG AA contrast threshold for normal text. */
+const AA = 4.5
+
+/**
+ * Normalize a resolved CSS colour to a 6-digit lowercase hex, or null if it
+ * isn't a plain hex (e.g. `transparent`, `rgb(...)`, unset).
+ */
+function normalizeHex(v: string | undefined | null): string | null {
+  if (!v) return null
+  const t = v.trim().toLowerCase()
+  const six = t.match(/^#([0-9a-f]{6})$/)
+  if (six) return `#${six[1]}`
+  const three = t.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/)
+  if (three) return `#${three[1]}${three[1]}${three[2]}${three[2]}${three[3]}${three[3]}`
+  return null
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -197,21 +216,31 @@ export function checkForOnToneConflict(
   // Only interested in component color layer properties
   if (!cssVarName.includes('_properties_colors_')) return
 
-  // The new value must be a brand palette .tone ref (not .on-tone)
+  // The new value must be a brand palette .tone ref (not .on-tone) so we can
+  // derive the on-tone that foregrounds sitting on it should use.
   const newDtcgRef = cssVarToRef(newCssValue)
   if (!newDtcgRef) return
 
   const newOnToneRef = toOnToneRef(newDtcgRef)
-  if (!newOnToneRef) return // not a .tone ref — nothing to do
-
-  // The old value must have been a .tone ref too (otherwise it wasn't a paired color)
-  if (!oldDtcgRef || !oldDtcgRef.startsWith('{brand.')) return
-  const oldBase = toneBase(oldDtcgRef)
-  if (!oldBase) return // old value wasn't a tone ref
+  if (!newOnToneRef) return // not a .tone ref — nothing to pair against
 
   // Find the layer-N group in the CSS var path
   const parsed = parseLayerColorVar(cssVarName)
   if (!parsed) return
+
+  // On-tone suggestions only make sense for foreground colours sitting on a
+  // background, so only a background change drives them.
+  if (!/background/.test(parsed.propKey)) return
+
+  // Resolve the new background colour (already written to the DOM by updateCssVar
+  // before this runs) so we can contrast-check each foreground sibling against it.
+  const newBgHex = normalizeHex(readCssVarResolved(cssVarName))
+
+  // If the old value was itself a tone ref, remember its base so we can also catch
+  // siblings that were explicitly paired with it (pairing maintenance) even when
+  // they still happen to pass AA. This is optional — a null/None old value (e.g.
+  // a previously-transparent background) is fine; the contrast check below still runs.
+  const oldBase = oldDtcgRef && oldDtcgRef.startsWith('{brand.') ? toneBase(oldDtcgRef) : null
 
   // Scan sibling properties in the same layer-N group
   const store = getVarsStore()
@@ -232,24 +261,37 @@ export function checkForOnToneConflict(
   }
   if (!layerNode || typeof layerNode !== 'object') return
 
-  // Collect siblings that have the matching .on-tone value (old base)
+  // Collect foreground siblings that should be offered the new background's on-tone.
+  // A sibling qualifies when EITHER:
+  //   (A) pairing maintenance — it references the OLD background's `.on-tone`, or
+  //   (B) contrast failure  — its current rendered colour fails AA on the NEW background.
   const siblings: OnToneSibling[] = []
   for (const [key, entry] of Object.entries(layerNode)) {
-    if (key === parsed.propKey) continue // skip the property being changed
+    if (key === parsed.propKey) continue // skip the background being changed
     if (key.startsWith('$')) continue
+    if (/background/.test(key)) continue // other backgrounds aren't foregrounds
+    if (/opacity/.test(key)) continue    // non-colour props
 
     const entryVal = (entry as any)?.$value
     if (typeof entryVal !== 'string') continue
 
-    const entryBase = toneBase(entryVal)
-    if (!entryBase) continue
-
-    // The sibling must be an .on-tone AND its base must match the OLD tone's base
-    if (!entryVal.endsWith('.on-tone}')) continue
-    if (entryBase !== oldBase) continue
-
-    // Build the CSS var name for this sibling
     const siblingCssVar = `${parsed.prefix}${key}`
+
+    // Nothing to do if it already points at the target on-tone.
+    if (entryVal === newOnToneRef) continue
+
+    // (A) Was this sibling the OLD background's on-tone?
+    const entryBase = toneBase(entryVal)
+    const wasPairedWithOld = !!oldBase && entryVal.endsWith('.on-tone}') && entryBase === oldBase
+
+    // (B) Does the sibling's current colour fail AA against the new background?
+    let failsContrast = false
+    if (newBgHex) {
+      const fgHex = normalizeHex(readCssVarResolved(siblingCssVar))
+      if (fgHex) failsContrast = contrastRatio(newBgHex, fgHex) < AA
+    }
+
+    if (!wasPairedWithOld && !failsContrast) continue
 
     siblings.push({
       propertyKey: key,

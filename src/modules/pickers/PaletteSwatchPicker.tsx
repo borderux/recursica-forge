@@ -101,13 +101,17 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
   }, [])
 
-  // Listen for CSS variable updates to refresh selection state
+  // Listen for CSS variable updates/resets to refresh selection state (the highlighted swatch).
   useEffect(() => {
-    const handleCssVarsUpdated = () => {
+    const handleRefresh = () => {
       setRefreshTrigger(prev => prev + 1)
     }
-    window.addEventListener('cssVarsUpdated', handleCssVarsUpdated)
-    return () => window.removeEventListener('cssVarsUpdated', handleCssVarsUpdated)
+    window.addEventListener('cssVarsUpdated', handleRefresh)
+    window.addEventListener('cssVarsReset', handleRefresh)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleRefresh)
+      window.removeEventListener('cssVarsReset', handleRefresh)
+    }
   }, [])
 
   const paletteKeys = useMemo(() => {
@@ -190,6 +194,25 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     return `--recursica_brand_palettes_${paletteKey}_${level}_color_tone`
   }
 
+  // Find the first palette swatch (excluding core) whose resolved colour matches a hex.
+  // Mirrors PaletteColorControl.findPaletteForToken so the picker highlight always agrees
+  // with the shown label — used for on-tone refs, which the resolver flattens to a token.
+  const findFirstPaletteMatchForHex = (hex: string): { pk: string; level: string } | null => {
+    const norm = hex.trim().toLowerCase()
+    if (!/^#[0-9a-f]{6}$/i.test(norm)) return null
+    const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+    const themes = root?.themes || root
+    for (const pk of paletteKeys) {
+      const pal: any = themes?.[modeLower]?.palettes?.[pk] || themes?.[modeLower]?.palette?.[pk] || {}
+      const levels = Object.keys(pal).filter((k) => /^\d+$/.test(k))
+      for (const level of levels) {
+        const h = readCssVarResolved(buildPaletteCssVar(pk, level))
+        if (h && h.trim().toLowerCase() === norm) return { pk, level }
+      }
+    }
+    return null
+  }
+
   const targetResolvedValue = useMemo(() => {
     if (!targetCssVar) return null
     const resolved = readCssVarResolved(targetCssVar)
@@ -225,6 +248,17 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       // Parse using central brand parser
       const brandParsed = parseBrandCssVar(trimmed)
       if (brandParsed) {
+        // An on-tone reference (…_on-tone) is the readable/paired colour, which the resolver
+        // flattens to a raw token — NOT the parent swatch (e.g. core-alert's on-tone is white,
+        // not the alert red). Resolve it to the flattened token's colour and match the first
+        // palette swatch, mirroring the label, so highlight and label always agree. Never leave
+        // it as a hex marker (which could land on a different equal-hex swatch than the label).
+        const isOnTone = /on-tone/.test(trimmed)
+        if (isOnTone) {
+          const resolvedHex = readCssVarResolved(trimmed) || targetResolvedValue.resolved
+          const match = resolvedHex ? findFirstPaletteMatchForHex(resolvedHex) : null
+          return match ? `${match.pk}-${match.level}` : null
+        }
         if (brandParsed.type === 'palette') {
           const resolvedHex = targetResolvedValue.resolved
           if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex)) {

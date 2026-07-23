@@ -223,6 +223,34 @@ export function migrateUikitTo2x(root: any): any {
   const components = uikit?.components
   const clone = (v: any) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)))
 
+  // Disabled-state global: components reference {ui-kit.globals.states.disabled}, which in turn
+  // references the brand value. Ensure the global exists and repoint any legacy component
+  // references from {brand.states.disabled} onto it. (The global's own $value stays on brand.)
+  if (components && typeof components === 'object') {
+    let usesBrandDisabled = false
+    const repoint = (node: any): void => {
+      if (!node || typeof node !== 'object') return
+      if (Array.isArray(node)) { node.forEach(repoint); return }
+      for (const k of Object.keys(node)) {
+        if (k === '$value' && node[k] === '{brand.states.disabled}') {
+          node[k] = '{ui-kit.globals.states.disabled}'
+          usesBrandDisabled = true
+        } else {
+          repoint(node[k])
+        }
+      }
+    }
+    repoint(components)
+    const alreadyRefsGlobal = JSON.stringify(components).includes('{ui-kit.globals.states.disabled}')
+    if ((usesBrandDisabled || alreadyRefsGlobal)) {
+      uikit.globals = uikit.globals || {}
+      uikit.globals.states = uikit.globals.states || {}
+      if (!uikit.globals.states.disabled) {
+        uikit.globals.states.disabled = { $type: 'number', $value: '{brand.states.disabled}' }
+      }
+    }
+  }
+
   // Segmented control item: selected/unselected property groups (+ selected-text/unselected-text)
   // → variants/selection-states/{selected,unselected}/properties/{…, text}.
   const sci = components?.['segmented-control-item']
@@ -241,6 +269,33 @@ export function migrateUikitTo2x(root: any): any {
       unselected: mkState(p.unselected, p['unselected-text']),
     }
     delete p.selected; delete p.unselected; delete p['selected-text']; delete p['unselected-text']
+  }
+
+  // Menu item: per-layer selected-item/unselected-item colour groups →
+  // variants/selection-states/{selected,unselected}/properties/colors/<layer>/<prop>.
+  const menuItem = components?.['menu-item']
+  const miColors = menuItem?.properties?.colors
+  if (miColors && typeof miColors === 'object' &&
+      Object.values(miColors).some((layer: any) => layer && typeof layer === 'object' && layer['selected-item'])) {
+    // The disabled state is per selection-state in 2.x: nest a copy under each.
+    const disabledBlock = menuItem.variants?.states?.disabled
+    const mkState = (itemKey: string) => {
+      const perLayer: any = {}
+      for (const [layerName, layerObj] of Object.entries<any>(miColors)) {
+        if (layerName.startsWith('$') || !layerObj || typeof layerObj !== 'object') continue
+        if (layerObj[itemKey]) perLayer[layerName] = clone(layerObj[itemKey])
+      }
+      const state: any = { properties: { colors: perLayer } }
+      if (disabledBlock) state.variants = { states: { disabled: clone(disabledBlock) } }
+      return state
+    }
+    menuItem.variants = menuItem.variants || {}
+    menuItem.variants['selection-states'] = {
+      unselected: mkState('unselected-item'),
+      selected: mkState('selected-item'),
+    }
+    delete menuItem.properties.colors
+    if (menuItem.variants.states) delete menuItem.variants.states
   }
 
   // Tabs: split per-tab appearance into a new `tabs-item` component with active/inactive as a

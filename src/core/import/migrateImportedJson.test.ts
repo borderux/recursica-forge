@@ -318,6 +318,42 @@ describe('migrateImportedJson — uikit 1.x → 2.x', () => {
     expect(p['content-vertical-padding'].$value).toBe('{brand.dimensions.general.lg}')
   })
 
+  it('moves menu-item selected/unselected colors into a selection-states variant', () => {
+    const data = {
+      'ui-kit': {
+        components: {
+          'menu-item': {
+            properties: {
+              colors: {
+                'layer-0': {
+                  'unselected-item': { 'background-color': { $type: 'color', $value: null }, 'text-color': { $type: 'color', $value: '{brand.layers.layer-0.elements.text.color}' } },
+                  'selected-item': { 'background-color': { $type: 'color', $value: '{brand.palettes.palette-1.100.color.tone}' }, 'text-color': { $type: 'color', $value: '{brand.palettes.palette-1.100.color.on-tone}' } },
+                },
+              },
+              'border-radius': { $type: 'dimension', $value: '{brand.dimensions.border-radii.none}' },
+            },
+            variants: { states: { disabled: { properties: { opacity: { $type: 'number', $value: '{brand.states.disabled}' } } } } },
+          },
+        },
+      },
+    }
+    const out = migrateImportedJson(data, 'uikit')
+    const mi = out['ui-kit'].components['menu-item']
+    expect(mi.properties.colors).toBeUndefined()
+    expect(mi.properties['border-radius']).toBeDefined()
+    const ss = mi.variants['selection-states']
+    expect(ss.unselected.properties.colors['layer-0']['text-color'].$value).toBe('{brand.layers.layer-0.elements.text.color}')
+    expect(ss.selected.properties.colors['layer-0']['background-color'].$value).toBe('{brand.palettes.palette-1.100.color.tone}')
+    expect(ss.selected.properties.colors['layer-0']['text-color'].$value).toBe('{brand.palettes.palette-1.100.color.on-tone}')
+    // disabled is nested per selection-state, and the top-level states block is removed
+    expect(mi.variants.states).toBeUndefined()
+    // disabled opacity now references the ui-kit global, which in turn references the brand value
+    expect(ss.unselected.variants.states.disabled.properties.opacity.$value).toBe('{ui-kit.globals.states.disabled}')
+    expect(ss.selected.variants.states.disabled.properties.opacity.$value).toBe('{ui-kit.globals.states.disabled}')
+    const disabledGlobal = out['ui-kit'].globals.states.disabled
+    expect(disabledGlobal.$value).toBe('{brand.states.disabled}')
+  })
+
   it('moves pagination active-page button ref to properties.active-pages and drops variants', () => {
     const data = {
       'ui-kit': {

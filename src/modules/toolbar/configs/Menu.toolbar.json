@@ -2,7 +2,7 @@
   "variants": {},
   "properties": {
     "properties.colors.background-color": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Background"
     },
     "border": {
