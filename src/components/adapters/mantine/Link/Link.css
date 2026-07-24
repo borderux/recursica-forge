@@ -22,12 +22,13 @@
 }
 
 .mantine-Anchor-root:hover {
-  color: var(--link-hover-color) !important;
-  font-weight: var(--link-hover-font-weight, var(--link-font-weight));
-  text-decoration: var(--link-hover-text-decoration, var(--link-text-decoration, underline)) !important;
+  /* Links never take the global hover overlay/color — only the global link-hover
+     text treatment (weight / decoration / style) from Theme › States. Colour is
+     intentionally left unchanged on hover. */
+  font-weight: var(--recursica_brand_states_link_weight, var(--link-font-weight)) !important;
+  text-decoration: var(--recursica_brand_states_link_decoration, var(--link-text-decoration, underline)) !important;
   text-decoration-color: currentColor !important;
-  text-transform: var(--link-hover-text-transform, var(--link-text-transform, none));
-  font-style: var(--link-hover-font-style, var(--link-font-style, normal));
+  font-style: var(--recursica_brand_states_link_style, var(--link-font-style, normal)) !important;
 }
 
 /* Icons */

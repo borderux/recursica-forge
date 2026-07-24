@@ -35,8 +35,13 @@ export default function TableCell({
   const textDecorationVar = getComponentTextCssVar('TableCell', textStyleKey, 'text-decoration')
   const textAlignVar = getComponentTextCssVar('TableCell', textStyleKey, 'text-align')
 
-  const textColorVar = buildComponentCssVarPath('TableCell', 'properties', 'colors', layer, disabled ? 'text-color-disabled' : 'text-color-enabled')
-  const cellColorVar = buildComponentCssVarPath('TableCell', 'properties', 'colors', layer, disabled ? 'cell-color-disabled' : 'cell-color-enabled')
+  // Enabled colours are the base; disabled colours live under variants.states.disabled.
+  const cellBase = (prop: string) => buildComponentCssVarPath('TableCell', 'properties', 'colors', layer, prop)
+  const cellDisabled = (prop: string) => buildComponentCssVarPath('TableCell', 'variants', 'states', 'disabled', 'properties', 'colors', layer, prop)
+  const textColorVar = disabled ? cellDisabled('text-color') : cellBase('text-color')
+  const cellColorVar = disabled ? cellDisabled('cell-color') : cellBase('cell-color')
+  // Disabled cells are dimmed by the global theme disabled opacity ({brand.states.disabled}).
+  const disabledOpacityVar = buildComponentCssVarPath('TableCell', 'variants', 'states', 'disabled', 'properties', 'opacity')
 
   const Component = isHeader ? MantineTable.Th : MantineTable.Td
 
@@ -58,6 +63,7 @@ export default function TableCell({
         ['--table-cell-text-case' as string]: `var(${textCaseVar})`,
         ['--table-cell-text-decoration' as string]: `var(${textDecorationVar})`,
         ['--table-cell-text-align' as string]: `var(${textAlignVar})`,
+        ...(disabled ? { opacity: `var(${disabledOpacityVar})` } : {}),
         ...style
       } as React.CSSProperties}
       {...mantine}

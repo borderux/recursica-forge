@@ -21,7 +21,6 @@ export default function Chip({
   size = 'default',
   layer = 'layer-0',
   elevation,
-  disabled,
   onClick,
   onDelete,
   deletable = false,
@@ -54,7 +53,7 @@ export default function Chip({
 
     // Get color CSS variables for reactive updates
     const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
-    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
+    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
     const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
     const chipIconColorVarForListener = buildVariantColorCssVar('Chip', variant, 'leading-icon-color', layer)
 
@@ -98,7 +97,7 @@ export default function Chip({
 
   // Use recursica_ui-kit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
-  const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
+  const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
   const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
   const chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
@@ -216,13 +215,12 @@ export default function Chip({
   }
 
   // Determine if we need a dismissible tag (has close handler)
-  const hasCloseHandler = deletable && onDelete && !disabled
+  const hasCloseHandler = deletable && onDelete
 
   // Merge library-specific props
   const carbonProps = {
     size: carbonSize,
-    disabled,
-    onClick: disabled ? undefined : onClick,
+    onClick,
     // Use onClose only for DismissibleTag (Tag's onClose is deprecated)
     ...(hasCloseHandler && { onClose: onDelete }),
     // Use native renderIcon prop - CSS will handle sizing and spacing
@@ -286,10 +284,6 @@ export default function Chip({
       minWidth: `var(${minWidthVar})`,
       '--chip-min-width': `var(${minWidthVar})`,
       '--chip-max-width': `var(${maxWidthVar})`,
-      // Set disabled opacity dynamically based on mode
-      ...(disabled && {
-        opacity: `var(--recursica_brand_${mode}-state-disabled, 0.5)`,
-      }),
       ...(() => {
         const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
         return elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}

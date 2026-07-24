@@ -94,10 +94,10 @@ export function NumberInput({
     const errorId = errorText ? `${inputId}-error` : undefined
 
     // Determine effective state
-    const effectiveState = state
+    const effectiveState = state === 'disabled' ? 'disabled' : (errorText ? 'error' : state)
 
     // Get CSS variables for colors based on state variant
-    const backgroundVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
     const textVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
     // Placeholder uses the same color as text (value color)

@@ -39,3 +39,8 @@ scratch_*.js
 validate_*.ts
 validate_*.js
 scratch/
+.agents/scratch/
+
+
+# vitest browser-mode failure screenshots (transient)
+__screenshots__/

@@ -16,7 +16,7 @@ import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
-describe.skip('Panel Toolbar Props Integration', () => {
+describe('Panel Toolbar Props Integration', () => {
     beforeEach(() => {
         // Clear all CSS variables before each test
         document.documentElement.style.cssText = ''
@@ -55,7 +55,7 @@ describe.skip('Panel Toolbar Props Integration', () => {
 
     describe('Color Props Updates', () => {
         const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
-        const colorProps = ['background', 'border-color', 'title', 'content'] as const
+        const colorProps = ['background-color', 'border-color', 'title', 'content'] as const
 
         layers.forEach(layer => {
             colorProps.forEach(colorProp => {

@@ -80,15 +80,13 @@ export default function Autocomplete({
     const isOpenedState = opened ? 'focus' : effectiveState
 
     // Get CSS variables for colors
-    const backgroundVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'border-color')
-    const textVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'text')
+    const textVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'text-color')
     const leadingIconVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'leading-icon')
     const trailingIconVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'trailing-icon')
 
-    // Get focus state colors
-    const focusBorderVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', 'focus', 'properties', 'colors', layer, 'border-color')
-    const focusBorderSizeVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', 'focus', 'properties', 'border-size')
+    // Focus is a GLOBAL state (Theme › States) — no per-component focus colors.
 
     // Get variant-specific border size
     const borderSizeVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', effectiveState, 'properties', 'border-size')
@@ -100,8 +98,8 @@ export default function Autocomplete({
     const verticalPaddingVar = getComponentLevelCssVar('Autocomplete', 'vertical-padding')
     const iconSizeVar = getComponentLevelCssVar('Autocomplete', 'icon-size')
     const iconTextGapVar = getComponentLevelCssVar('Autocomplete', 'icon-text-gap')
-    const maxWidthVar = getComponentLevelCssVar('Autocomplete', 'max-width')
-    const minWidthVar = getComponentLevelCssVar('Autocomplete', 'min-width')
+    const maxWidthVar = buildComponentCssVarPath('Autocomplete', 'variants', 'layouts', layout, 'properties', 'max-width')
+    const minWidthVar = buildComponentCssVarPath('Autocomplete', 'variants', 'layouts', layout, 'properties', 'min-width')
     const placeholderOpacityVar = getComponentLevelCssVar('Autocomplete', 'placeholder-opacity')
 
     // Get text style CSS variables
@@ -226,7 +224,10 @@ export default function Autocomplete({
                 height: 'auto',
                 borderRadius: `var(${borderRadiusVar})`,
                 backgroundColor: `var(${backgroundVar})`,
-                boxShadow: `inset 0 0 0 var(${opened || state === 'focus' ? focusBorderSizeVar : borderSizeVar}) var(${opened || state === 'focus' ? focusBorderVar : borderVar})`,
+                // Focus is a GLOBAL state (glow via interactive-states.css) — keep the
+                // base border always; the removed per-component focus vars were making
+                // this box-shadow invalid on focus, so the border vanished.
+                boxShadow: `inset 0 0 0 var(${borderSizeVar}) var(${borderVar})`,
                 color: `var(${textVar})`,
                 cursor: state === 'disabled' ? 'not-allowed' : 'text',
                 transition: 'box-shadow 0.2s, background-color 0.2s',

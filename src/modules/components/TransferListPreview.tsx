@@ -40,10 +40,8 @@ export default function TransferListPreview({
     // Extract state variant — allows custom states
     const state = selectedVariants.states || 'default'
 
-    // Show the selected layout; fall back to showing both built-in layouts when none selected
-    const layoutsToShow: string[] = selectedVariants.layouts
-        ? [selectedVariants.layouts]
-        : ['stacked', 'side-by-side']
+    // Show only the selected layout variant (axis propName is `layout`).
+    const layoutsToShow: string[] = [selectedVariants.layout || 'stacked']
 
     return (
         <div style={{
@@ -51,13 +49,10 @@ export default function TransferListPreview({
             flexDirection: 'column',
             gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
             width: '100%',
-            alignItems: 'center',
+            alignItems: 'flex-start',
         }}>
             {layoutsToShow.map((layoutVariant) => (
-                <div key={layoutVariant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                    <h2 style={h2Style}>
-                        {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-                    </h2>
+                <div key={layoutVariant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
                     <TransferList
                         label="Forge Inventory"
                         sourceLabel="Available"

@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig, configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 import { watchToolbarIcons } from './vite-plugins/watch-toolbar-icons'
@@ -18,10 +18,21 @@ export default defineConfig({
     drop: process.env.NODE_ENV === 'production' && !process.env.VITEST ? ['console', 'debugger'] as any : [],
   },
   test: {
-    environment: 'jsdom',
+    // This is the node/unit run and the CI gate (`npm run test`). Component render tests
+    // (src/components/adapters/__tests__/**.test.tsx + App.test.tsx) that mount the real
+    // MUI/Mantine/Carbon adapters are EXCLUDED here: rendering three CSS-in-JS libraries in a
+    // headless DOM OOMs the worker. Those run in a REAL browser via `npm run test:browser`
+    // (see vitest.browser.config.ts). Logic tests (*.test.ts) run here; some read `document`,
+    // so we keep a lightweight DOM environment (happy-dom).
+    environment: 'happy-dom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
-    testTimeout: 30000, // Allow time for act() and async UI updates (toolbar/integration tests)
+    testTimeout: 30000,
+    exclude: [
+      ...configDefaults.exclude,
+      'src/components/adapters/__tests__/**',
+      'src/modules/app/App.test.tsx',
+    ],
     coverage: {
       provider: 'v8',
     },

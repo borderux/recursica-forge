@@ -1,169 +1,86 @@
 {
-    "props": {
-        "checkbox": {
-            "icon": "check-square",
-            "label": "Checkbox",
-            "visible": true,
-            "group": {
-                "size": {
-                    "label": "Checkbox size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        4,
-                        100
-                    ],
-                    "step": 1
-                },
-                "border-radius": {
-                    "label": "Corner radius",
-                    "visible": true
-                },
-                "border-size": {
-                    "label": "Border size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        20
-                    ],
-                    "step": 1
-                },
-                "label-gap": {
-                    "label": "Value checkbox gap",
-                    "visible": true
-                },
-                "max-width": {
-                    "label": "Value max width",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        200,
-                        1000
-                    ],
-                    "step": 1
-                },
-                "disabled-opacity": {
-                    "label": "Disabled opacity",
-                    "visible": true
-                }
-            }
-        },
-        "selected": {
-            "icon": "palette",
-            "label": "Selected enabled",
-            "visible": true,
-            "group": {
-                "background-checked": {
-                    "label": "Checked background",
-                    "visible": true
-                },
-                "border-checked": {
-                    "label": "Checked border",
-                    "visible": true
-                },
-                "icon-color": {
-                    "label": "Checked icon",
-                    "visible": true
-                },
-                "background-indeterminate": {
-                    "label": "Indeterminate background",
-                    "visible": true
-                },
-                "border-indeterminate": {
-                    "label": "Indeterminate border",
-                    "visible": true
-                },
-                "icon-color-indeterminate": {
-                    "label": "Indeterminate icon",
-                    "visible": true
-                }
-            }
-        },
-        "selected-disabled": {
-            "icon": "prohibit",
-            "label": "Selected disabled",
-            "visible": true,
-            "group": {
-                "disabled-background-checked": {
-                    "label": "Checked background",
-                    "visible": true
-                },
-                "disabled-border-checked": {
-                    "label": "Checked border",
-                    "visible": true
-                },
-                "disabled-icon-checked": {
-                    "label": "Checked icon",
-                    "visible": true
-                },
-                "disabled-background-indeterminate": {
-                    "label": "Indeterminate background",
-                    "visible": true
-                },
-                "disabled-border-indeterminate": {
-                    "label": "Indeterminate border",
-                    "visible": true
-                },
-                "disabled-icon-indeterminate": {
-                    "label": "Indeterminate icon",
-                    "visible": true
-                }
-            }
-        },
-        "unselected": {
-            "icon": "square",
-            "label": "Unselected",
-            "visible": true,
-            "group": {
-                "background-unchecked": {
-                    "label": "Background",
-                    "visible": true
-                },
-                "border-unchecked": {
-                    "label": "Border",
-                    "visible": true
-                },
-                "disabled-background-unchecked": {
-                    "label": "Disabled background",
-                    "visible": true
-                },
-                "disabled-border-unchecked": {
-                    "label": "Disabled border",
-                    "visible": true
-                }
-            }
-        },
-        "text": {
-            "icon": "text-aa",
-            "label": "Text style",
-            "visible": true,
-            "group": {
-                "font-family": {
-                    "label": "Font",
-                    "visible": true
-                },
-                "font-weight": {
-                    "label": "Weight",
-                    "visible": true
-                },
-                "font-size": {
-                    "label": "Size",
-                    "visible": true
-                },
-                "line-height": {
-                    "label": "Line height",
-                    "visible": true
-                },
-                "text": {
-                    "label": "Color",
-                    "visible": true
-                },
-                "disabled-text": {
-                    "label": "Disabled text color",
-                    "visible": true
-                }
-            }
-        }
+  "variants": {
+    "selection-states": {
+      "icon": "check-square",
+      "label": "State"
     }
+  },
+  "properties": {
+    "checkbox": {
+      "icon": "ruler",
+      "label": "Dimensions",
+      "group": {
+        "properties.size": {
+          "label": "Checkbox size",
+          "propertyType": "slider",
+          "range": [
+            4,
+            100
+          ],
+          "step": 1
+        },
+        "properties.border-radius": {
+          "label": "Corner radius"
+        },
+        "properties.border-size": {
+          "label": "Border size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
+        },
+        "properties.icon-size": {
+          "label": "Checkmark size",
+          "propertyType": "slider",
+          "range": [
+            4,
+            100
+          ],
+          "step": 1
+        },
+        "properties.label-gap": {
+          "label": "Value checkbox gap"
+        },
+        "properties.max-width": {
+          "label": "Value max width",
+          "propertyType": "slider",
+          "range": [
+            200,
+            1000
+          ],
+          "step": 1
+        }
+      }
+    },
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
+      "group": {
+        "properties.colors.background-color": {
+          "label": "Background"
+        },
+        "properties.colors.border-color": {
+          "label": "Border"
+        },
+        "properties.colors.icon-color": {
+          "label": "Checkmark"
+        },
+        "properties.opacity": {
+          "label": "Opacity"
+        },
+        "properties.colors.text-color": {
+          "label": "Color"
+        },
+        "properties.colors.disabled-text": {
+          "label": "Disabled text"
+        }
+      }
+    },
+    "properties.text": {
+      "icon": "text-aa",
+      "label": "Text"
+    }
+  }
 }

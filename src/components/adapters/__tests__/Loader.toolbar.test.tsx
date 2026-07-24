@@ -15,7 +15,10 @@ import { Loader } from '../Loader'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentLevelCssVar } from '../../utils/cssVarNames'
 
-describe.skip('Loader Toolbar Props Integration', () => {
+// TODO(browser-tests): re-enable once repaired. Runs in browser (no OOM) but has stale
+  // assertions from the toolbar rewrite (old CSS-var names, var() refs a real browser resolves,
+  // or changed DOM). Fix against the current toolbar/component DOM, then drop .skip.
+  describe.skip('Loader Toolbar Props Integration', () => {
     beforeEach(() => {
         document.documentElement.style.cssText = ''
     })

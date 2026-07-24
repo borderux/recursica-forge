@@ -57,7 +57,7 @@ export default function HoverCardPopoverPreview({
     }, [])
 
     // Read CSS vars for static preview rendering
-    const bgVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'background')
+    const bgVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'background-color')
     const contentColorVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'content')
     const borderColorVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'border-color')
     const borderRadiusVar = getComponentLevelCssVar('HoverCardPopover', 'border-radius')

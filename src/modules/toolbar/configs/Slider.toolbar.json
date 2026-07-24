@@ -3,193 +3,239 @@
     "states": {
       "icon": "cursor",
       "label": "State"
+    },
+    "layout": {
+      "icon": "layout",
+      "label": "Layout"
     }
   },
-  "props": {
+  "properties": {
     "track": {
       "icon": "faders-horizontal",
       "label": "Track",
-      "visible": true,
       "group": {
-        "track": {
-          "icon": "paint-bucket",
-          "label": "Track",
-          "visible": true
-        },
-        "track-active": {
-          "icon": "paint-bucket",
-          "label": "Active track",
-          "visible": true
-        },
-        "track-height": {
+        "properties.track-height": {
           "icon": "arrows-up-down",
           "label": "Track height",
-          "visible": true
+          "range": [
+            2,
+            20
+          ],
+          "step": 1
         },
-        "track-border-radius": {
+        "properties.track-border-radius": {
           "icon": "corners-out",
           "label": "Track corner radius",
-          "visible": true
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         }
       }
     },
     "thumb": {
       "icon": "circle",
       "label": "Thumb",
-      "visible": true,
       "group": {
-        "thumb": {
+        "properties.thumb": {
           "icon": "paint-bucket",
-          "label": "Thumb",
-          "visible": true
+          "label": "Thumb"
         },
-        "thumb-size": {
+        "properties.thumb-size": {
           "icon": "circle",
           "label": "Thumb size",
-          "visible": true
+          "range": [
+            10,
+            40
+          ],
+          "step": 1
         },
-        "thumb-border-radius": {
+        "properties.thumb-border-radius": {
           "icon": "corners-out",
           "label": "Thumb corner radius",
-          "visible": true
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         },
-        "thumb-elevation": {
+        "properties.thumb-elevation": {
           "icon": "copy-simple",
-          "label": "Thumb elevation",
-          "visible": true
+          "label": "Thumb elevation"
         }
       }
     },
     "gaps": {
       "icon": "split-horizontal",
       "label": "Gaps",
-      "visible": true,
       "group": {
-        "input-gap": {
+        "properties.input-gap": {
           "icon": "split-horizontal",
           "label": "Input gap",
-          "visible": true
+          "range": [
+            0,
+            100
+          ],
+          "step": 1
         }
       }
     },
-    "top-bottom-margin": {
+    "properties.top-bottom-margin": {
       "icon": "arrows-up-down",
-      "label": "Top and bottom margin",
-      "visible": true
+      "label": "Top and bottom margin"
     },
     "icon": {
       "icon": "star",
       "label": "Icon",
-      "visible": true,
       "group": {
-        "icon-color": {
+        "properties.colors.icon-color": {
           "icon": "paint-bucket",
-          "label": "Icon color",
-          "visible": true
+          "label": "Icon color"
         },
-        "icon-size": {
+        "properties.icon-size": {
           "icon": "corners-out",
           "label": "Icon size",
-          "visible": true
+          "range": [
+            12,
+            48
+          ],
+          "step": 1
         }
       }
     },
     "input": {
       "icon": "text-input",
       "label": "Input field",
-      "visible": true,
       "group": {
-        "input-background": {
+        "properties.input-background": {
           "icon": "paint-bucket",
-          "label": "Background color",
-          "visible": true
+          "label": "Background color"
         },
-        "input-border-color": {
+        "properties.input-border-color": {
           "icon": "square",
-          "label": "Border color",
-          "visible": true
+          "label": "Border color"
         },
-        "input-text": {
+        "properties.input-text": {
           "icon": "text-aa",
-          "label": "Text color",
-          "visible": true
+          "label": "Text color"
         },
-        "input-border-size": {
+        "properties.input-border-size": {
           "icon": "corners-out",
           "label": "Border size",
-          "visible": true
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         },
-        "input-border-radius": {
+        "properties.input-border-radius": {
           "icon": "corners-out",
-          "label": "Corner radius",
-          "visible": true
+          "label": "Corner radius"
         },
-        "input-width": {
+        "properties.input-width": {
           "icon": "arrows-left-right",
           "label": "Width",
-          "visible": true
+          "range": [
+            40,
+            200
+          ],
+          "step": 1
         },
-        "input-height": {
+        "properties.input-height": {
           "icon": "arrows-up-down",
           "label": "Height",
-          "visible": true
+          "range": [
+            10,
+            100
+          ],
+          "step": 1
         },
-        "input-padding-vertical": {
+        "properties.input-padding-vertical": {
           "icon": "arrows-out-line-vertical",
           "label": "Vertical padding",
-          "visible": true
+          "range": [
+            0,
+            40
+          ],
+          "step": 1
         },
-        "input-padding-left": {
+        "properties.input-padding-left": {
           "icon": "arrow-left",
           "label": "Left padding",
-          "visible": true
+          "range": [
+            0,
+            40
+          ],
+          "step": 1
         },
-        "input-padding-right": {
+        "properties.input-padding-right": {
           "icon": "arrow-right",
           "label": "Right padding",
-          "visible": true
+          "range": [
+            0,
+            40
+          ],
+          "step": 1
         }
       }
     },
-    "input-text": {
+    "properties.input-text": {
       "icon": "text-aa",
-      "label": "Input text style",
-      "visible": true
+      "label": "Input text style"
     },
-    "min-max-label": {
+    "properties.min-max-label": {
       "icon": "text-aa",
-      "label": "Min/max label style",
-      "visible": true
+      "label": "Min/max label style"
     },
-    "read-only-value": {
+    "properties.read-only-value": {
       "icon": "text-aa",
-      "label": "Read-only value style",
-      "visible": true
+      "label": "Read-only value style"
     },
     "step-indicator": {
       "icon": "dots-three",
       "label": "Step indicator",
-      "visible": true,
       "group": {
-        "step-indicator-color": {
-          "icon": "paint-bucket",
-          "label": "Color",
-          "visible": true
-        },
-        "step-indicator-color-active": {
-          "icon": "paint-bucket",
-          "label": "Active color",
-          "visible": true
-        },
-        "step-indicator-width": {
+        "properties.step-indicator-width": {
           "icon": "arrows-left-right",
-          "label": "Width",
-          "visible": true
+          "label": "Width"
         },
-        "step-indicator-border-radius": {
+        "properties.step-indicator-border-radius": {
           "icon": "corners-out",
-          "label": "Corner radius",
-          "visible": true
+          "label": "Corner radius"
+        }
+      }
+    },
+    "track-color": {
+      "icon": "paint-bucket",
+      "label": "Track color",
+      "group": {
+        "properties.track": {
+          "label": "Track"
+        },
+        "properties.track-active": {
+          "label": "Track Active"
+        }
+      }
+    },
+    "step-indicator-color": {
+      "icon": "paint-bucket",
+      "label": "Step indicator color",
+      "group": {
+        "properties.step-indicator-color": {
+          "label": "Step Indicator Color"
+        },
+        "properties.step-indicator-color-active": {
+          "label": "Step Indicator Color Active"
+        }
+      }
+    },
+    "opacity": {
+      "icon": "eye",
+      "label": "Disabled opacity",
+      "group": {
+        "properties.opacity": {
+          "label": "Opacity"
         }
       }
     }

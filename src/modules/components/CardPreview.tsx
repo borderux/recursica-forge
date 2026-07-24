@@ -8,7 +8,6 @@ import { getElevationBoxShadow, parseElevationValue } from '../../components/uti
 import { getCardElevationLayer } from '../../components/adapters/Card'
 import { readCssVar, readRawCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
-import { h2Style, pStyle } from './typographyStyles'
 
 interface CardPreviewProps {
     selectedVariants: Record<string, string>
@@ -60,9 +59,9 @@ export default function CardPreview({
 
 
     // UIKit per-layer CSS vars (reference brand layer props by default, overridable)
-    const bgVar = getComponentLevelCssVar('Card', `colors.${containerLayer}.background`)
-    const headerBgVar = getComponentLevelCssVar('Card', `colors.${containerLayer}.header-background`)
-    const footerBgVar = getComponentLevelCssVar('Card', `colors.${containerLayer}.footer-background`)
+    const bgVar = getComponentLevelCssVar('Card', `colors.${containerLayer}.background-color`)
+    const headerBgVar = getComponentLevelCssVar('Card', `colors.${containerLayer}.header-background-color`)
+    const footerBgVar = getComponentLevelCssVar('Card', `colors.${containerLayer}.footer-background-color`)
     const borderColorVar = getComponentLevelCssVar('Card', `colors.${containerLayer}.border-color`)
     const dividerColorVar = getComponentLevelCssVar('Card', `colors.${containerLayer}.divider-color`)
     const titleColorVar = getComponentLevelCssVar('Card', `colors.${containerLayer}.title`)
@@ -195,16 +194,16 @@ export default function CardPreview({
                 />
             </div>
 
-            {/* Body */}
+            {/* Body — running prose, so the inter-paragraph spacing is the vertical gutter */}
             <div style={{
                 padding: `var(${paddingVar})`,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: `var(${sectionGapVar})`,
+                gap: `var(${verticalGutterVar})`,
                 ...bodyStyle
             }}>
-                <p style={{ ...pStyle, margin: 0 }}>{goblinChapter}</p>
-                <p style={{ ...pStyle, margin: 0 }}>{goblinParagraph2}</p>
+                <p style={{ margin: 0 }}>{goblinChapter}</p>
+                <p style={{ margin: 0 }}>{goblinParagraph2}</p>
             </div>
 
             {/* Footer */}
@@ -248,7 +247,7 @@ export default function CardPreview({
                     <Badge layer={cardLayer}>Rare</Badge>
                 </div>
                 <div style={{ ...bodyStyle }}>
-                    <p style={{ ...pStyle, margin: 0 }}>{potionDescription}</p>
+                    <p style={{ margin: 0 }}>{potionDescription}</p>
                 </div>
                 <Button variant="solid" layer={cardLayer} style={{ alignSelf: 'flex-start' }}>
                     Add to Inventory
@@ -271,7 +270,7 @@ export default function CardPreview({
                     Grindlefax's Emporium
                 </HeadingTag>
                 <div style={bodyStyle}>
-                    <p style={{ ...pStyle, margin: 0 }}>{shopDescription}</p>
+                    <p style={{ margin: 0 }}>{shopDescription}</p>
                 </div>
             </div>
             {/* Edge-to-edge image at bottom */}

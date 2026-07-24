@@ -16,7 +16,7 @@ function KitSwitcher({ kit }: { kit: 'mantine' | 'material' | 'carbon' }) {
   return null
 }
 
-describe.skip('Button Integration', () => {
+describe('Button Integration', () => {
   beforeEach(() => {
     document.documentElement.style.cssText = ''
   })
@@ -54,7 +54,7 @@ describe.skip('Button Integration', () => {
     }, { timeout: 20000 }) // Increased timeout for full test suite runs
   }
 
-  itDom('renders Mantine button when Mantine is selected', async () => {
+  it('renders Mantine button when Mantine is selected', async () => {
     const { container } = await renderWithKit('mantine')
 
     const button = await waitForButton(container, 'Test Button')
@@ -62,7 +62,7 @@ describe.skip('Button Integration', () => {
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  itDom('renders Material button when Material is selected', async () => {
+  it('renders Material button when Material is selected', async () => {
     const { container } = await renderWithKit('material')
 
     // Material UI can take longer to initialize, especially in full test suite
@@ -80,7 +80,7 @@ describe.skip('Button Integration', () => {
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  itDom('renders Carbon button when Carbon is selected', async () => {
+  it('renders Carbon button when Carbon is selected', async () => {
     const { container } = await renderWithKit('carbon')
 
     // Carbon can take longer to initialize in CI environments

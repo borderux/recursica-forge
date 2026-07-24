@@ -79,7 +79,7 @@ export function createLayerCssVars(
   if (layer && layer !== 'layer-0') {
     // These will be used via CSS custom properties in the component styles
     Object.keys(properties).forEach((key) => {
-      if (key.includes('color') || key.includes('background')) {
+      if (key.includes('color') || key.includes('background-color')) {
         const layerVar = getComponentCssVar(
           component as any,
           'colors',

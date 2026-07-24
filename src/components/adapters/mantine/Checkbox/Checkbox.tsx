@@ -22,28 +22,30 @@ export default function Checkbox({
   mantine,
   ...props
 }: AdapterCheckboxProps) {
-  // Checkbox Colors - use the layer prop to get layer-specific colors
-  const bgCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-checked')
-  const bgUncheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-unchecked')
-  const bgIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-indeterminate')
-  const borderCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-checked')
-  const borderUncheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-unchecked')
-  const borderIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-indeterminate')
-  const iconColorVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color')
-  const iconColorIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color-indeterminate')
+  // Checkbox Colors — now nested under variants.selection-states.<val>[.variants.states.disabled]
+  const base = (val: string, prop: string) => buildComponentCssVarPath('Checkbox', 'variants', 'selection-states', val, 'properties', 'colors', layer, prop)
+  const dis = (val: string, prop: string) => buildComponentCssVarPath('Checkbox', 'variants', 'selection-states', val, 'variants', 'states', 'disabled', 'properties', 'colors', layer, prop)
+  const bgCheckedVar = base('checked', 'background-color')
+  const bgUncheckedVar = base('unchecked', 'background-color')
+  const bgIndeterminateVar = base('indeterminate', 'background-color')
+  const borderCheckedVar = base('checked', 'border-color')
+  const borderUncheckedVar = base('unchecked', 'border-color')
+  const borderIndeterminateVar = base('indeterminate', 'border-color')
+  const iconColorVar = base('checked', 'icon-color')
+  const iconColorIndeterminateVar = base('indeterminate', 'icon-color')
 
-  const disabledBgCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background-checked')
-  const disabledBgUncheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background-unchecked')
-  const disabledBgIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background-indeterminate')
+  const disabledBgCheckedVar = dis('checked', 'background-color')
+  const disabledBgUncheckedVar = dis('unchecked', 'background-color')
+  const disabledBgIndeterminateVar = dis('indeterminate', 'background-color')
 
-  const disabledBorderCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-border-checked')
-  const disabledBorderUncheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-border-unchecked')
-  const disabledBorderIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-border-indeterminate')
+  const disabledBorderCheckedVar = dis('checked', 'border-color')
+  const disabledBorderUncheckedVar = dis('unchecked', 'border-color')
+  const disabledBorderIndeterminateVar = dis('indeterminate', 'border-color')
 
-  const disabledIconCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-icon-checked')
-  const disabledIconIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-icon-indeterminate')
+  const disabledIconCheckedVar = dis('checked', 'icon-color')
+  const disabledIconIndeterminateVar = dis('indeterminate', 'icon-color')
 
-  const disabledOpacityVar = buildComponentCssVarPath('Checkbox', 'properties', 'disabled-opacity')
+  const disabledOpacityVar = buildComponentCssVarPath('Checkbox', 'variants', 'selection-states', 'checked', 'variants', 'states', 'disabled', 'properties', 'opacity')
 
   // Size and spacing
   const sizeVar = buildComponentCssVarPath('Checkbox', 'properties', 'size')

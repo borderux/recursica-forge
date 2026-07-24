@@ -41,11 +41,11 @@ export default function MenuItem({
   }
 
   // Get CSS variables for colors
-  const bgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', effectiveVariant, 'properties', 'colors', layer, 'background')
+  const bgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', effectiveVariant, 'properties', 'colors', layer, 'background-color')
   const textVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', effectiveVariant, 'properties', 'colors', layer, 'text')
 
   // Get selected-background from properties.colors (component-level, layer-specific)
-  const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-background')
+  const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-background-color')
 
   // Get component-level properties
   const borderRadiusVar = getComponentLevelCssVar('MenuItem', 'border-radius')

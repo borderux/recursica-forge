@@ -23,7 +23,7 @@ export default function Menu({
   const { mode } = useThemeMode()
 
   // Get CSS variables for colors
-  const bgVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'background')
+  const bgVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'background-color')
   const borderVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'border-color')
   const dividerColorVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'divider-color')
 
@@ -78,6 +78,34 @@ export default function Menu({
     }
   }, [updateClampedHeight])
 
+  // Roving focus: only one menu item is tabbable; arrows move focus between items.
+  useEffect(() => {
+    const el = menuRef.current
+    if (!el) return
+    const items = Array.from(el.querySelectorAll<HTMLElement>('.mantine-menu-item'))
+    if (!items.length) return
+    const selIdx = items.findIndex((it) => it.getAttribute('data-selected') === 'true')
+    const active = selIdx >= 0 ? selIdx : 0
+    items.forEach((it, i) => { it.tabIndex = i === active ? 0 : -1 })
+  }, [children])
+
+  const handleMenuKeyDown = (e: React.KeyboardEvent) => {
+    const el = menuRef.current
+    if (!el) return
+    const items = Array.from(el.querySelectorAll<HTMLElement>('.mantine-menu-item:not([disabled])'))
+    if (!items.length) return
+    const cur = items.indexOf(document.activeElement as HTMLElement)
+    let next = -1
+    if (e.key === 'ArrowDown') next = cur < 0 ? 0 : (cur + 1) % items.length
+    else if (e.key === 'ArrowUp') next = cur < 0 ? items.length - 1 : (cur - 1 + items.length) % items.length
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = items.length - 1
+    else return
+    e.preventDefault()
+    items.forEach((it, i) => { it.tabIndex = i === next ? 0 : -1 })
+    items[next].focus()
+  }
+
   // Interleave divider elements between children when configured
   const childArray = React.Children.toArray(children)
   const renderedChildren = showDividers && childArray.length > 1
@@ -101,6 +129,8 @@ export default function Menu({
       ref={menuRef}
       className={`mantine-menu ${className || ''}`}
       data-layer={layer}
+      role="menu"
+      onKeyDown={handleMenuKeyDown}
       style={{
         ['--menu-bg' as string]: `var(${bgVar})`,
         ['--menu-border' as string]: `var(${borderVar})`,

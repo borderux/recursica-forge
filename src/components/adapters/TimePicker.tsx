@@ -92,6 +92,9 @@ export function TimePicker({
     const helpId = helpText ? `${inputId}-help` : undefined
     const errorId = errorText ? `${inputId}-error` : undefined
 
+    // Determine effective state
+    const effectiveState = state === 'disabled' ? 'disabled' : (errorText ? 'error' : state)
+
     // Get component-level properties
     const widthVar = getComponentLevelCssVar('TimePicker', 'width')
 
@@ -130,7 +133,7 @@ export function TimePicker({
                     helpText={helpText}
                     errorText={errorText}
                     leadingIcon={leadingIcon}
-                    state={state}
+                    state={effectiveState}
                     layout={layout}
                     layer={layer}
                     required={required}

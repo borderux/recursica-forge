@@ -47,8 +47,8 @@ export default function Tooltip({
     const propPath = ['properties']
     const textPath = ['properties', 'text']
 
-    const tooltipBgVar = buildComponentCssVarPath('Tooltip', ...colorPath, 'background', mode)
-    const tooltipColorVar = buildComponentCssVarPath('Tooltip', ...colorPath, 'text', mode)
+    const tooltipBgVar = buildComponentCssVarPath('Tooltip', ...colorPath, 'background-color', mode)
+    const tooltipColorVar = buildComponentCssVarPath('Tooltip', ...colorPath, 'text-color', mode)
     const tooltipBorderColorVar = buildComponentCssVarPath('Tooltip', ...colorPath, 'border-color', mode)
 
     const verticalPaddingVar = buildComponentCssVarPath('Tooltip', ...propPath, 'vertical-padding', mode)

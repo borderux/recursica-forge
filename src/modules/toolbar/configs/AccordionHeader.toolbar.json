@@ -1,0 +1,90 @@
+{
+  "variants": {
+    "appearance": {
+      "icon": "eye",
+      "label": "State",
+      "optionLabels": {
+        "open": "Expanded",
+        "closed": "Collapsed"
+      }
+    }
+  },
+  "properties": {
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
+      "group": {
+        "properties.colors.background-color": {
+          "label": "Background"
+        },
+        "properties.colors.text-color": {
+          "label": "Text"
+        },
+        "properties.colors.icon-color": {
+          "label": "Icon"
+        },
+        "properties.colors.border-color": {
+          "label": "Border"
+        }
+      }
+    },
+    "border": {
+      "icon": "square",
+      "label": "Border",
+      "group": {
+        "properties.border-radius": {
+          "label": "Corner radius"
+        },
+        "properties.border-size": {
+          "label": "Size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
+        }
+      }
+    },
+    "properties.text": {
+      "icon": "text-aa",
+      "label": "Text"
+    },
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation",
+      "group": {
+        "properties.elevation": {
+          "label": "Content"
+        }
+      }
+    },
+    "spacing": {
+      "icon": "arrows-out",
+      "label": "Spacing",
+      "group": {
+        "properties.icon-gap": {
+          "label": "Icon-text gap"
+        },
+        "properties.horizontal-padding": {
+          "label": "Horizontal padding"
+        },
+        "properties.vertical-padding": {
+          "label": "Vertical padding"
+        }
+      }
+    },
+    "icon-size": {
+      "icon": "star",
+      "label": "Icons",
+      "group": {
+        "properties.icon-left-size": {
+          "label": "Left icon"
+        },
+        "properties.icon-right-size": {
+          "label": "Right icon"
+        }
+      }
+    }
+  }
+}

@@ -39,7 +39,7 @@ export default function SegmentedControl({
   const isVertical = orientation === 'vertical'
 
   // Get CSS variables - container properties (always from SegmentedControl)
-  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'background')
+  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'background-color')
   const containerBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'border-color')
   const containerBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'border-size')
   const containerBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'border-radius')
@@ -51,26 +51,33 @@ export default function SegmentedControl({
   const paddingHorizontalVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'padding-horizontal')
   const heightVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'height')
 
-  // Get CSS variables - selected properties - always use SegmentedControlItem for item selected properties
-  const selectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background')
-  const selectedBorderColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'border-color')
-  const selectedBorderSizeVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'border-size')
-  const selectedBorderRadiusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'border-radius')
-  const selectedElevationVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'elevation')
+  // Selected/unselected are now selection-state variants on SegmentedControlItem:
+  // variants/selection-states/<selected|unselected>/properties/{colors,border-size,border-radius,elevation,text}.
+  const sciColor = (state: 'selected' | 'unselected', prop: string) =>
+    buildComponentCssVarPath('SegmentedControlItem', 'variants', 'selection-states', state, 'properties', 'colors', layer, prop)
+  const sciProp = (state: 'selected' | 'unselected', prop: string) =>
+    buildComponentCssVarPath('SegmentedControlItem', 'variants', 'selection-states', state, 'properties', prop)
+
+  // Get CSS variables - selected properties
+  const selectedBgVar = sciColor('selected', 'background-color')
+  const selectedBorderColorVar = sciColor('selected', 'border-color')
+  const selectedBorderSizeVar = sciProp('selected', 'border-size')
+  const selectedBorderRadiusVar = sciProp('selected', 'border-radius')
+  const selectedElevationVar = sciProp('selected', 'elevation')
 
   // Get CSS variables - unselected properties
-  const unselectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'background')
-  const unselectedBorderColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'border-color')
-  const unselectedBorderSizeVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'border-size')
-  const unselectedBorderRadiusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'border-radius')
-  const unselectedElevationVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'elevation')
-  const unselectedTextColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'text-color')
+  const unselectedBgVar = sciColor('unselected', 'background-color')
+  const unselectedBorderColorVar = sciColor('unselected', 'border-color')
+  const unselectedBorderSizeVar = sciProp('unselected', 'border-size')
+  const unselectedBorderRadiusVar = sciProp('unselected', 'border-radius')
+  const unselectedElevationVar = sciProp('unselected', 'elevation')
+  const unselectedTextColorVar = sciColor('unselected', 'text-color')
 
-  // Get CSS variables - item properties (applied to all items when no per-state override)
+  // Get CSS variables - item properties (applied to all items; shared dims, not per-state)
   const itemBorderRadiusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'border-radius')
 
-  // Get CSS variables - text colors - use SegmentedControlItem for text colors (not parent container)
-  const selectedTextVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'text-color')
+  // Selected text color
+  const selectedTextVar = sciColor('selected', 'text-color')
 
   // Get other properties - always use SegmentedControlItem for item properties, SegmentedControl for container properties
   const itemGapVar = getComponentLevelCssVar('SegmentedControl', 'item-gap')
@@ -88,25 +95,29 @@ export default function SegmentedControl({
   const dividerColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'divider-color')
   const dividerSizeVar = getComponentLevelCssVar('SegmentedControl', 'divider-size')
 
+  // Text style now lives under each selection-state variant: variants/selection-states/<state>/properties/text/*
+  const sciText = (state: 'selected' | 'unselected', prop: string) =>
+    buildComponentCssVarPath('SegmentedControlItem', 'variants', 'selection-states', state, 'properties', 'text', prop)
+
   // Get selected text properties
-  const selectedFontFamilyVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'font-family')
-  const selectedFontSizeVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'font-size')
-  const selectedFontWeightVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'font-weight')
-  const selectedLetterSpacingVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'letter-spacing')
-  const selectedLineHeightVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'line-height')
-  const selectedTextDecorationVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'text-decoration')
-  const selectedTextTransformVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'text-transform')
-  const selectedFontStyleVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'font-style')
+  const selectedFontFamilyVar = sciText('selected', 'font-family')
+  const selectedFontSizeVar = sciText('selected', 'font-size')
+  const selectedFontWeightVar = sciText('selected', 'font-weight')
+  const selectedLetterSpacingVar = sciText('selected', 'letter-spacing')
+  const selectedLineHeightVar = sciText('selected', 'line-height')
+  const selectedTextDecorationVar = sciText('selected', 'text-decoration')
+  const selectedTextTransformVar = sciText('selected', 'text-transform')
+  const selectedFontStyleVar = sciText('selected', 'font-style')
 
   // Get unselected text properties
-  const unselectedFontFamilyVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'font-family')
-  const unselectedFontSizeVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'font-size')
-  const unselectedFontWeightVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'font-weight')
-  const unselectedLetterSpacingVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'letter-spacing')
-  const unselectedLineHeightVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'line-height')
-  const unselectedTextDecorationVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'text-decoration')
-  const unselectedTextTransformVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'text-transform')
-  const unselectedFontStyleVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'font-style')
+  const unselectedFontFamilyVar = sciText('unselected', 'font-family')
+  const unselectedFontSizeVar = sciText('unselected', 'font-size')
+  const unselectedFontWeightVar = sciText('unselected', 'font-weight')
+  const unselectedLetterSpacingVar = sciText('unselected', 'letter-spacing')
+  const unselectedLineHeightVar = sciText('unselected', 'line-height')
+  const unselectedTextDecorationVar = sciText('unselected', 'text-decoration')
+  const unselectedTextTransformVar = sciText('unselected', 'text-transform')
+  const unselectedFontStyleVar = sciText('unselected', 'font-style')
 
   // Reactively read border-size and divider-size
   const borderSizeValue = useCssVar(containerBorderSizeVar, '1px')
@@ -400,8 +411,8 @@ export default function SegmentedControl({
       tooltipEl.textContent = tooltipText
 
       // Get tooltip CSS variables using the proper utility function
-      const tooltipBg = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'background')
-      const tooltipTextColor = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'text')
+      const tooltipBg = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'background-color')
+      const tooltipTextColor = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'text-color')
       const tooltipBorderColor = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'border-color')
       const tooltipBorderSize = buildComponentCssVarPath('Tooltip', 'properties', 'border-size')
       const tooltipBorderRadius = buildComponentCssVarPath('Tooltip', 'properties', 'border-radius')
@@ -606,7 +617,7 @@ export default function SegmentedControl({
             ; (indicator as HTMLElement).style.setProperty('display', 'none', 'important')
               ; (indicator as HTMLElement).style.setProperty('visibility', 'hidden', 'important')
               ; (indicator as HTMLElement).style.setProperty('opacity', '0', 'important')
-              ; (indicator as HTMLElement).style.setProperty('background', 'transparent', 'important')
+              ; (indicator as HTMLElement).style.setProperty('background-color', 'transparent', 'important')
               ; (indicator as HTMLElement).style.setProperty('background-color', 'transparent', 'important')
               ; (indicator as HTMLElement).style.setProperty('border-color', 'transparent', 'important')
           }

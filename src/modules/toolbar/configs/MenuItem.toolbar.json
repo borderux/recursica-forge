@@ -1,174 +1,98 @@
 {
-  "variants": {},
-  "props": {
-    "unselected-item": {
-      "icon": "paint-bucket",
-      "label": "Unselected item",
-      "visible": true,
+  "variants": {
+    "selection-states": {
+      "icon": "check-square",
+      "label": "State",
+      "options": [
+        "unselected",
+        "selected"
+      ]
+    }
+  },
+  "properties": {
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
       "group": {
-        "background": {
+        "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true,
-          "floatingPaletteLabel": "Background Color"
+          "label": "Background"
         },
-        "text": {
+        "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Text",
-          "visible": true,
-          "floatingPaletteLabel": "Text Color"
+          "label": "Text"
         },
-        "supporting-text-color": {
+        "properties.colors.supporting-text-color": {
           "icon": "text-aa",
-          "label": "Supporting text",
-          "visible": true,
-          "floatingPaletteLabel": "Supporting Text Color"
+          "label": "Supporting text"
         },
-        "leading-icon-color": {
+        "properties.colors.leading-icon-color": {
           "icon": "image-square",
-          "label": "Leading icon",
-          "visible": true,
-          "floatingPaletteLabel": "Leading Icon Color"
+          "label": "Leading icon"
         },
-        "trailing-icon-color": {
+        "properties.colors.trailing-icon-color": {
           "icon": "image-square",
-          "label": "Trailing icon",
-          "visible": true,
-          "floatingPaletteLabel": "Trailing Icon Color"
-        },
-        "hover-color": {
-          "icon": "cursor-click",
-          "label": "Hover color",
-          "visible": true,
-          "floatingPaletteLabel": "Hover Color"
-        },
-        "hover-opacity": {
-          "icon": "cursor-click",
-          "label": "Hover opacity",
-          "visible": true
+          "label": "Trailing icon"
         }
       }
     },
-    "selected-item": {
-      "icon": "paint-bucket",
-      "label": "Selected item",
-      "visible": true,
-      "group": {
-        "background": {
-          "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true,
-          "floatingPaletteLabel": "Selected Background Color"
-        },
-        "text": {
-          "icon": "text-aa",
-          "label": "Text",
-          "visible": true,
-          "floatingPaletteLabel": "Selected Text Color"
-        },
-        "supporting-text-color": {
-          "icon": "text-aa",
-          "label": "Supporting text",
-          "visible": true,
-          "floatingPaletteLabel": "Selected Supporting Text Color"
-        },
-        "leading-icon-color": {
-          "icon": "image-square",
-          "label": "Leading icon",
-          "visible": true,
-          "floatingPaletteLabel": "Selected Leading Icon Color"
-        },
-        "trailing-icon-color": {
-          "icon": "image-square",
-          "label": "Trailing icon",
-          "visible": true,
-          "floatingPaletteLabel": "Selected Trailing Icon Color"
-        },
-        "hover-color": {
-          "icon": "cursor-click",
-          "label": "Hover color",
-          "visible": true,
-          "floatingPaletteLabel": "Hover Color"
-        },
-        "hover-opacity": {
-          "icon": "cursor-click",
-          "label": "Hover opacity",
-          "visible": true
-        }
-      }
-    },
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
-      "label": "Text style",
-      "visible": true
+      "label": "Text style"
     },
-    "supporting-text": {
+    "properties.supporting-text": {
       "icon": "text-aa",
-      "label": "Supporting text style",
-      "visible": true
+      "label": "Supporting text style"
     },
     "icon": {
-      "icon": "image-square",
-      "label": "Icon sizes",
-      "visible": true,
+      "icon": "star",
+      "label": "Icons",
       "group": {
-        "icon-leading-size": {
+        "properties.icon-leading-size": {
           "icon": "image-square",
-          "label": "Leading icon size",
-          "visible": true,
-          "floatingPaletteLabel": "Leading Icon Size"
+          "label": "Leading icon size"
         },
-        "icon-trailing-size": {
+        "properties.icon-trailing-size": {
           "icon": "image-square",
-          "label": "Trailing icon size",
-          "visible": true,
-          "floatingPaletteLabel": "Trailing Icon Size"
+          "label": "Trailing icon size"
         }
       }
     },
-    "border-radius": {
+    "properties.border-radius": {
       "icon": "corners-out",
-      "label": "Corner radius",
-      "visible": true,
-      "floatingPaletteLabel": "Corner Radius"
+      "label": "Corner radius"
     },
     "padding": {
       "icon": "square-logo",
       "label": "Padding and gaps",
-      "visible": true,
-      "floatingPaletteLabel": "Padding",
       "group": {
-        "vertical-padding": {
+        "properties.vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical padding",
-          "visible": true,
-          "floatingPaletteLabel": "Vertical Padding"
+          "label": "Vertical padding"
         },
-        "horizontal-padding": {
+        "properties.horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal padding",
-          "visible": true,
-          "floatingPaletteLabel": "Horizontal Padding"
+          "label": "Horizontal padding"
         },
-        "icon-text-gap": {
+        "properties.icon-text-gap": {
           "icon": "split-horizontal",
-          "label": "Icon gap",
-          "visible": true,
-          "floatingPaletteLabel": "Icon Gap"
+          "label": "Icon gap"
         },
-        "text-gap": {
+        "properties.text-gap": {
           "icon": "rows",
-          "label": "Text gap",
-          "visible": true,
-          "floatingPaletteLabel": "Text Gap"
+          "label": "Text gap"
         }
       }
     },
-    "disabled-opacity": {
+    "disabled": {
       "icon": "eye",
-      "label": "Disabled opacity",
-      "visible": true,
-      "floatingPaletteLabel": "Disabled Opacity"
+      "label": "Opacity",
+      "group": {
+        "properties.colors.opacity": {
+          "icon": "eye",
+          "label": "Opacity"
+        }
+      }
     }
   }
 }

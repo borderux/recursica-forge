@@ -356,7 +356,7 @@ export default function MaterialShell({
               const buttonSolidBg = getComponentCssVar(
                 "Button",
                 "colors",
-                "solid-background",
+                "solid-background-color",
                 "layer-0",
               );
               const buttonSolidText = getComponentCssVar(
@@ -740,7 +740,7 @@ export default function MaterialShell({
               const buttonSolidBg = getComponentCssVar(
                 "Button",
                 "colors",
-                "solid-background",
+                "solid-background-color",
                 "layer-0",
               );
               const buttonSolidText = getComponentCssVar(

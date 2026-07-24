@@ -1,91 +1,84 @@
 {
   "variants": {},
-  "props": {
+  "properties": {
     "container": {
-      "icon": "paint-bucket",
+      "icon": "bounding-box",
       "label": "Container",
-      "visible": true,
       "group": {
-        "background": {
-          "label": "Background",
-          "visible": true,
-          "floatingPaletteLabel": "Background Color"
+        "properties.colors.background-color": {
+          "label": "Background"
         },
-        "padding": {
-          "label": "Padding",
-          "visible": true,
-          "floatingPaletteLabel": "Padding"
+        "properties.padding": {
+          "label": "Padding"
         }
       }
     },
     "border": {
       "icon": "square",
       "label": "Border",
-      "visible": true,
-      "floatingPaletteLabel": "Border",
       "group": {
-        "border-color": {
-          "label": "Border color",
-          "visible": true,
-          "floatingPaletteLabel": "Border Color"
+        "properties.colors.border-color": {
+          "label": "Color"
         },
-        "border-size": {
-          "label": "Border size",
-          "visible": true,
-          "floatingPaletteLabel": "Border Size"
+        "properties.border-size": {
+          "label": "Size",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1,
+          "propertyType": "slider"
         },
-        "border-radius": {
-          "label": "Border radius",
-          "visible": true,
-          "floatingPaletteLabel": "Border Radius"
+        "properties.border-radius": {
+          "label": "Corner radius"
         }
       }
     },
-    "item-gap": {
-      "icon": "split-horizontal",
-      "label": "Item gap",
-      "visible": true,
-      "floatingPaletteLabel": "Item Gap",
+    "divider": {
+      "icon": "minus",
+      "label": "Dividers",
       "group": {
-        "item-gap": {
-          "label": "Gap size",
-          "visible": true,
-          "floatingPaletteLabel": "Item Gap"
+        "properties.item-gap": {
+          "label": "Gap between items"
         },
-        "divider": {
-          "label": "Divider color",
-          "visible": true
+        "properties.divider-color": {
+          "label": "Color"
         },
-        "divider-size": {
-          "label": "Divider size",
-          "visible": true,
-          "floatingPaletteLabel": "Divider Size"
+        "properties.divider-size": {
+          "label": "Size",
+          "range": [
+            0,
+            10
+          ],
+          "step": 1
         }
       }
     },
     "width": {
       "icon": "arrows-left-right",
       "label": "Width",
-      "visible": true,
-      "floatingPaletteLabel": "Width",
       "group": {
-        "min-width": {
+        "properties.min-width": {
           "label": "Min width",
-          "visible": true,
-          "floatingPaletteLabel": "Minimum Width"
+          "range": [
+            20,
+            200
+          ],
+          "step": 1
         },
-        "max-width": {
+        "properties.max-width": {
           "label": "Max width",
-          "visible": true,
-          "floatingPaletteLabel": "Maximum Width"
+          "range": [
+            100,
+            500
+          ],
+          "step": 1
         }
       }
     },
-    "elevation": {
+    "properties.elevation": {
       "icon": "copy-simple",
-      "label": "Elevation",
-      "visible": true,
-      "floatingPaletteLabel": "Elevation"
+      "label": "Elevation"
     }
   }
 }

@@ -36,10 +36,11 @@
   border-radius: var(--slider-radius) !important;
 }
 
-/* Override bar (filled/active portion) color */
+/* Override bar (filled/active portion) color.
+   Longhand only — the `background:` shorthand would reset background-image and
+   block the global hover tint. */
 .mantine-Slider-root .mantine-Slider-bar {
   background-color: var(--slider-color) !important;
-  background: var(--slider-color) !important;
   height: var(--custom-track-height, 4px) !important;
   border-radius: var(--slider-radius) !important;
 }
@@ -54,21 +55,21 @@
 /* Style Mantine's slider tooltip to match our unified Tooltip component */
 .mantine-Slider-label {
   /* Use Tooltip component's CSS variables for consistent styling */
-  background-color: var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_background) !important;
-  color: var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_text) !important;
-  border: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-size) solid var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_border-color) !important;
-  border-radius: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-radius) !important;
-  padding: var(--recursica_ui-kit_themes_light_components_tooltip_properties_vertical-padding) var(--recursica_ui-kit_themes_light_components_tooltip_properties_horizontal-padding) !important;
-  min-width: var(--recursica_ui-kit_themes_light_components_tooltip_properties_min-width) !important;
-  max-width: var(--recursica_ui-kit_themes_light_components_tooltip_properties_max-width) !important;
-  min-height: var(--recursica_ui-kit_themes_light_components_tooltip_properties_min-height) !important;
+  background-color: var(--recursica_ui-kit_components_tooltip_properties_colors_layer-1_background-color) !important;
+  color: var(--recursica_ui-kit_components_tooltip_properties_colors_layer-1_text-color) !important;
+  border: var(--recursica_ui-kit_components_tooltip_properties_border-size) solid var(--recursica_ui-kit_components_tooltip_properties_colors_layer-1_border-color) !important;
+  border-radius: var(--recursica_ui-kit_components_tooltip_properties_border-radius) !important;
+  padding: var(--recursica_ui-kit_components_tooltip_properties_vertical-padding) var(--recursica_ui-kit_components_tooltip_properties_horizontal-padding) !important;
+  min-width: var(--recursica_ui-kit_components_tooltip_properties_min-width) !important;
+  max-width: var(--recursica_ui-kit_components_tooltip_properties_max-width) !important;
+  min-height: var(--recursica_ui-kit_components_tooltip_properties_min-height) !important;
 
   /* Typography */
-  font-family: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_font-family) !important;
-  font-size: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_font-size) !important;
-  font-weight: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_font-weight) !important;
-  letter-spacing: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_letter-spacing) !important;
-  line-height: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_line-height) !important;
+  font-family: var(--recursica_ui-kit_components_tooltip_properties_text_font-family) !important;
+  font-size: var(--recursica_ui-kit_components_tooltip_properties_text_font-size) !important;
+  font-weight: var(--recursica_ui-kit_components_tooltip_properties_text_font-weight) !important;
+  letter-spacing: var(--recursica_ui-kit_components_tooltip_properties_text_letter-spacing) !important;
+  line-height: var(--recursica_ui-kit_components_tooltip_properties_text_line-height) !important;
 
   /* Centering */
   display: flex !important;
@@ -89,9 +90,9 @@
   transform: translateX(-50%) rotate(45deg) !important;
   width: 8px !important;
   height: 8px !important;
-  background-color: var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_background) !important;
-  border-right: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-size) solid var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_border-color) !important;
-  border-bottom: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-size) solid var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_border-color) !important;
+  background-color: var(--recursica_ui-kit_components_tooltip_properties_colors_layer-1_background-color) !important;
+  border-right: var(--recursica_ui-kit_components_tooltip_properties_border-size) solid var(--recursica_ui-kit_components_tooltip_properties_colors_layer-1_border-color) !important;
+  border-bottom: var(--recursica_ui-kit_components_tooltip_properties_border-size) solid var(--recursica_ui-kit_components_tooltip_properties_colors_layer-1_border-color) !important;
 }
 
 /* Step marks for discrete sliders */

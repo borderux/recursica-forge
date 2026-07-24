@@ -47,8 +47,8 @@ export default function Button({
   const cssVarVariant = variant
 
   // Use recursica_ui-kit.json button colors for standard layers
-  const buttonBgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background')
-  const buttonColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text')
+  const buttonBgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background-color')
+  const buttonColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text-color')
 
   // Get hover color and opacity from the size variant (moved from component level)
   const hoverColorVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'hover-color')
@@ -115,8 +115,11 @@ export default function Button({
   const elevationVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'elevation')
   // Reactively read elevation to trigger re-renders when it changes
   const elevationValueRaw = useCssVar(elevationVar, 'elevation-0')
-  // Use prop override if provided, otherwise use CSS var value
-  const resolvedElevation = elevation || elevationValueRaw || 'elevation-0'
+  // Disabled buttons use the disabled state's own elevation.
+  const disabledElevationVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'variants', 'states', 'disabled', 'properties', 'elevation')
+  const disabledElevationValueRaw = useCssVar(disabledElevationVar, 'elevation-0')
+  // Use prop override if provided, otherwise the disabled-state elevation when disabled, else the base CSS var value
+  const resolvedElevation = elevation || (disabled ? (disabledElevationValueRaw || 'elevation-0') : (elevationValueRaw || 'elevation-0'))
 
   // Get hover-elevation CSS variable (variant-specific property)
   const hoverElevationVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'hover-elevation')
@@ -353,9 +356,9 @@ export default function Button({
           alignItems: 'center',
           justifyContent: 'center',
         }),
-        // Use component-level disabled-opacity token when disabled - don't change colors, just apply opacity
+        // Use the disabled state's opacity (driven by the global disabled state) - don't change colors, just apply opacity
         ...(disabled && {
-          opacity: `var(${buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'disabled-opacity')})`,
+          opacity: `var(${buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'variants', 'states', 'disabled', 'properties', 'opacity')})`,
         }),
         minWidth: `var(${minWidthVar})`,
         borderRadius: `var(${borderRadiusVar})`,

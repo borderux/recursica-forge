@@ -1,61 +1,59 @@
 {
   "variants": {},
-  "props": {
-    "background": {
-      "icon": "paint-bucket",
-      "label": "Background",
-      "visible": true,
-      "floatingPaletteLabel": "Background Color"
+  "properties": {
+    "properties.colors.background-color": {
+      "icon": "palette",
+      "label": "Background"
     },
     "border": {
       "icon": "square",
       "label": "Border",
-      "visible": true,
-      "floatingPaletteLabel": "Border",
       "group": {
-        "border-color": {
+        "properties.colors.border-color": {
           "icon": "paint-bucket",
-          "label": "Border color",
-          "visible": true,
-          "floatingPaletteLabel": "Border Color"
+          "label": "Border color"
         },
-        "border-size": {
+        "properties.border-size": {
           "icon": "arrows-left-right",
           "label": "Border size",
-          "visible": true,
-          "floatingPaletteLabel": "Border Size"
+          "range": [
+            0,
+            20
+          ],
+          "step": 1,
+          "propertyType": "slider"
         },
-        "border-radius": {
+        "properties.border-radius": {
           "icon": "corners-out",
-          "label": "Corner radius",
-          "visible": true,
-          "floatingPaletteLabel": "Corner Radius"
+          "label": "Corner radius"
         }
       }
     },
     "size": {
       "icon": "arrows-out",
       "label": "Size",
-      "visible": true,
-      "floatingPaletteLabel": "Size",
       "group": {
-        "min-width": {
+        "properties.min-width": {
           "icon": "arrows-in-line-horizontal",
           "label": "Min width",
-          "visible": true,
-          "floatingPaletteLabel": "Minimum Width"
+          "range": [
+            50,
+            500
+          ],
+          "step": 1
         },
-        "max-width": {
+        "properties.max-width": {
           "icon": "arrows-out-line-horizontal",
           "label": "Max width",
-          "visible": true,
-          "floatingPaletteLabel": "Maximum Width"
+          "range": [
+            200,
+            1000
+          ],
+          "step": 1
         },
-        "max-height": {
+        "properties.max-height": {
           "icon": "arrows-out-line-vertical",
           "label": "Max height",
-          "visible": true,
-          "floatingPaletteLabel": "Maximum Height",
           "propertyType": "slider",
           "range": [
             200,
@@ -68,56 +66,44 @@
     "padding": {
       "icon": "square-logo",
       "label": "Padding",
-      "visible": true,
-      "floatingPaletteLabel": "Padding",
       "group": {
-        "padding": {
+        "properties.padding": {
           "icon": "square-logo",
-          "label": "Padding",
-          "visible": true,
-          "floatingPaletteLabel": "Padding"
+          "label": "Padding"
         },
-        "item-gap": {
+        "properties.item-gap": {
           "icon": "split-horizontal",
-          "label": "Item gap",
-          "visible": true,
-          "floatingPaletteLabel": "Item Gap"
+          "label": "Item gap"
         }
       }
     },
     "divider": {
       "icon": "minus",
       "label": "Divider",
-      "visible": true,
-      "floatingPaletteLabel": "Divider",
       "group": {
-        "divider-color": {
+        "properties.divider-color": {
           "icon": "paint-bucket",
-          "label": "Divider color",
-          "visible": true,
-          "floatingPaletteLabel": "Divider Color"
+          "label": "Divider color"
         },
-        "divider-height": {
+        "properties.divider-height": {
           "icon": "minus",
           "label": "Size",
-          "visible": true,
           "propertyType": "slider",
-          "range": [0, 20],
+          "range": [
+            0,
+            20
+          ],
           "step": 1
         },
-        "divider-opacity": {
+        "properties.divider-opacity": {
           "icon": "eye",
-          "label": "Divider opacity",
-          "visible": true,
-          "floatingPaletteLabel": "Divider Opacity"
+          "label": "Divider opacity"
         }
       }
     },
-    "elevation": {
+    "properties.elevation": {
       "icon": "copy-simple",
-      "label": "Elevation",
-      "visible": true,
-      "floatingPaletteLabel": "Elevation"
+      "label": "Elevation"
     }
   }
 }

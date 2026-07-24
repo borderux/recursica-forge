@@ -1,106 +1,111 @@
 {
   "variants": {
-    "style": {
-      "icon": "diamonds-four",
-      "label": "Type"
-    },
-    "style-secondary": {
-      "icon": "circle-half",
-      "label": "Style"
-    },
     "size": {
       "icon": "resize",
       "label": "Size"
+    },
+    "types": {
+      "icon": "circle-half",
+      "label": "Style"
+    },
+    "style": {
+      "icon": "diamonds-four",
+      "label": "Type"
     }
   },
-  "props": {
+  "properties": {
     "dimensions": {
-      "icon": "resize",
-      "label": "Size",
-      "visible": true,
+      "icon": "ruler",
+      "label": "Dimensions",
       "group": {
-        "width": {
+        "properties.width": {
           "label": "Width",
-          "visible": true
+          "range": [
+            20,
+            100
+          ],
+          "step": 1
         },
-        "height": {
+        "properties.height": {
           "label": "Height",
-          "visible": true
+          "range": [
+            20,
+            100
+          ],
+          "step": 1
         }
       }
     },
     "border": {
       "icon": "square",
       "label": "Border",
-      "visible": true,
       "group": {
-        "border-size": {
+        "properties.border-size": {
           "icon": "arrows-left-right",
           "label": "Size",
-          "visible": true
+          "range": [
+            0,
+            20
+          ],
+          "step": 1,
+          "propertyType": "slider"
         },
-        "border-radius": {
+        "properties.border-radius": {
           "icon": "corners-out",
-          "label": "Corner radius",
-          "visible": true
+          "label": "Corner radius"
         },
-        "border-color": {
+        "properties.colors.border-color": {
           "icon": "paint-bucket",
-          "label": "Color",
-          "visible": true
+          "label": "Color"
         }
       }
     },
     "color": {
-      "icon": "frame-corners",
-      "label": "Color",
-      "visible": true,
+      "icon": "palette",
+      "label": "Colors",
       "group": {
-        "background": {
+        "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true
+          "label": "Background"
         },
-        "text-color": {
+        "properties.colors.text-color": {
           "icon": "text-aa",
           "label": "Text color",
-          "visible": true,
-          "showForVariants": ["text"]
+          "showForVariants": [
+            "text"
+          ]
         }
       }
     },
     "icon": {
-      "icon": "image-square",
+      "icon": "star",
       "label": "Icon",
-      "visible": true,
-      "showForVariants": ["icon"],
+      "showForVariants": [
+        "icon"
+      ],
       "group": {
-        "icon-size": {
-          "label": "Icon size",
-          "visible": true
+        "properties.icon-size": {
+          "label": "Icon size"
         },
-        "icon-color": {
-          "label": "Icon color",
-          "visible": true
+        "properties.colors.icon-color": {
+          "label": "Icon color"
         }
       }
     },
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
       "label": "Text",
-      "visible": true,
-      "showForVariants": ["text"]
+      "showForVariants": [
+        "text"
+      ]
     },
-    "padding": {
+    "properties.padding": {
       "icon": "square-logo",
-      "label": "Padding",
-      "visible": true
+      "label": "Padding"
     },
-    "elevation": {
+    "properties.elevation": {
       "icon": "copy-simple",
-      "label": "Elevation",
-      "visible": true,
-      "floatingPaletteLabel": "Elevation"
+      "label": "Elevation"
     }
   }
 }

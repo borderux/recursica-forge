@@ -2076,7 +2076,25 @@ class VarsStore {
         '--recursica_brand_themes_light_states_overlay_color',
         '--recursica_brand_themes_light_states_overlay_opacity',
         '--recursica_brand_themes_dark_states_overlay_color',
-        '--recursica_brand_themes_dark_states_overlay_opacity'
+        '--recursica_brand_themes_dark_states_overlay_opacity',
+        '--recursica_brand_themes_light_states_hover_color',
+        '--recursica_brand_themes_light_states_hover_opacity',
+        '--recursica_brand_themes_dark_states_hover_color',
+        '--recursica_brand_themes_dark_states_hover_opacity',
+        '--recursica_brand_themes_light_states_focus_color',
+        '--recursica_brand_themes_light_states_focus_border-size',
+        '--recursica_brand_themes_light_states_focus_margin',
+        '--recursica_brand_themes_light_states_focus_blur',
+        '--recursica_brand_themes_dark_states_focus_color',
+        '--recursica_brand_themes_dark_states_focus_border-size',
+        '--recursica_brand_themes_dark_states_focus_margin',
+        '--recursica_brand_themes_dark_states_focus_blur',
+        '--recursica_brand_themes_light_states_link_decoration',
+        '--recursica_brand_themes_light_states_link_style',
+        '--recursica_brand_themes_light_states_link_weight',
+        '--recursica_brand_themes_dark_states_link_decoration',
+        '--recursica_brand_themes_dark_states_link_style',
+        '--recursica_brand_themes_dark_states_link_weight'
       ]
       overlayVars.forEach((cssVar) => {
         document.documentElement.style.removeProperty(cssVar)

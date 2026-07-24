@@ -56,9 +56,9 @@ export default function TextField({
   const effectiveState = state
 
   // Get CSS variables for colors based on state variant
-  const backgroundVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
+  const backgroundVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
   const borderVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
-  const textVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
+  const textVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text-color')
   // Placeholder uses the same color as text (value color)
   const leadingIconVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')
   const trailingIconVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'trailing-icon')
@@ -77,8 +77,8 @@ export default function TextField({
   const verticalPaddingVar = getComponentLevelCssVar('TextField', 'vertical-padding')
   const iconSizeVar = getComponentLevelCssVar('TextField', 'icon-size')
   const iconTextGapVar = getComponentLevelCssVar('TextField', 'icon-text-gap')
-  const maxWidthVar = getComponentLevelCssVar('TextField', 'max-width')
-  const minWidthVar = getComponentLevelCssVar('TextField', 'min-width')
+  const maxWidthVar = buildComponentCssVarPath('TextField', 'variants', 'layouts', layout, 'properties', 'max-width')
+  const minWidthVar = buildComponentCssVarPath('TextField', 'variants', 'layouts', layout, 'properties', 'min-width')
   const placeholderOpacityVar = getComponentLevelCssVar('TextField', 'placeholder-opacity')
 
   // Get Label's gutter for side-by-side layout (Label component manages spacing)

@@ -20,7 +20,6 @@ export default function Chip({
   size = 'default',
   layer = 'layer-0',
   elevation,
-  disabled,
   onClick,
   onDelete,
   deletable = false,
@@ -53,7 +52,7 @@ export default function Chip({
 
     // Get color CSS variables for reactive updates
     const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
-    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
+    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
     const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
     const chipIconColorVarForListener = buildVariantColorCssVar('Chip', variant, 'leading-icon-color', layer)
 
@@ -97,7 +96,7 @@ export default function Chip({
 
   // Use recursica_ui-kit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
-  const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
+  const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
   const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
   const chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
@@ -206,9 +205,8 @@ export default function Chip({
   // Merge library-specific props
   const materialProps = {
     size: materialSize,
-    disabled,
-    clickable: !!onClick && !disabled,
-    onClick: disabled ? undefined : onClick,
+    clickable: !!onClick,
+    onClick,
     onDelete: deletable && onDelete ? onDelete : undefined,
     // Use rendered icon with checkmark overlay for selected variants
     icon: renderIcon(),
@@ -258,9 +256,6 @@ export default function Chip({
         const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
         return elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}
       })(),
-      ...(disabled && {
-        opacity: `var(--recursica_brand_${mode}-state-disabled)`,
-      }),
       ...material?.sx,
     },
     style: {

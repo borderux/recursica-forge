@@ -26,6 +26,12 @@ jobs:
     name: Pull Request Test and Build
     runs-on: ubuntu-latest
     if: github.event.pull_request.title != 'Version Packages'
+    # Fail fast instead of running to the 6-hour job cap if tests/build hang.
+    timeout-minutes: 20
+    env:
+      # Give the build/tests headroom on the runner so a large module graph
+      # (MUI + Mantine + Carbon + 7.5k modules) doesn't get OOM-killed.
+      NODE_OPTIONS: --max-old-space-size=6144
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4

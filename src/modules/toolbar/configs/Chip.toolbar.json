@@ -1,123 +1,121 @@
 {
   "variants": {
-    "style": {
-      "icon": "diamonds-four",
-      "label": "Style"
+    "selection-states": {
+      "icon": "check-circle",
+      "label": "State"
     }
   },
-  "props": {
-    "background": {
-      "icon": "paint-bucket",
-      "label": "Background",
-      "visible": true
+  "properties": {
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
+      "group": {
+        "properties.colors.background-color": {
+          "label": "Background"
+        },
+        "properties.colors.text-color": {
+          "label": "Text"
+        },
+        "properties.colors.border-color": {
+          "label": "Border"
+        },
+        "properties.colors.leading-icon-color": {
+          "label": "Leading icon"
+        },
+        "properties.colors.selected-icon-color": {
+          "label": "Selected icon"
+        },
+        "properties.colors.close-icon-color": {
+          "label": "Remove icon"
+        },
+        "properties.colors.icon-color": {
+          "label": "Error icon"
+        }
+      }
     },
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
-      "label": "Text style",
-      "visible": true
-    },
-    "text-color": {
-      "icon": "text-aa",
-      "label": "Text color",
-      "visible": true
+      "label": "Text style"
     },
     "border": {
       "icon": "square",
       "label": "Border",
-      "visible": true,
       "group": {
-        "border-size": {
+        "properties.border-size": {
           "icon": "arrows-left-right",
           "label": "Size",
-          "visible": true
+          "range": [
+            0,
+            20
+          ],
+          "step": 1,
+          "propertyType": "slider"
         },
-        "border-radius": {
+        "properties.border-radius": {
           "icon": "corners-out",
-          "label": "Corner radius",
-          "visible": true
-        },
-        "border-color": {
-          "icon": "paint-bucket",
-          "label": "Color",
-          "visible": true
+          "label": "Corner radius"
         }
       }
     },
     "padding": {
       "icon": "square-logo",
       "label": "Padding",
-      "visible": true,
       "group": {
-        "horizontal-padding": {
+        "properties.horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal padding",
-          "visible": true
+          "label": "Horizontal padding"
         },
-        "vertical-padding": {
+        "properties.vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical padding",
-          "visible": true
+          "label": "Vertical padding"
         }
       }
     },
     "icon": {
-      "icon": "diamond",
+      "icon": "star",
       "label": "Icon",
-      "visible": true,
       "group": {
-        "icon-size": {
+        "properties.icon-size": {
           "icon": "diamond",
-          "label": "Leading icon size",
-          "visible": true
+          "label": "Leading icon size"
         },
-        "close-icon-size": {
+        "properties.close-icon-size": {
           "icon": "x",
-          "label": "Remove icon size",
-          "visible": true
+          "label": "Remove icon size"
         },
-        "icon-text-gap": {
+        "properties.icon-text-gap": {
           "icon": "split-horizontal",
-          "label": "Icon/text gap",
-          "visible": true
-        },
-        "leading-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Leading icon color",
-          "visible": true
-        },
-        "selected-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Selected icon color",
-          "visible": true
-        },
-        "close-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Remove icon color",
-          "visible": true
+          "label": "Icon/text gap"
         }
       }
     },
     "width": {
       "icon": "arrows-left-right",
       "label": "Width",
-      "visible": true,
       "group": {
-        "min-width": {
+        "properties.min-width": {
           "icon": "arrows-in-line-horizontal",
           "label": "Min width",
-          "visible": true
+          "range": [
+            0,
+            500
+          ],
+          "step": 1
         },
-        "max-width": {
+        "properties.max-width": {
           "icon": "arrows-out-line-horizontal",
           "label": "Max width",
-          "visible": true
+          "range": [
+            0,
+            1000
+          ],
+          "step": 1
         }
       }
     },
-    "elevation": {
+    "properties.elevation": {
       "icon": "copy-simple",
-      "label": "Elevation",
-      "visible": true
+      "label": "Elevation"
     }
   }
 }

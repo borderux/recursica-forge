@@ -51,7 +51,7 @@ describe('AssistiveElement Toolbar Props Integration', () => {
     }, { timeout: 30000 })
   }
 
-  describe.skip('Color Props Updates', () => {
+  describe('Color Props Updates', () => {
     it('updates text color when toolbar changes help text-color', async () => {
       let container: HTMLElement
       await act(async () => {
@@ -157,7 +157,7 @@ describe('AssistiveElement Toolbar Props Integration', () => {
     })
   })
 
-  describe.skip('Text Style Props Updates', () => {
+  describe('Text Style Props Updates', () => {
     it('updates font size when toolbar changes text font-size', async () => {
       let container: HTMLElement
       await act(async () => {
@@ -216,7 +216,7 @@ describe('AssistiveElement Toolbar Props Integration', () => {
     })
   })
 
-  describe.skip('Size Props Updates', () => {
+  describe('Size Props Updates', () => {
     it('updates icon size when toolbar changes icon-size', async () => {
       const iconElement = <span>ℹ</span>
       let container: HTMLElement

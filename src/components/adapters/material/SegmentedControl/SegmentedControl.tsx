@@ -40,7 +40,7 @@ export default function SegmentedControl({
   const isVertical = orientation === 'vertical'
   
   // Get CSS variables - container properties (always from SegmentedControl)
-  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'background')
+  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'background-color')
   const containerBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'border-color')
   const containerBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-size')
   const containerBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-radius')
@@ -53,7 +53,7 @@ export default function SegmentedControl({
   const heightVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'height')
   
   // Get CSS variables - selected properties - always use SegmentedControlItem for item selected properties
-  const selectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background')
+  const selectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background-color')
   const selectedBorderColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'border-color')
   const selectedBorderSizeVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'border-size')
   // Get CSS variables - item properties (applied to both regular and selected items)

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Modal } from '../../components/adapters/Modal'
 import { Button } from '../../components/adapters/Button'
 import { X } from '@phosphor-icons/react'
@@ -17,6 +17,10 @@ interface ModalPreviewProps {
 
 const goblinStory = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. This legendary encounter has been told for generations in the deep mines of the Obsidian Mountains. Every word of this story carries the weight of a thousand hammers striking the anvil of truth. The goblin, known as Zog, was not merely swift; he was a master of the dance between light and shadow, and his leap was more than just a movement—it was a statement of freedom in a world carved from unyielding stone."
 
+// The scrolling preview needs enough content to exceed the modal's max height so
+// it genuinely demonstrates the overflow-driven scrolling state (and its dividers).
+const longGoblinStory = Array(6).fill(goblinStory).join(' ')
+
 export default function ModalPreview({
     selectedVariants,
     selectedLayer,
@@ -25,6 +29,12 @@ export default function ModalPreview({
     const { mode } = useThemeMode()
     const [isOpen, setIsOpen] = useState(false)
     const [updateKey, setUpdateKey] = useState(0)
+
+    // The scrolling preview's body only scrolls when its content overflows the
+    // space left after the header and footer. The scroll dividers should appear
+    // only in that overflowing state — never on a modal whose content fits.
+    const scrollingBodyRef = useRef<HTMLDivElement>(null)
+    const [scrollingOverflows, setScrollingOverflows] = useState(false)
     const sizeVariant = selectedVariants.size || 'md'
     const showHeader = selectedVariants.header !== 'false'
     const showFooter = selectedVariants.footer !== 'false'
@@ -51,8 +61,41 @@ export default function ModalPreview({
         }
     }, [])
 
+    // Measure the scrolling preview body to decide whether it actually overflows
+    // (content height exceeds max height minus header/footer). Re-runs on every
+    // CSS-var change since the preview div is remounted via `updateKey`.
+    useEffect(() => {
+        const el = scrollingBodyRef.current
+        if (!el) {
+            setScrollingOverflows(false)
+            return
+        }
+
+        const check = () => setScrollingOverflows(el.scrollHeight > el.clientHeight + 1)
+        check()
+        const raf = requestAnimationFrame(check)
+
+        const resizeObserver = new ResizeObserver(check)
+        resizeObserver.observe(el)
+        if (el.firstElementChild) resizeObserver.observe(el.firstElementChild)
+
+        const mutationObserver = new MutationObserver(check)
+        mutationObserver.observe(el, { childList: true, subtree: true, characterData: true })
+
+        window.addEventListener('resize', check)
+
+        return () => {
+            cancelAnimationFrame(raf)
+            resizeObserver.disconnect()
+            mutationObserver.disconnect()
+            window.removeEventListener('resize', check)
+        }
+    }, [updateKey, padding])
+
     // Get CSS variable names for the static preview
-    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'background')
+    const headerBgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'header-background-color')
+    const contentBgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'content-background-color')
+    const footerBgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'footer-background-color')
     const titleColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'title')
     const borderColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'border-color')
     const dividerColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'scroll-divider')
@@ -60,9 +103,11 @@ export default function ModalPreview({
 
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
     const borderSizeVar = getComponentLevelCssVar('Modal', 'border-size')
-    const scrollDividerThicknessVar = getComponentLevelCssVar('Modal', 'scroll-divider-thickness')
-    const horizontalPaddingVar = getComponentLevelCssVar('Modal', 'horizontal-padding')
-    const verticalPaddingVar = getComponentLevelCssVar('Modal', 'vertical-padding')
+    const scrollDividerThicknessVar = getComponentLevelCssVar('Modal', 'scroll-divider-size')
+    const hfHPaddingVar = getComponentLevelCssVar('Modal', 'header-footer-horizontal-padding')
+    const hfVPaddingVar = getComponentLevelCssVar('Modal', 'header-footer-vertical-padding')
+    const contentHPaddingVar = getComponentLevelCssVar('Modal', 'content-horizontal-padding')
+    const contentVPaddingVar = getComponentLevelCssVar('Modal', 'content-vertical-padding')
     const buttonGapVar = getComponentLevelCssVar('Modal', 'button-gap')
     const minWidthVar = getComponentLevelCssVar('Modal', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Modal', 'max-width')
@@ -131,7 +176,7 @@ export default function ModalPreview({
     } as any
 
     const staticModalStyles = {
-        background: `var(${bgVar})`,
+        background: `var(${contentBgVar})`,
         borderRadius: `var(${borderRadiusVar})`,
         boxShadow: elevationBoxShadow || 'none',
         border: `var(${borderSizeVar}) solid var(${borderColorVar})`,
@@ -158,12 +203,12 @@ export default function ModalPreview({
                     {/* Header */}
                     {showHeader && (
                         <div style={{
-                            padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
-                            background: `var(${bgVar})`,
+                            padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
+                            background: `var(${headerBgVar})`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            borderBottom: scrollable ? `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})` : 'none',
+                            // Static (non-scrolling) modal: no scroll divider.
                         }}>
                             <HeadingTag style={headerStyle}>
                                 The Legend of Zog
@@ -187,10 +232,11 @@ export default function ModalPreview({
 
                     {/* Body */}
                     <div style={{
-                        padding: padding ? `var(${verticalPaddingVar}) var(${horizontalPaddingVar})` : 0,
+                        padding: padding ? `var(${contentVPaddingVar}) var(${contentHPaddingVar})` : 0,
                         flex: 1,
                         minHeight: 0,
-                        overflowY: scrollable ? 'auto' : 'visible',
+                        // Static preview always represents the non-scrolling state.
+                        overflowY: 'visible',
                         ...contentStyle
                     } as any}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -203,10 +249,10 @@ export default function ModalPreview({
                     {/* Footer */}
                     {showFooter && (
                         <div style={{
-                            padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
-                            background: `var(${bgVar})`,
+                            padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
+                            background: `var(${footerBgVar})`,
                             marginTop: 'auto',
-                            borderTop: scrollable ? `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})` : 'none',
+                            // Static (non-scrolling) modal: no scroll divider.
                         }}>
                             <Group justify="flex-end" gap={`var(${buttonGapVar})`}>
                                 <Button
@@ -231,14 +277,16 @@ export default function ModalPreview({
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
                 <h2 style={h2Style}>Scrolling</h2>
                 <div key={`${updateKey}-scrolling`} style={staticModalStyles}>
-                    {/* Header with mandatory divider for scrolling example */}
+                    {/* Header divider shown only when the body actually overflows */}
                     <div style={{
-                        padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
-                        background: `var(${bgVar})`,
+                        padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
+                        background: `var(${headerBgVar})`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        borderBottom: `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})`,
+                        borderBottom: scrollingOverflows
+                            ? `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})`
+                            : 'none',
                     }}>
                         <HeadingTag style={headerStyle}>
                             The Legend of Zog
@@ -259,9 +307,9 @@ export default function ModalPreview({
                         />
                     </div>
 
-                    {/* Body with forced scrolling */}
-                    <div style={{
-                        padding: padding ? `var(${verticalPaddingVar}) var(${horizontalPaddingVar})` : 0,
+                    {/* Body scrolls only when content overflows the available height */}
+                    <div ref={scrollingBodyRef} style={{
+                        padding: padding ? `var(${contentVPaddingVar}) var(${contentHPaddingVar})` : 0,
                         flex: 1,
                         minHeight: 0,
                         overflowY: 'auto',
@@ -269,17 +317,19 @@ export default function ModalPreview({
                     } as any}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <p style={{ ...pStyle, margin: 0 }}>
-                                {goblinStory} {goblinStory}
+                                {longGoblinStory}
                             </p>
                         </div>
                     </div>
 
-                    {/* Footer with mandatory divider for scrolling example */}
+                    {/* Footer divider shown only when the body actually overflows */}
                     <div style={{
-                        padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
-                        background: `var(${bgVar})`,
+                        padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
+                        background: `var(${footerBgVar})`,
                         marginTop: 'auto',
-                        borderTop: `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})`,
+                        borderTop: scrollingOverflows
+                            ? `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})`
+                            : 'none',
                     }}>
                         <Group justify="flex-end" gap={`var(${buttonGapVar})`}>
                             <Button

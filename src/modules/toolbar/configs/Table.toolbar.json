@@ -1,49 +1,41 @@
 {
   "variants": {},
-  "props": {
-    "layout": {
-      "icon": "arrows-in-line-horizontal",
-      "label": "Layout",
-      "visible": true,
+  "properties": {
+    "padding": {
+      "icon": "square-logo",
+      "label": "Padding",
       "group": {
-        "padding": {
+        "properties.padding": {
           "icon": "arrows-left-right",
-          "label": "Padding",
-          "visible": true
+          "label": "Padding"
         },
-        "row-padding": {
+        "properties.row-padding": {
           "icon": "arrows-left-right",
-          "label": "Row padding",
-          "visible": true
+          "label": "Row padding"
         }
       }
     },
     "border": {
-      "icon": "frame-corners",
+      "icon": "square",
       "label": "Border",
-      "visible": true,
       "group": {
-        "border-color": {
+        "properties.colors.border-color": {
           "icon": "paint-brush-broad",
-          "label": "Border color",
-          "visible": true,
-          "floatingPaletteLabel": "Border Color"
+          "label": "Border color"
         },
-        "border-size": {
+        "properties.border-size": {
           "icon": "rows",
           "label": "Border size",
-          "visible": true,
           "propertyType": "slider",
           "range": [
             0,
-            8
+            20
           ],
           "step": 1
         },
-        "border-radius": {
+        "properties.border-radius": {
           "icon": "corners-out",
           "label": "Corner radius",
-          "visible": true,
           "propertyType": "slider",
           "range": [
             0,
@@ -56,12 +48,10 @@
     "dividers": {
       "icon": "minus",
       "label": "Dividers",
-      "visible": true,
       "group": {
-        "row-divider-size": {
+        "properties.row-divider-size": {
           "icon": "rows",
           "label": "Row divider size",
-          "visible": true,
           "propertyType": "slider",
           "range": [
             0,
@@ -69,16 +59,13 @@
           ],
           "step": 1
         },
-        "row-divider-color": {
+        "properties.row-divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Row divider color",
-          "visible": true,
-          "floatingPaletteLabel": "Row Divider Color"
+          "label": "Row divider color"
         },
-        "column-divider-size": {
+        "properties.column-divider-size": {
           "icon": "rows",
           "label": "Column divider size",
-          "visible": true,
           "propertyType": "slider",
           "range": [
             0,
@@ -86,48 +73,33 @@
           ],
           "step": 1
         },
-        "column-divider-color": {
+        "properties.column-divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Column divider color",
-          "visible": true,
-          "floatingPaletteLabel": "Column Divider Color"
+          "label": "Column divider color"
         }
       }
     },
-    "row-colors": {
-      "icon": "paint-bucket",
-      "label": "Row colors",
-      "visible": true,
+    "row-striping": {
+      "icon": "list",
+      "label": "Row striping",
       "group": {
-        "striped-color": {
-          "label": "Striped color",
-          "visible": true,
-          "floatingPaletteLabel": "Striped Color"
+        "properties.colors.striped-color": {
+          "label": "Color"
         },
-        "highlight-on-hover-color": {
-          "label": "Hover color",
-          "visible": true,
-          "floatingPaletteLabel": "Hover Color"
+        "properties.opacities.striped-opacity": {
+          "label": "Opacity"
+        }
+      }
+    },
+    "selected-rows": {
+      "icon": "check",
+      "label": "Selected rows",
+      "group": {
+        "properties.colors.selected-color": {
+          "label": "Color"
         },
-        "selected-color": {
-          "label": "Selected color",
-          "visible": true,
-          "floatingPaletteLabel": "Selected Color"
-        },
-        "striped-opacity": {
-          "label": "Striped opacity",
-          "visible": true,
-          "floatingPaletteLabel": "Striped Opacity"
-        },
-        "highlight-on-hover-opacity": {
-          "label": "Hover opacity",
-          "visible": true,
-          "floatingPaletteLabel": "Hover Opacity"
-        },
-        "selected-opacity": {
-          "label": "Selected opacity",
-          "visible": true,
-          "floatingPaletteLabel": "Selected Opacity"
+        "properties.opacities.selected-opacity": {
+          "label": "Opacity"
         }
       }
     }

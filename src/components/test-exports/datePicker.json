@@ -4,258 +4,85 @@
       "date-picker": {
         "variants": {
           "states": {
-            "default": {
-              "properties": {
-                "colors": {
-                  "layer-0": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  },
-                  "layer-1": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  },
-                  "layer-2": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  },
-                  "layer-3": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  }
-                },
-                "border-size": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": 1,
-                    "unit": "px"
-                  }
-                }
-              }
-            },
             "error": {
               "properties": {
                 "colors": {
                   "layer-0": {
-                    "background": {
+                    "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-background-color}"
                     },
-                    "text": {
+                    "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-border-color}"
                     }
                   },
                   "layer-1": {
-                    "background": {
+                    "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-background-color}"
                     },
-                    "text": {
+                    "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-border-color}"
                     }
                   },
                   "layer-2": {
-                    "background": {
+                    "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-background-color}"
                     },
-                    "text": {
+                    "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-border-color}"
                     }
                   },
                   "layer-3": {
-                    "background": {
+                    "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-background-color}"
                     },
-                    "text": {
+                    "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-border-color}"
                     }
                   }
                 },
                 "border-size": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 7,
-                    "unit": "px"
-                  }
-                }
-              }
-            },
-            "focus": {
-              "properties": {
-                "colors": {
-                  "layer-0": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  },
-                  "layer-1": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  },
-                  "layer-2": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  },
-                  "layer-3": {
-                    "background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  }
-                },
-                "border-size": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": 3,
-                    "unit": "px"
-                  }
+                  "$value": "{ui-kit.globals.form.field.size.border-size-default}"
                 }
               }
             },
@@ -263,84 +90,85 @@
               "properties": {
                 "colors": {
                   "layer-0": {
-                    "background": {
+                    "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
                     },
-                    "text": {
+                    "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-icon-color}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-border-color}"
                     }
                   },
                   "layer-1": {
-                    "background": {
+                    "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
                     },
-                    "text": {
+                    "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-icon-color}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-border-color}"
                     }
                   },
                   "layer-2": {
-                    "background": {
+                    "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
                     },
-                    "text": {
+                    "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-icon-color}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-border-color}"
                     }
                   },
                   "layer-3": {
-                    "background": {
+                    "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
                     },
-                    "text": {
+                    "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-icon-color}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-border-color}"
                     }
                   }
                 },
                 "border-size": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 8,
-                    "unit": "px"
-                  }
+                  "$value": "{ui-kit.globals.form.field.size.border-size-default}"
+                },
+                "opacity": {
+                  "$type": "number",
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -350,7 +178,7 @@
               "properties": {
                 "top-bottom-margin": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.default}"
+                  "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
                 }
               }
             },
@@ -359,7 +187,7 @@
                 "top-bottom-margin": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 31,
+                    "value": 8,
                     "unit": "px"
                   }
                 }
@@ -370,59 +198,59 @@
         "properties": {
           "border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.2xl}"
+            "$value": "{ui-kit.globals.form.field.size.border-radius}"
           },
           "min-height": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.lg}"
+            "$value": "{ui-kit.globals.form.field.size.single-line-input-height}"
           },
           "horizontal-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{ui-kit.globals.form.field.size.horizontal-padding}"
           },
           "vertical-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{ui-kit.globals.form.field.size.vertical-padding}"
           },
           "icon-size": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.icons.lg}"
+            "$value": "{ui-kit.globals.form.field.size.icon}"
           },
           "icon-text-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.none}"
+            "$value": "{ui-kit.globals.form.field.size.icon-text-gap}"
           },
           "width": {
             "$type": "dimension",
             "$value": {
-              "value": 615,
+              "value": 204,
               "unit": "px"
             }
           },
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{brand.fonts.secondary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.2xl}"
+              "$value": "{tokens.font.sizes.lg}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.extra-light}"
+              "$value": "{tokens.font.weights.regular}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.wider}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.short}"
+              "$value": "{tokens.font.line-heights.default}"
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.decorations.line-through}"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
@@ -435,7 +263,85 @@
           },
           "placeholder-opacity": {
             "$type": "number",
-            "$value": "{tokens.opacities.veiled}"
+            "$value": "{tokens.opacities.faint}"
+          },
+          "colors": {
+            "layer-0": {
+              "background-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background-color}"
+              },
+              "text-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.text-valued}"
+              },
+              "leading-icon": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.icon-color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.border-color}"
+              }
+            },
+            "layer-1": {
+              "background-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background-color}"
+              },
+              "text-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.text-valued}"
+              },
+              "leading-icon": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.icon-color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.border-color}"
+              }
+            },
+            "layer-2": {
+              "background-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background-color}"
+              },
+              "text-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.text-valued}"
+              },
+              "leading-icon": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.icon-color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.border-color}"
+              }
+            },
+            "layer-3": {
+              "background-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background-color}"
+              },
+              "text-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.text-valued}"
+              },
+              "leading-icon": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.icon-color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.border-color}"
+              }
+            }
+          },
+          "border-size": {
+            "$type": "dimension",
+            "$value": "{ui-kit.globals.form.field.size.border-size-default}"
           }
         }
       }

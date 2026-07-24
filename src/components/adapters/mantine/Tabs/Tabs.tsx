@@ -32,12 +32,22 @@ export default function Tabs({
   // Determine the variant style (default to 'default' if not specified)
   const variantStyle = variant || 'default'
 
+  // Per-tab appearance now lives on the TabsItem sub-component: the active/inactive state
+  // is a selection-state variant nested under the style (variants/styles/<style>/variants/
+  // selection-states/<active|inactive>/properties/{colors,border-size,text}).
+  const itemColor = (state: 'active' | 'inactive', prop: string) =>
+    buildComponentCssVarPath('TabsItem', 'variants', 'styles', variantStyle, 'variants', 'selection-states', state, 'properties', 'colors', layer, prop)
+  const itemProp = (state: 'active' | 'inactive', prop: string) =>
+    buildComponentCssVarPath('TabsItem', 'variants', 'styles', variantStyle, 'variants', 'selection-states', state, 'properties', prop)
+  const itemText = (state: 'active' | 'inactive', prop: string) =>
+    buildComponentCssVarPath('TabsItem', 'variants', 'styles', variantStyle, 'variants', 'selection-states', state, 'properties', 'text', prop)
+
   // Get active state colors
-  const activeBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'background')
-  const activeBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'border-color')
-  const activeTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'text-color')
-  const activeIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'icon-color')
-  const activeBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'border-size')
+  const activeBackgroundVar = itemColor('active', 'background-color')
+  const activeBorderColorVar = itemColor('active', 'border-color')
+  const activeTextColorVar = itemColor('active', 'text-color')
+  const activeIconColorVar = itemColor('active', 'icon-color')
+  const activeBorderSizeVar = itemProp('active', 'border-size')
 
   // Read computed active background color to check if it's transparent
   const activeBgColor = useCssVar(activeBackgroundVar || '')
@@ -47,48 +57,51 @@ export default function Tabs({
     : `var(--recursica_tabs_active_background)`
 
   // Get inactive state colors
-  const inactiveBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'background')
-  const inactiveBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'border-color')
-  const inactiveTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'text-color')
-  const inactiveIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'icon-color')
-  const inactiveBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'border-size')
+  const inactiveBackgroundVar = itemColor('inactive', 'background-color')
+  const inactiveBorderColorVar = itemColor('inactive', 'border-color')
+  const inactiveTextColorVar = itemColor('inactive', 'text-color')
+  const inactiveIconColorVar = itemColor('inactive', 'icon-color')
+  const inactiveBorderSizeVar = itemProp('inactive', 'border-size')
 
-  // Get variant-specific properties
-  const borderRadiusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'border-radius')
+  // Per-style tab corner radius now lives on TabsItem
+  const borderRadiusVar = buildComponentCssVarPath('TabsItem', 'variants', 'styles', variantStyle, 'properties', 'border-radius')
 
-  // Get active text properties
-  const activeFontFamilyVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'font-family')
-  const activeFontSizeVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'font-size')
-  const activeFontWeightVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'font-weight')
-  const activeLetterSpacingVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'letter-spacing')
-  const activeLineHeightVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'line-height')
-  const activeTextDecorationVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'text-decoration')
-  const activeTextTransformVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'text-transform')
-  const activeFontStyleVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'font-style')
+  // Get active text properties (per-style, per-state text on TabsItem)
+  const activeFontFamilyVar = itemText('active', 'font-family')
+  const activeFontSizeVar = itemText('active', 'font-size')
+  const activeFontWeightVar = itemText('active', 'font-weight')
+  const activeLetterSpacingVar = itemText('active', 'letter-spacing')
+  const activeLineHeightVar = itemText('active', 'line-height')
+  const activeTextDecorationVar = itemText('active', 'text-decoration')
+  const activeTextTransformVar = itemText('active', 'text-transform')
+  const activeFontStyleVar = itemText('active', 'font-style')
 
   // Get inactive text properties
-  const inactiveFontFamilyVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'font-family')
-  const inactiveFontSizeVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'font-size')
-  const inactiveFontWeightVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'font-weight')
-  const inactiveLetterSpacingVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'letter-spacing')
-  const inactiveLineHeightVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'line-height')
-  const inactiveTextDecorationVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'text-decoration')
-  const inactiveTextTransformVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'text-transform')
-  const inactiveFontStyleVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'font-style')
+  const inactiveFontFamilyVar = itemText('inactive', 'font-family')
+  const inactiveFontSizeVar = itemText('inactive', 'font-size')
+  const inactiveFontWeightVar = itemText('inactive', 'font-weight')
+  const inactiveLetterSpacingVar = itemText('inactive', 'letter-spacing')
+  const inactiveLineHeightVar = itemText('inactive', 'line-height')
+  const inactiveTextDecorationVar = itemText('inactive', 'text-decoration')
+  const inactiveTextTransformVar = itemText('inactive', 'text-transform')
+  const inactiveFontStyleVar = itemText('inactive', 'font-style')
 
-  // Get spacing properties from orientation variant
-  const horizontalPaddingVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'horizontal-padding')
-  const verticalPaddingVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'vertical-padding')
-  const elementGapVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'element-gap')
-  const spaceBetweenTabsVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'space-between-tabs')
+  // Per-tab sizing (padding, icon size, element gap, min/max width) lives on the TabsItem
+  // sub-component, per style — a single tab's box is a TabsItem concern, not a group concern.
+  const itemSize = (prop: string) =>
+    buildComponentCssVarPath('TabsItem', 'variants', 'styles', variantStyle, 'properties', prop)
+  const horizontalPaddingVar = itemSize('horizontal-padding')
+  const verticalPaddingVar = itemSize('vertical-padding')
+  const elementGapVar = itemSize('element-gap')
+  const iconSizeVar = itemSize('icon-size')
+  const minWidthVar = itemSize('min-width')
+  const maxWidthVar = itemSize('max-width')
+
+  // Group-layout properties stay on Tabs, per style × orientation.
+  const spaceBetweenTabsVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'variants', 'orientation', orientation, 'properties', 'space-between-tabs')
   const gapBetweenTabsAndContentVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'variants', 'orientation', orientation, 'properties', 'tabs-content-gap')
-
-  // Get icon size from orientation variant
-  const iconSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'icon-size')
-  const minWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'min-width')
-  const maxWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'max-width')
-  // tab-content-alignment is orientation-specific
-  const tabContentAlignmentVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'tab-content-alignment')
+  // Content alignment is a per-tab concern (TabsItem), varying by style and orientation.
+  const tabContentAlignmentVar = buildComponentCssVarPath('TabsItem', 'variants', 'styles', variantStyle, 'variants', 'orientation', orientation, 'properties', 'tab-content-alignment')
 
   // Get hover color and opacity from style-variant-specific UIKit tokens
   const hoverColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'hover-color')

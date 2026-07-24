@@ -18,7 +18,7 @@ import { Avatar } from '../../components/adapters/Avatar'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from './iconUtils'
 import '../../components/adapters/mantine/Timeline/Timeline.css'
-import { h2Style } from './typographyStyles'
+import { getTypographyStyle } from './typographyStyles'
 
 
 interface TimelinePreviewProps {
@@ -121,26 +121,49 @@ const RIGHT_ITEMS: PreviewItem[] = [
 
 /**
  * Helper to build a CSS var path for a bullet variant's color property.
- * Path: TimelineBullet > variants > types > {variant} > properties > colors > {layer} > {prop}
+ * active-/inactive-prefixed props live under variants.selection-states.<sel>
+ * (e.g. "active-background" → …/selection-states/active/…/colors/{layer}/background-color).
+ * Non-prefixed props stay at the component level.
  */
 function bulletColorVar(variant: string, layer: string, prop: string) {
+    const m = prop.match(/^(active|inactive)-(.+)$/)
+    if (m) {
+        const jsonProp = m[2] === 'background' ? 'background-color' : m[2]
+        return buildComponentCssVarPath('TimelineBullet', 'variants', 'types', variant, 'variants', 'selection-states', m[1], 'properties', 'colors', layer, jsonProp)
+    }
     return buildComponentCssVarPath('TimelineBullet', 'variants', 'types', variant, 'properties', 'colors', layer, prop)
 }
 
 /**
  * Helper to build a CSS var path for a bullet variant's dimension property.
- * Path: TimelineBullet > variants > types > {variant} > properties > {prop}
+ * active-/inactive-prefixed props (e.g. "active-avatar-opacity") live under
+ * variants.selection-states.<sel>; everything else is component-level.
  */
 function bulletPropVar(variant: string, prop: string) {
+    const m = prop.match(/^(active|inactive)-(.+)$/)
+    if (m) {
+        return buildComponentCssVarPath('TimelineBullet', 'variants', 'types', variant, 'variants', 'selection-states', m[1], 'properties', m[2])
+    }
     return buildComponentCssVarPath('TimelineBullet', 'variants', 'types', variant, 'properties', prop)
 }
 
 function buildCssVars(layer: string) {
-    // Timeline (parent) vars — connector, text colors, spacing, text styles
-    const timelineColorVar = (prop: string) =>
-        buildComponentCssVarPath('Timeline', 'properties', 'colors', layer, prop)
-    const timelinePropVar = (prop: string) =>
-        buildComponentCssVarPath('Timeline', 'properties', prop)
+    // Timeline (parent) vars — connector, text colors, spacing, text styles.
+    // active-/inactive-prefixed props live under variants.selection-states.<sel>
+    // (connector + title/description/timestamp colors, connector-size); everything
+    // else is a plain component-level property.
+    const timelineColorVar = (prop: string) => {
+        const m = prop.match(/^(active|inactive)-(.+)$/)
+        return m
+            ? buildComponentCssVarPath('Timeline', 'variants', 'selection-states', m[1], 'properties', 'colors', layer, m[2])
+            : buildComponentCssVarPath('Timeline', 'properties', 'colors', layer, prop)
+    }
+    const timelinePropVar = (prop: string) => {
+        const m = prop.match(/^(active|inactive)-(.+)$/)
+        return m
+            ? buildComponentCssVarPath('Timeline', 'variants', 'selection-states', m[1], 'properties', m[2])
+            : buildComponentCssVarPath('Timeline', 'properties', prop)
+    }
     const textVar = (group: string, prop: string) =>
         getComponentTextCssVar('Timeline', group, prop)
 
@@ -215,6 +238,7 @@ function buildCssVars(layer: string) {
         '--timeline-inactive-timestamp-color': `var(${timelineColorVar('inactive-timestamp-color')})`,
 
         // Spacing
+        '--timeline-item-gap': `var(${timelinePropVar('item-gap')})`,
         '--timeline-bullet-content-gap': `var(${timelinePropVar('bullet-content-gap')})`,
         '--timeline-max-text-width': `var(${timelinePropVar('max-text-width')})`,
         '--timeline-title-description-gap': `var(${timelinePropVar('title-description-gap')})`,
@@ -326,13 +350,12 @@ export default function TimelinePreview({
                 gap: '48px',
                 width: '100%',
                 justifyContent: 'space-between',
-                padding: '16px',
                 alignItems: 'flex-start',
             }}
         >
             {/* Left-aligned timeline */}
             <div style={{ flex: 1, minWidth: 0 }}>
-                <h2 style={h2Style}>Left aligned</h2>
+                <h4 style={{ ...getTypographyStyle('h4'), margin: 0, marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>Left aligned</h4>
                 <Timeline
                     active={3}
                     align="left"
@@ -349,7 +372,7 @@ export default function TimelinePreview({
 
             {/* Right-aligned timeline */}
             <div style={{ flex: 1, minWidth: 0 }}>
-                <h2 style={{ ...h2Style, textAlign: 'right' }}>Right aligned</h2>
+                <h4 style={{ ...getTypographyStyle('h4'), margin: 0, marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)', textAlign: 'right' }}>Right aligned</h4>
                 <Timeline
                     active={3}
                     align="right"

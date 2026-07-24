@@ -36,7 +36,7 @@ export function getComponentColorVars({
   imageError,
 }: GetComponentColorVarsOptions): ComponentColorVars {
   // Use recursica_ui-kit.json component colors for standard layers
-  // For nested variants: text-solid-background, text-ghost-background, icon-solid-background, icon-ghost-background, image-background
+  // For nested variants: text-solid-background-color-color, text-ghost-background-color-color, icon-solid-background-color-color, icon-ghost-background-color-color, image-background-color
   // recursica_ui-kit.json structure: variants.text.variants.solid.colors.background
   // If variant is just "text" or "icon" (without secondary), default to "solid"
   let variantPath = colorVariant
@@ -46,7 +46,7 @@ export function getComponentColorVars({
     variantPath = 'image' // Override secondary styles since images don't have solid/outline/ghost
   }
   
-  const bgVar = getComponentCssVar(componentName, 'colors', `${variantPath}-background`, layer)
+  const bgVar = getComponentCssVar(componentName, 'colors', `${variantPath}-background-color`, layer)
   const borderVar = getComponentCssVar(componentName, 'colors', `${variantPath}-border-color`, layer)
   
   // Use text-color for text variants, icon-color for icon variants
@@ -57,7 +57,7 @@ export function getComponentColorVars({
     labelVar = getComponentCssVar(componentName, 'colors', `${variantPath}-icon-color`, layer)
   } else {
     // For image variant, there's no label/color property
-    labelVar = getComponentCssVar(componentName, 'colors', `${variantPath}-background`, layer) // Fallback
+    labelVar = getComponentCssVar(componentName, 'colors', `${variantPath}-background-color`, layer) // Fallback
   }
   
   // For images, use the image variant's border-color instead of the current variant's border-color

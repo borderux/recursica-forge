@@ -55,9 +55,9 @@ export default function NumberInput({
     const effectiveState = state
 
     // Get CSS variables for colors based on state variant
-    const backgroundVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
-    const textVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
+    const textVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text-color')
     // Placeholder uses the same color as text (value color)
     const leadingIconVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')
     const trailingIconVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'trailing-icon')
@@ -76,8 +76,8 @@ export default function NumberInput({
     const verticalPaddingVar = getComponentLevelCssVar('NumberInput', 'vertical-padding')
     const iconSizeVar = getComponentLevelCssVar('NumberInput', 'icon-size')
     const iconTextGapVar = getComponentLevelCssVar('NumberInput', 'icon-text-gap')
-    const maxWidthVar = getComponentLevelCssVar('NumberInput', 'max-width')
-    const minWidthVar = getComponentLevelCssVar('NumberInput', 'min-width')
+    const maxWidthVar = buildComponentCssVarPath('NumberInput', 'variants', 'layouts', layout, 'properties', 'max-width')
+    const minWidthVar = buildComponentCssVarPath('NumberInput', 'variants', 'layouts', layout, 'properties', 'min-width')
     const placeholderOpacityVar = getComponentLevelCssVar('NumberInput', 'placeholder-opacity')
 
     // Get Label's gutter for side-by-side layout (Label component manages spacing)

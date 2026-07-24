@@ -59,7 +59,7 @@ export default function PaddingGroupToolbar({
 
   // Extra grouped props: any in groupedPropsConfig that aren't standard
   const extraPropNames = groupedPropsConfig
-    ? Object.keys(groupedPropsConfig).filter(k => !standardPropNames.has(k) && groupedPropsConfig[k]?.visible !== false)
+    ? Object.keys(groupedPropsConfig).filter(k => !standardPropNames.has(k) && true)
     : []
 
   // Find padding-related props from component structure
@@ -161,12 +161,12 @@ export default function PaddingGroupToolbar({
   const verticalPaddingVar = verticalPaddingProp?.cssVar || ''
 
   // Check visibility from toolbar config
-  const paddingVisible = !groupedPropsConfig || groupedPropsConfig['padding']?.visible !== false
-  const horizontalVisible = groupedPropsConfig?.['horizontal-padding']?.visible !== false ||
-    groupedPropsConfig?.['padding-horizontal']?.visible !== false
-  const verticalVisible = groupedPropsConfig?.['vertical-padding']?.visible !== false ||
-    groupedPropsConfig?.['padding-vertical']?.visible !== false
-  const topBottomMarginVisible = !!groupedPropsConfig?.['top-bottom-margin'] && groupedPropsConfig['top-bottom-margin']?.visible !== false
+  const paddingVisible = !groupedPropsConfig || true
+  const horizontalVisible = true ||
+    true
+  const verticalVisible = true ||
+    true
+  const topBottomMarginVisible = !!groupedPropsConfig?.['top-bottom-margin'] && true
 
   // Render single padding control
   if (isSinglePadding && singlePaddingVar) {

@@ -70,12 +70,13 @@ export default function Panel({
     }, [onClose])
 
     // Build CSS variable names for colors
-    const bgVar = getComponentLevelCssVar('Panel', `colors.${layer}.background`)
+    const bgVar = getComponentLevelCssVar('Panel', `colors.${layer}.background-color`)
     const borderColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.border-color`)
     const titleColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.title`)
     const contentColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.content`)
     const dividerColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.divider-color`)
-    const hfBgVar = getComponentLevelCssVar('Panel', `colors.${layer}.header-footer-background`)
+    const headerBgVar = getComponentLevelCssVar('Panel', `colors.${layer}.header-background-color`)
+    const footerBgVar = getComponentLevelCssVar('Panel', `colors.${layer}.footer-background-color`)
 
     // Build CSS variable names for component-level props
     const borderRadiusVar = getComponentLevelCssVar('Panel', 'border-radius')
@@ -173,7 +174,8 @@ export default function Panel({
         '--panel-border-color': `var(${borderColorVar})`,
         '--panel-title-color': `var(${titleColorVar})`,
         '--panel-content-color': `var(${contentColorVar})`,
-        '--panel-hf-bg': `var(${hfBgVar})`,
+        '--panel-header-bg': `var(${headerBgVar})`,
+        '--panel-footer-bg': `var(${footerBgVar})`,
         '--panel-border-size': `var(${borderSizeVar})`,
         '--panel-hf-padding-x': `var(${hfHPaddingVar})`,
         '--panel-hf-padding-y': `var(${hfVPaddingVar})`,
@@ -224,7 +226,7 @@ export default function Panel({
                         justifyContent: 'space-between',
                         gap: 'var(--panel-header-close-gap)',
                         flexShrink: 0,
-                        background: 'var(--panel-hf-bg)',
+                        background: 'var(--panel-header-bg)',
                     }}
                 >
                     <HeadingTag style={{
@@ -285,7 +287,7 @@ export default function Panel({
                         padding: 'var(--panel-hf-padding-y) var(--panel-hf-padding-x)',
                         borderTop: `var(--panel-divider-size) solid var(--panel-divider-color)`,
                         flexShrink: 0,
-                        background: 'var(--panel-hf-bg)',
+                        background: 'var(--panel-footer-bg)',
                     }}
                 >
                     {footer}

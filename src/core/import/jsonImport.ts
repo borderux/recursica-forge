@@ -155,10 +155,12 @@ export function importJsonFiles(files: {
     ? ((files.uikit as any)?.['ui-kit'] ? files.uikit : { 'ui-kit': files.uikit })
     : undefined;
 
-  // Run structural migrations on the imported files to future-proof against older structures
-  const migratedTokens = normalizedTokens ? migrateImportedJson(normalizedTokens as JsonLike) : undefined;
-  const migratedBrand = normalizedBrand ? migrateImportedJson(normalizedBrand as JsonLike) : undefined;
-  const migratedUikit = normalizedUikit ? migrateImportedJson(normalizedUikit as JsonLike) : undefined;
+  // Run structural migrations on the imported files, upgrading any older (1.x)
+  // structure to the current (2.x) shape before validation. File-type-aware so
+  // brand `states` and ui-kit globals/interaction-states are reshaped correctly.
+  const migratedTokens = normalizedTokens ? migrateImportedJson(normalizedTokens as JsonLike, 'tokens') : undefined;
+  const migratedBrand = normalizedBrand ? migrateImportedJson(normalizedBrand as JsonLike, 'brand') : undefined;
+  const migratedUikit = normalizedUikit ? migrateImportedJson(normalizedUikit as JsonLike, 'uikit') : undefined;
 
   // Validate all files before importing
   if (migratedTokens) {

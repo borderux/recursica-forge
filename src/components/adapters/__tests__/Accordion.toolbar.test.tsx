@@ -38,10 +38,10 @@ describe('Accordion Toolbar Props Integration', () => {
     }, { timeout: 30000 })
   }
 
-  describe.skip('Accordion Container Color Props Updates - All Layers', () => {
+  describe('Accordion Container Color Props Updates - All Layers', () => {
     const layers: ComponentLayer[] = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
     const colorProperties = [
-      { name: 'background', cssVar: '--accordion-bg' },
+      { name: 'background-color', cssVar: '--accordion-bg' },
       { name: 'border', cssVar: '--accordion-border' },
     ]
 
@@ -59,7 +59,7 @@ describe('Accordion Toolbar Props Integration', () => {
 
           const root = await waitForAccordion(container)
           const colorVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, name)
-          const testColor = `#${layer.replace('layer-', '')}${name === 'background' ? '00000' : '11111'}`
+          const testColor = `#${layer.replace('layer-', '')}${name === 'background-color' ? '00000' : '11111'}`
 
           await act(async () => {
             updateCssVar(colorVar, testColor)
@@ -78,7 +78,7 @@ describe('Accordion Toolbar Props Integration', () => {
     })
   })
 
-  describe.skip('Accordion Container Component-Level Props Updates', () => {
+  describe('Accordion Container Component-Level Props Updates', () => {
     it('updates border-size when toolbar changes border-size', async () => {
       const { container } = renderWithProviders(
         <Accordion
@@ -196,7 +196,7 @@ describe('Accordion Toolbar Props Integration', () => {
       )
 
       const root = await waitForAccordion(container)
-      const bgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', 'layer-0', 'background')
+      const bgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', 'layer-0', 'background-color')
       const borderVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', 'layer-0', 'border')
       const paddingVar = getComponentLevelCssVar('Accordion', 'padding')
 
@@ -224,7 +224,7 @@ describe('Accordion Toolbar Props Integration', () => {
     })
   })
 
-  describe.skip('Layer Switching', () => {
+  describe('Layer Switching', () => {
     it('updates Accordion container colors when layer prop changes', async () => {
       const { container, rerender } = renderWithProviders(
         <Accordion
@@ -236,8 +236,8 @@ describe('Accordion Toolbar Props Integration', () => {
       )
 
       const root = await waitForAccordion(container)
-      const layer0Var = buildComponentCssVarPath('Accordion', 'properties', 'colors', 'layer-0', 'background')
-      const layer1Var = buildComponentCssVarPath('Accordion', 'properties', 'colors', 'layer-1', 'background')
+      const layer0Var = buildComponentCssVarPath('Accordion', 'properties', 'colors', 'layer-0', 'background-color')
+      const layer1Var = buildComponentCssVarPath('Accordion', 'properties', 'colors', 'layer-1', 'background-color')
 
       // Set layer-0 color
       await act(async () => {

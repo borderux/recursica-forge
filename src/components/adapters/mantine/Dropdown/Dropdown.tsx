@@ -61,9 +61,9 @@ export default function Dropdown({
     const isOpenedState = opened ? 'focus' : effectiveState
 
     // Get CSS variables for colors
-    const backgroundVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'border-color')
-    const textVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'text')
+    const textVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'text-color')
     const leadingIconVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'leading-icon')
     const trailingIconVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'trailing-icon')
 
@@ -81,8 +81,8 @@ export default function Dropdown({
     const verticalPaddingVar = getComponentLevelCssVar('Dropdown', 'vertical-padding')
     const iconSizeVar = getComponentLevelCssVar('Dropdown', 'icon-size')
     const iconTextGapVar = getComponentLevelCssVar('Dropdown', 'icon-text-gap')
-    const maxWidthVar = getComponentLevelCssVar('Dropdown', 'max-width')
-    const minWidthVar = getComponentLevelCssVar('Dropdown', 'min-width')
+    const maxWidthVar = buildComponentCssVarPath('Dropdown', 'variants', 'layouts', layout, 'properties', 'max-width')
+    const minWidthVar = buildComponentCssVarPath('Dropdown', 'variants', 'layouts', layout, 'properties', 'min-width')
 
     // Get text style CSS variables
     const valueFontSizeVar = getComponentTextCssVar('Dropdown', 'text', 'font-size')

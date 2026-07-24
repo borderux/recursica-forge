@@ -19,7 +19,7 @@ function KitSwitcher({ kit }: { kit: 'mantine' | 'material' | 'carbon' }) {
   return null
 }
 
-describe.skip('Accordion Integration', () => {
+describe('Accordion Integration', () => {
   beforeAll(async () => {
     // Pre-warm all provider module imports so useState initialisers in UnifiedThemeProvider
     // read from cache synchronously and isLoading starts as false.
@@ -75,7 +75,7 @@ describe.skip('Accordion Integration', () => {
     }, { timeout: 90000 })
   }
 
-  itDom('renders Mantine accordion when Mantine is selected', async () => {
+  it('renders Mantine accordion when Mantine is selected', async () => {
     const { container } = renderWithKit('mantine')
     const el = await waitForAccordion(container, 'mantine')
     expect(el).toBeInTheDocument()

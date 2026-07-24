@@ -1,132 +1,139 @@
 {
-  "props": {
+  "variants": {
+    "selection-states": {
+      "icon": "toggle-right",
+      "label": "State"
+    }
+  },
+  "properties": {
     "thumb": {
       "icon": "sliders-horizontal",
       "label": "Thumb",
-      "visible": true,
       "group": {
-        "thumb-selected": {
-          "label": "Thumb selected",
-          "visible": true
-        },
-        "thumb-unselected": {
-          "label": "Thumb unselected",
-          "visible": true
-        },
-        "icon-selected": {
-          "label": "Icon selected",
-          "visible": true
-        },
-        "icon-unselected": {
-          "label": "Icon unselected",
-          "visible": true
-        },
-        "thumb-height": {
+        "properties.thumb-height": {
           "label": "Thumb height",
-          "visible": true
+          "range": [
+            10,
+            40
+          ],
+          "step": 1
         },
-        "thumb-width": {
+        "properties.thumb-width": {
           "label": "Thumb width",
-          "visible": true
+          "range": [
+            10,
+            40
+          ],
+          "step": 1
         },
-        "thumb-border-radius": {
+        "properties.thumb-border-radius": {
           "label": "Thumb corner radius",
-          "visible": true
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         },
-        "thumb-icon-size": {
-          "label": "Icon Size",
-          "visible": true
+        "properties.thumb-icon-size": {
+          "label": "Icon size",
+          "range": [
+            8,
+            24
+          ],
+          "step": 1
         }
       }
     },
     "track": {
       "icon": "faders-horizontal",
       "label": "Track",
-      "visible": true,
       "group": {
-        "track-selected": {
-          "label": "Track selected",
-          "visible": true
-        },
-        "track-unselected": {
-          "label": "Track unselected",
-          "visible": true
-        },
-        "track-width": {
+        "properties.track-width": {
           "label": "Track width",
-          "visible": true
+          "range": [
+            40,
+            120
+          ],
+          "step": 1
         },
-        "track-inner-padding": {
+        "properties.track-inner-padding": {
           "label": "Track inner padding",
-          "visible": true
+          "range": [
+            0,
+            10
+          ],
+          "step": 1
         },
-        "track-border-radius": {
+        "properties.track-border-radius": {
           "label": "Track corner radius",
-          "visible": true
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         }
       }
     },
-
-    "text": {
-      "icon": "text-aa",
-      "label": "Label text style",
-      "visible": true,
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
       "group": {
-        "text": {
-          "label": "Color",
-          "visible": true
+        "properties.colors.track-color": {
+          "label": "Track"
+        },
+        "properties.colors.thumb-color": {
+          "label": "Thumb"
+        },
+        "properties.colors.icon-color": {
+          "label": "Icon"
+        },
+        "properties.opacity": {
+          "label": "Disabled opacity"
+        }
+      }
+    },
+    "properties.text": {
+      "icon": "text-aa",
+      "label": "Text style"
+    },
+    "text-color": {
+      "icon": "palette",
+      "label": "Text color",
+      "group": {
+        "properties.colors.text-color": {
+          "label": "Color"
+        },
+        "properties.colors.disabled-text": {
+          "label": "Disabled text"
         }
       }
     },
     "label": {
       "icon": "text-t",
       "label": "Label",
-      "visible": true,
       "group": {
-        "label-gap": {
-          "label": "Switch-label gap",
-          "visible": true
+        "properties.label-gap": {
+          "label": "Switch-label gap"
         },
-        "text-color": {
-          "label": "Text color",
-          "visible": true
-        },
-        "label-max-width": {
+        "properties.label-max-width": {
           "label": "Max width",
-          "visible": true,
-          "min": 40,
-          "max": 500
+          "range": [
+            40,
+            500
+          ],
+          "step": 1
         }
       }
     },
-    "disabled": {
-      "icon": "prohibit",
-      "label": "Disabled state",
-      "visible": true,
-      "group": {
-        "disabled-text": {
-          "label": "Text color",
-          "visible": true
-        },
-        "disabled-opacity": {
-          "label": "Opacity",
-          "visible": true
-        }
-      }
-    },
-
     "elevation": {
       "icon": "copy-simple",
       "label": "Elevation",
-      "visible": true,
       "group": {
-        "thumb-elevation": {
-          "label": "Thumb",
-          "visible": true
+        "properties.thumb-elevation": {
+          "label": "Thumb"
         },
-        "track-elevation": {
-          "label": "Track",
-          "visible": true
+        "properties.track-elevation": {
+          "label": "Track"
         }
       }
     }

@@ -201,8 +201,8 @@ function getButtonStyles(
   const cssVarVariant = variant
   
   // Use recursica_ui-kit.json button colors for standard layers
-  const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background')
-  const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text')
+  const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background-color')
+  const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text-color')
   // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const borderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
   
@@ -273,9 +273,9 @@ function getButtonStyles(
   styles.textDecoration = textDecorationVar ? `var(${textDecorationVar})` as any : 'none'
   styles.textTransform = textTransformVar ? `var(${textTransformVar})` as any : 'none'
   
-  // Apply disabled styles - use component-level disabled-opacity token
+  // Apply disabled styles - use the disabled state's opacity (driven by the global disabled state)
   if (disabled) {
-    const disabledOpacityVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'disabled-opacity')
+    const disabledOpacityVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'variants', 'states', 'disabled', 'properties', 'opacity')
     styles.opacity = `var(${disabledOpacityVar})`
     styles.cursor = 'not-allowed'
   } else {

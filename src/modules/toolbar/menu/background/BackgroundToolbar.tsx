@@ -15,7 +15,7 @@ import './BackgroundToolbar.css'
 
 interface BackgroundToolbarProps {
   componentName: string
-  prop: ComponentProp // The "background" prop
+  prop: ComponentProp // The "background-color" prop
   selectedVariants: Record<string, string>
   selectedLayer: string
   groupedPropsConfig?: Record<string, ToolbarPropConfig> // Config for grouped props with visibility
@@ -56,7 +56,7 @@ export default function BackgroundToolbar({
 
     // Find all background props that match the layer first
     const layerMatchingProps = structure.props.filter(p => {
-      if (p.name.toLowerCase() !== 'background') return false
+      if (p.name.toLowerCase() !== 'background-color') return false
       if (p.category !== 'colors') return false
 
       // Check layer matching - must match selectedLayer
@@ -124,7 +124,7 @@ export default function BackgroundToolbar({
   const selectedBackgroundProp = useMemo(() => {
     if (!includeSelected) return undefined
     return structure.props.find(p => {
-      if (p.name.toLowerCase() !== 'selected-background') return false
+      if (p.name.toLowerCase() !== 'selected-background-color') return false
       if (p.category !== 'colors') return false
       const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
       if (layerInPath && layerInPath !== selectedLayer) return false
@@ -159,15 +159,19 @@ export default function BackgroundToolbar({
     })
   }, [structure, includeTextColor, selectedLayer, selectedVariants])
 
-  // Get CSS variables
-  const backgroundVar = backgroundProp?.cssVar || ''
+  // Get CSS variables. The internal search re-resolves the background prop from selectedVariants
+  // (used by components like MenuItem with multiple variant-specific backgrounds). When it finds
+  // nothing — e.g. an interaction state whose selectedVariants.states is gated away from the preview,
+  // or a base selection with no state segment — fall back to the prop the toolbar already resolved
+  // for the active state+layer, so the Background control never silently disappears.
+  const backgroundVar = backgroundProp?.cssVar || prop.cssVar || ''
   const selectedBackgroundVar = selectedBackgroundProp?.cssVar || ''
   const textColorVar = textColorProp?.cssVar || ''
 
   // Check visibility from toolbar config
-  const backgroundVisible = groupedPropsConfig?.['background']?.visible !== false
-  const selectedBackgroundVisible = groupedPropsConfig?.['selected-background']?.visible !== false
-  const textColorVisible = groupedPropsConfig?.['text-color']?.visible !== false
+  const backgroundVisible = true
+  const selectedBackgroundVisible = true
+  const textColorVisible = true
 
   return (
     <div className="background-toolbar">

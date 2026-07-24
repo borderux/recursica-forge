@@ -42,6 +42,12 @@ jobs:
   changesets:
     name: Version, Release, and Deploy
     runs-on: ubuntu-latest
+    # Fail fast instead of hanging to the 6-hour job cap on a stuck build/publish.
+    timeout-minutes: 30
+    env:
+      # Headroom for the production build (large module graph + sourcemaps) so it
+      # isn't OOM-killed on the runner.
+      NODE_OPTIONS: --max-old-space-size=6144
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v6

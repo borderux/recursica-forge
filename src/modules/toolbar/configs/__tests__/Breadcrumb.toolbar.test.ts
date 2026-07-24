@@ -11,8 +11,9 @@ describe('Breadcrumb Toolbar Config', () => {
   })
 
   it('should have required fields for all props', () => {
-    if (config.props) {
-      Object.entries(config.props).forEach(([propName, propConfig]: [string, any]) => {
+    const properties = (config as any).properties || (config as any).props
+    if (properties) {
+      Object.entries(properties).forEach(([propName, propConfig]: [string, any]) => {
         expect(propConfig.icon, `Prop ${propName} missing icon`).toBeDefined()
         expect(propConfig.label, `Prop ${propName} missing label`).toBeDefined()
         expect(typeof propConfig.icon).toBe('string')
@@ -77,9 +78,10 @@ describe('Breadcrumb Toolbar Config', () => {
     // Check that config props exist in recursica_ui-kit.json (or are grouped)
     const configProps = new Set<string>()
     const containerProps = new Set<string>() // Props that are containers (like "color")
-    if (config.props) {
-      Object.keys(config.props).forEach(prop => {
-        const propConfig = config.props[prop]
+    const properties = (config as any).properties || (config as any).props
+    if (properties) {
+      Object.keys(properties).forEach(prop => {
+        const propConfig = properties[prop]
         // If it has a group, it's a container prop
         if (propConfig.group) {
           containerProps.add(prop)
@@ -98,7 +100,7 @@ describe('Breadcrumb Toolbar Config', () => {
         return
       }
       // Allow some flexibility for grouped props that combine multiple UIKit props
-      if (!uikitProps.has(prop) && !prop.includes('-')) {
+      if (!uikitProps.has(prop) && !prop.includes('-') && !prop.includes('.')) {
         console.warn(`Config prop ${prop} not found in recursica_ui-kit.json - may be a grouped prop`)
       }
     })
@@ -155,11 +157,12 @@ describe('Breadcrumb Toolbar Config', () => {
     }
     
     const configProps = new Set<string>()
-    if (config.props) {
-      Object.keys(config.props).forEach(prop => {
+    const properties = (config as any).properties || (config as any).props
+    if (properties) {
+      Object.keys(properties).forEach(prop => {
         configProps.add(prop)
         // Also add grouped props
-        const propConfig = config.props[prop]
+        const propConfig = properties[prop]
         if (propConfig.group) {
           Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
         }
@@ -168,7 +171,9 @@ describe('Breadcrumb Toolbar Config', () => {
     
     // Check that all required props are in config
     requiredProps.forEach(prop => {
-      expect(configProps.has(prop), `Required prop ${prop} missing from toolbar config`).toBe(true)
+      const hasProp = configProps.has(prop) || 
+                      Array.from(configProps).some(p => p === `properties.${prop}` || p.endsWith(`.${prop}`))
+      expect(hasProp, `Required prop ${prop} missing from toolbar config`).toBe(true)
     })
   })
 })

@@ -22,16 +22,18 @@ export default function RadioButton({
     mantine,
     ...props
 }: AdapterRadioButtonProps) {
-    // RadioButton Colors - use the layer prop to get layer-specific colors
-    const bgSelectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-selected')
-    const bgUnselectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-unselected')
-    const borderSelectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-selected')
-    const borderUnselectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-unselected')
-    const iconColorVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'icon-color')
-    const disabledBgVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-background')
-    const disabledBorderVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-border')
-    const disabledIconVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-icon')
-    const disabledOpacityVar = buildComponentCssVarPath('RadioButton', 'properties', 'disabled-opacity')
+    // RadioButton Colors — now nested under variants.selections.<sel>[.variants.states.disabled]
+    const selBase = (sel: string, prop: string) => buildComponentCssVarPath('RadioButton', 'variants', 'selection-states', sel, 'properties', 'colors', layer, prop)
+    const selDisabled = (sel: string, prop: string) => buildComponentCssVarPath('RadioButton', 'variants', 'selection-states', sel, 'variants', 'states', 'disabled', 'properties', 'colors', layer, prop)
+    const bgSelectedVar = selBase('selected', 'background-color')
+    const bgUnselectedVar = selBase('unselected', 'background-color')
+    const borderSelectedVar = selBase('selected', 'border-color')
+    const borderUnselectedVar = selBase('unselected', 'border-color')
+    const iconColorVar = selBase('selected', 'icon-color')
+    const disabledBgVar = selDisabled('selected', 'background-color')
+    const disabledBorderVar = selDisabled('selected', 'border-color')
+    const disabledIconVar = selDisabled('selected', 'icon-color')
+    const disabledOpacityVar = buildComponentCssVarPath('RadioButton', 'variants', 'selection-states', 'selected', 'variants', 'states', 'disabled', 'properties', 'opacity')
 
     // Size and spacing
     const sizeVar = buildComponentCssVarPath('RadioButton', 'properties', 'size')

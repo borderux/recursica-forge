@@ -55,9 +55,9 @@ export default function FileInput({
     const uniqueId = id || `file-input-${Math.random().toString(36).substr(2, 9)}`
 
     // Get CSS variables for colors based on state variant
-    const backgroundVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'border-color')
-    const textVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'text')
+    const textVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'text-color')
     const leadingIconVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'leading-icon')
     const trailingIconVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'trailing-icon')
 
@@ -75,8 +75,8 @@ export default function FileInput({
     const verticalPaddingVar = getComponentLevelCssVar('FileInput', 'vertical-padding')
     const iconSizeVar = getComponentLevelCssVar('FileInput', 'icon-size')
     const iconTextGapVar = getComponentLevelCssVar('FileInput', 'icon-text-gap')
-    const maxWidthVar = getComponentLevelCssVar('FileInput', 'max-width')
-    const minWidthVar = getComponentLevelCssVar('FileInput', 'min-width')
+    const maxWidthVar = buildComponentCssVarPath('FileInput', 'variants', 'layouts', layout, 'properties', 'max-width')
+    const minWidthVar = buildComponentCssVarPath('FileInput', 'variants', 'layouts', layout, 'properties', 'min-width')
     const buttonHeightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'small', 'properties', 'height')
     const placeholderOpacityVar = getComponentLevelCssVar('FileInput', 'placeholder-opacity')
 

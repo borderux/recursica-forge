@@ -41,6 +41,8 @@ export interface ComponentStructure {
  * e.g., toolbar uses "style" but UIKit paths use "styles"
  */
 export const VARIANT_PROP_TO_CATEGORY: Record<string, string> = {
+  'selection-states': 'selection-states',
+  'appearance': 'appearance',
   'style': 'styles',
   'size': 'sizes',
   'layout': 'layouts',
@@ -50,6 +52,15 @@ export const VARIANT_PROP_TO_CATEGORY: Record<string, string> = {
   'content': 'content',
   'color': 'styles', // legacy mapping
 }
+
+/**
+ * Variant axes that are preview/display toggles — they control how the demo is laid out rather
+ * than a design-token variant of the component. These render as a switch in the preview header
+ * (next to the title), not in the toolbar's Variants list.
+ */
+export const DISPLAY_TOGGLE_VARIANTS = new Set<string>(['fill-width'])
+export const isDisplayToggleVariant = (propName: string): boolean =>
+  DISPLAY_TOGGLE_VARIANTS.has(propName)
 
 /**
  * Checks if a prop's path matches a specific variant by verifying the variant name
@@ -134,7 +145,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
 
       // Check if this key is a category container (styles, sizes, layouts, orientation, fill-width, types, states) when traversing nested variants
       // This handles cases like variants.layouts.stacked.variants.sizes where we traverse directly into the nested variants object
-      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width' || key === 'types' || key === 'states' || key === 'content') &&
+      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width' || key === 'types' || key === 'states' || key === 'content' || key === 'selection-states' || key === 'appearance') &&
         typeof value === 'object' &&
         value !== null &&
         !('$value' in value) &&
@@ -190,7 +201,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                     : categoryKey === 'states' ? 'states'
                       : categoryKey === 'content' ? 'content'
                         : categoryKey
-        const allCategoryKeys = ['styles', 'sizes', 'layouts', 'orientation', 'fill-width', 'types', 'states', 'content']
+        const allCategoryKeys = ['styles', 'sizes', 'layouts', 'orientation', 'fill-width', 'types', 'states', 'content', 'selection-states', 'appearance']
         Object.keys(categoryObj).filter(k => !k.startsWith('$')).forEach(variantKey => {
           const variantObj = (categoryObj as any)[variantKey]
           if (!variantObj || typeof variantObj !== 'object') return
@@ -218,7 +229,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         // Check if this variants object contains category containers (styles, sizes, layouts, types, states)
         // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left or variants.types.help or variants.states.default
         // Also handles nested: variants.layouts.side-by-side.variants.sizes.default
-        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types' || k === 'states' || k === 'orientation' || k === 'fill-width' || k === 'content'))
+        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types' || k === 'states' || k === 'orientation' || k === 'fill-width' || k === 'content' || k === 'selection-states' || k === 'appearance'))
 
         if (categoryKeys.length > 0) {
           // NEW STRUCTURE: variants.styles, variants.sizes, and variants.layouts are category containers
@@ -294,7 +305,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                     const nestedVariantsObj = variantObj.variants
 
                     // Check if nested variants contain category containers (styles, sizes, layouts, orientation, fill-width, types, states, content)
-                    const nestedCategoryKeys = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'orientation' || k === 'fill-width' || k === 'types' || k === 'states' || k === 'content'))
+                    const nestedCategoryKeys = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'orientation' || k === 'fill-width' || k === 'types' || k === 'states' || k === 'content' || k === 'selection-states' || k === 'appearance'))
 
                     if (nestedCategoryKeys.length > 0) {
                       // Nested variants with category containers: variants.layouts.side-by-side.variants.sizes
@@ -416,7 +427,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         }
 
         // Determine category - in new structure, "colors" can be:
-        // 1. Inside variants.properties: ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background']
+        // 1. Inside variants.properties: ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background-color']
         // 2. Inside component properties: ['properties', 'colors', 'layer-0', 'thumb-selected'] (Switch)
         // 3. Size properties: ['variants', 'sizes', 'default', 'properties', 'height'] or ['properties', 'border-radius']
         let category = prefix[0] || 'root'
@@ -445,7 +456,11 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         // Special case: Check if this is a text property group (text, header-text, content-text, label-text, optional-text, supporting-text, min-max-label, read-only-value, value, placeholder)
         // Text property groups are objects containing text-related properties (font-family, font-size, etc.)
         // We need to create a prop for the parent group so it shows up in the toolbar
-        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'description-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'selected-text', 'unselected-text', 'step-number-text', 'text-style', 'sorted-text-style', 'unsorted-text-style', 'currency-style']
+        // Keep in sync with ComponentToolbar's TEXT_GROUP_NAMES — both must recognise the same
+        // text-style groups (this list decides which groups become a single 'text-group' prop;
+        // that one decides which config keys resolve to them). Covers every font-* group in
+        // recursica_ui-kit.json (e.g. title-text / timestamp-text / active-text / input-text).
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text', 'selected-text', 'unselected-text', 'step-number-text', 'input-text', 'text-style', 'sorted-text-style', 'unsorted-text-style', 'currency-style']
         const isTextPropertyGroup = textPropertyGroupNames.includes(key.toLowerCase()) &&
           typeof value === 'object' &&
           value !== null &&
@@ -469,14 +484,18 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
               : 'light'
             const cssVar = toCssVarName(fullPath.join('.'), mode)
 
+            // Variant-specific iff "variants" appears in the path (same rule as regular props);
+            // a text group under variants.sizes.<size> is size-specific, etc.
+            const textIsVariantSpecific = currentPath.includes('variants')
+
             props.push({
               name: key,
               category: 'size', // Text properties are component-level, use 'size' category
               type: 'text-group', // Special type to identify text property groups
               cssVar, // This will be the base CSS var path, individual properties will have their own vars
               path: currentPath,
-              isVariantSpecific: false,
-              variantProp: undefined,
+              isVariantSpecific: textIsVariantSpecific,
+              variantProp: textIsVariantSpecific ? variantProp : undefined,
             })
           }
         }
@@ -575,6 +594,23 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         if (!exists) {
           props.push({ ...baseProp, sourceComponent: 'switch' })
         }
+      }
+    }
+  }
+
+  // `-item` components inherit the base component's variant AXES too (e.g. checkbox's `selection-states`),
+  // so the selection dropdown + its nested interaction states surface on the item toolbar.
+  const ITEM_BASE: Record<string, string> = {
+    'checkbox-item': 'checkbox',
+    'radio-button-item': 'radio-button',
+    'switch-item': 'switch',
+  }
+  const baseKey = ITEM_BASE[componentKey]
+  if (baseKey && components[baseKey]) {
+    const baseStructure = parseComponentStructure(baseKey)
+    for (const bv of baseStructure.variants) {
+      if (bv.propName !== 'states' && !variants.some(v => v.propName === bv.propName)) {
+        variants.push(bv)
       }
     }
   }
@@ -694,6 +730,29 @@ export function getComponentDefaultValues(componentName: string): Record<string,
  * @param selectedVariants - Currently selected variants to resolve variant-specific paths
  * @returns 'token' if the property uses a token reference, 'px' if it uses hardcoded px, or null if not found
  */
+/**
+ * Classify a dimension `{...}` reference as a design token vs a raw px value.
+ * Design tokens (`{brand.*}`, `{tokens.*}`) drive the token slider. A `{ui-kit.globals.*}`
+ * reference, however, points at a form-field global that itself holds a raw px literal, so the
+ * control must be a px slider that matches the global (and stays px after detaching). We follow
+ * the ui-kit reference chain and return 'px' when it bottoms out at a `{value, unit}` literal.
+ */
+function classifyDimensionRef(uikitRoot: any, ref: string, depth = 0): 'token' | 'px' {
+  const path = ref.trim().replace(/^\{|\}$/g, '')
+  if (depth > 6 || !path.startsWith('ui-kit.')) return 'token'
+  let cur: any = uikitRoot
+  for (const seg of path.split('.')) {
+    if (cur == null || typeof cur !== 'object') return 'token'
+    cur = cur[seg]
+  }
+  if (cur && typeof cur === 'object' && cur.$type === 'dimension') {
+    const v = cur.$value
+    if (v && typeof v === 'object' && 'unit' in v) return 'px'
+    if (typeof v === 'string' && v.trim().startsWith('{')) return classifyDimensionRef(uikitRoot, v, depth + 1)
+  }
+  return 'token'
+}
+
 export function getDimensionPropertyType(
   componentName: string,
   propPath: string[],
@@ -717,14 +776,18 @@ export function getDimensionPropertyType(
 
     // Navigate to the property using the path
     let current: any = component
-    for (let i = 0; i < propPath.length; i++) {
+    let startIndex = 0
+    if (propPath[0] === 'components') {
+      startIndex = 2
+    }
+    for (let i = startIndex; i < propPath.length; i++) {
       const pathPart = propPath[i]
       if (current == null || typeof current !== 'object') {
         return null
       }
 
       // Handle variant paths - if we encounter a variant category, use selected variant
-      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation' || pathPart === 'content') {
+      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation' || pathPart === 'content' || pathPart === 'selection-states' || pathPart === 'appearance') {
         const variantKey = pathPart === 'styles' ? 'style' :
           pathPart === 'sizes' ? 'size' :
             pathPart === 'layouts' ? 'layout' :
@@ -751,7 +814,7 @@ export function getDimensionPropertyType(
 
       // Check if $value is a plain string token reference (e.g., "{tokens.border-radius.sm}")
       if (typeof value === 'string' && value.trim().startsWith('{')) {
-        return 'token'
+        return classifyDimensionRef(uikitRoot, value)
       }
 
       // Check if it's an object with value and unit
@@ -760,7 +823,7 @@ export function getDimensionPropertyType(
 
         // If value is a string starting with '{', it's a token reference
         if (typeof dimValue === 'string' && dimValue.trim().startsWith('{')) {
-          return 'token'
+          return classifyDimensionRef(uikitRoot, dimValue)
         }
 
         // If value is a number, it's hardcoded px
@@ -803,13 +866,17 @@ export function getDimensionCategoryFromValue(
 
     // Navigate to the property using the path
     let current: any = component
-    for (let i = 0; i < propPath.length; i++) {
+    let startIndex = 0
+    if (propPath[0] === 'components') {
+      startIndex = 2
+    }
+    for (let i = startIndex; i < propPath.length; i++) {
       const pathPart = propPath[i]
       if (current == null || typeof current !== 'object') {
         return null
       }
 
-      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation' || pathPart === 'content') {
+      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation' || pathPart === 'content' || pathPart === 'selection-states' || pathPart === 'appearance') {
         const variantKey = pathPart === 'styles' ? 'style' :
           pathPart === 'sizes' ? 'size' :
             pathPart === 'layouts' ? 'layout' :

@@ -162,9 +162,14 @@ export default function PaletteColorControl({
 
     const trimmed = value.trim()
 
-    // PRIORITY 1: Check for core colors FIRST (before regular palettes)
+    // PRIORITY 1: Check for core colors FIRST (before regular palettes).
+    // Exception: an on-tone reference (…_on-tone) is flattened by the resolver to a raw
+    // color token whose actual colour is the readable text/paired colour — NOT the parent
+    // swatch (e.g. core-alert's on-tone is white, not the alert red). Don't stop at the
+    // parent; keep following the chain to the flattened token so the label reflects the
+    // real colour (matched to a palette swatch below), matching the picker highlight.
     const brandParsed = parseBrandCssVar(trimmed)
-    if (brandParsed) {
+    if (brandParsed && !/on-tone/.test(trimmed)) {
       if (brandParsed.type === 'core-color') return trimmed
       if (brandParsed.type === 'palette') return trimmed
     }
@@ -203,37 +208,43 @@ export default function PaletteColorControl({
     let debounceTimer: ReturnType<typeof setTimeout> | null = null
     const relevantVars = [displayCssVar, targetCssVar, ...(targetCssVars || [])].filter(Boolean)
 
-    const handleCssVarsUpdated = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      const updatedVars = detail?.cssVars
-
-      // Only update if one of our CSS vars was changed
-      if (!Array.isArray(updatedVars)) {
-        return
-      }
-
-      const hasRelevantUpdate = relevantVars.some(v => isVarInChain(v, updatedVars))
-      if (!hasRelevantUpdate) {
-        return
-      }
-
-      // Debounce to prevent excessive updates
-      if (debounceTimer) {
-        clearTimeout(debounceTimer)
-      }
-
+    const scheduleRefresh = () => {
+      if (debounceTimer) clearTimeout(debounceTimer)
       debounceTimer = setTimeout(() => {
-        // Force re-computation of display label when CSS vars are updated
+        // Force re-computation of display label + swatch when the underlying value changes.
         setRefreshKey(prev => prev + 1)
       }, 16) // ~1 frame at 60fps
     }
 
+    const handleCssVarsUpdated = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars
+
+      // A global update signal (no specific var list — e.g. the on-tone compliance modal or a
+      // bulk write) may have changed a value anywhere in our chain, so always re-read.
+      if (!Array.isArray(updatedVars)) {
+        scheduleRefresh()
+        return
+      }
+
+      // Otherwise only refresh when one of our CSS vars (or something in its resolve chain) changed.
+      if (!relevantVars.some(v => isVarInChain(v, updatedVars))) {
+        return
+      }
+      scheduleRefresh()
+    }
+
+    // A reset reverts every var to its default with no per-var detail, so always re-read.
+    const handleCssVarsReset = () => scheduleRefresh()
+
     window.addEventListener('cssVarsUpdated', handleCssVarsUpdated)
+    window.addEventListener('cssVarsReset', handleCssVarsReset)
     return () => {
       if (debounceTimer) {
         clearTimeout(debounceTimer)
       }
       window.removeEventListener('cssVarsUpdated', handleCssVarsUpdated)
+      window.removeEventListener('cssVarsReset', handleCssVarsReset)
     }
   }, [displayCssVar, targetCssVar, targetCssVars])
 

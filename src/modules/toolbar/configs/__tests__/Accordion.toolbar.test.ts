@@ -74,18 +74,17 @@ describe('Accordion Toolbar Config', () => {
     }
 
     const configProps = new Set<string>()
-    if (config.props) {
-      Object.keys(config.props).forEach(prop => {
-        configProps.add(prop)
-        const propConfig = (config.props as any)[prop]
-        if (propConfig.group) {
-          Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
-        }
-      })
-    }
+    const properties = (config as any).properties || (config as any).props || {}
+    Object.keys(properties).forEach(prop => {
+      configProps.add(prop)
+      const propConfig = properties[prop]
+      if (propConfig.group) {
+        Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
+      }
+    })
 
     configProps.forEach(prop => {
-      if (!uikitProps.has(prop) && !prop.includes('-')) {
+      if (!uikitProps.has(prop) && !prop.includes('-') && !prop.includes('.')) {
         console.warn(`Config prop ${prop} not found in recursica_ui-kit.json - may be a grouped prop`)
       }
     })
@@ -119,18 +118,19 @@ describe('Accordion Toolbar Config', () => {
     }
 
     const configProps = new Set<string>()
-    if (config.props) {
-      Object.keys(config.props).forEach(prop => {
-        configProps.add(prop)
-        const propConfig = (config.props as any)[prop]
-        if (propConfig.group) {
-          Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
-        }
-      })
-    }
+    const properties = (config as any).properties || (config as any).props || {}
+    Object.keys(properties).forEach(prop => {
+      configProps.add(prop)
+      const propConfig = properties[prop]
+      if (propConfig.group) {
+        Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
+      }
+    })
 
     requiredProps.forEach(prop => {
-      expect(configProps.has(prop), `Required container prop ${prop} missing from Accordion toolbar config`).toBe(true)
+      const hasProp = configProps.has(prop) || 
+                      Array.from(configProps).some(p => p === `properties.${prop}` || p.endsWith(`.${prop}`))
+      expect(hasProp, `Required container prop ${prop} missing from Accordion toolbar config`).toBe(true)
     })
   })
 })

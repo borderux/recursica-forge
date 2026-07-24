@@ -1,0 +1,69 @@
+{
+  "variants": {},
+  "properties": {
+    "color": {
+      "icon": "palette",
+      "label": "Colors",
+      "group": {
+        "properties.colors.text-color": {
+          "label": "Text"
+        },
+        "properties.colors.background-color": {
+          "label": "Background"
+        },
+        "properties.colors.border-color": {
+          "label": "Border"
+        }
+      }
+    },
+    "spacing": {
+      "icon": "arrows-out",
+      "label": "Spacing",
+      "group": {
+        "properties.horizontal-padding": {
+          "label": "Horizontal padding"
+        },
+        "properties.top-padding": {
+          "label": "Top padding"
+        },
+        "properties.bottom-padding": {
+          "label": "Bottom padding"
+        },
+        "properties.margin": {
+          "label": "Margin"
+        }
+      }
+    },
+    "border": {
+      "icon": "square",
+      "label": "Border",
+      "group": {
+        "properties.border-radius": {
+          "label": "Corner radius"
+        },
+        "properties.border-size": {
+          "label": "Size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
+        }
+      }
+    },
+    "properties.text": {
+      "icon": "text-aa",
+      "label": "Text"
+    },
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation",
+      "group": {
+        "properties.elevation": {
+          "label": "Content"
+        }
+      }
+    }
+  }
+}

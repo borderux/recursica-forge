@@ -28,19 +28,19 @@ export default function Stepper({
     // Path: components.stepper.properties.colors.{layer}.{prop}
     const colorVar = (prop: string) => buildComponentCssVarPath('Stepper', 'properties', 'colors', layer, prop)
 
-    const completedIndicatorBgVar = colorVar('completed-indicator-background')
+    const completedIndicatorBgVar = colorVar('completed-indicator-background-color')
     const completedIndicatorTextVar = colorVar('completed-indicator-text')
     const completedLabelColorVar = colorVar('completed-label-color')
     const completedDescColorVar = colorVar('completed-description-color')
     const completedIndicatorBorderColorVar = colorVar('completed-indicator-border-color')
 
-    const currentIndicatorBgVar = colorVar('current-indicator-background')
+    const currentIndicatorBgVar = colorVar('current-indicator-background-color')
     const currentIndicatorTextVar = colorVar('current-indicator-text')
     const currentLabelColorVar = colorVar('current-label-color')
     const currentDescColorVar = colorVar('current-description-color')
     const currentIndicatorBorderColorVar = colorVar('current-indicator-border-color')
 
-    const upcomingIndicatorBgVar = colorVar('upcoming-indicator-background')
+    const upcomingIndicatorBgVar = colorVar('upcoming-indicator-background-color')
     const upcomingIndicatorTextVar = colorVar('upcoming-indicator-text')
     const upcomingLabelColorVar = colorVar('upcoming-label-color')
     const upcomingDescColorVar = colorVar('upcoming-description-color')

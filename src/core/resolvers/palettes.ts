@@ -179,19 +179,63 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
     const themes = root?.themes || root
     const state: any = (mode === 'Light' ? themes?.light?.states : themes?.dark?.states) || {}
+    // Resolve a px/dimension value that may be either a token reference string
+    // or an object of shape { value, unit } (e.g. focus margin).
+    const getPxVar = (v: any): string => {
+      const raw = (v && typeof v === 'object' && '$value' in v) ? v.$value : v
+      if (raw && typeof raw === 'object' && 'value' in raw) {
+        const unit = (raw as any).unit || 'px'
+        return `${(raw as any).value}${unit}`
+      }
+      if (typeof raw === 'string') {
+        const cssVar = resolveTokenReferenceToCssVar(raw, context)
+        if (cssVar) return cssVar
+        const trimmed = raw.trim()
+        if (/^-?\d+(\.\d+)?$/.test(trimmed)) return `${trimmed}px`
+        return trimmed
+      }
+      if (typeof raw === 'number') return `${raw}px`
+      return '0px'
+    }
     const disabled = getOpacityVar(state?.disabled)
-    const hover = getOpacityVar(state?.hover)
+    const hoverColor = getColorVar(state?.hover?.color)
+    const hoverOpacity = getOpacityVar(state?.hover?.opacity)
+    const focusColor = getColorVar(state?.focus?.color)
+    const focusBorderSize = getPxVar(state?.focus?.['border-size'])
+    const focusMargin = getPxVar(state?.focus?.margin)
+    const focusBlur = getPxVar(state?.focus?.blur)
     const overlayOpacity = getOpacityVar(state?.overlay?.opacity)
     const overlayColor = getColorVar(state?.overlay?.color)
+    // Link-only hover text treatment (literal string values: e.g. underline / italic / 700).
+    const linkVal = (v: any, fallback: string) => (v && typeof v === 'object' && '$value' in v ? String(v.$value) : fallback)
+    const linkDecoration = linkVal(state?.link?.decoration, 'underline')
+    const linkStyle = linkVal(state?.link?.style, 'normal')
+    const linkWeight = linkVal(state?.link?.weight, '400')
 
     // Always emit state CSS variables, even if values are undefined (they'll have fallback defaults)
     vars[stateVar(modeLower, 'disabled')] = disabled
-    vars[stateVar(modeLower, 'hover')] = hover
+    vars[stateVar(modeLower, 'hover', 'color')] = hoverColor
+    vars[stateVar(modeLower, 'hover', 'opacity')] = hoverOpacity
+    vars[stateVar(modeLower, 'focus', 'color')] = focusColor
+    vars[stateVar(modeLower, 'focus', 'border-size')] = focusBorderSize
+    vars[stateVar(modeLower, 'focus', 'margin')] = focusMargin
+    vars[stateVar(modeLower, 'focus', 'blur')] = focusBlur
+    vars[stateVar(modeLower, 'link', 'decoration')] = linkDecoration
+    vars[stateVar(modeLower, 'link', 'style')] = linkStyle
+    vars[stateVar(modeLower, 'link', 'weight')] = linkWeight
     vars[stateVar(modeLower, 'overlay', 'opacity')] = overlayOpacity
     vars[stateVar(modeLower, 'overlay', 'color')] = overlayColor
   } catch {
     vars[stateVar(modeLower, 'disabled')] = `var(${tokenOpacity('solid')})`
-    vars[stateVar(modeLower, 'hover')] = `var(${tokenOpacity('solid')})`
+    vars[stateVar(modeLower, 'hover', 'color')] = `var(${paletteCore(modeLower, 'high-contrast', 'tone')})`
+    vars[stateVar(modeLower, 'hover', 'opacity')] = `var(${tokenOpacity('mist')})`
+    vars[stateVar(modeLower, 'focus', 'color')] = `var(${paletteCore(modeLower, 'interactive', 'tone')})`
+    vars[stateVar(modeLower, 'focus', 'border-size')] = '1px'
+    vars[stateVar(modeLower, 'focus', 'margin')] = '2px'
+    vars[stateVar(modeLower, 'focus', 'blur')] = '4px'
+    vars[stateVar(modeLower, 'link', 'decoration')] = 'underline'
+    vars[stateVar(modeLower, 'link', 'style')] = 'normal'
+    vars[stateVar(modeLower, 'link', 'weight')] = '400'
     vars[stateVar(modeLower, 'overlay', 'opacity')] = `var(${tokenOpacity('solid')})`
     vars[stateVar(modeLower, 'overlay', 'color')] = `var(${paletteCore(modeLower, 'high-contrast')})`
   }

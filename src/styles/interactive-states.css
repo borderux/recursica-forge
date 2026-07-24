@@ -1,0 +1,121 @@
+/**
+ * Global interactive states — hover & focus
+ *
+ * These two states are GLOBAL (brand-level), edited on the Theme › States page,
+ * and applied uniformly to every interactive element. They are NOT stored per
+ * component. Component JSON only keeps `base`, `disabled`, and `error`.
+ *
+ * Driven by the theme-scoped brand vars (auto-resolved per light/dark):
+ *   --recursica_brand_states_hover_color    (default: high-contrast tone)
+ *   --recursica_brand_states_hover_opacity  (default: mist)
+ *   --recursica_brand_states_focus_color        (default: interactive/primary tone)
+ *   --recursica_brand_states_focus_border-size  (ring thickness; default: 1px, min 1px)
+ *   --recursica_brand_states_focus_margin       (gap between element and ring; default: 2px)
+ *   --recursica_brand_states_focus_blur         (soft glow radius; default: 4px)
+ *
+ * Opt-in hook: add the class `recursica-interactive` to any element to force
+ * these states (used by the States page test components).
+ *
+ * Inputs: the visible field is a `.recursica-*-wrapper` element wrapping an inset
+ * <input>/<textarea>/<select>. We target that wrapper (via :has + :focus-within /
+ * :hover) so the whole field reacts, rather than the inset control itself.
+ */
+
+:root {
+  /* Composite hover tint: hover color at hover opacity, over transparent. */
+  --recursica-hover-tint: color-mix(
+    in srgb,
+    var(--recursica_brand_states_hover_color, currentColor)
+      calc(var(--recursica_brand_states_hover_opacity, 0.08) * 100%),
+    transparent
+  );
+  /* Reusable focus-glow pieces (so every focusable target shares one definition). */
+  --recursica-focus-outline: var(--recursica_brand_states_focus_border-size, 1px) solid
+    var(--recursica_brand_states_focus_color, currentColor);
+  /* The glow is a box-shadow: it follows the element's BORDER-BOX (the outermost
+     edge of the component), never the drawn pixels — so transparent-background
+     elements (outline/text buttons) glow only around their outer silhouette, not
+     inward around borders or text (which a drop-shadow filter would do). The
+     ID-level specificity bump on the focus rules lets it beat component elevation
+     box-shadows while focused. */
+  --recursica-focus-glow: 0 0 var(--recursica_brand_states_focus_blur, 4px)
+    var(--recursica_brand_states_focus_color, currentColor);
+}
+
+/* ── Hover: a uniform color overlay on box-like interactive elements ──────────
+   Uses background-image (a paint layer above background-color) so it composites
+   over existing backgrounds and never disturbs elevation box-shadows. */
+button:hover:not(:disabled):not([data-disabled="true"]):not([aria-disabled="true"]):not(.mantine-Stepper-step),
+[role="button"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="tab"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="menuitem"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="option"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="checkbox"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="radio"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="switch"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+input[type="checkbox"]:hover:not(:disabled),
+input[type="radio"]:hover:not(:disabled),
+/* Switch: the input is visually hidden — tint the visible track. */
+.mantine-Switch-track:hover,
+/* Slider: tint only the part under the cursor — thumb, filled bar, or empty track.
+   (bar/thumb are children of track, so exclude track when they're the hover target;
+   the track's visible surface is its ::before, so the tint goes there) */
+.mantine-Slider-thumb:hover,
+.mantine-Slider-bar:hover,
+.mantine-Slider-track:hover:not(:has(.mantine-Slider-bar:hover)):not(:has(.mantine-Slider-thumb:hover))::before,
+/* Segmented control: tint only the track (root), never the outer wrapper. */
+.mantine-SegmentedControl-root:hover,
+/* Stepper: the whole step is a <button> (excluded above) — tint only the bullet. */
+.mantine-Stepper-step:hover:not(:disabled):not([data-disabled="true"]) .mantine-Stepper-stepIcon,
+/* Disabled fields (inset control is [disabled], or the wrapper carries a disabled marker)
+   must not take the hover tint. */
+[class*="recursica-"][class*="-wrapper"]:not([class*="segmented"]):not([class*="table"]):not(.disabled):not([data-disabled="true"]):has(input, textarea, select):not(:has(input:disabled, textarea:disabled, select:disabled)):hover,
+/* Field-style triggers (autocomplete, dropdown) hosting an inset input. */
+[class*="recursica-"][class*="-trigger"]:not(.disabled):not([data-disabled="true"]):has(input, textarea, select):not(:has(input:disabled, textarea:disabled, select:disabled)):hover,
+.recursica-interactive:hover:not(:disabled):not([data-disabled="true"]):not([aria-disabled="true"]) {
+  background-image: linear-gradient(
+    var(--recursica-hover-tint),
+    var(--recursica-hover-tint)
+  ) !important;
+}
+
+/* ── Focus: a "glow" ring around the focused element ─────────────────────────
+   - border-size -> outline thickness (the crisp ring)
+   - margin      -> outline-offset (gap between the element and the ring)
+   - blur        -> box-shadow blur radius (a soft glow around the border-box; 0 = none)
+   The trailing :not(#\9) is a specificity bump (adds an ID's weight without ever
+   matching) so these !important rules beat any component's own !important focus
+   styles — the glow is guaranteed on every interactive element. */
+button:focus-visible:not(#\9),
+a[href]:focus-visible:not(#\9),
+[role="button"]:focus-visible:not(#\9),
+[role="tab"]:focus-visible:not(#\9),
+[role="menuitem"]:focus-visible:not(#\9),
+[role="option"]:focus-visible:not(#\9),
+[role="checkbox"]:focus-visible:not(#\9),
+[role="radio"]:focus-visible:not(#\9),
+[role="switch"]:focus-visible:not(#\9),
+[role="slider"]:focus-visible:not(#\9),
+input[type="checkbox"]:focus-visible:not(#\9),
+input[type="radio"]:focus-visible:not(#\9),
+html[data-recursica-kbd] [class*="recursica-"][class*="-wrapper"]:not([class*="table"]):has(input:focus-visible, textarea:focus-visible, select:focus-visible):not(#\9),
+html[data-recursica-kbd] [class*="recursica-"][class*="-trigger"]:has(input:focus-visible, textarea:focus-visible, select:focus-visible):not(#\9),
+.recursica-interactive:focus-visible:not(#\9),
+.recursica-interactive:has(:focus-visible):not(#\9) {
+  outline: var(--recursica-focus-outline) !important;
+  outline-offset: var(--recursica_brand_states_focus_margin, 2px) !important;
+  box-shadow: var(--recursica-focus-glow) !important;
+}
+
+/* Switch: the <input> is visually hidden, so glow the visible track instead. */
+.mantine-Switch-input:focus-visible + .mantine-Switch-track:not(#\9) {
+  outline: var(--recursica-focus-outline) !important;
+  outline-offset: var(--recursica_brand_states_focus_margin, 2px) !important;
+  box-shadow: var(--recursica-focus-glow) !important;
+}
+
+/* The whole field (wrapper) shows the glow, so suppress the inset control's own
+   focus outline to avoid a doubled ring inside the field. */
+[class*="recursica-"][class*="-wrapper"] :is(input, textarea, select):focus {
+  outline: none !important;
+}

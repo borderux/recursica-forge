@@ -1,7 +1,7 @@
 import { getVarsStore } from '../../../../core/store/varsStore'
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import { ComponentProp, toSentenceCase, parseComponentStructure } from '../../utils/componentToolbarUtils'
-import { getPropLabel, getPropVisible, getGroupedProps, getGroupedPropConfig, getPropConfig } from '../../utils/loadToolbarConfig'
+import { getPropLabel, getGroupedProps, getGroupedPropConfig, getPropConfig } from '../../utils/loadToolbarConfig'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
@@ -155,7 +155,7 @@ export default function PropControl({
 
     // For text colors, check against background
     if (propName === 'text' || propName === 'text-hover') {
-      const bgPropName = propName === 'text-hover' ? 'background-hover' : 'background'
+      const bgPropName = propName === 'text-hover' ? 'background-hover' : 'background-color'
       const bgProp = structure.props.find(p =>
         p.name.toLowerCase() === bgPropName &&
         p.category === 'colors' &&
@@ -169,7 +169,7 @@ export default function PropControl({
     }
 
     // For background colors, check against text
-    if (propName === 'background' || propName === 'background-hover') {
+    if (propName === 'background-color' || propName === 'background-hover') {
       const textPropName = propName === 'background-hover' ? 'text-hover' : 'text'
       const textProp = structure.props.find(p =>
         p.name.toLowerCase() === textPropName &&

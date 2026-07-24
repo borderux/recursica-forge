@@ -21,7 +21,10 @@ import { SegmentedControl } from '../SegmentedControl'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentLevelCssVar, buildComponentCssVarPath } from '../../utils/cssVarNames'
 
-describe.skip('SegmentedControl Toolbar Props Integration', { timeout: 60000 }, () => {
+// TODO(browser-tests): re-enable once repaired. Runs in browser (no OOM) but has stale
+  // assertions from the toolbar rewrite (old CSS-var names, var() refs a real browser resolves,
+  // or changed DOM). Fix against the current toolbar/component DOM, then drop .skip.
+  describe.skip('SegmentedControl Toolbar Props Integration', { timeout: 60000 }, () => {
   // Note: We don't preload components here to avoid hanging issues
   // Components will load lazily via Suspense, which is tested behavior
 
@@ -120,7 +123,7 @@ describe.skip('SegmentedControl Toolbar Props Integration', { timeout: 60000 }, 
 
       // Get the CSS variable name that the toolbar would use
       // SegmentedControl uses container.colors.layer-X.background
-      const bgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', 'layer-0', 'background')
+      const bgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', 'layer-0', 'background-color')
       
       // Simulate toolbar update: change the CSS variable
       updateCssVar(bgVar, '#ff0000')
@@ -152,7 +155,7 @@ describe.skip('SegmentedControl Toolbar Props Integration', { timeout: 60000 }, 
       const element = await waitForSegmentedControl(container!)
       expect(element).toBeInTheDocument()
 
-      const selectedBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', 'layer-0', 'background')
+      const selectedBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', 'layer-0', 'background-color')
       
       updateCssVar(selectedBgVar, '#00ff00')
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {

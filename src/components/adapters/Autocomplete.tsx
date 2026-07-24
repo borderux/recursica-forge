@@ -102,10 +102,10 @@ export function Autocomplete({
     }
 
     // Determine effective state
-    const effectiveState = state
+    const effectiveState = state === 'disabled' ? 'disabled' : (errorText ? 'error' : state)
 
     // Get CSS variables
-    const backgroundVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
     const textVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
     const leadingIconVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')

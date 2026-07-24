@@ -8,6 +8,21 @@ import { tokenToCssVar } from '../css/tokenRefs'
 
 const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
 
+const tokenIndexCache = new WeakMap<any, TokenIndex>()
+
+function getCachedTokenIndex(tokens: any): TokenIndex {
+  if (!tokens || typeof tokens !== 'object') {
+    return buildTokenIndex(tokens)
+  }
+  let cached = tokenIndexCache.get(tokens)
+  if (!cached) {
+    cached = buildTokenIndex(tokens)
+    tokenIndexCache.set(tokens, cached)
+  }
+  return cached
+}
+
+
 /**
  * Traces a CSS var to find the terminal --recursica_tokens_colors_* token reference.
  * Follows var() chain: brand → palette → token. Returns the token family/level
@@ -119,7 +134,6 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
  * Returns scale keys (e.g., "scale-01") instead of aliases, since recursica_brand.json doesn't use aliases
  */
 export function findColorFamilyAndLevel(hex: string, tokens: JsonLike): { family: string; level: string } | null {
-  const tokenIndex = buildTokenIndex(tokens)
   const normalizedHex = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
 
   // Search through new colors structure (colors.scale-XX.level)
@@ -172,7 +186,7 @@ export function getSteppedColor(
   if (targetIdx === currentIdx) return null // already at the edge
 
   const targetLevel = LEVELS[targetIdx]
-  const tokenIndex = buildTokenIndex(tokens)
+  const tokenIndex = getCachedTokenIndex(tokens)
   let targetHex = tokenIndex.get(`colors/${family}/${targetLevel}`)
   if (typeof targetHex !== 'string') {
     targetHex = tokenIndex.get(`color/${family}/${targetLevel}`)
@@ -206,7 +220,7 @@ export function getAllFamilyColorsByKey(
   family: string,
   tokens: JsonLike
 ): { hex: string; family: string; level: string }[] {
-  const tokenIndex = buildTokenIndex(tokens)
+  const tokenIndex = getCachedTokenIndex(tokens)
   const results: { hex: string; family: string; level: string }[] = []
 
   for (const level of LEVELS) {

@@ -505,6 +505,15 @@
       },
       "additionalProperties": false
     },
+    "stateStringValue": {
+      "type": "object",
+      "required": ["$type", "$value"],
+      "properties": {
+        "$type": { "type": "string", "enum": ["string"] },
+        "$value": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
     "state": {
       "type": "object",
       "properties": {
@@ -525,16 +534,122 @@
         },
         "hover": {
           "type": "object",
-          "required": ["$type", "$value"],
+          "required": ["color", "opacity"],
           "properties": {
-            "$type": {
-              "type": "string",
-              "enum": ["number"]
+            "color": {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["color"]
+                },
+                "$value": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
             },
-            "$value": {
-              "type": "string",
-              "pattern": "^\\{tokens\\.opacities\\.[a-z0-9_-]+\\}$"
+            "opacity": {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["number"]
+                },
+                "$value": {
+                  "type": "string",
+                  "pattern": "^\\{tokens\\.opacities\\.[a-z0-9_-]+\\}$"
+                }
+              },
+              "additionalProperties": false
             }
+          },
+          "additionalProperties": false
+        },
+        "focus": {
+          "type": "object",
+          "required": ["color", "border-size", "margin", "blur"],
+          "properties": {
+            "color": {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["color"]
+                },
+                "$value": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "border-size": {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": { "type": "string", "enum": ["number"] },
+                "$value": {
+                  "type": "object",
+                  "required": ["value", "unit"],
+                  "properties": {
+                    "value": { "type": "number" },
+                    "unit": { "type": "string" }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "margin": {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": {
+                  "type": "string",
+                  "enum": ["number"]
+                },
+                "$value": {
+                  "type": "object",
+                  "required": ["value", "unit"],
+                  "properties": {
+                    "value": { "type": "number" },
+                    "unit": { "type": "string" }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "blur": {
+              "type": "object",
+              "required": ["$type", "$value"],
+              "properties": {
+                "$type": { "type": "string", "enum": ["number"] },
+                "$value": {
+                  "type": "object",
+                  "required": ["value", "unit"],
+                  "properties": {
+                    "value": { "type": "number" },
+                    "unit": { "type": "string" }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "link": {
+          "type": "object",
+          "description": "Link-only hover text treatment (weight / decoration / style). Does not affect the hover overlay or focus.",
+          "properties": {
+            "decoration": { "$ref": "#/definitions/stateStringValue" },
+            "style": { "$ref": "#/definitions/stateStringValue" },
+            "weight": { "$ref": "#/definitions/stateStringValue" }
           },
           "additionalProperties": false
         },

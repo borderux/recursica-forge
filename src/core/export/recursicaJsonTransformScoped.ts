@@ -894,6 +894,19 @@ function formatScopedCss(
   css += ` * components with disabled background, border, or text colors), use those tokens for the disabled\n`
   css += ` * look and do not apply the global opacity, since the design already defines the disabled state.\n`
   css += ` *\n`
+  css += ` * --- Hover & Focus states (global, implicit rule) ---\n`
+  css += ` * Hover and focus are GLOBAL — the same treatment applies to every interactive element, driven by\n`
+  css += ` * the generic brand vars: --recursica_brand_states_hover_color / _hover_opacity (a color overlay)\n`
+  css += ` * and --recursica_brand_states_focus_color / _focus_border-size / _focus_margin / _focus_blur (a\n`
+  css += ` * focus "glow" ring). Apply, for any interactive element:\n`
+  css += ` *   :hover -> background-image: linear-gradient(color-mix(in srgb,\n`
+  css += ` *            var(--recursica_brand_states_hover_color) calc(var(--recursica_brand_states_hover_opacity) * 100%),\n`
+  css += ` *            transparent), <same>);\n`
+  css += ` *   :focus-visible -> outline: var(--recursica_brand_states_focus_border-size) solid var(--recursica_brand_states_focus_color);\n`
+  css += ` *                     outline-offset: var(--recursica_brand_states_focus_margin);\n`
+  css += ` *                     box-shadow: 0 0 var(--recursica_brand_states_focus_blur) var(--recursica_brand_states_focus_color);\n`
+  css += ` * Components must NOT define their own per-component hover/focus colors.\n`
+  css += ` *\n`
   css += ` * --- How this file is structured ---\n`
   css += ` * :root defines every variable with a specific (full-path) name so every reference resolves.\n`
   css += ` * Theme and theme+layer blocks ([data-recursica-theme="light"], [data-recursica-theme="light"][data-recursica-layer="1"], etc.)\n`

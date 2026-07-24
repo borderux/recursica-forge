@@ -36,14 +36,32 @@
   text-transform: var(--tree-unselected-text-transform, none);
   font-style: var(--tree-unselected-font-style, normal);
   color: var(--tree-unselected-text, var(--recursica_brand_layers_layer-0_text_color));
-  border: var(--tree-border-size, 0px) solid transparent;
+  background-color: var(--tree-unselected-bg, transparent);
+  border: var(--tree-border-size, 0px) solid var(--tree-unselected-border-color, transparent);
 }
 
-.recursica-tree-label:hover {
-  background-color: var(--tree-hover-bg);
-  color: var(--tree-hover-text, var(--tree-unselected-text));
-  opacity: var(--recursica_brand_layers_layer-0_text_high-emphasis);
-  border: var(--tree-border-size, 0px) solid var(--tree-hover-border-color, transparent);
+/* Hover is a GLOBAL state (Theme › States). The tree container/treeitem li are NOT
+   hoverable surfaces — only the node row's label (and the chevron button, which the
+   global rule covers as a <button>) take the overlay tint. */
+.recursica-tree-node:hover .recursica-tree-label {
+  background-image: linear-gradient(
+    var(--recursica-hover-tint),
+    var(--recursica-hover-tint)
+  ) !important;
+}
+
+/* Focus is a GLOBAL state. Mantine's treeitem <li> wraps the row AND its children,
+   so glowing the li would wrap the whole subtree — glow only the focused li's own
+   row label instead (direct child), and suppress the li's default outline. */
+.recursica-tree [role="treeitem"]:focus,
+.recursica-tree [role="treeitem"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.recursica-tree [role="treeitem"]:focus-visible > .recursica-tree-node .recursica-tree-label {
+  outline: var(--recursica-focus-outline) !important;
+  outline-offset: var(--recursica_brand_states_focus_margin, 2px) !important;
+  box-shadow: var(--recursica-focus-glow) !important;
 }
 
 .recursica-tree-node.selected .recursica-tree-label {

@@ -35,9 +35,9 @@ export default function Card({
     const { mode } = useThemeMode()
 
     // UIKit per-layer CSS vars (reference brand layer props by default, overridable)
-    const bgVar = getComponentLevelCssVar('Card', `colors.${layer}.background`)
-    const headerBgVar = getComponentLevelCssVar('Card', `colors.${layer}.header-background`)
-    const footerBgVar = getComponentLevelCssVar('Card', `colors.${layer}.footer-background`)
+    const bgVar = getComponentLevelCssVar('Card', `colors.${layer}.background-color`)
+    const headerBgVar = getComponentLevelCssVar('Card', `colors.${layer}.header-background-color`)
+    const footerBgVar = getComponentLevelCssVar('Card', `colors.${layer}.footer-background-color`)
     const borderColorVar = getComponentLevelCssVar('Card', `colors.${layer}.border-color`)
     const dividerColorVar = getComponentLevelCssVar('Card', `colors.${layer}.divider-color`)
     const titleColorVar = getComponentLevelCssVar('Card', `colors.${layer}.title`)

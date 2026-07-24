@@ -24,6 +24,10 @@ interface TablePreviewProps {
   componentElevation?: string
   singleRowMode?: boolean
   hideSearch?: boolean
+  /** Show the table header row (thead). Default false — only the Table header preview shows it. */
+  showHeader?: boolean
+  /** Show the table footer row (tfoot). Default true. */
+  showFooter?: boolean
 }
 
 interface GoblinRow {
@@ -83,6 +87,8 @@ export default function TablePreview({
   selectedLayer,
   singleRowMode = false,
   hideSearch = false,
+  showHeader = false,
+  showFooter = true,
 }: TablePreviewProps) {
   const { mode } = useThemeMode()
   const [filterText, setFilterText] = useState('')
@@ -173,6 +179,14 @@ export default function TablePreview({
 
     return result
   }, [filterText, sortField, sortAsc, singleRowMode])
+
+  // Total loot for the footer. Must be a top-level hook — it was previously called
+  // inline inside the conditional `<tfoot>` JSX, which changed the hook count whenever
+  // `showFooter` toggled and crashed React with "Rendered fewer hooks than expected".
+  const totalLoot = useMemo(
+    () => processedData.reduce((sum, r) => sum + r.loot, 0).toLocaleString(),
+    [processedData]
+  )
 
   // Get sort chevron icons
   const ChevronUp = iconNameToReactComponent('chevron-up')
@@ -279,6 +293,7 @@ export default function TablePreview({
           }}
           style={{ width: '100%', height: singleRowMode ? 'auto' : '100%' }}
         >
+          {showHeader && (
           <thead>
             <tr style={{
               background: mode === 'dark' ? '#1e272e' : '#f5f6fa',
@@ -349,6 +364,7 @@ export default function TablePreview({
               </TableHeader>
             </tr>
           </thead>
+          )}
           <tbody>
             {processedData.length > 0 ? (
               processedData.map((row) => {
@@ -452,6 +468,7 @@ export default function TablePreview({
               </tr>
             )}
           </tbody>
+          {showFooter && (
           <tfoot>
             <tr>
               <TableFooter style={{ width: 48 }} layer={selectedLayer as any} />
@@ -463,13 +480,14 @@ export default function TablePreview({
               <TableFooter layer={selectedLayer as any} />
               <TableFooter variant="currency" style={{ textAlign: 'right' }} layer={selectedLayer as any}>
                 <span style={{ fontWeight: 'bold' }}>
-                  {useMemo(() => processedData.reduce((sum, r) => sum + r.loot, 0).toLocaleString(), [processedData])} GP
+                  {totalLoot} GP
                 </span>
               </TableFooter>
               <TableFooter layer={selectedLayer as any} />
               <TableFooter layer={selectedLayer as any} />
             </tr>
           </tfoot>
+          )}
         </Table>
       </div>
     </div>

@@ -20,7 +20,6 @@ export type ChipProps = {
   size?: 'default' | 'small'
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
-  disabled?: boolean
   onClick?: (e: React.MouseEvent) => void
   onDelete?: (e: React.MouseEvent) => void
   deletable?: boolean
@@ -35,7 +34,6 @@ export function Chip({
   size = 'default',
   layer = 'layer-0',
   elevation,
-  disabled = false,
   onClick,
   onDelete,
   deletable = false,
@@ -76,7 +74,7 @@ export function Chip({
     const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar]
 
     // Get color CSS variables for reactive updates
-    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
+    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
     const chipTextForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
     const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
@@ -135,14 +133,14 @@ export function Chip({
 
     return (
       <div
-        onClick={disabled ? undefined : onClick}
+        onClick={onClick}
         className={className}
         style={{
-          ...getChipStyles(variant, size, layer, disabled, componentElevation, mode),
+          ...getChipStyles(variant, size, layer, componentElevation, mode),
           display: 'inline-flex',
           alignItems: 'center',
           gap: icon && children ? `var(${iconGapVar})` : 0,
-          cursor: disabled ? 'not-allowed' : onClick ? 'pointer' : 'default',
+          cursor: onClick ? 'pointer' : 'default',
           ...style,
         }}
       >
@@ -203,18 +201,16 @@ export function Chip({
           const CloseIcon = iconNameToReactComponent('x')
           return (
             <button
-              disabled={disabled}
-              onClick={disabled ? undefined : (e) => {
+              onClick={(e) => {
                 e.stopPropagation()
                 onDelete(e)
               }}
               style={{
                 background: 'none',
                 border: 'none',
-                cursor: disabled ? 'not-allowed' : 'pointer',
+                cursor: 'pointer',
                 padding: 0,
                 marginLeft: '4px',
-                opacity: disabled ? `var(--recursica_brand_${mode}-state-disabled, 0.5)` : undefined,
                 width: `var(${closeIconSizeVar}, 16px)`,
                 height: `var(${closeIconSizeVar}, 16px)`,
                 display: 'inline-flex',
@@ -236,7 +232,6 @@ export function Chip({
     size,
     layer,
     elevation: componentElevation,
-    disabled,
     onClick,
     onDelete,
     deletable,
@@ -259,7 +254,6 @@ function getChipStyles(
   variant: 'unselected' | 'selected' | 'error' | 'error-selected',
   size: 'default' | 'small',
   layer: ComponentLayer,
-  disabled: boolean,
   elevation?: string,
   mode: 'light' | 'dark' = 'light'
 ): React.CSSProperties {
@@ -268,7 +262,7 @@ function getChipStyles(
   // Get color CSS variables
   // Use recursica_ui-kit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
-  const bgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
+  const bgVar = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
   const borderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
   const textVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
@@ -317,12 +311,6 @@ function getChipStyles(
   styles.minWidth = minWidthVar ? `var(${minWidthVar})` : undefined
   styles.maxWidth = maxWidthVar ? `var(${maxWidthVar})` : undefined
 
-  // Apply disabled styles
-  if (disabled) {
-    styles.opacity = `var(--recursica_brand_${mode}-state-disabled)`
-    styles.cursor = 'not-allowed'
-  }
-
   // Apply elevation if set (and not elevation-0)
   if (elevation && elevation !== 'elevation-0') {
     styles.boxShadow = getElevationBoxShadow(mode, elevation) || undefined
@@ -336,7 +324,6 @@ function mapChipProps(props: ChipProps & { elevation?: string }): any {
 
   const baseProps: any = {
     ...rest,
-    disabled: props.disabled,
   }
 
   return {

@@ -19,6 +19,8 @@ export type TreeProps = {
   data?: any[]
   selected?: string[]
   onSelect?: (selected: string[]) => void
+  /** Force the hover appearance on all nodes — used by the toolbar preview when the Hover tab is active. */
+  forceHover?: boolean
 } & LibrarySpecificProps
 
 export function Tree({
@@ -31,6 +33,7 @@ export function Tree({
   data,
   selected,
   onSelect,
+  forceHover,
   mantine,
   material,
   carbon,
@@ -52,6 +55,7 @@ export function Tree({
         data={data}
         selected={selected}
         onSelect={onSelect}
+        forceHover={forceHover}
         mantine={mantine}
         material={material}
         carbon={carbon}

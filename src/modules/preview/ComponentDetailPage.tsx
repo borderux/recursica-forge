@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, lazy, Suspense } from 'react'
+import { useMemo, useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useParams, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
@@ -9,6 +9,7 @@ const AccordionPreview = lazy(() => import('../components/AccordionPreview'))
 const AccordionItemPreview = lazy(() => import('../components/AccordionItemPreview'))
 const CheckboxItemPreview = lazy(() => import('../components/CheckboxItemPreview'))
 const CheckboxGroupPreview = lazy(() => import('../components/CheckboxGroupPreview'))
+const RadioButtonItemPreview = lazy(() => import('../components/RadioButtonItemPreview'))
 const AvatarPreview = lazy(() => import('../components/AvatarPreview'))
 const ToastPreview = lazy(() => import('../components/ToastPreview'))
 const BadgePreview = lazy(() => import('../components/BadgePreview'))
@@ -22,6 +23,7 @@ const SliderPreview = lazy(() => import('../components/SliderPreview'))
 const SegmentedControlPreview = lazy(() => import('../components/SegmentedControlPreview'))
 const SegmentedControlItemPreview = lazy(() => import('../components/SegmentedControlItemPreview'))
 const TabsPreview = lazy(() => import('../components/TabsPreview'))
+const TabsItemPreview = lazy(() => import('../components/TabsItemPreview'))
 const AssistiveElementPreview = lazy(() => import('../components/AssistiveElementPreview'))
 const TextFieldPreview = lazy(() => import('../components/TextFieldPreview'))
 const TextareaPreview = lazy(() => import('../components/TextareaPreview'))
@@ -46,10 +48,12 @@ const TransferListPreview = lazy(() => import('../components/TransferListPreview
 const TablePreview = lazy(() => import('../components/TablePreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import { getTypographyStyle } from '../components/typographyStyles'
 import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from './PreviewPage'
 import ComponentDebugTable from './ComponentDebugTable'
-import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
+import { parseComponentStructure, isDisplayToggleVariant } from '../toolbar/utils/componentToolbarUtils'
+import VariantSwitch from '../toolbar/menu/dropdown/VariantSwitch'
 import { extractBraceContent, parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import type { ComponentName } from '../../components/registry/types'
 import { layerProperty, layerText } from '../../core/css/cssVarBuilder'
@@ -87,6 +91,10 @@ export default function ComponentDetailPage() {
     const initial: Record<string, string> = {}
     if (componentStructure) {
       componentStructure.variants.forEach(variant => {
+        // The interaction-state axis is driven by the toolbar's state tabs (which default to
+        // "base"), not seeded here — seeding it would surface a stale state (e.g. error) in
+        // previews that read selectedVariants.states while the Base tab is active.
+        if (variant.propName === 'states') return
         if (variant.variants.length > 0) {
           initial[variant.propName] = variant.variants[0]
         }
@@ -95,9 +103,21 @@ export default function ComponentDetailPage() {
     return initial
   }, [componentStructure])
 
+  // Bridges the toolbar's active interaction-state tab to `selectedVariants.states`, which is what
+  // the state-aware previews (date picker, text field, …) read. "base" maps to "default" (no state
+  // override). Stable identity so the toolbar's notify effect doesn't refire every render.
+  const handleActiveStateChange = useCallback((state: string) => {
+    setActiveState(state)
+    // Component control-states (error/disabled) are forced into the preview. Hover & focus are now
+    // global states (Theme › States) applied on real interaction, so they never appear as tabs here.
+    const forced = (state === 'error' || state === 'disabled' || state === 'visited') ? state : 'default'
+    setSelectedVariants(prev => ({ ...prev, states: forced }))
+  }, [])
+
   // Toolbar state - alternative layers removed
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(getInitialVariants)
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
+  const [activeState, setActiveState] = useState<string>('base')
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
   const [openPropControl, setOpenPropControl] = useState<Set<string>>(new Set())
 
@@ -170,6 +190,49 @@ export default function ComponentDetailPage() {
 
     return parts.join(' / ')
   }, [selectedVariants, selectedLayer, componentStructure])
+
+  // Heading shown above the preview: every selected variant value plus the active interaction
+  // state, joined by a middot (e.g. "Stacked · Base"). The interaction state is only appended
+  // when the component actually has states beyond "base" (disabled/error) — for base-only
+  // components, a trailing "· Base" is noise, so it's omitted (leaving just the variant, or the
+  // component name when there are no variants either).
+  const variantHeading = useMemo(() => {
+    const parts: string[] = []
+    if (componentStructure) {
+      componentStructure.variants.forEach(variant => {
+        if (variant.propName === 'states') return // interaction state is appended separately
+        if (isDisplayToggleVariant(variant.propName)) return // shown as a switch in the header, not the title
+        if (variant.variants.length > 1) {
+          const value = selectedVariants[variant.propName] || variant.variants[0]
+          parts.push(
+            variant.propName === 'layout' && value === 'side-by-side'
+              ? 'Side By Side'
+              : value.charAt(0).toUpperCase() + value.slice(1)
+          )
+        }
+      })
+    }
+    const statesVariant = componentStructure?.variants.find(v => v.propName === 'states')
+    const hasNonBaseStates = !!statesVariant && statesVariant.variants.some(s => s !== 'base')
+    if (hasNonBaseStates) {
+      parts.push(activeState.charAt(0).toUpperCase() + activeState.slice(1))
+    }
+    return parts.length > 0 ? parts.join(' · ') : (component?.name ?? '')
+  }, [selectedVariants, componentStructure, activeState, component])
+
+  // Display-toggle variants (e.g. fill-width) render as switches in the preview header, aligned to
+  // the right of the title — they control how the demo lays out, not a design-token variant.
+  const displayToggleVariants = useMemo(
+    () => (componentStructure?.variants || []).filter(
+      v => isDisplayToggleVariant(v.propName) && v.variants.length > 1
+    ),
+    [componentStructure]
+  )
+
+  // The preview only *forces* error/disabled (states the user can't trigger by interacting). For
+  // hover/focus the user must actually hover/focus the preview, so we leave the preview at 'base'
+  // while the toolbar tab still edits that state's props.
+  const previewState = (activeState === 'error' || activeState === 'disabled') ? activeState : 'base'
 
   // Get the layer number for building CSS variable paths
   const layerNum = selectedLayer.replace('layer-', '')
@@ -294,15 +357,50 @@ export default function ComponentDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          padding: component.name.toLowerCase().includes('table') ? 0 : 'var(--recursica_brand_dimensions_general_xl)',
+          // No padding here: the layer surface below already pads the component with the
+          // layer's own padding token. Only the heading gets an inset (below) so it isn't
+          // flush to the card — this avoids double-padding the preview.
+          padding: 0,
           position: 'sticky',
           top: 0,
           alignSelf: component.name.toLowerCase().includes('table') ? 'stretch' : 'flex-start',
           height: component.name.toLowerCase().includes('table') ? '100%' : undefined,
-          overflow: 'hidden',
+          // Table previews are full-bleed, so clip them to the card's rounded left corners.
+          // Other previews stay visible so their popovers/tooltips aren't cut off.
+          overflow: component.name.toLowerCase().includes('table') ? 'hidden' : 'visible',
           borderTopLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
           borderBottomLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
         }}>
+          {/* Variant + layer heading above the preview. Display-toggle switches (e.g. fill container
+              width) sit to the right of the title, aligned to the right edge of the preview area.
+              Hidden for table components — their previews are full-bleed and the heading is noise. */}
+          {!component.name.toLowerCase().includes('table') && (
+          <div style={{ padding: 'var(--recursica_brand_dimensions_general_xl) var(--recursica_brand_dimensions_general_xl) 0', marginBottom: 'var(--recursica_brand_dimensions_general_md)', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ ...getTypographyStyle('h2'), color: `var(${layerText(mode, 0, 'color')})` }}>
+                {variantHeading}
+              </h2>
+              <h3 style={{ ...getTypographyStyle('h3'), color: `var(${layerText(mode, 0, 'color')})`, opacity: `var(${layerText(mode, 0, 'low-emphasis')})` }}>
+                {`Layer ${layerNum}`}
+              </h3>
+            </div>
+            {displayToggleVariants.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_sm)', flexShrink: 0, minWidth: '200px' }}>
+                {displayToggleVariants.map(variant => (
+                  <VariantSwitch
+                    key={variant.propName}
+                    componentName={component.name}
+                    propName={variant.propName}
+                    variants={variant.variants}
+                    selected={selectedVariants[variant.propName] || variant.variants[0]}
+                    onSelect={(variantName) => setSelectedVariants(prev => ({ ...prev, [variant.propName]: variantName }))}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+          )}
+
           {/* Preview Section */}
           <div style={{
             flex: debugMode ? undefined : 1,
@@ -323,8 +421,8 @@ export default function ComponentDetailPage() {
             position: 'relative',
             minHeight: debugMode ? '400px' : 0,
           }}>
-            {/* Component Preview */}
-            <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', width: '100%', minWidth: 0 }}>
+            {/* Component Preview — pinned to the top-left of the preview surface */}
+            <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', minWidth: 0 }}>
               <Suspense fallback={<div />}>
                 {component.name === 'Button' ? (
                   <ButtonPreview
@@ -348,12 +446,20 @@ export default function ComponentDetailPage() {
                   <CheckboxItemPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
+                    activeState={previewState}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Checkbox group' ? (
                   <CheckboxGroupPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Radio button group item' ? (
+                  <RadioButtonItemPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    activeState={previewState}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Avatar' ? (
@@ -379,6 +485,7 @@ export default function ComponentDetailPage() {
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     selectedAltLayer={null}
+                    activeState={previewState}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Label' ? (
@@ -481,6 +588,12 @@ export default function ComponentDetailPage() {
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
+                ) : component.name === 'Tabs item' ? (
+                  <TabsItemPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
                 ) : component.name === 'Modal' ? (
                   <ModalPreview
                     selectedVariants={selectedVariants}
@@ -569,6 +682,8 @@ export default function ComponentDetailPage() {
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
+                    showHeader={true}
+                    showFooter={true}
                   />
                 ) : component.name === 'Table cell' ? (
                   <TablePreview
@@ -577,6 +692,8 @@ export default function ComponentDetailPage() {
                     componentElevation={componentElevation}
                     singleRowMode={true}
                     hideSearch={true}
+                    showHeader={false}
+                    showFooter={false}
                   />
                 ) : component.name === 'Table header' ? (
                   <TablePreview
@@ -585,6 +702,8 @@ export default function ComponentDetailPage() {
                     componentElevation={componentElevation}
                     singleRowMode={true}
                     hideSearch={true}
+                    showHeader={true}
+                    showFooter={false}
                   />
                 ) : component.name === 'Table footer' ? (
                   <TablePreview
@@ -593,6 +712,8 @@ export default function ComponentDetailPage() {
                     componentElevation={componentElevation}
                     singleRowMode={true}
                     hideSearch={true}
+                    showHeader={false}
+                    showFooter={true}
                   />
                 ) : component.name === 'Tree' ? (
                   <div style={{
@@ -602,7 +723,7 @@ export default function ComponentDetailPage() {
                     alignItems: 'flex-start',
                     justifyContent: 'flex-start',
                   }}>
-                    {component.render?.(new Set([selectedLayer as any])) || <div>No preview available</div>}
+                    {component.render?.(new Set([selectedLayer as any]), previewState) || <div>No preview available</div>}
                   </div>
                 ) : (
                   <div style={{
@@ -621,7 +742,7 @@ export default function ComponentDetailPage() {
 
         {/* Toolbar Panel - Right Side */}
         <div style={{
-          width: '320px',
+          width: '416px',
           flexShrink: 0,
           display: 'flex',
           flexDirection: 'column',
@@ -640,6 +761,7 @@ export default function ComponentDetailPage() {
               setSelectedVariants(prev => ({ ...prev, [prop]: variant }))
             }}
             onLayerChange={setSelectedLayer}
+            onActiveStateChange={handleActiveStateChange}
           />
         </div>
       </div>

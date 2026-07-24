@@ -27,6 +27,7 @@ import { Slider } from '../../../components/adapters/Slider'
 import { Label } from '../../../components/adapters/Label'
 import { readCssVar, readCssVarResolved } from '../../../core/css/readCssVar'
 import { getVarsStore } from '../../../core/store/varsStore'
+import OpacitySlider from '../utils/OpacitySlider'
 
 function BorderSizeSliderInline({ targetCssVar, label }: { targetCssVar: string; label: string }) {
   const [value, setValue] = useState(() => {
@@ -378,7 +379,16 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
     if (!conflict.globalCssVarName) return null
     const lowerVar = conflict.globalCssVarName.toLowerCase()
     
+    // Opacity globals (e.g. states/disabled) carry a bare 0–1 number rather than a
+    // dimension/colour, so they need the token-stop opacity slider, not a px slider.
+    const resolvedNum = (readCssVarResolved(conflict.globalCssVarName) || '').trim()
+    const isOpacity =
+      lowerVar.includes('opacity') ||
+      lowerVar.includes('emphasis') ||
+      /^(0|1)(\.\d+)?$|^\.\d+$/.test(resolvedNum)
+
     const getSimpleLabel = () => {
+      if (isOpacity) return 'Opacity'
       if (lowerVar.includes('border-size') || lowerVar.includes('border-width')) return 'Size'
       if (lowerVar.includes('radius')) return 'Radius'
       if (lowerVar.includes('color')) return 'Color'
@@ -390,7 +400,17 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
     }
 
     const simpleLabel = getSimpleLabel()
-    
+
+    if (isOpacity) {
+      return (
+        <OpacitySlider
+          targetCssVar={conflict.globalCssVarName}
+          label={simpleLabel}
+          layer="layer-1"
+        />
+      )
+    }
+
     if (lowerVar.includes('color')) {
       return (
         <PaletteColorControl
@@ -424,12 +444,26 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
         (typeof initialGlobalDtcgValue === 'object' && initialGlobalDtcgValue !== null && initialGlobalDtcgValue.unit === 'px')
 
       if (isPixelValue) {
+        // Derive a sensible px range: widths/heights need a large ceiling; other dimensions
+        // (padding/margin/gap) stay small. Always ensure the current value fits within the range.
+        const currentPx = (() => {
+          if (typeof initialGlobalDtcgValue === 'string') {
+            const m = initialGlobalDtcgValue.match(/(-?\d+(?:\.\d+)?)\s*px/i)
+            return m ? parseFloat(m[1]) : 0
+          }
+          if (initialGlobalDtcgValue && typeof initialGlobalDtcgValue === 'object' && typeof initialGlobalDtcgValue.value === 'number') {
+            return initialGlobalDtcgValue.value
+          }
+          return 0
+        })()
+        const baseMax = (lowerVar.includes('width') || lowerVar.includes('height')) ? 1000 : 40
+        const maxPixelValue = Math.max(baseMax, Math.ceil(currentPx))
         return (
           <PixelValueSliderInline
             targetCssVar={conflict.globalCssVarName}
             label={simpleLabel}
             minPixelValue={0}
-            maxPixelValue={40}
+            maxPixelValue={maxPixelValue}
           />
         )
       }

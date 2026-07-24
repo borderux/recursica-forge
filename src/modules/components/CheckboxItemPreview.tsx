@@ -4,19 +4,30 @@ import { CheckboxItem } from '../../components/adapters/CheckboxItem'
 interface CheckboxItemPreviewProps {
     selectedVariants: Record<string, string>
     selectedLayer: string
+    activeState?: string
     componentElevation?: string
 }
 
+// The preview mirrors the toolbar's current selection instead of showing every state at once:
+// the "Checked state" selector (selectedVariants.checked) drives checked/indeterminate, and the
+// active interaction-state tab drives disabled. Interaction states the underlying component can't
+// render on demand (hover/focus) simply fall back to the base visual.
 export default function CheckboxItemPreview({
+    selectedVariants,
     selectedLayer,
+    activeState = 'base',
 }: CheckboxItemPreviewProps) {
     const [updateKey, setUpdateKey] = useState(0)
 
-    // Interactive state for the preview
-    const [checked1, setChecked1] = useState(false)
-    const [checked2, setChecked2] = useState(true)
-    const [indeterminate, setIndeterminate] = useState(false)
-    const [checkedWrap, setCheckedWrap] = useState(false)
+    const checkedState = selectedVariants['selection-states'] || 'checked'
+    const isIndeterminate = checkedState === 'indeterminate'
+    const isDisabled = activeState === 'disabled'
+
+    // Local checked mirror so the box stays interactive, re-synced whenever the selector changes.
+    const [checked, setChecked] = useState(checkedState === 'checked')
+    useEffect(() => {
+        setChecked(checkedState === 'checked')
+    }, [checkedState])
 
     // Listen for CSS variable updates to force re-render
     useEffect(() => {
@@ -27,7 +38,6 @@ export default function CheckboxItemPreview({
         window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
         window.addEventListener('cssVarsReset', handleCssVarUpdate)
 
-        // Also listen for style changes on documentElement
         const observer = new MutationObserver(handleCssVarUpdate)
         observer.observe(document.documentElement, {
             attributes: true,
@@ -48,65 +58,17 @@ export default function CheckboxItemPreview({
             gap: '24px',
             justifyContent: 'center',
             alignItems: 'flex-start',
-            padding: '16px',
             width: '100%',
             maxWidth: '400px',
         }} data-update-key={updateKey}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-                <CheckboxItem
-                    label="Sharpen the blade"
-                    checked={checked1}
-                    onChange={setChecked1}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="Polish the runes"
-                    checked={checked2}
-                    onChange={setChecked2}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="Inspect the quenching oil"
-                    checked={indeterminate}
-                    indeterminate
-                    onChange={setIndeterminate}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="Forbidden enchantment"
-                    checked={false}
-                    disabled
-                    onChange={() => { }}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="Ancient ward applied"
-                    checked={true}
-                    disabled
-                    onChange={() => { }}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="Shield of deflection"
-                    checked={false}
-                    indeterminate
-                    disabled
-                    onChange={() => { }}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="The quick onyx goblin jumps over the lazy dwarf, muttering about a treasure map he found tucked inside an old boot at the bottom of the river, while clutching a handful of stolen trinkets that sparkle like tiny stars in the moonlight"
-                    checked={checkedWrap}
-                    onChange={setCheckedWrap}
-                    layer={selectedLayer as any}
-                />
-            </div>
+            <CheckboxItem
+                label="A curious goblin crept through the moonlit forest, muttering about a treasure map"
+                checked={isIndeterminate ? false : checked}
+                indeterminate={isIndeterminate}
+                disabled={isDisabled}
+                onChange={setChecked}
+                layer={selectedLayer as any}
+            />
         </div>
     )
 }

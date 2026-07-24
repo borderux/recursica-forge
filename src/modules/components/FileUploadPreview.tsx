@@ -21,9 +21,9 @@ export default function FileUploadPreview({
     const state = (selectedVariants.states || 'default') 
 
     // Show both layouts
-    const layoutsToShow: string[] = selectedVariants.layouts
-    ? [selectedVariants.layouts]
-    : ['stacked', 'side-by-side']
+    const layoutsToShow: string[] = selectedVariants.layout
+    ? [selectedVariants.layout]
+    : ['stacked']
 
     const [files, setFiles] = useState<FileUploadItem[]>([
         { id: '1', name: 'document.pdf', size: 1024, type: 'application/pdf', status: 'success' },
@@ -56,13 +56,10 @@ export default function FileUploadPreview({
             flexDirection: 'column',
             gap: verticalGutter,
             width: '100%',
-            alignItems: 'center'
+            alignItems: 'flex-start'
         }}>
             {layoutsToShow.map((layoutVariant) => (
                 <div key={layoutVariant} style={{ width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <h2 style={h2Style}>
-                        {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-                    </h2>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                         {state === 'default' && (
                             <>

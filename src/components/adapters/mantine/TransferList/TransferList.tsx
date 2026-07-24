@@ -194,7 +194,7 @@ export default function TransferList({
     const borderColorVar = buildComponentCssVarPath('TransferList', 'variants', 'states', stateName, 'properties', 'colors', layer, 'border-color')
 
     // Background + header-color CSS vars
-    const backgroundVar = buildComponentCssVarPath('TransferList', 'variants', 'states', stateName, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('TransferList', 'variants', 'states', stateName, 'properties', 'colors', layer, 'background-color')
     const headerColorVar = buildComponentCssVarPath('TransferList', 'variants', 'states', stateName, 'properties', 'colors', layer, 'header-color')
 
     const containerVars = {

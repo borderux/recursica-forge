@@ -2,50 +2,52 @@
   "variants": {
     "types": {
       "icon": "info",
-      "label": "Variant"
+      "label": "Type"
     }
   },
-  "props": {
-    "text": {
+  "properties": {
+    "properties.text": {
       "icon": "text-aa",
-      "label": "Text style",
-      "visible": true
+      "label": "Text"
     },
     "color": {
-      "icon": "paint-bucket",
-      "label": "Color",
-      "visible": true,
+      "icon": "palette",
+      "label": "Colors",
       "group": {
-        "text-color": {
-          "label": "Text color",
-          "visible": true
+        "properties.colors.text-color": {
+          "label": "Text"
         },
-        "icon-color": {
-          "label": "Icon color",
-          "visible": true
+        "properties.colors.icon-color": {
+          "label": "Icon"
         }
       }
     },
     "icon": {
-      "icon": "resize",
-      "label": "Size",
-      "visible": true,
+      "icon": "star",
+      "label": "Icon",
       "group": {
-        "icon-size": {
-          "label": "Icon size",
-          "visible": true
+        "properties.icon-size": {
+          "label": "Size"
         },
-        "icon-text-gap": {
-          "label": "Icon-text gap",
-          "visible": true
-        },
-        "max-width": {
+        "properties.icon-text-gap": {
+          "label": "Icon-text gap"
+        }
+      }
+    },
+    "size": {
+      "icon": "arrows-out",
+      "label": "Sizes",
+      "group": {
+        "properties.max-width": {
           "label": "Max width",
-          "visible": true
+          "range": [
+            100,
+            500
+          ],
+          "step": 1
         },
-        "top-margin": {
-          "label": "Top margin",
-          "visible": true
+        "properties.top-margin": {
+          "label": "Top margin"
         }
       }
     }

@@ -31,23 +31,17 @@ export default function RadioButtonItem({
     const textTransformVar = getComponentTextCssVar('RadioButtonItem', 'text', 'text-transform')
 
     const getRadioPropVar = (prop: string) => `var(${buildComponentCssVarPath('RadioButton', 'properties', prop)})`
-    const getRadioColorVar = (prop: string) => `var(${buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, prop)})`
     const getRadioItemColorVar = (prop: string) => `var(${buildComponentCssVarPath('RadioButtonItem', 'properties', 'colors', layer, prop)})`
 
+    // NOTE: the radio's color vars (--radio-bg-selected, --radio-icon-color, disabled colors, …)
+    // are set by RadioButton itself from the current `variants.selection-states.*` structure.
+    // We deliberately do NOT re-set them here: the old flat `properties.colors.<layer>.*` paths no
+    // longer exist in the token JSON, so overriding would blank the selected dot (empty var).
     const cssVars = {
         '--radio-size': getRadioPropVar('size'),
         '--radio-radius': getRadioPropVar('border-radius'),
         '--radio-border-width': getRadioPropVar('border-size'),
         '--radio-icon-size': getRadioPropVar('icon-size'),
-        '--radio-bg-selected': getRadioColorVar('background-selected'),
-        '--radio-border-selected': getRadioColorVar('border-selected'),
-        '--radio-bg-unselected': getRadioColorVar('background-unselected'),
-        '--radio-border-unselected': getRadioColorVar('border-unselected'),
-        '--radio-icon-color': getRadioColorVar('icon-color'),
-        '--radio-disabled-bg': getRadioColorVar('disabled-background'),
-        '--radio-disabled-border': getRadioColorVar('disabled-border'),
-        '--radio-disabled-icon': getRadioColorVar('disabled-icon'),
-        '--radio-disabled-opacity': getRadioPropVar('disabled-opacity'),
         '--radio-item-gap': `var(${labelGapVar})`,
         '--radio-item-font-family': `var(${fontFamilyVar})`,
         '--radio-item-font-size': `var(${fontSizeVar})`,

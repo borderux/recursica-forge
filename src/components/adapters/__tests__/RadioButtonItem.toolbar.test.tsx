@@ -11,7 +11,7 @@ import { RadioButtonItem } from '../RadioButtonItem'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../utils/cssVarNames'
 
-describe.skip('RadioButtonItem Toolbar Props Integration', () => {
+describe('RadioButtonItem Toolbar Props Integration', () => {
     beforeEach(() => {
         document.documentElement.style.cssText = ''
     })

@@ -22,7 +22,7 @@ export default function Menu({
   const { mode } = useThemeMode()
 
   // Get CSS variables for colors
-  const bgVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'background')
+  const bgVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'background-color')
   const borderVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'border-color')
 
   // Get component-level properties

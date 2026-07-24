@@ -10,7 +10,6 @@ import { getElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar, readRawCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
 import type { PanelPosition } from '../../components/adapters/Panel'
-import { h2Style, pStyle } from './typographyStyles'
 
 interface PanelPreviewProps {
     selectedVariants: Record<string, string>
@@ -55,8 +54,9 @@ export default function PanelPreview({
     const layer = selectedLayer as ComponentLayer
 
     // CSS variable names for the static preview
-    const bgVar = getComponentLevelCssVar('Panel', `colors.${layer}.background`)
-    const hfBgVar = getComponentLevelCssVar('Panel', `colors.${layer}.header-footer-background`)
+    const bgVar = getComponentLevelCssVar('Panel', `colors.${layer}.background-color`)
+    const headerBgVar = getComponentLevelCssVar('Panel', `colors.${layer}.header-background-color`)
+    const footerBgVar = getComponentLevelCssVar('Panel', `colors.${layer}.footer-background-color`)
     const borderColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.border-color`)
     const dividerColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.divider-color`)
     const titleColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.title`)
@@ -157,9 +157,11 @@ export default function PanelPreview({
     // The panel body content
     const panelBody = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_md)', ...bodyStyle }}>
-            <p style={{ ...pStyle, margin: 0 }}>{goblinChapter}</p>
-            <p style={{ ...pStyle, margin: 0 }}>{goblinParagraph2}</p>
-            <p style={{ ...pStyle, margin: 0 }}>{goblinParagraph3}</p>
+            {/* Paragraphs inherit the content-style typography from the wrapper (bodyStyle) —
+                don't hardcode pStyle here or the Content style control has no effect. */}
+            <p style={{ margin: 0 }}>{goblinChapter}</p>
+            <p style={{ margin: 0 }}>{goblinParagraph2}</p>
+            <p style={{ margin: 0 }}>{goblinParagraph3}</p>
         </div>
     )
 
@@ -203,7 +205,7 @@ export default function PanelPreview({
                         gap: `var(${headerCloseGapVar})`,
                         borderBottom: `var(${dividerSizeVar}) solid var(${dividerColorVar})`,
                         flexShrink: 0,
-                        background: `var(${hfBgVar})`,
+                        background: `var(${headerBgVar})`,
                     }}>
                         <HeadingTag style={headerStyle}>
                             Goblin's Rest
@@ -259,9 +261,11 @@ export default function PanelPreview({
                         padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
                         borderTop: `var(${dividerSizeVar}) solid var(${dividerColorVar})`,
                         flexShrink: 0,
-                        background: `var(${hfBgVar})`,
+                        background: `var(${footerBgVar})`,
                     }}>
-                        {panelFooter()}
+                        {/* Pass a no-op onClose so the static preview shows both the Close and
+                            Continue buttons — this makes the footer button gap visible. */}
+                        {panelFooter(() => { })}
                     </div>
                 </div>
             </div>

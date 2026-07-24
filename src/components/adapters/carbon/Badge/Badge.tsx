@@ -27,7 +27,7 @@ export default function Badge({
   const { mode } = useThemeMode()
 
   // Get CSS variables
-  const bgVar = buildComponentCssVarPath('Badge', 'variants', 'styles', variant, 'properties', 'colors', layer, 'background')
+  const bgVar = buildComponentCssVarPath('Badge', 'variants', 'styles', variant, 'properties', 'colors', layer, 'background-color')
   const textVar = buildComponentCssVarPath('Badge', 'variants', 'styles', variant, 'properties', 'colors', layer, 'text')
   const borderColorVar = buildComponentCssVarPath('Badge', 'variants', 'styles', variant, 'properties', 'colors', layer, 'border-color')
 

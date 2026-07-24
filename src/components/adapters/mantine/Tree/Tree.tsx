@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Tree as MantineTree, useTree } from '@mantine/core'
 import type { TreeProps as AdapterTreeProps } from '../../Tree'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import { Button } from '../../Button'
 import './Tree.css'
@@ -13,6 +13,7 @@ export default function Tree({
   layer = 'layer-0',
   className,
   style,
+  forceHover = false,
   mantine,
   ...props
 }: AdapterTreeProps) {
@@ -52,76 +53,44 @@ export default function Tree({
   const selectedKey = selected.join(',')
   const horizontalPaddingVar = getComponentLevelCssVar('Tree', 'horizontal-padding')
   
-  const selectedBgVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'selected-background')
-  const selectedTextVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'selected-text')
-  const selectedBorderColorVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'selected-border-color')
-  const unselectedTextVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'unselected-text')
-  const hoverBgVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'hover-background')
-  const hoverTextVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'hover-text')
-  const hoverBorderColorVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'hover-border-color')
-
   const borderSizeVar = getComponentLevelCssVar('Tree', 'border-size')
   const borderRadiusVar = getComponentLevelCssVar('Tree', 'border-radius')
 
-  // Selected Text style variables
-  const selectedTextFontFamilyVar = getComponentTextCssVar('Tree', 'selected-text', 'font-family')
-  const selectedTextFontSizeVar = getComponentTextCssVar('Tree', 'selected-text', 'font-size')
-  const selectedTextFontWeightVar = getComponentTextCssVar('Tree', 'selected-text', 'font-weight')
-  const selectedTextLetterSpacingVar = getComponentTextCssVar('Tree', 'selected-text', 'letter-spacing')
-  const selectedTextLineHeightVar = getComponentTextCssVar('Tree', 'selected-text', 'line-height')
-  const selectedTextTextDecorationVar = getComponentTextCssVar('Tree', 'selected-text', 'text-decoration')
-  const selectedTextTextTransformVar = getComponentTextCssVar('Tree', 'selected-text', 'text-transform')
-  const selectedTextFontStyleVar = getComponentTextCssVar('Tree', 'selected-text', 'font-style')
+  // Colors + text style live under variants.selection-states.<sel>.properties…
+  // (hover is a GLOBAL state now — no per-component hover colors)
+  const baseColorVar = (sel: string, prop: string) =>
+    buildComponentCssVarPath('Tree', 'variants', 'selection-states', sel, 'properties', 'colors', layer, prop)
+  const textStyleVar = (sel: string, prop: string) =>
+    buildComponentCssVarPath('Tree', 'variants', 'selection-states', sel, 'properties', 'text', prop)
 
-  // Unselected Text style variables
-  const unselectedTextFontFamilyVar = getComponentTextCssVar('Tree', 'unselected-text', 'font-family')
-  const unselectedTextFontSizeVar = getComponentTextCssVar('Tree', 'unselected-text', 'font-size')
-  const unselectedTextFontWeightVar = getComponentTextCssVar('Tree', 'unselected-text', 'font-weight')
-  const unselectedTextLetterSpacingVar = getComponentTextCssVar('Tree', 'unselected-text', 'letter-spacing')
-  const unselectedTextLineHeightVar = getComponentTextCssVar('Tree', 'unselected-text', 'line-height')
-  const unselectedTextTextDecorationVar = getComponentTextCssVar('Tree', 'unselected-text', 'text-decoration')
-  const unselectedTextTextTransformVar = getComponentTextCssVar('Tree', 'unselected-text', 'text-transform')
-  const unselectedTextFontStyleVar = getComponentTextCssVar('Tree', 'unselected-text', 'font-style')
+  const TEXT_PROPS = ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'text-decoration', 'text-transform', 'font-style']
+
+  const treeVars: Record<string, string> = {
+    '--tree-indent': `var(${indentVar}, 16px)`,
+    '--tree-item-gap': `var(${itemGapVar}, 4px)`,
+    '--tree-button-node-gap': `var(${buttonNodeGapVar}, 8px)`,
+    '--tree-max-width': `var(${maxWidthVar}, 100%)`,
+    '--tree-vertical-padding': `var(${verticalPaddingVar}, 6px)`,
+    '--tree-horizontal-padding': `var(${horizontalPaddingVar}, 12px)`,
+    '--tree-border-size': `var(${borderSizeVar}, 0px)`,
+    '--tree-border-radius': `var(${borderRadiusVar}, 4px)`,
+    // selected / unselected base + hover colors
+    '--tree-selected-bg': `var(${baseColorVar('selected', 'background-color')}, transparent)`,
+    '--tree-selected-border-color': `var(${baseColorVar('selected', 'border-color')}, transparent)`,
+    '--tree-selected-text': `var(${baseColorVar('selected', 'text-color')})`,
+    '--tree-unselected-bg': `var(${baseColorVar('unselected', 'background-color')}, transparent)`,
+    '--tree-unselected-border-color': `var(${baseColorVar('unselected', 'border-color')}, transparent)`,
+    '--tree-unselected-text': `var(${baseColorVar('unselected', 'text-color')})`,
+  }
+  for (const p of TEXT_PROPS) {
+    treeVars[`--tree-selected-${p}`] = `var(${textStyleVar('selected', p)})`
+    treeVars[`--tree-unselected-${p}`] = `var(${textStyleVar('unselected', p)})`
+  }
 
   return (
     <div 
-      className={`recursica-tree mantine-tree ${className || ''}`}
-      style={{
-        ['--tree-indent' as string]: `var(${indentVar}, 16px)`,
-        ['--tree-item-gap' as string]: `var(${itemGapVar}, 4px)`,
-        ['--tree-button-node-gap' as string]: `var(${buttonNodeGapVar}, 8px)`,
-        ['--tree-max-width' as string]: `var(${maxWidthVar}, 100%)`,
-        ['--tree-vertical-padding' as string]: `var(${verticalPaddingVar}, 6px)`,
-        ['--tree-horizontal-padding' as string]: `var(${horizontalPaddingVar}, 12px)`,
-        ['--tree-selected-bg' as string]: `var(${selectedBgVar})`,
-        ['--tree-selected-text' as string]: `var(${selectedTextVar})`,
-        ['--tree-selected-border-color' as string]: `var(${selectedBorderColorVar}, transparent)`,
-        ['--tree-border-radius' as string]: `var(${borderRadiusVar}, 4px)`,
-        ['--tree-unselected-text' as string]: `var(${unselectedTextVar})`,
-        ['--tree-hover-bg' as string]: `var(${hoverBgVar})`,
-        ['--tree-hover-text' as string]: `var(${hoverTextVar})`,
-        ['--tree-hover-border-color' as string]: `var(${hoverBorderColorVar}, transparent)`,
-        ['--tree-border-size' as string]: `var(${borderSizeVar}, 0px)`,
-
-        ['--tree-selected-font-family' as string]: `var(${selectedTextFontFamilyVar})`,
-        ['--tree-selected-font-size' as string]: `var(${selectedTextFontSizeVar})`,
-        ['--tree-selected-font-weight' as string]: `var(${selectedTextFontWeightVar})`,
-        ['--tree-selected-letter-spacing' as string]: `var(${selectedTextLetterSpacingVar})`,
-        ['--tree-selected-line-height' as string]: `var(${selectedTextLineHeightVar})`,
-        ['--tree-selected-text-decoration' as string]: `var(${selectedTextTextDecorationVar})`,
-        ['--tree-selected-text-transform' as string]: `var(${selectedTextTextTransformVar})`,
-        ['--tree-selected-font-style' as string]: `var(${selectedTextFontStyleVar})`,
-
-        ['--tree-unselected-font-family' as string]: `var(${unselectedTextFontFamilyVar})`,
-        ['--tree-unselected-font-size' as string]: `var(${unselectedTextFontSizeVar})`,
-        ['--tree-unselected-font-weight' as string]: `var(${unselectedTextFontWeightVar})`,
-        ['--tree-unselected-letter-spacing' as string]: `var(${unselectedTextLetterSpacingVar})`,
-        ['--tree-unselected-line-height' as string]: `var(${unselectedTextLineHeightVar})`,
-        ['--tree-unselected-text-decoration' as string]: `var(${unselectedTextTextDecorationVar})`,
-        ['--tree-unselected-text-transform' as string]: `var(${unselectedTextTextTransformVar})`,
-        ['--tree-unselected-font-style' as string]: `var(${unselectedTextFontStyleVar})`,
-        ...style
-      } as React.CSSProperties}
+      className={`recursica-tree mantine-tree ${forceHover ? 'force-hover' : ''} ${className || ''}`}
+      style={{ ...treeVars, ...style } as React.CSSProperties}
     >
       <MantineTree
         key={selectedKey}
@@ -161,6 +130,9 @@ export default function Tree({
                   <Button
                     variant="text"
                     size="small"
+                    /* Not a separate tab stop — the tree node (treeitem) is the focus target
+                       and gets the global focus glow; the chevron toggles expand on node click. */
+                    {...({ tabIndex: -1, 'aria-hidden': true } as any)}
                     icon={expanded ? (
                       ChevronDownIcon ? <ChevronDownIcon /> : '▼'
                     ) : (
@@ -178,6 +150,10 @@ export default function Tree({
                       border: 'none',
                       color: 'inherit'
                     }}
+                    /* Never take focus on click — it's aria-hidden, and a focused aria-hidden
+                       element is an a11y violation. preventDefault on mousedown stops focus while
+                       still letting onClick toggle. Focus stays on the treeitem. */
+                    onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
                     onClick={(e) => {
                       e.stopPropagation()
                       elementProps.onClick?.(e)

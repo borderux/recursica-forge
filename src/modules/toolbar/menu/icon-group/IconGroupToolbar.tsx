@@ -72,7 +72,7 @@ export default function IconGroupToolbar({
 
   const extraPropNames = groupedPropsConfig
     ? Object.keys(groupedPropsConfig).filter(
-        k => !standardIconPropNames.has(k) && groupedPropsConfig[k]?.visible !== false
+        k => !standardIconPropNames.has(k) && true
       )
     : []
 
@@ -186,15 +186,15 @@ export default function IconGroupToolbar({
     return structure.props.find(p => p.name.toLowerCase() === 'max-width')
   }, [structure])
   const maxWidthVar = maxWidthProp?.cssVar || ''
-  const maxWidthVisible = groupedPropsConfig?.['max-width']?.visible !== false
+  const maxWidthVisible = true
   const maxWidthLabel = groupedPropsConfig?.['max-width']?.label || 'Max width'
 
   // Check visibility from toolbar config
-  const iconSizeVisible = groupedPropsConfig?.['icon-size']?.visible !== false ||
-    groupedPropsConfig?.['icon']?.visible !== false
-  const iconGapVisible = groupedPropsConfig?.['icon-text-gap']?.visible !== false ||
-    groupedPropsConfig?.['spacing']?.visible !== false
-  const closeIconSizeVisible = groupedPropsConfig?.['close-icon-size']?.visible !== false
+  const iconSizeVisible = true ||
+    true
+  const iconGapVisible = true ||
+    true
+  const closeIconSizeVisible = true
 
   // Get visibility and theme-agnostic CSS vars for logical icon settings
   const showIconConfig = groupedPropsConfig?.['showIcon']
@@ -225,7 +225,7 @@ export default function IconGroupToolbar({
 
   return (
     <div className="icon-group-toolbar">
-      {showIconConfig && showIconConfig.visible !== false && (
+      {showIconConfig && true && (
         <div className="icon-group-control">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
             <Label layer="layer-3" layout="stacked">Show Icon</Label>
@@ -237,7 +237,7 @@ export default function IconGroupToolbar({
           </div>
         </div>
       )}
-      {isShowIconActive && iconNameConfig && iconNameConfig.visible !== false && (
+      {isShowIconActive && iconNameConfig && true && (
         <div className="icon-group-control">
           <IconSelector
             targetCssVar={iconNameVar}
@@ -267,7 +267,7 @@ export default function IconGroupToolbar({
           />
         </div>
       )}
-      {isShowIconActive && iconPositionConfig && iconPositionConfig.visible !== false && (
+      {isShowIconActive && iconPositionConfig && true && (
         <div className="icon-group-control">
           <Label layer="layer-3" layout="stacked">Position</Label>
           <SegmentedControl
@@ -405,7 +405,7 @@ export default function IconGroupToolbar({
   {
     includeColors && iconColorProps.map((colorProp, index) => {
       const colorPropName = colorProp.name.toLowerCase()
-      const colorVisible = groupedPropsConfig?.[colorPropName]?.visible !== false
+      const colorVisible = true
       return colorVisible ? (
         <div key={index} className="icon-group-control">
           <PaletteColorControl

@@ -49,7 +49,6 @@ export default function MenuItemPreview({
       display: 'flex',
       justifyContent: 'center',
       width: '100%',
-      padding: '16px',
     }}>
       <Menu
         key={`menu-${updateKey}`}
@@ -87,7 +86,7 @@ export default function MenuItemPreview({
           Runic Anvil
         </MenuItem>
 
-        {/* Third item: Disabled state */}
+        {/* Third item: Disabled + unselected */}
         <MenuItem
           key={`disabled-${updateKey}`}
           variant="disabled"
@@ -98,9 +97,24 @@ export default function MenuItemPreview({
           supportingText="Out of stock"
           selected={false}
           disabled={true}
-          divider="none"
+          divider="bottom"
         >
           Crystal Quencher
+        </MenuItem>
+
+        {/* Fourth item: Disabled + selected */}
+        <MenuItem
+          key={`selected-disabled-${updateKey}`}
+          variant="selected"
+          layer={selectedLayer as any}
+          leadingIcon={FileIcon ? <FileIcon /> : undefined}
+          leadingIconType="icon"
+          supportingText="Locked while enchanting"
+          selected={true}
+          disabled={true}
+          divider="none"
+        >
+          Frostforge Ledger
         </MenuItem>
       </Menu>
     </div>

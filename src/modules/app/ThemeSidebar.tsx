@@ -13,7 +13,7 @@ import { useCompliance } from '../../core/compliance/ComplianceContext'
 import { Badge } from '../../components/adapters/Badge'
 import { genericLayerProperty } from '../../core/css/cssVarBuilder'
 
-type ThemeNavItem = 'core-properties' | 'type' | 'palettes' | 'elevations' | 'layers' | 'dimensions' | 'compliance'
+type ThemeNavItem = 'core-properties' | 'type' | 'palettes' | 'elevations' | 'layers' | 'dimensions' | 'states' | 'compliance'
 
 export function ThemeSidebar() {
   const location = useLocation()
@@ -29,6 +29,7 @@ export function ThemeSidebar() {
     if (location.pathname.includes('/theme/elevations')) return 'elevations'
     if (location.pathname.includes('/theme/layers')) return 'layers'
     if (location.pathname.includes('/theme/dimensions')) return 'dimensions'
+    if (location.pathname.includes('/theme/states')) return 'states'
     if (location.pathname.includes('/theme/compliance')) return 'compliance'
     return 'core-properties' // default
   }
@@ -47,6 +48,7 @@ export function ThemeSidebar() {
     { key: 'elevations', label: 'Elevations' },
     { key: 'layers', label: 'Layers' },
     { key: 'dimensions', label: 'Dimensions' },
+    { key: 'states', label: 'States' },
     { key: 'compliance', label: 'Compliance' },
   ]
 

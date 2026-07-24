@@ -1,78 +1,54 @@
 {
   "variants": {},
-  "props": {
+  "properties": {
     "spacing": {
       "icon": "arrows-pointing-out",
       "label": "Spacing",
-      "visible": true,
       "group": {
-        "padding-horizontal": {
-          "label": "Padding horizontal",
-          "visible": true,
-          "floatingPaletteLabel": "Horizontal Padding"
+        "properties.padding-horizontal": {
+          "label": "Padding horizontal"
         },
-        "padding-vertical": {
-          "label": "Padding vertical",
-          "visible": true,
-          "floatingPaletteLabel": "Vertical Padding"
+        "properties.padding-vertical": {
+          "label": "Padding vertical"
         }
       }
     },
     "layout": {
       "icon": "arrows-pointing-out",
       "label": "Layout",
-      "visible": true,
       "group": {
-        "max-width": {
+        "properties.max-width": {
           "label": "Max width",
-          "visible": true,
-          "floatingPaletteLabel": "Max Width"
+          "range": [
+            40,
+            1000
+          ],
+          "step": 1
         }
       }
     },
-    "enabled-colors": {
-      "icon": "paint-bucket",
-      "label": "Enabled",
-      "visible": true,
-      "group": {
-        "cell-color-enabled": {
-          "label": "Background",
-          "visible": true,
-          "floatingPaletteLabel": "Background"
-        },
-        "text-color-enabled": {
-          "label": "Text",
-          "visible": true,
-          "floatingPaletteLabel": "Text"
-        }
-      }
-    },
-    "disabled-colors": {
-      "icon": "paint-bucket",
-      "label": "Disabled",
-      "visible": true,
-      "group": {
-        "cell-color-disabled": {
-          "label": "Background",
-          "visible": true,
-          "floatingPaletteLabel": "Background"
-        },
-        "text-color-disabled": {
-          "label": "Text",
-          "visible": true,
-          "floatingPaletteLabel": "Text"
-        }
-      }
-    },
-    "text-style": {
+    "properties.text-style": {
       "icon": "text-aa",
-      "label": "Text Style",
-      "visible": true
+      "label": "Text Style"
     },
-    "currency-style": {
+    "properties.currency-style": {
       "icon": "text-aa",
-      "label": "Currency Style",
-      "visible": true
+      "label": "Currency Style"
+    },
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
+      "group": {
+        "properties.colors.cell-color": {
+          "label": "Background"
+        },
+        "properties.colors.text-color": {
+          "label": "Text"
+        },
+        "properties.opacity": {
+          "label": "Disabled opacity"
+        }
+      }
     }
   }
 }

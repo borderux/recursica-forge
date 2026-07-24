@@ -11,7 +11,10 @@ import { Link } from '../Link'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentTextCssVar, buildComponentCssVarPath } from '../../utils/cssVarNames'
 
-describe.skip('Link Toolbar Props Integration', () => {
+// TODO(browser-tests): re-enable once repaired. Runs in browser (no OOM) but has stale
+  // assertions from the toolbar rewrite (old CSS-var names, var() refs a real browser resolves,
+  // or changed DOM). Fix against the current toolbar/component DOM, then drop .skip.
+  describe.skip('Link Toolbar Props Integration', () => {
     beforeEach(() => {
         document.documentElement.style.cssText = ''
     })

@@ -16,7 +16,10 @@ import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
-describe.skip('Card Toolbar Props Integration', () => {
+// TODO(browser-tests): re-enable once repaired. Runs in browser (no OOM) but has stale
+  // assertions from the toolbar rewrite (old CSS-var names, var() refs a real browser resolves,
+  // or changed DOM). Fix against the current toolbar/component DOM, then drop .skip.
+  describe.skip('Card Toolbar Props Integration', () => {
     beforeEach(() => {
         // Clear all CSS variables before each test
         document.documentElement.style.cssText = ''
@@ -55,7 +58,7 @@ describe.skip('Card Toolbar Props Integration', () => {
 
     describe('Color Props Updates', () => {
         const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
-        const colorProps = ['background', 'border-color', 'header-background', 'footer-background', 'divider-color', 'title', 'content'] as const
+        const colorProps = ['background-color', 'border-color', 'header-background-color', 'footer-background-color', 'divider-color', 'title', 'content'] as const
 
         layers.forEach(layer => {
             colorProps.forEach(colorProp => {

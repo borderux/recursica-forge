@@ -24,6 +24,61 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const firstHexMatchRef = useRef<string | null>(null)
   const [activeOnSelect, setActiveOnSelect] = useState<((cssVarName: string) => void) | null>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+
+  const closePicker = () => {
+    setAnchor(null)
+    setActiveOnSelect(null)
+  }
+
+  // Keyboard nav inside the swatch grid: arrow keys move focus geometrically
+  // between swatches, Escape closes. Swatches use tabIndex=-1 so Tab / Shift+Tab
+  // exit the grid (Shift+Tab lands on the modal's close button).
+  const handleGridKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') { e.preventDefault(); closePicker(); return }
+    if (!e.key.startsWith('Arrow')) return
+    const container = gridRef.current
+    if (!container) return
+    const swatches = Array.from(container.querySelectorAll<HTMLElement>('.palette-swatch'))
+    if (swatches.length === 0) return
+    const cur = document.activeElement as HTMLElement
+    if (!swatches.includes(cur)) { e.preventDefault(); swatches[0].focus(); return }
+    e.preventDefault()
+    const c = cur.getBoundingClientRect()
+    const ccx = c.left + c.width / 2
+    const ccy = c.top + c.height / 2
+    let best: HTMLElement | null = null
+    let bestScore = Infinity
+    for (const el of swatches) {
+      if (el === cur) continue
+      const r = el.getBoundingClientRect()
+      const dx = (r.left + r.width / 2) - ccx
+      const dy = (r.top + r.height / 2) - ccy
+      let primary: number, cross: number
+      if (e.key === 'ArrowRight') { if (dx <= 1) continue; primary = dx; cross = Math.abs(dy) }
+      else if (e.key === 'ArrowLeft') { if (dx >= -1) continue; primary = -dx; cross = Math.abs(dy) }
+      else if (e.key === 'ArrowDown') { if (dy <= 1) continue; primary = dy; cross = Math.abs(dx) }
+      else if (e.key === 'ArrowUp') { if (dy >= -1) continue; primary = -dy; cross = Math.abs(dx) }
+      else continue
+      const score = primary + cross * 3
+      if (score < bestScore) { bestScore = score; best = el }
+    }
+    best?.focus()
+  }
+
+  // When the picker opens (and is positioned), move focus to the selected swatch.
+  useEffect(() => {
+    if (!anchor || pos.top === -9999) return
+    const t = setTimeout(() => {
+      const container = gridRef.current
+      if (!container) return
+      // Selected swatches render with a rounded selection border (5px radius); focus that one.
+      const all = Array.from(container.querySelectorAll<HTMLElement>('.palette-swatch'))
+      const sel = all.find((el) => getComputedStyle(el).borderTopLeftRadius.startsWith('5'))
+      ;(sel || all[0])?.focus()
+    }, 40)
+    return () => clearTimeout(t)
+  }, [anchor, pos.top])
 
 
   // Reset firstHexMatchRef when target changes so hex-based selection works correctly for each picker session
@@ -46,13 +101,17 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
   }, [])
 
-  // Listen for CSS variable updates to refresh selection state
+  // Listen for CSS variable updates/resets to refresh selection state (the highlighted swatch).
   useEffect(() => {
-    const handleCssVarsUpdated = () => {
+    const handleRefresh = () => {
       setRefreshTrigger(prev => prev + 1)
     }
-    window.addEventListener('cssVarsUpdated', handleCssVarsUpdated)
-    return () => window.removeEventListener('cssVarsUpdated', handleCssVarsUpdated)
+    window.addEventListener('cssVarsUpdated', handleRefresh)
+    window.addEventListener('cssVarsReset', handleRefresh)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleRefresh)
+      window.removeEventListener('cssVarsReset', handleRefresh)
+    }
   }, [])
 
   const paletteKeys = useMemo(() => {
@@ -135,6 +194,25 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     return `--recursica_brand_palettes_${paletteKey}_${level}_color_tone`
   }
 
+  // Find the first palette swatch (excluding core) whose resolved colour matches a hex.
+  // Mirrors PaletteColorControl.findPaletteForToken so the picker highlight always agrees
+  // with the shown label — used for on-tone refs, which the resolver flattens to a token.
+  const findFirstPaletteMatchForHex = (hex: string): { pk: string; level: string } | null => {
+    const norm = hex.trim().toLowerCase()
+    if (!/^#[0-9a-f]{6}$/i.test(norm)) return null
+    const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+    const themes = root?.themes || root
+    for (const pk of paletteKeys) {
+      const pal: any = themes?.[modeLower]?.palettes?.[pk] || themes?.[modeLower]?.palette?.[pk] || {}
+      const levels = Object.keys(pal).filter((k) => /^\d+$/.test(k))
+      for (const level of levels) {
+        const h = readCssVarResolved(buildPaletteCssVar(pk, level))
+        if (h && h.trim().toLowerCase() === norm) return { pk, level }
+      }
+    }
+    return null
+  }
+
   const targetResolvedValue = useMemo(() => {
     if (!targetCssVar) return null
     const resolved = readCssVarResolved(targetCssVar)
@@ -170,6 +248,17 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       // Parse using central brand parser
       const brandParsed = parseBrandCssVar(trimmed)
       if (brandParsed) {
+        // An on-tone reference (…_on-tone) is the readable/paired colour, which the resolver
+        // flattens to a raw token — NOT the parent swatch (e.g. core-alert's on-tone is white,
+        // not the alert red). Resolve it to the flattened token's colour and match the first
+        // palette swatch, mirroring the label, so highlight and label always agree. Never leave
+        // it as a hex marker (which could land on a different equal-hex swatch than the label).
+        const isOnTone = /on-tone/.test(trimmed)
+        if (isOnTone) {
+          const resolvedHex = readCssVarResolved(trimmed) || targetResolvedValue.resolved
+          const match = resolvedHex ? findFirstPaletteMatchForHex(resolvedHex) : null
+          return match ? `${match.pk}-${match.level}` : null
+        }
         if (brandParsed.type === 'palette') {
           const resolvedHex = targetResolvedValue.resolved
           if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex)) {
@@ -348,6 +437,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       }}
     >
       <div
+        ref={gridRef}
+        onKeyDown={handleGridKeyDown}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -535,7 +626,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       key={s.key}
                       title={s.label}
                       className="palette-swatch"
-                      tabIndex={0}
+                      tabIndex={-1}
                       role="button"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -646,7 +737,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       key={s.key}
                       title={s.label}
                       className="palette-swatch"
-                      tabIndex={0}
+                      tabIndex={-1}
                       role="button"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {

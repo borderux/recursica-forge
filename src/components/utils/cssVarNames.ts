@@ -1,6 +1,6 @@
 /**
  * CSS Variable Name Utilities
- * 
+ *
  * Generates CSS variable names for UIKit components following the pattern:
  * --recursica_ui-kit_components_{component}_{path-segments}
  * 
@@ -64,7 +64,7 @@ export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
  * This is the generic, component-agnostic way to generate CSS var names.
  * 
  * @example
- * buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background')
+ * buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background-color')
  * => '--recursica_ui-kit_themes_light_components_button_variants_styles_solid_properties_colors_layer-0_background'
  * 
  * @example
@@ -72,7 +72,7 @@ export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
  * => '--recursica_ui-kit_themes_dark_components_chip_properties_horizontal-padding'
  * 
  * @param component - Component name (e.g., 'Button', 'Chip')
- * @param pathSegments - Path segments from recursica_ui-kit.json structure (e.g., ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background'])
+ * @param pathSegments - Path segments from recursica_ui-kit.json structure (e.g., ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background-color'])
  * @param mode - Optional theme mode ('light' | 'dark'). If not provided, reads from document.documentElement.getAttribute('data-theme-mode')
  * @returns CSS variable name
  */
@@ -116,6 +116,21 @@ export function buildComponentCssVarPath(
     segment.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
   )
 
+  // Normalize 'variants/states/default/properties' to 'properties' since default interaction
+  // state values are merged directly into base component-level properties.
+  let finalSegments = [...normalizedSegments]
+  for (let i = 0; i <= finalSegments.length - 4; i++) {
+    if (
+      finalSegments[i] === 'variants' &&
+      finalSegments[i + 1] === 'states' &&
+      finalSegments[i + 2] === 'default' &&
+      finalSegments[i + 3] === 'properties'
+    ) {
+      finalSegments.splice(i, 4, 'properties')
+      break
+    }
+  }
+
   // Build path: components.{component}.{path-segments}
   // Convert component name from PascalCase to kebab-case (e.g., 'MenuItem' -> 'menu-item')
   // Normalize display names that differ from recursica_ui-kit.json keys
@@ -129,7 +144,8 @@ export function buildComponentCssVarPath(
   if (componentNameMap[componentKebab]) {
     componentKebab = componentNameMap[componentKebab]
   }
-  const parts = ['components', componentKebab, ...normalizedSegments]
+  const parts = ['components', componentKebab, ...finalSegments]
+
   return toCssVarName(parts.join('.'), mode)
 }
 
@@ -147,7 +163,7 @@ export function buildComponentCssVarPath(
  * getComponentCssVar('Chip', 'colors', 'unselected-background', 'layer-0')
  * 
  * // Use:
- * buildComponentCssVarPath('Chip', 'variants', 'styles', 'unselected', 'properties', 'colors', 'layer-0', 'background')
+ * buildComponentCssVarPath('Chip', 'variants', 'styles', 'unselected', 'properties', 'colors', 'layer-0', 'background-color')
  */
 export function getComponentCssVar(
   component: ComponentName,
@@ -222,11 +238,11 @@ export function getComponentCssVar(
     return buildComponentCssVarPath(component, ...pathSegments)
   }
 
-  // Check for nested variants (e.g., "text-solid-background" for Avatar)
+  // Check for nested variants (e.g., "text-solid-background-color-color" for Avatar)
   const nestedVariantMatch = property.match(/^(text|icon)-(solid|outline|ghost)-(.+)$/)
   if (nestedVariantMatch) {
     const [, primaryVariant, secondaryVariant, propName] = nestedVariantMatch
-    const pathSegments: string[] = ['variants', 'styles', primaryVariant, 'variants', secondaryVariant, 'properties', 'colors']
+    const pathSegments: string[] = ['variants', 'styles', primaryVariant, 'variants', 'types', secondaryVariant, 'properties', 'colors']
     if (layer) pathSegments.push(layer)
     pathSegments.push(propName)
     return buildComponentCssVarPath(component, ...pathSegments)
@@ -339,7 +355,7 @@ export function getComponentLevelCssVar(
  * Helper function to build CSS var path for variant color properties
  * 
  * @example
- * buildVariantColorCssVar('Chip', 'unselected', 'background', 'layer-0')
+ * buildVariantColorCssVar('Chip', 'unselected', 'background-color', 'layer-0')
  * => '--recursica_ui-kit_themes_light_components_chip_variants_styles_unselected_properties_colors_layer-0_background'
  */
 export function buildVariantColorCssVar(

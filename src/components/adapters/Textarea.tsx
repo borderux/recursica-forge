@@ -90,10 +90,10 @@ export function Textarea({
     const errorId = errorText ? `${inputId}-error` : undefined
 
     // Determine effective state
-    const effectiveState = state
+    const effectiveState = state === 'disabled' ? 'disabled' : (errorText ? 'error' : state)
 
     // Get CSS variables for colors based on state variant
-    const backgroundVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
     const textVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
 

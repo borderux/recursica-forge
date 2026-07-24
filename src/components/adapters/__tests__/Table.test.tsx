@@ -9,7 +9,7 @@ import { preloadComponent } from '../../registry'
 import '../../../components/registry/mantine'
 import { itDom } from '../../../test-utils/conditionalTests'
 
-describe.skip('Table Component (Adapter)', () => {
+describe('Table Component (Adapter)', () => {
   beforeAll(async () => {
     await Promise.all([
       import('@mantine/core'),
@@ -45,7 +45,7 @@ describe.skip('Table Component (Adapter)', () => {
     }, { timeout: 90000 })
   }
 
-  itDom('renders table and table cells', async () => {
+  it('renders table and table cells', async () => {
     const { container } = renderWithProviders(
       <Table>
         <thead>

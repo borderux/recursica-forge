@@ -1,84 +1,73 @@
 {
   "variants": {},
-  "props": {
+  "properties": {
     "spacing": {
       "icon": "arrows-pointing-out",
       "label": "Spacing",
-      "visible": true,
       "group": {
-        "padding-horizontal": {
-          "label": "Padding horizontal",
-          "visible": true,
-          "floatingPaletteLabel": "Horizontal Padding"
+        "properties.padding-horizontal": {
+          "label": "Padding horizontal"
         },
-        "padding-vertical": {
-          "label": "Padding vertical",
-          "visible": true,
-          "floatingPaletteLabel": "Vertical Padding"
+        "properties.padding-vertical": {
+          "label": "Padding vertical"
         },
-        "vertical-margin": {
-          "label": "Vertical margin",
-          "visible": true,
-          "floatingPaletteLabel": "Vertical Margin"
+        "properties.vertical-margin": {
+          "label": "Vertical margin"
         }
       }
     },
     "dividers": {
       "icon": "minus",
       "label": "Dividers",
-      "visible": true,
       "group": {
-        "horizontal-divider-size": {
+        "properties.horizontal-divider-size": {
           "icon": "rows",
           "label": "Horizontal divider size",
-          "visible": true,
           "propertyType": "slider",
-          "range": [0, 8],
+          "range": [
+            0,
+            8
+          ],
           "step": 1
         },
-        "horizontal-divider-color": {
+        "properties.horizontal-divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Horizontal divider color",
-          "visible": true,
-          "floatingPaletteLabel": "Horizontal Divider Color"
+          "label": "Horizontal divider color"
         },
-        "vertical-divider-size": {
+        "properties.vertical-divider-size": {
           "icon": "columns",
           "label": "Vertical divider size",
-          "visible": true,
           "propertyType": "slider",
-          "range": [0, 8],
+          "range": [
+            0,
+            8
+          ],
           "step": 1
         },
-        "vertical-divider-color": {
+        "properties.vertical-divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Vertical divider color",
-          "visible": true,
-          "floatingPaletteLabel": "Vertical Divider Color"
+          "label": "Vertical divider color"
         }
       }
     },
     "colors": {
-      "icon": "paint-bucket",
-      "label": "Color",
-      "visible": true,
+      "icon": "palette",
+      "label": "Colors",
       "group": {
-        "cell-color-enabled": {
-          "label": "Background",
-          "visible": true,
-          "floatingPaletteLabel": "Background"
+        "properties.colors.cell-color": {
+          "label": "Background"
         },
-        "text-color-enabled": {
-          "label": "Text",
-          "visible": true,
-          "floatingPaletteLabel": "Text"
+        "properties.colors.text-color": {
+          "label": "Text"
+        },
+        "properties.opacity": {
+          "label": "Disabled opacity"
         }
       }
     },
-    "text-style": {
+    "properties.text-style": {
       "icon": "text-aa",
-      "label": "Text Style",
-      "visible": true
+      "label": "Text Style"
     }
   }
 }

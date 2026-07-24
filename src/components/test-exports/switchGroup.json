@@ -1,0 +1,53 @@
+{
+  "ui-kit": {
+    "components": {
+      "switch-group": {
+        "variants": {
+          "layouts": {
+            "stacked": {
+              "properties": {
+                "label-field-gap": {
+                  "$type": "dimension",
+                  "$value": "{ui-kit.globals.form.properties.label-field-gap-vertical}"
+                },
+                "top-bottom-margin": {
+                  "$type": "dimension",
+                  "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
+                }
+              }
+            },
+            "side-by-side": {
+              "properties": {
+                "gutter": {
+                  "$type": "dimension",
+                  "$value": "{ui-kit.globals.form.properties.label-field-gap-horizontal}"
+                },
+                "vertical-padding": {
+                  "$type": "dimension",
+                  "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
+                },
+                "top-bottom-margin": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 8,
+                    "unit": "px"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "properties": {
+          "item-gap": {
+            "$type": "dimension",
+            "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
+          },
+          "padding": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.none}"
+          }
+        }
+      }
+    }
+  }
+}

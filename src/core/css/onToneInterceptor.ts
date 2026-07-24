@@ -22,6 +22,25 @@ import { cssVarToRef } from './cssVarBuilder'
 import { getVarsStore } from '../store/varsStore'
 import { cssVarToUIKitPath } from './updateUIKitValue'
 import { updateCssVar } from './updateCssVar'
+import { readCssVarResolved } from './readCssVar'
+import { contrastRatio } from '../../modules/theme/contrastUtil'
+
+/** WCAG AA contrast threshold for normal text. */
+const AA = 4.5
+
+/**
+ * Normalize a resolved CSS colour to a 6-digit lowercase hex, or null if it
+ * isn't a plain hex (e.g. `transparent`, `rgb(...)`, unset).
+ */
+function normalizeHex(v: string | undefined | null): string | null {
+  if (!v) return null
+  const t = v.trim().toLowerCase()
+  const six = t.match(/^#([0-9a-f]{6})$/)
+  if (six) return `#${six[1]}`
+  const three = t.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/)
+  if (three) return `#${three[1]}${three[1]}${three[2]}${three[2]}${three[3]}${three[3]}`
+  return null
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,7 +60,7 @@ export interface OnToneConflict {
   changedCssVarName: string
   /** Human-readable component + property, e.g. "Button / Background" */
   changedLabel: string
-  /** Raw property key, e.g. 'background', 'text-hover' */
+  /** Raw property key, e.g. 'background-color', 'text-hover' */
   changedPropKey: string
   /** The new tone ref, e.g. '{brand.palettes.neutral.500.color.tone}' */
   newToneRef: string
@@ -146,7 +165,7 @@ export function formatSiblingList(siblings: OnToneSibling[]): string {
  * e.g. '--recursica_ui-kit_themes_light_components_button_variants_styles_solid_properties_colors_layer-0_background'
  *   → { prefix: '--recursica_ui-kit_themes_light_components_button_variants_styles_solid_properties_colors_layer-0_',
  *       layerKey: 'layer-0',
- *       propKey: 'background' }
+ *       propKey: 'background-color' }
  */
 function parseLayerColorVar(cssVar: string): { prefix: string; layerKey: string; propKey: string } | null {
   // Match the layer-N_propKey suffix
@@ -197,21 +216,31 @@ export function checkForOnToneConflict(
   // Only interested in component color layer properties
   if (!cssVarName.includes('_properties_colors_')) return
 
-  // The new value must be a brand palette .tone ref (not .on-tone)
+  // The new value must be a brand palette .tone ref (not .on-tone) so we can
+  // derive the on-tone that foregrounds sitting on it should use.
   const newDtcgRef = cssVarToRef(newCssValue)
   if (!newDtcgRef) return
 
   const newOnToneRef = toOnToneRef(newDtcgRef)
-  if (!newOnToneRef) return // not a .tone ref — nothing to do
-
-  // The old value must have been a .tone ref too (otherwise it wasn't a paired color)
-  if (!oldDtcgRef || !oldDtcgRef.startsWith('{brand.')) return
-  const oldBase = toneBase(oldDtcgRef)
-  if (!oldBase) return // old value wasn't a tone ref
+  if (!newOnToneRef) return // not a .tone ref — nothing to pair against
 
   // Find the layer-N group in the CSS var path
   const parsed = parseLayerColorVar(cssVarName)
   if (!parsed) return
+
+  // On-tone suggestions only make sense for foreground colours sitting on a
+  // background, so only a background change drives them.
+  if (!/background/.test(parsed.propKey)) return
+
+  // Resolve the new background colour (already written to the DOM by updateCssVar
+  // before this runs) so we can contrast-check each foreground sibling against it.
+  const newBgHex = normalizeHex(readCssVarResolved(cssVarName))
+
+  // If the old value was itself a tone ref, remember its base so we can also catch
+  // siblings that were explicitly paired with it (pairing maintenance) even when
+  // they still happen to pass AA. This is optional — a null/None old value (e.g.
+  // a previously-transparent background) is fine; the contrast check below still runs.
+  const oldBase = oldDtcgRef && oldDtcgRef.startsWith('{brand.') ? toneBase(oldDtcgRef) : null
 
   // Scan sibling properties in the same layer-N group
   const store = getVarsStore()
@@ -232,24 +261,55 @@ export function checkForOnToneConflict(
   }
   if (!layerNode || typeof layerNode !== 'object') return
 
-  // Collect siblings that have the matching .on-tone value (old base)
+  // A layer group can hold several region-specific backgrounds (e.g. Card's
+  // `background-color`, `header-background-color`, `footer-background-color`). A foreground
+  // only sits on the background of its own region, so the contrast-based rewrite (B) below must
+  // stay within that region — otherwise changing e.g. the footer background would offer to
+  // recolour the card's title/content text (which sit on the content background), breaking it.
+  const regionOf = (key: string): string => {
+    const m = key.match(/^(.+)-background(?:-color)?$/)
+    return m ? m[1] : ''
+  }
+  const bgRegion = regionOf(parsed.propKey)
+  const regionPrefixes = Object.keys(layerNode)
+    .map(regionOf)
+    .filter((p): p is string => !!p)
+  const foregroundRegion = (key: string): string =>
+    regionPrefixes.find(p => key === p || key.startsWith(`${p}-`)) || ''
+
+  // Collect foreground siblings that should be offered the new background's on-tone.
+  // A sibling qualifies when EITHER:
+  //   (A) pairing maintenance — it references the OLD background's `.on-tone`, or
+  //   (B) contrast failure  — its current rendered colour fails AA on the NEW background
+  //       (only for foregrounds in the same region as the changed background).
   const siblings: OnToneSibling[] = []
   for (const [key, entry] of Object.entries(layerNode)) {
-    if (key === parsed.propKey) continue // skip the property being changed
+    if (key === parsed.propKey) continue // skip the background being changed
     if (key.startsWith('$')) continue
+    if (/background/.test(key)) continue // other backgrounds aren't foregrounds
+    if (/opacity/.test(key)) continue    // non-colour props
 
     const entryVal = (entry as any)?.$value
     if (typeof entryVal !== 'string') continue
 
-    const entryBase = toneBase(entryVal)
-    if (!entryBase) continue
-
-    // The sibling must be an .on-tone AND its base must match the OLD tone's base
-    if (!entryVal.endsWith('.on-tone}')) continue
-    if (entryBase !== oldBase) continue
-
-    // Build the CSS var name for this sibling
     const siblingCssVar = `${parsed.prefix}${key}`
+
+    // Nothing to do if it already points at the target on-tone.
+    if (entryVal === newOnToneRef) continue
+
+    // (A) Was this sibling the OLD background's on-tone?
+    const entryBase = toneBase(entryVal)
+    const wasPairedWithOld = !!oldBase && entryVal.endsWith('.on-tone}') && entryBase === oldBase
+
+    // (B) Does the sibling's current colour fail AA against the new background?
+    // Only within the same region — a foreground never sits on another region's background.
+    let failsContrast = false
+    if (newBgHex && foregroundRegion(key) === bgRegion) {
+      const fgHex = normalizeHex(readCssVarResolved(siblingCssVar))
+      if (fgHex) failsContrast = contrastRatio(newBgHex, fgHex) < AA
+    }
+
+    if (!wasPairedWithOld && !failsContrast) continue
 
     siblings.push({
       propertyKey: key,
@@ -277,17 +337,7 @@ export function checkForOnToneConflict(
     siblings,
   }
 
-  const pref = getOnTonePreference()
-
-  if (pref === 'always-update') {
-    applyOnToneUpdates(conflict)
-    return
-  }
-  if (pref === 'never-update') {
-    return
-  }
-
-  // 'ask' — fire event
+  // Always prompt — the modal pops on every qualifying change (no stored "don't ask" preference).
   pendingConflict = conflict
 
   if (immediate) {
@@ -310,17 +360,13 @@ export function checkForOnToneConflict(
 // ─── Resolution ───────────────────────────────────────────────────────────────
 
 /**
- * Called by the modal to apply the user's decision.
+ * Called by the modal to apply the user's decision. The modal prompts on every change,
+ * so there is no persisted preference to record here.
  */
 export function resolveOnToneConflict(
   decision: 'update' | 'skip',
   conflict: OnToneConflict,
-  rememberChoice: boolean,
 ): void {
-  if (rememberChoice) {
-    setOnTonePreference(decision === 'update' ? 'always-update' : 'never-update')
-  }
-
   if (decision === 'update') {
     applyOnToneUpdates(conflict)
   }
@@ -345,9 +391,19 @@ function applyOnToneUpdates(conflict: OnToneConflict): void {
   const cssVarFromRef = '--recursica_' + refInner.replace(/\./g, '_')
   const cssVarValue = `var(${cssVarFromRef})`
 
+  const updatedVars: string[] = []
   for (const sibling of conflict.siblings) {
     // Write to DOM and sync JSON — noGlobalRefCheck=true prevents the global ref
     // interceptor from also firing on these sibling writes.
     updateCssVar(sibling.cssVarName, cssVarValue, undefined, { noGlobalRefCheck: true, noOnToneCheck: true })
+    updatedVars.push(sibling.cssVarName)
+  }
+
+  // updateCssVar writes UIKit vars SILENTLY (see updateCssVar.ts), so the toolbar prop
+  // controls — which re-read via useRawCssVar on `cssVarsUpdated` — never hear about these
+  // on-tone sibling changes and keep showing stale values. Dispatch the event explicitly so
+  // every affected control refreshes to the newly-applied on-tone value(s).
+  if (updatedVars.length > 0 && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: updatedVars } }))
   }
 }

@@ -49,7 +49,7 @@ type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 export type Section = {
   name: string
   url: string
-  render?: (selectedLayers: Set<LayerOption>) => JSX.Element
+  render?: (selectedLayers: Set<LayerOption>, activeState?: string) => JSX.Element
 }
 
 // Sort layers numerically by layer number
@@ -476,6 +476,76 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
                   content: 'This demonstrates AccordionItem properties. The header uses AccordionItem colors, padding, icon-size, and icon-gap. The content uses AccordionItem content-background and content-text.',
                   open: true,
                   divider: false
+                },
+              ]}
+              layer={layer as any}
+              allowMultiple={false}
+            />
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Accordion header',
+      url: `${base}/accordion-header`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const CircleIcon = iconNameToReactComponent('circle')
+
+        return (
+          <div style={{ width: '100%', maxWidth: 520 }}>
+            <Accordion
+              items={[
+                {
+                  id: 'item-1',
+                  title: 'The Forge Entrance',
+                  content: 'The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. Sparks fly from the ancient anvil as Zog lands, his obsidian gauntlets ringing against the forge floor.',
+                  defaultOpen: true,
+                  divider: true,
+                  icon: CircleIcon,
+                },
+                {
+                  id: 'item-2',
+                  title: 'The quick onyx goblin jumps over the lazy dwarf, muttering about a treasure map he found tucked inside an old boot at the bottom of the crystalline abyss',
+                  content: '"Down, then," Zog muttered, tightening the straps of his obsidian gauntlets. He had not come this far to turn back now.',
+                  defaultOpen: false,
+                  divider: false,
+                  icon: undefined,
+                },
+              ]}
+              layer={layer as any}
+              allowMultiple={false}
+            />
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Accordion content',
+      url: `${base}/accordion-content`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const CircleIcon = iconNameToReactComponent('circle')
+
+        return (
+          <div style={{ width: '100%', maxWidth: 520 }}>
+            <Accordion
+              items={[
+                {
+                  id: 'item-1',
+                  title: 'The Forge Entrance',
+                  content: 'The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. Sparks fly from the ancient anvil as Zog lands, his obsidian gauntlets ringing against the forge floor. The air is thick with the scent of molten iron and goblin grease.',
+                  defaultOpen: true,
+                  divider: true,
+                  icon: CircleIcon,
+                },
+                {
+                  id: 'item-2',
+                  title: 'The Thornroot Maze',
+                  content: '"Down, then," Zog muttered, tightening the straps of his obsidian gauntlets. He had not come this far—past the sleeping wyrm, through the Thornroot Maze, and over the lazy dwarf—to turn back now. The lantern\'s glow pulsed like a heartbeat, casting shifting patterns on the crystal walls.',
+                  defaultOpen: true,
+                  divider: false,
+                  icon: undefined,
                 },
               ]}
               layer={layer as any}
@@ -1223,6 +1293,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/tabs`,
     },
     {
+      name: 'Tabs item',
+      url: `${base}/tabs-item`,
+    },
+    {
       name: 'Text field',
       url: `${base}/text-field`,
       render: (_selectedLayers: Set<LayerOption>) => (
@@ -1534,7 +1608,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Tree',
       url: `${base}/tree`,
-      render: (selectedLayers: Set<LayerOption>) => {
+      render: (selectedLayers: Set<LayerOption>, activeState?: string) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
         const data = [
           {
@@ -1578,18 +1652,18 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           },
         ]
         
-        return <TreePreviewComponent data={data} layer={layer} />
+        return <TreePreviewComponent data={data} layer={layer} forceHover={activeState === 'hover'} />
       },
     },
   ]
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
-const TreePreviewComponent = ({ data, layer }: { data: any; layer: any }) => {
+const TreePreviewComponent = ({ data, layer, forceHover }: { data: any; layer: any; forceHover?: boolean }) => {
   const [selected, setSelected] = React.useState<string[]>([])
   return (
     <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start' }}>
-      <Tree data={data} layer={layer} style={{ width: '100%' }} selected={selected} onSelect={setSelected} />
+      <Tree data={data} layer={layer} style={{ width: '100%' }} selected={selected} onSelect={setSelected} forceHover={forceHover} />
     </div>
   )
 }

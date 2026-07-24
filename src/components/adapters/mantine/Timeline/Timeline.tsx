@@ -25,12 +25,16 @@ export default function Timeline({
     ...props
 }: AdapterTimelineProps & { layer?: string }) {
     // --- Timeline (parent) CSS variables ---
-    const timelineColorVar = (prop: string) => buildComponentCssVarPath('Timeline', 'properties', 'colors', layer, prop)
+    // Colours + connector-size now live under variants.selection-states.<active|inactive>.
+    const tlColor = (sel: string, prop: string) => buildComponentCssVarPath('Timeline', 'variants', 'selection-states', sel, 'properties', 'colors', layer, prop)
+    const tlSize = (sel: string) => buildComponentCssVarPath('Timeline', 'variants', 'selection-states', sel, 'properties', 'connector-size')
     const timelinePropVar = (prop: string) => buildComponentCssVarPath('Timeline', 'properties', prop)
 
-    // --- Bullet CSS variables (from TimelineBullet subcomponent) ---
-    const bulletColorVar = (variant: string, prop: string) =>
-        buildComponentCssVarPath('TimelineBullet', 'variants', 'types', variant, 'properties', 'colors', layer, prop)
+    // --- Bullet CSS variables (TimelineBullet: types.<type> → selection-states.<active|inactive>) ---
+    const bulletColor = (type: string, sel: string, prop: string) =>
+        buildComponentCssVarPath('TimelineBullet', 'variants', 'types', type, 'variants', 'selection-states', sel, 'properties', 'colors', layer, prop)
+    const bulletSelProp = (type: string, sel: string, prop: string) =>
+        buildComponentCssVarPath('TimelineBullet', 'variants', 'types', type, 'variants', 'selection-states', sel, 'properties', prop)
     const bulletPropVar = (variant: string, prop: string) =>
         buildComponentCssVarPath('TimelineBullet', 'variants', 'types', variant, 'properties', prop)
 
@@ -65,39 +69,39 @@ export default function Timeline({
     // Build CSS custom properties
     const cssVars: { [key: string]: string } = {
         // Connector (from Timeline parent)
-        '--timeline-active-connector-color': `var(${timelineColorVar('active-connector-color')})`,
-        '--timeline-inactive-connector-color': `var(${timelineColorVar('inactive-connector-color')})`,
-        '--timeline-active-connector-size': `var(${timelinePropVar('active-connector-size')})`,
-        '--timeline-inactive-connector-size': `var(${timelinePropVar('inactive-connector-size')})`,
+        '--timeline-active-connector-color': `var(${tlColor('active', 'connector-color')})`,
+        '--timeline-inactive-connector-color': `var(${tlColor('inactive', 'connector-color')})`,
+        '--timeline-active-connector-size': `var(${tlSize('active')})`,
+        '--timeline-inactive-connector-size': `var(${tlSize('inactive')})`,
 
         // Default bullet (from TimelineBullet > variants > types > default)
-        '--timeline-default-active-bullet-bg': `var(${bulletColorVar('default', 'active-background')})`,
-        '--timeline-default-active-bullet-border': `var(${bulletColorVar('default', 'active-border-color')})`,
-        '--timeline-default-inactive-bullet-bg': `var(${bulletColorVar('default', 'inactive-background')})`,
-        '--timeline-default-inactive-bullet-border': `var(${bulletColorVar('default', 'inactive-border-color')})`,
+        '--timeline-default-active-bullet-bg': `var(${bulletColor('default', 'active', 'background-color')})`,
+        '--timeline-default-active-bullet-border': `var(${bulletColor('default', 'active', 'border-color')})`,
+        '--timeline-default-inactive-bullet-bg': `var(${bulletColor('default', 'inactive', 'background-color')})`,
+        '--timeline-default-inactive-bullet-border': `var(${bulletColor('default', 'inactive', 'border-color')})`,
         '--timeline-default-bullet-size': `var(${bulletPropVar('default', 'bullet-size')})`,
         '--timeline-default-bullet-border-size': `var(${bulletPropVar('default', 'border-size')})`,
         '--timeline-default-bullet-border-radius': `var(${bulletPropVar('default', 'border-radius')})`,
 
         // Icon bullet (from TimelineBullet > variants > types > icon)
-        '--timeline-icon-active-icon-color': `var(${bulletColorVar('icon', 'active-icon-color')})`,
-        '--timeline-icon-active-bullet-bg': `var(${bulletColorVar('icon', 'active-background')})`,
-        '--timeline-icon-active-bullet-border': `var(${bulletColorVar('icon', 'active-border-color')})`,
-        '--timeline-icon-inactive-icon-color': `var(${bulletColorVar('icon', 'inactive-icon-color')})`,
-        '--timeline-icon-inactive-bullet-bg': `var(${bulletColorVar('icon', 'inactive-background')})`,
-        '--timeline-icon-inactive-bullet-border': `var(${bulletColorVar('icon', 'inactive-border-color')})`,
+        '--timeline-icon-active-icon-color': `var(${bulletColor('icon', 'active', 'icon-color')})`,
+        '--timeline-icon-active-bullet-bg': `var(${bulletColor('icon', 'active', 'background-color')})`,
+        '--timeline-icon-active-bullet-border': `var(${bulletColor('icon', 'active', 'border-color')})`,
+        '--timeline-icon-inactive-icon-color': `var(${bulletColor('icon', 'inactive', 'icon-color')})`,
+        '--timeline-icon-inactive-bullet-bg': `var(${bulletColor('icon', 'inactive', 'background-color')})`,
+        '--timeline-icon-inactive-bullet-border': `var(${bulletColor('icon', 'inactive', 'border-color')})`,
         '--timeline-icon-bullet-size': `var(${bulletPropVar('icon', 'bullet-size')})`,
         '--timeline-icon-icon-size': `var(${bulletPropVar('icon', 'icon-size')})`,
         '--timeline-icon-bullet-border-size': `var(${bulletPropVar('icon', 'border-size')})`,
         '--timeline-icon-bullet-border-radius': `var(${bulletPropVar('icon', 'border-radius')})`,
 
         // Icon-alternative (from TimelineBullet > variants > types > icon-alternative)
-        '--timeline-icon-alt-active-icon-color': `var(${bulletColorVar('icon-alternative', 'active-icon-color')})`,
-        '--timeline-icon-alt-active-bullet-bg': `var(${bulletColorVar('icon-alternative', 'active-background')})`,
-        '--timeline-icon-alt-inactive-icon-color': `var(${bulletColorVar('icon-alternative', 'inactive-icon-color')})`,
-        '--timeline-icon-alt-inactive-bullet-bg': `var(${bulletColorVar('icon-alternative', 'inactive-background')})`,
-        '--timeline-icon-alt-active-bullet-border': `var(${bulletColorVar('icon-alternative', 'active-border-color')})`,
-        '--timeline-icon-alt-inactive-bullet-border': `var(${bulletColorVar('icon-alternative', 'inactive-border-color')})`,
+        '--timeline-icon-alt-active-icon-color': `var(${bulletColor('icon-alternative', 'active', 'icon-color')})`,
+        '--timeline-icon-alt-active-bullet-bg': `var(${bulletColor('icon-alternative', 'active', 'background-color')})`,
+        '--timeline-icon-alt-inactive-icon-color': `var(${bulletColor('icon-alternative', 'inactive', 'icon-color')})`,
+        '--timeline-icon-alt-inactive-bullet-bg': `var(${bulletColor('icon-alternative', 'inactive', 'background-color')})`,
+        '--timeline-icon-alt-active-bullet-border': `var(${bulletColor('icon-alternative', 'active', 'border-color')})`,
+        '--timeline-icon-alt-inactive-bullet-border': `var(${bulletColor('icon-alternative', 'inactive', 'border-color')})`,
         '--timeline-icon-alt-bullet-size': `var(${bulletPropVar('icon-alternative', 'bullet-size')})`,
         '--timeline-icon-alt-icon-size': `var(${bulletPropVar('icon-alternative', 'icon-size')})`,
         '--timeline-icon-alt-bullet-border-size': `var(${bulletPropVar('icon-alternative', 'border-size')})`,
@@ -117,24 +121,25 @@ export default function Timeline({
             const sizeKey = sizeValue === 'small' || sizeValue === 'large' ? sizeValue : 'default'
             return `var(--timeline-avatar-size-${sizeKey}, 40px)`
         })(),
-        '--timeline-avatar-active-bg': `var(${bulletColorVar('avatar', 'active-background')})`,
-        '--timeline-avatar-inactive-bg': `var(${bulletColorVar('avatar', 'inactive-background')})`,
-        '--timeline-avatar-active-border': `var(${bulletColorVar('avatar', 'active-border-color')})`,
-        '--timeline-avatar-inactive-border': `var(${bulletColorVar('avatar', 'inactive-border-color')})`,
+        '--timeline-avatar-active-bg': `var(${bulletColor('avatar', 'active', 'background-color')})`,
+        '--timeline-avatar-inactive-bg': `var(${bulletColor('avatar', 'inactive', 'background-color')})`,
+        '--timeline-avatar-active-border': `var(${bulletColor('avatar', 'active', 'border-color')})`,
+        '--timeline-avatar-inactive-border': `var(${bulletColor('avatar', 'inactive', 'border-color')})`,
         '--timeline-avatar-border-size': `var(${bulletPropVar('avatar', 'border-size')})`,
         '--timeline-avatar-border-radius': `var(${bulletPropVar('avatar', 'border-radius')})`,
-        '--timeline-avatar-active-opacity': `var(${bulletPropVar('avatar', 'active-avatar-opacity')})`,
-        '--timeline-avatar-inactive-opacity': `var(${bulletPropVar('avatar', 'inactive-avatar-opacity')})`,
+        '--timeline-avatar-active-opacity': `var(${bulletSelProp('avatar', 'active', 'avatar-opacity')})`,
+        '--timeline-avatar-inactive-opacity': `var(${bulletSelProp('avatar', 'inactive', 'avatar-opacity')})`,
 
         // Text colors (from Timeline parent)
-        '--timeline-active-title-color': `var(${timelineColorVar('active-title-color')})`,
-        '--timeline-inactive-title-color': `var(${timelineColorVar('inactive-title-color')})`,
-        '--timeline-active-description-color': `var(${timelineColorVar('active-description-color')})`,
-        '--timeline-inactive-description-color': `var(${timelineColorVar('inactive-description-color')})`,
-        '--timeline-active-timestamp-color': `var(${timelineColorVar('active-timestamp-color')})`,
-        '--timeline-inactive-timestamp-color': `var(${timelineColorVar('inactive-timestamp-color')})`,
+        '--timeline-active-title-color': `var(${tlColor('active', 'title-color')})`,
+        '--timeline-inactive-title-color': `var(${tlColor('inactive', 'title-color')})`,
+        '--timeline-active-description-color': `var(${tlColor('active', 'description-color')})`,
+        '--timeline-inactive-description-color': `var(${tlColor('inactive', 'description-color')})`,
+        '--timeline-active-timestamp-color': `var(${tlColor('active', 'timestamp-color')})`,
+        '--timeline-inactive-timestamp-color': `var(${tlColor('inactive', 'timestamp-color')})`,
 
         // Spacing (from Timeline parent)
+        '--timeline-item-gap': `var(${timelinePropVar('item-gap')})`,
         '--timeline-bullet-content-gap': `var(${timelinePropVar('bullet-content-gap')})`,
         '--timeline-max-text-width': `var(${timelinePropVar('max-text-width')})`,
         '--timeline-title-description-gap': `var(${timelinePropVar('title-description-gap')})`,
