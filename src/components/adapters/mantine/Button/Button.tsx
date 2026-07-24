@@ -115,8 +115,11 @@ export default function Button({
   const elevationVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'elevation')
   // Reactively read elevation to trigger re-renders when it changes
   const elevationValueRaw = useCssVar(elevationVar, 'elevation-0')
-  // Use prop override if provided, otherwise use CSS var value
-  const resolvedElevation = elevation || elevationValueRaw || 'elevation-0'
+  // Disabled buttons use the disabled state's own elevation.
+  const disabledElevationVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'variants', 'states', 'disabled', 'properties', 'elevation')
+  const disabledElevationValueRaw = useCssVar(disabledElevationVar, 'elevation-0')
+  // Use prop override if provided, otherwise the disabled-state elevation when disabled, else the base CSS var value
+  const resolvedElevation = elevation || (disabled ? (disabledElevationValueRaw || 'elevation-0') : (elevationValueRaw || 'elevation-0'))
 
   // Get hover-elevation CSS variable (variant-specific property)
   const hoverElevationVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'hover-elevation')

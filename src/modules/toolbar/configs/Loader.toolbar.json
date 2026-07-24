@@ -7,7 +7,7 @@
   },
   "properties": {
     "color": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Color",
       "group": {
         "properties.indicator-color": {

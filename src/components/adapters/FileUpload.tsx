@@ -220,7 +220,6 @@ export function FileUpload({
                                         variant="unselected"
                                         size="small"
                                         layer={layer}
-                                        disabled={state === 'disabled'}
                                         deletable={state !== 'disabled'}
                                         onDelete={(e: React.MouseEvent) => {
                                             e.stopPropagation();

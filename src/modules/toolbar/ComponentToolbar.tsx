@@ -320,6 +320,19 @@ export default function ComponentToolbar({
     })
     if (matches.length === 0) return null
 
+    // Prefer the most specific match. Some props exist at multiple nesting depths — e.g. Button's
+    // min-width / horizontal-padding live at BOTH `variants.sizes.<size>` and
+    // `variants.content.<content>.variants.sizes.<size>` — and the component renders the deeper,
+    // content-nested value. Sort so the candidate matching the most selected variant axes wins,
+    // otherwise edits land on the base prop nothing reads.
+    const specificity = (p: ComponentProp): number =>
+      Object.entries(selectedVariants).reduce((n, [axis, val]) => {
+        if (axis === 'states' || !val) return n
+        const cat = VARIANT_PROP_TO_CATEGORY[axis]
+        return cat && p.path.includes(cat) && pathMatchesVariant(p.path, axis, val) ? n + 1 : n
+      }, 0)
+    matches.sort((a, b) => specificity(b) - specificity(a))
+
     const exact = (p: ComponentProp) => p.name.toLowerCase() === leaf
     const colorMatch = matches.find(p => (p.category === 'colors' || p.type === 'color') && exact(p))
       || matches.find(p => p.category === 'colors' || p.type === 'color')

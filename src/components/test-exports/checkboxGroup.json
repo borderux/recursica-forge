@@ -8,11 +8,11 @@
               "properties": {
                 "label-field-gap": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
+                  "$value": "{ui-kit.globals.form.properties.label-field-gap-vertical}"
                 },
                 "top-bottom-margin": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.globals.table.cell.padding-horizontal}"
+                  "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
                 }
               }
             },
@@ -20,17 +20,17 @@
               "properties": {
                 "gutter": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.globals.form.properties.label-field-gap-vertical}"
+                  "$value": "{ui-kit.globals.form.properties.label-field-gap-horizontal}"
                 },
                 "vertical-padding": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.globals.table.cell.padding-horizontal}"
+                  "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
                 },
                 "top-bottom-margin": {
                   "$type": "dimension",
                   "$value": {
-                    "unit": "px",
-                    "value": 100
+                    "value": 0,
+                    "unit": "px"
                   }
                 }
               }
@@ -40,11 +40,11 @@
         "properties": {
           "item-gap": {
             "$type": "dimension",
-            "$value": "{ui-kit.globals.table.cell.padding-horizontal}"
+            "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
           },
           "padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.none}"
           }
         }
       }

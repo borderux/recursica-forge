@@ -1,10 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Chip } from '../../components/adapters/Chip'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from './iconUtils'
 
 interface ChipPreviewProps {
-  selectedVariants: Record<string, string> // e.g., { style: "unselected", size: "default" }
+  selectedVariants: Record<string, string> // e.g., { "selection-states": "unselected" }
   selectedLayer: string // e.g., "layer-0"
   selectedAltLayer: string | null // e.g., "high-contrast" or null
   activeState?: string // active interaction-state tab (base/error)
@@ -12,7 +12,7 @@ interface ChipPreviewProps {
 }
 
 export default function ChipPreview({
-  selectedVariants,
+  selectedVariants: _selectedVariants,
   selectedLayer,
   selectedAltLayer,
   activeState = 'base',
@@ -20,14 +20,24 @@ export default function ChipPreview({
 }: ChipPreviewProps) {
   const { mode } = useThemeMode()
 
-  // Selection comes from the `selection-states` axis; the Error interaction-state tab promotes the
-  // chip to its error/error-selected colour set. Chips have no disabled state — a non-interactive
-  // chip is simply a default chip.
-  const sel = (selectedVariants['selection-states'] || 'unselected') as 'selected' | 'unselected'
+  // The Error interaction-state tab promotes chips to their error/error-selected colour set.
+  // Chips have no disabled state — a non-interactive chip is simply a default chip.
   const isError = activeState === 'error'
-  const styleVariant = (isError
-    ? (sel === 'selected' ? 'error-selected' : 'error')
-    : sel) as 'unselected' | 'selected' | 'error' | 'error-selected'
+
+  // Selectable chips own their selection state so the user can toggle them on/off.
+  const [selected, setSelected] = useState<Record<string, boolean>>({
+    moonstone: false,
+    mithril: true,
+  })
+  const toggle = (key: string) =>
+    setSelected((prev) => ({ ...prev, [key]: !prev[key] }))
+
+  // Resolve the chip variant from its selected state, layering the error colours on top.
+  const variantFor = (isSelected: boolean) =>
+    (isError
+      ? isSelected ? 'error-selected' : 'error'
+      : isSelected ? 'selected' : 'unselected') as
+      'unselected' | 'selected' | 'error' | 'error-selected'
 
   // Determine the actual layer to use
   const actualLayer = useMemo(() => {
@@ -37,54 +47,50 @@ export default function ChipPreview({
     return selectedLayer as any
   }, [selectedAltLayer, selectedLayer])
 
-  const DiamondIcon = iconNameToReactComponent('diamond')
-  const SparkleIcon = iconNameToReactComponent('sparkle')
   const ShieldIcon = iconNameToReactComponent('shield')
   const LightningIcon = iconNameToReactComponent('lightning')
 
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-      {/* Default chip */}
-      <Chip
-        variant={styleVariant}
-        layer={actualLayer}
-        elevation={componentElevation}
-      >
-        Obsidian
-      </Chip>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'flex-start' }}>
+      {/* Default (non-selectable) chips — not interactive, no selection toggle */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Chip
+          variant={variantFor(false)}
+          layer={actualLayer}
+          elevation={componentElevation}
+        >
+          Obsidian
+        </Chip>
+        <Chip
+          variant={variantFor(false)}
+          layer={actualLayer}
+          elevation={componentElevation}
+          icon={ShieldIcon ? <ShieldIcon /> : undefined}
+        >
+          Dragon Scale
+        </Chip>
+      </div>
 
-      {/* Deletable chip */}
-      <Chip
-        variant={styleVariant}
-        layer={actualLayer}
-        elevation={componentElevation}
-        deletable
-        onDelete={() => { }}
-      >
-        Moonstone
-      </Chip>
-
-      {/* Chip with icon */}
-      <Chip
-        variant={styleVariant}
-        layer={actualLayer}
-        elevation={componentElevation}
-        icon={ShieldIcon ? <ShieldIcon /> : undefined}
-      >
-        Dragon Scale
-      </Chip>
-
-      {/* Chip with icon and deletable */}
-      <Chip
-        variant={styleVariant}
-        layer={actualLayer}
-        elevation={componentElevation}
-        icon={LightningIcon ? <LightningIcon /> : undefined}
-        deletable
-        onDelete={() => { }}
-      >
-        Mithril Wire
-      </Chip>
+      {/* Selectable chips — click to toggle the selection on/off */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Chip
+          variant={variantFor(selected.moonstone)}
+          layer={actualLayer}
+          elevation={componentElevation}
+          onClick={() => toggle('moonstone')}
+        >
+          Moonstone
+        </Chip>
+        <Chip
+          variant={variantFor(selected.mithril)}
+          layer={actualLayer}
+          elevation={componentElevation}
+          icon={LightningIcon ? <LightningIcon /> : undefined}
+          onClick={() => toggle('mithril')}
+        >
+          Mithril Wire
+        </Chip>
+      </div>
     </div>
   )
 }

@@ -79,8 +79,8 @@
       "label": "Margin"
     },
     "width": {
-      "icon": "arrows-left-right",
-      "label": "Width",
+      "icon": "ruler",
+      "label": "Dimensions",
       "group": {
         "properties.min-width": {
           "icon": "arrows-in-line-horizontal",
@@ -111,7 +111,7 @@
       }
     },
     "placeholder-opacity": {
-      "icon": "eye",
+      "icon": "cursor-text",
       "label": "Placeholder",
       "group": {
         "properties.placeholder-opacity": {

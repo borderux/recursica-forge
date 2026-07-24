@@ -2258,7 +2258,7 @@
               "properties": {
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -2386,7 +2386,7 @@
                     "properties": {
                       "opacity": {
                         "$type": "number",
-                        "$value": "{tokens.opacities.ghost}"
+                        "$value": "{ui-kit.globals.states.disabled}"
                       }
                     }
                   }
@@ -2460,7 +2460,7 @@
                     "properties": {
                       "opacity": {
                         "$type": "number",
-                        "$value": "{tokens.opacities.ghost}"
+                        "$value": "{ui-kit.globals.states.disabled}"
                       }
                     }
                   }
@@ -2815,7 +2815,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             },
@@ -8390,7 +8390,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -8765,7 +8765,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -9077,7 +9077,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -9450,7 +9450,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -9825,7 +9825,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -10187,7 +10187,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -10594,7 +10594,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -10997,7 +10997,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -11795,7 +11795,7 @@
                       },
                       "opacity": {
                         "$type": "number",
-                        "$value": "{tokens.opacities.ghost}"
+                        "$value": "{ui-kit.globals.states.disabled}"
                       }
                     }
                   }
@@ -11895,7 +11895,7 @@
                       },
                       "opacity": {
                         "$type": "number",
-                        "$value": "{tokens.opacities.ghost}"
+                        "$value": "{ui-kit.globals.states.disabled}"
                       }
                     }
                   }
@@ -12027,7 +12027,7 @@
                       },
                       "opacity": {
                         "$type": "number",
-                        "$value": "{tokens.opacities.ghost}"
+                        "$value": "{ui-kit.globals.states.disabled}"
                       }
                     }
                   }
@@ -12133,7 +12133,7 @@
               "properties": {
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -12339,7 +12339,7 @@
                       },
                       "opacity": {
                         "$type": "number",
-                        "$value": "{tokens.opacities.ghost}"
+                        "$value": "{ui-kit.globals.states.disabled}"
                       }
                     }
                   }
@@ -12439,7 +12439,7 @@
                       },
                       "opacity": {
                         "$type": "number",
-                        "$value": "{tokens.opacities.ghost}"
+                        "$value": "{ui-kit.globals.states.disabled}"
                       }
                     }
                   }
@@ -12545,7 +12545,7 @@
               "properties": {
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -13310,7 +13310,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -13729,7 +13729,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -14737,7 +14737,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }
@@ -14929,7 +14929,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacities.ghost}"
+                  "$value": "{ui-kit.globals.states.disabled}"
                 }
               }
             }

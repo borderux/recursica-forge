@@ -2536,7 +2536,7 @@ class ComplianceServiceImpl {
                         const location = `Avatar / Text / ${toLabel(typeName)} / ${toLabel(layer)} / Text Color`
 
                         const fgTemplate = `--recursica_ui-kit_themes_MODE_components_avatar_variants_styles_text_variants_types_${typeName}_properties_colors_${layer}_text-color`
-                        const bgTemplate = `--recursica_ui-kit_themes_MODE_components_avatar_variants_styles_text_variants_types_${typeName}_properties_colors_${layer}_background`
+                        const bgTemplate = `--recursica_ui-kit_themes_MODE_components_avatar_variants_styles_text_variants_types_${typeName}_properties_colors_${layer}_background-color`
 
                         checkDualMode('avatar', typeName, layer, 'text-color', 'Text Color', location, fgTemplate, bgTemplate)
                     }
@@ -2555,7 +2555,7 @@ class ComplianceServiceImpl {
                         const location = `Stepper / ${toLabel(stateName)} Indicator / ${toLabel(layer)}`
 
                         const fgTemplate = `--recursica_ui-kit_themes_MODE_components_stepper_properties_colors_${layer}_${stateName}-indicator-text`
-                        const bgTemplate = `--recursica_ui-kit_themes_MODE_components_stepper_properties_colors_${layer}_${stateName}-indicator-background`
+                        const bgTemplate = `--recursica_ui-kit_themes_MODE_components_stepper_properties_colors_${layer}_${stateName}-indicator-background-color`
 
                         checkDualMode('stepper', stateName, layer, `${stateName}-indicator-text`, 'Indicator Text', location, fgTemplate, bgTemplate)
                     }

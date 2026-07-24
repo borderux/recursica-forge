@@ -261,10 +261,27 @@ export function checkForOnToneConflict(
   }
   if (!layerNode || typeof layerNode !== 'object') return
 
+  // A layer group can hold several region-specific backgrounds (e.g. Card's
+  // `background-color`, `header-background-color`, `footer-background-color`). A foreground
+  // only sits on the background of its own region, so the contrast-based rewrite (B) below must
+  // stay within that region — otherwise changing e.g. the footer background would offer to
+  // recolour the card's title/content text (which sit on the content background), breaking it.
+  const regionOf = (key: string): string => {
+    const m = key.match(/^(.+)-background(?:-color)?$/)
+    return m ? m[1] : ''
+  }
+  const bgRegion = regionOf(parsed.propKey)
+  const regionPrefixes = Object.keys(layerNode)
+    .map(regionOf)
+    .filter((p): p is string => !!p)
+  const foregroundRegion = (key: string): string =>
+    regionPrefixes.find(p => key === p || key.startsWith(`${p}-`)) || ''
+
   // Collect foreground siblings that should be offered the new background's on-tone.
   // A sibling qualifies when EITHER:
   //   (A) pairing maintenance — it references the OLD background's `.on-tone`, or
-  //   (B) contrast failure  — its current rendered colour fails AA on the NEW background.
+  //   (B) contrast failure  — its current rendered colour fails AA on the NEW background
+  //       (only for foregrounds in the same region as the changed background).
   const siblings: OnToneSibling[] = []
   for (const [key, entry] of Object.entries(layerNode)) {
     if (key === parsed.propKey) continue // skip the background being changed
@@ -285,8 +302,9 @@ export function checkForOnToneConflict(
     const wasPairedWithOld = !!oldBase && entryVal.endsWith('.on-tone}') && entryBase === oldBase
 
     // (B) Does the sibling's current colour fail AA against the new background?
+    // Only within the same region — a foreground never sits on another region's background.
     let failsContrast = false
-    if (newBgHex) {
+    if (newBgHex && foregroundRegion(key) === bgRegion) {
       const fgHex = normalizeHex(readCssVarResolved(siblingCssVar))
       if (fgHex) failsContrast = contrastRatio(newBgHex, fgHex) < AA
     }

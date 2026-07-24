@@ -7,7 +7,7 @@
   },
   "properties": {
     "properties": {
-      "icon": "stack",
+      "icon": "list",
       "label": "Spacing",
       "group": {
         "properties.item-gap": {
@@ -31,7 +31,7 @@
     },
     "top-bottom-margin": {
       "icon": "arrows-up-down",
-      "label": "Top and bottom margin",
+      "label": "Margin",
       "group": {
         "properties.top-bottom-margin": {
           "label": "Margin"

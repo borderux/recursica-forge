@@ -25,62 +25,62 @@
             "layer-0": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.1000.color.on-tone}"
+                "$value": "{brand.palettes.neutral.100.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "divider-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               }
             },
             "layer-1": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.1000.color.on-tone}"
+                "$value": "{brand.palettes.neutral.100.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "divider-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               }
             },
             "layer-2": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.1000.color.on-tone}"
+                "$value": "{brand.palettes.neutral.100.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "divider-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               }
             },
             "layer-3": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.1000.color.on-tone}"
+                "$value": "{brand.palettes.neutral.100.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "divider-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               }
             }
           },
           "elevation": {
-            "$value": "{brand.elevations.elevation-1}",
+            "$value": "{brand.elevations.elevation-0}",
             "$extensions": {
               "recursica.type": "elevation"
             }
@@ -88,31 +88,31 @@
           "border-size": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 100
+              "value": 0,
+              "unit": "px"
             }
           },
           "border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.default}"
+            "$value": "{brand.dimensions.border-radii.2xl}"
           },
           "padding-horizontal": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.xl}"
+            "$value": "{brand.dimensions.general.sm}"
           },
           "padding-vertical": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.xl}"
+            "$value": "{brand.dimensions.general.sm}"
           },
           "item-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.xl}"
+            "$value": "{brand.dimensions.general.sm}"
           },
           "divider-size": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 200
+              "value": 1,
+              "unit": "px"
             }
           }
         }

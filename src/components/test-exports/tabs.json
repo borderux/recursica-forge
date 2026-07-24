@@ -12,11 +12,11 @@
                     "properties": {
                       "tabs-content-gap": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.icons.default}"
+                        "$value": "{brand.dimensions.gutters.vertical}"
                       },
                       "space-between-tabs": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.general.xl}"
+                        "$value": "{brand.dimensions.general.sm}"
                       }
                     }
                   },
@@ -24,11 +24,11 @@
                     "properties": {
                       "tabs-content-gap": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.gutters.vertical}"
+                        "$value": "{brand.dimensions.gutters.horizontal}"
                       },
                       "space-between-tabs": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.general.xl}"
+                        "$value": "{brand.dimensions.general.sm}"
                       }
                     }
                   }
@@ -43,11 +43,11 @@
                     "properties": {
                       "tabs-content-gap": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.icons.default}"
+                        "$value": "{brand.dimensions.gutters.vertical}"
                       },
                       "space-between-tabs": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.general.xl}"
+                        "$value": "{brand.dimensions.general.sm}"
                       }
                     }
                   },
@@ -55,11 +55,11 @@
                     "properties": {
                       "tabs-content-gap": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.gutters.vertical}"
+                        "$value": "{brand.dimensions.gutters.horizontal}"
                       },
                       "space-between-tabs": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.general.xl}"
+                        "$value": "{brand.dimensions.general.sm}"
                       }
                     }
                   }
@@ -74,11 +74,11 @@
                     "properties": {
                       "tabs-content-gap": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.icons.default}"
+                        "$value": "{brand.dimensions.gutters.vertical}"
                       },
                       "space-between-tabs": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.general.xl}"
+                        "$value": "{brand.dimensions.general.sm}"
                       }
                     }
                   },
@@ -86,11 +86,11 @@
                     "properties": {
                       "tabs-content-gap": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.gutters.vertical}"
+                        "$value": "{brand.dimensions.gutters.horizontal}"
                       },
                       "space-between-tabs": {
                         "$type": "dimension",
-                        "$value": "{brand.dimensions.general.xl}"
+                        "$value": "{brand.dimensions.general.sm}"
                       }
                     }
                   }

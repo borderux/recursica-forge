@@ -33,6 +33,10 @@ export default function CheckboxItem({
 
     const getCheckboxItemColorVar = (prop: string) => `var(${buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, prop)})`
 
+    // CheckboxItem owns its disabled opacity (driven by the global disabled state). Set it here so
+    // it overrides the base Checkbox value and reflects edits made on the CheckboxItem toolbar.
+    const disabledOpacityVar = buildComponentCssVarPath('CheckboxItem', 'variants', 'states', 'disabled', 'properties', 'opacity')
+
     // NOTE: the checkbox box's own size/color vars are set by the base Checkbox
     // adapter (from the current variants.selection-states.* JSON structure). We must
     // NOT re-specify them here — the old flat paths no longer exist and would
@@ -50,6 +54,8 @@ export default function CheckboxItem({
         '--checkbox-item-color': getCheckboxItemColorVar('text'),
         '--checkbox-item-disabled-color': getCheckboxItemColorVar('disabled-text'),
         '--checkbox-item-max-width': `var(${maxWidthVar})`,
+        // Override the base Checkbox's disabled opacity with the CheckboxItem's own value.
+        '--checkbox-disabled-opacity': `var(${disabledOpacityVar})`,
     }
 
     return (

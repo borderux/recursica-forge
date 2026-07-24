@@ -61,9 +61,14 @@ export default function WidthGroupToolbar({
   const { mode } = useThemeMode()
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName, mode])
 
-  const minWidthProp = useMemo(() => {
-    return structure.props.find(p => {
-      if (p.name.toLowerCase() !== minWidthPropName.toLowerCase()) return false
+  // Find the prop for a width/height axis. When a prop exists at multiple nesting depths (e.g.
+  // Button's min-width lives at both `variants.sizes.<size>` and the deeper, content-nested
+  // `variants.content.<content>.variants.sizes.<size>` that the component actually renders),
+  // prefer the candidate whose path matches the most selected variant values — otherwise edits
+  // land on the base prop nothing reads.
+  const findDimensionProp = (propName: string) => {
+    const candidates = structure.props.filter(p => {
+      if (p.name.toLowerCase() !== propName.toLowerCase()) return false
       if (p.isVariantSpecific && p.variantProp) {
         const selectedVariant = selectedVariants[p.variantProp]
         if (!selectedVariant) return false
@@ -71,45 +76,23 @@ export default function WidthGroupToolbar({
       }
       return true
     })
-  }, [structure, minWidthPropName, selectedVariants])
+    if (candidates.length <= 1) return candidates[0]
+    const specificity = (p: typeof candidates[number]) =>
+      Object.values(selectedVariants).filter(v => v && p.path.includes(v)).length
+    return [...candidates].sort((a, b) => specificity(b) - specificity(a))[0]
+  }
 
-  const maxWidthProp = useMemo(() => {
-    return structure.props.find(p => {
-      if (p.name.toLowerCase() !== maxWidthPropName.toLowerCase()) return false
-      if (p.isVariantSpecific && p.variantProp) {
-        const selectedVariant = selectedVariants[p.variantProp]
-        if (!selectedVariant) return false
-        if (!p.path.includes(selectedVariant)) return false
-      }
-      return true
-    })
-  }, [structure, maxWidthPropName, selectedVariants])
+  const minWidthProp = useMemo(() => findDimensionProp(minWidthPropName),
+    [structure, minWidthPropName, selectedVariants])
 
-  const minHeightProp = useMemo(() => {
-    if (!includeHeight) return undefined
-    return structure.props.find(p => {
-      if (p.name.toLowerCase() !== minHeightPropName.toLowerCase()) return false
-      if (p.isVariantSpecific && p.variantProp) {
-        const selectedVariant = selectedVariants[p.variantProp]
-        if (!selectedVariant) return false
-        if (!p.path.includes(selectedVariant)) return false
-      }
-      return true
-    })
-  }, [structure, minHeightPropName, includeHeight, selectedVariants])
+  const maxWidthProp = useMemo(() => findDimensionProp(maxWidthPropName),
+    [structure, maxWidthPropName, selectedVariants])
 
-  const maxHeightProp = useMemo(() => {
-    if (!includeMaxHeight) return undefined
-    return structure.props.find(p => {
-      if (p.name.toLowerCase() !== maxHeightPropName.toLowerCase()) return false
-      if (p.isVariantSpecific && p.variantProp) {
-        const selectedVariant = selectedVariants[p.variantProp]
-        if (!selectedVariant) return false
-        if (!p.path.includes(selectedVariant)) return false
-      }
-      return true
-    })
-  }, [structure, maxHeightPropName, includeMaxHeight, selectedVariants])
+  const minHeightProp = useMemo(() => includeHeight ? findDimensionProp(minHeightPropName) : undefined,
+    [structure, minHeightPropName, includeHeight, selectedVariants])
+
+  const maxHeightProp = useMemo(() => includeMaxHeight ? findDimensionProp(maxHeightPropName) : undefined,
+    [structure, maxHeightPropName, includeMaxHeight, selectedVariants])
 
   // Get CSS variables
   const minWidthVar = minWidthProp?.cssVar || ''

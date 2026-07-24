@@ -58,7 +58,7 @@
     },
     "properties.text": {
       "icon": "text-aa",
-      "label": "Text style"
+      "label": "Text"
     },
     "padding": {
       "icon": "square-logo",
@@ -78,9 +78,15 @@
         }
       }
     },
-    "properties.top-bottom-margin": {
+    "margin": {
       "icon": "arrows-up-down",
-      "label": "Top and bottom margin"
+      "label": "Margin",
+      "group": {
+        "properties.top-bottom-margin": {
+          "icon": "arrows-up-down",
+          "label": "Top and bottom"
+        }
+      }
     },
     "properties.width": {
       "icon": "arrows-left-right",
@@ -108,7 +114,7 @@
     },
     "opacity": {
       "icon": "eye",
-      "label": "Disabled opacity",
+      "label": "Opacity",
       "group": {
         "properties.opacity": {
           "label": "Opacity"

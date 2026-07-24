@@ -4,7 +4,7 @@
       "tooltip": {
         "properties": {
           "elevation": {
-            "$value": "{brand.elevations.elevation-0}",
+            "$value": "{brand.elevations.elevation-4}",
             "$extensions": {
               "recursica.type": "elevation"
             }
@@ -12,147 +12,147 @@
           "border-size": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 200
+              "value": 1,
+              "unit": "px"
             }
           },
           "vertical-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.xl}"
+            "$value": "{brand.dimensions.general.sm}"
           },
           "horizontal-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.none}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.lg}"
+            "$value": "{brand.dimensions.border-radii.default}"
           },
           "min-width": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 42
+              "value": 40,
+              "unit": "px"
             }
           },
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 304
+              "value": 300,
+              "unit": "px"
             }
           },
           "beak-size": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 180
+              "value": 16,
+              "unit": "px"
             }
           },
           "beak-inset": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 90
+              "value": 8,
+              "unit": "px"
             }
           },
           "min-height": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 4
+              "value": 48,
+              "unit": "px"
             }
           },
           "colors": {
             "layer-0": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.1000.color.tone}"
               },
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.100.color.on-tone}"
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.1000.color.tone}"
               }
             },
             "layer-1": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.1000.color.tone}"
               },
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.100.color.on-tone}"
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.1000.color.tone}"
               }
             },
             "layer-2": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.1000.color.tone}"
               },
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.100.color.on-tone}"
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.1000.color.tone}"
               }
             },
             "layer-3": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.1000.color.tone}"
               },
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.100.color.on-tone}"
+                "$value": "{brand.palettes.neutral.050.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.1000.color.tone}"
               }
             }
           },
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{brand.fonts.secondary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{ui-kit.globals.form.field.size.border-radius}"
+              "$value": "{tokens.font.sizes.xs}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.opacities.ghost}"
+              "$value": "{tokens.font.weights.regular}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.styles.normal}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.shorter}"
+              "$value": "{tokens.font.line-heights.default}"
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.default}"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{tokens.font.cases.uppercase}"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "{ui-kit.components.button}"
+              "$value": "{tokens.font.styles.normal}"
             }
           }
         }

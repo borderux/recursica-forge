@@ -67,6 +67,7 @@ import {
   Crown,
   Cursor,
   CursorClick,
+  CursorText,
   Diamond,
   DiamondsFour,
   DotsThree,
@@ -480,6 +481,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'file': File,
   'file-dashed': FileDashed,
   'bounding-box': BoundingBox,
+  'cursor-text': CursorText,
 }
 
 /**

@@ -2,13 +2,13 @@
   "variants": {
     "selection-states": {
       "icon": "check-square",
-      "label": "Selection"
+      "label": "State"
     }
   },
   "properties": {
     "checkbox": {
-      "icon": "check-square",
-      "label": "Checkbox",
+      "icon": "ruler",
+      "label": "Dimensions",
       "group": {
         "properties.size": {
           "label": "Checkbox size",
@@ -32,7 +32,7 @@
           "step": 1
         },
         "properties.icon-size": {
-          "label": "Icon size",
+          "label": "Checkmark size",
           "propertyType": "slider",
           "range": [
             4,
@@ -65,21 +65,11 @@
           "label": "Border"
         },
         "properties.colors.icon-color": {
-          "label": "Icon"
+          "label": "Checkmark"
         },
         "properties.opacity": {
-          "label": "Disabled opacity"
-        }
-      }
-    },
-    "properties.text": {
-      "icon": "text-aa",
-      "label": "Text style"
-    },
-    "text-color": {
-      "icon": "palette",
-      "label": "Text color",
-      "group": {
+          "label": "Opacity"
+        },
         "properties.colors.text-color": {
           "label": "Color"
         },
@@ -87,6 +77,10 @@
           "label": "Disabled text"
         }
       }
+    },
+    "properties.text": {
+      "icon": "text-aa",
+      "label": "Text"
     }
   }
 }

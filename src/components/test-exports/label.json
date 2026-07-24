@@ -8,13 +8,13 @@
               "properties": {
                 "bottom-padding": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.lg}"
+                  "$value": "{brand.dimensions.general.default}"
                 },
                 "min-height": {
                   "$type": "dimension",
                   "$value": {
-                    "unit": "px",
-                    "value": 224
+                    "value": 20,
+                    "unit": "px"
                   }
                 }
               },
@@ -25,8 +25,8 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "unit": "px",
-                          "value": 24
+                          "value": 224,
+                          "unit": "px"
                         }
                       }
                     }
@@ -36,8 +36,8 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "unit": "px",
-                          "value": 8
+                          "value": 80,
+                          "unit": "px"
                         }
                       }
                     }
@@ -50,17 +50,17 @@
                 "min-height": {
                   "$type": "dimension",
                   "$value": {
-                    "unit": "px",
-                    "value": 4
+                    "value": 48,
+                    "unit": "px"
                   }
                 },
                 "gutter": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.globals.form.properties.label-field-gap-vertical}"
+                  "$value": "{ui-kit.globals.form.properties.label-field-gap-horizontal}"
                 },
                 "vertical-padding": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.globals.table.cell.padding-horizontal}"
+                  "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
                 }
               },
               "variants": {
@@ -70,8 +70,8 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "unit": "px",
-                          "value": 24
+                          "value": 224,
+                          "unit": "px"
                         }
                       }
                     }
@@ -81,8 +81,8 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "unit": "px",
-                          "value": 8
+                          "value": 80,
+                          "unit": "px"
                         }
                       }
                     }
@@ -97,48 +97,82 @@
             "layer-0": {
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.properties.border-color}"
+                "$value": "{brand.layers.layer-0.elements.text.color}"
               },
               "asterisk-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.text.color}"
+                "$value": "{brand.layers.layer-0.elements.text.alert}"
               }
             },
             "layer-1": {
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.border-color}"
+                "$value": "{brand.layers.layer-1.elements.text.color}"
               },
               "asterisk-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.text.color}"
+                "$value": "{brand.layers.layer-1.elements.text.alert}"
               }
             },
             "layer-2": {
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-2.properties.border-color}"
+                "$value": "{brand.layers.layer-2.elements.text.color}"
               },
               "asterisk-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-2.elements.text.color}"
+                "$value": "{brand.layers.layer-2.elements.text.alert}"
               }
             },
             "layer-3": {
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-3.properties.border-color}"
+                "$value": "{brand.layers.layer-3.elements.text.color}"
               },
               "asterisk-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-3.elements.text.color}"
+                "$value": "{brand.layers.layer-3.elements.text.alert}"
               }
             }
           },
           "label-text": {
             "font-family": {
               "$type": "string",
+              "$value": "{brand.fonts.secondary}"
+            },
+            "font-size": {
+              "$type": "dimension",
+              "$value": "{tokens.font.sizes.sm}"
+            },
+            "font-weight": {
+              "$type": "number",
+              "$value": "{tokens.font.weights.regular}"
+            },
+            "letter-spacing": {
+              "$type": "string",
+              "$value": "{tokens.font.letter-spacings.default}"
+            },
+            "line-height": {
+              "$type": "number",
+              "$value": "{tokens.font.line-heights.default}"
+            },
+            "text-decoration": {
+              "$type": "string",
+              "$value": "{tokens.font.decorations.none}"
+            },
+            "text-transform": {
+              "$type": "string",
               "$value": "{tokens.font.cases.original}"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "{tokens.font.styles.normal}"
+            }
+          },
+          "optional-text": {
+            "font-family": {
+              "$type": "string",
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -146,78 +180,44 @@
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.opacities.ghost}"
+              "$value": "{tokens.font.weights.regular}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.styles.normal}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.shorter}"
+              "$value": "{tokens.font.line-heights.default}"
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.default}"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{tokens.font.cases.uppercase}"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
-              "$type": "string",
-              "$value": "{ui-kit.components.button}"
-            }
-          },
-          "optional-text": {
-            "font-family": {
-              "$type": "string",
-              "$value": "{brand.fonts.secondary}"
-            },
-            "font-size": {
-              "$type": "dimension",
-              "$value": "{ui-kit.globals.form.field.size.border-radius}"
-            },
-            "font-weight": {
-              "$type": "number",
-              "$value": "{tokens.opacities.ghost}"
-            },
-            "letter-spacing": {
               "$type": "string",
               "$value": "{tokens.font.styles.normal}"
-            },
-            "line-height": {
-              "$type": "number",
-              "$value": "{tokens.font.line-heights.shorter}"
-            },
-            "text-decoration": {
-              "$type": "string",
-              "$value": "{tokens.font.letter-spacings.default}"
-            },
-            "text-transform": {
-              "$type": "string",
-              "$value": "{tokens.font.cases.uppercase}"
-            },
-            "font-style": {
-              "$type": "string",
-              "$value": "{ui-kit.components.button}"
             }
           },
           "required-indicator-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.lg}"
+            "$value": "{brand.dimensions.general.default}"
           },
           "label-optional-text-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.xl}"
+            "$value": "{brand.dimensions.general.sm}"
           },
           "edit-icon-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.xl}"
+            "$value": "{brand.dimensions.general.sm}"
           },
           "optional-text-opacity": {
             "$type": "number",
-            "$value": "{tokens.font.letter-spacings.default}"
+            "$value": "{brand.text-emphasis.low}"
           }
         }
       }

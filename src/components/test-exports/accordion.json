@@ -6,38 +6,38 @@
           "border-size": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 200
+              "value": 1,
+              "unit": "px"
             }
           },
           "border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.sm}"
+            "$value": "{brand.dimensions.border-radii.none}"
           },
           "item-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.none}"
           },
           "padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.none}"
           },
           "min-width": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 224
+              "value": 20,
+              "unit": "px"
             }
           },
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 16
+              "value": 1500,
+              "unit": "px"
             }
           },
           "elevation": {
-            "$value": "{brand.elevations.elevation-1}",
+            "$value": "{brand.elevations.elevation-0}",
             "$extensions": {
               "recursica.type": "elevation"
             }
@@ -45,65 +45,65 @@
           "divider-size": {
             "$type": "dimension",
             "$value": {
-              "unit": "px",
-              "value": 200
+              "value": 1,
+              "unit": "px"
             }
           },
           "colors": {
             "layer-0": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "divider-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.properties.surface}"
+                "$value": "{brand.layers.layer-0.properties.border-color}"
               }
             },
             "layer-1": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "divider-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.surface}"
+                "$value": "{brand.layers.layer-1.properties.border-color}"
               }
             },
             "layer-2": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "divider-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-2.properties.surface}"
+                "$value": "{brand.layers.layer-2.properties.border-color}"
               }
             },
             "layer-3": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": null
               },
               "divider-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-3.properties.surface}"
+                "$value": "{brand.layers.layer-3.properties.border-color}"
               }
             }
           }

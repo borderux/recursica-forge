@@ -67,9 +67,11 @@ input[type="radio"]:hover:not(:disabled),
 .mantine-SegmentedControl-root:hover,
 /* Stepper: the whole step is a <button> (excluded above) — tint only the bullet. */
 .mantine-Stepper-step:hover:not(:disabled):not([data-disabled="true"]) .mantine-Stepper-stepIcon,
-[class*="recursica-"][class*="-wrapper"]:not([class*="segmented"]):not([class*="table"]):has(input, textarea, select):hover,
+/* Disabled fields (inset control is [disabled], or the wrapper carries a disabled marker)
+   must not take the hover tint. */
+[class*="recursica-"][class*="-wrapper"]:not([class*="segmented"]):not([class*="table"]):not(.disabled):not([data-disabled="true"]):has(input, textarea, select):not(:has(input:disabled, textarea:disabled, select:disabled)):hover,
 /* Field-style triggers (autocomplete, dropdown) hosting an inset input. */
-[class*="recursica-"][class*="-trigger"]:not(.disabled):has(input, textarea, select):hover,
+[class*="recursica-"][class*="-trigger"]:not(.disabled):not([data-disabled="true"]):has(input, textarea, select):not(:has(input:disabled, textarea:disabled, select:disabled)):hover,
 .recursica-interactive:hover:not(:disabled):not([data-disabled="true"]):not([aria-disabled="true"]) {
   background-image: linear-gradient(
     var(--recursica-hover-tint),
