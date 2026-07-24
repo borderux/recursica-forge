@@ -11,7 +11,7 @@
   },
   "properties": {
     "colors": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Colors",
       "group": {
         "properties.colors.background-color": {

@@ -226,10 +226,10 @@ export default function Button({
       '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': icon || children ? `var(${iconGapVar})` : '0px',
       '--button-max-width': `var(${maxWidthVar})`,
-      // Use component-level disabled-opacity token when disabled - don't change colors, just apply opacity
+      // Use the disabled state's opacity (driven by the global disabled state) - don't change colors, just apply opacity
       // Override Carbon's default disabled styles to keep colors unchanged
       ...(disabled && {
-        opacity: `var(${buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'disabled-opacity')})`,
+        opacity: `var(${buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'variants', 'states', 'disabled', 'properties', 'opacity')})`,
         backgroundColor: `var(${buttonBgVar}, transparent) !important`,
         color: `var(${buttonColorVar}) !important`,
         ...(buttonBorderColorVar && {

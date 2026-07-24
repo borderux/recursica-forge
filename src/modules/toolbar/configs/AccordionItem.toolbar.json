@@ -2,7 +2,7 @@
   "variants": {},
   "properties": {
     "border": {
-      "icon": "rectangle",
+      "icon": "square",
       "label": "Border",
       "group": {
         "properties.border-size": {

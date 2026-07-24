@@ -7,7 +7,7 @@ interface ChipPreviewProps {
   selectedVariants: Record<string, string> // e.g., { style: "unselected", size: "default" }
   selectedLayer: string // e.g., "layer-0"
   selectedAltLayer: string | null // e.g., "high-contrast" or null
-  activeState?: string // active interaction-state tab (base/hover/focus/disabled)
+  activeState?: string // active interaction-state tab (base/error)
   componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
 }
 
@@ -21,13 +21,13 @@ export default function ChipPreview({
   const { mode } = useThemeMode()
 
   // Selection comes from the `selection-states` axis; the Error interaction-state tab promotes the
-  // chip to its error/error-selected colour set. Disabled tab dims via the disabled prop.
+  // chip to its error/error-selected colour set. Chips have no disabled state — a non-interactive
+  // chip is simply a default chip.
   const sel = (selectedVariants['selection-states'] || 'unselected') as 'selected' | 'unselected'
   const isError = activeState === 'error'
   const styleVariant = (isError
     ? (sel === 'selected' ? 'error-selected' : 'error')
     : sel) as 'unselected' | 'selected' | 'error' | 'error-selected'
-  const isDisabled = activeState === 'disabled'
 
   // Determine the actual layer to use
   const actualLayer = useMemo(() => {
@@ -49,7 +49,6 @@ export default function ChipPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
-        disabled={isDisabled}
       >
         Obsidian
       </Chip>
@@ -59,7 +58,6 @@ export default function ChipPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
-        disabled={isDisabled}
         deletable
         onDelete={() => { }}
       >
@@ -71,7 +69,6 @@ export default function ChipPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
-        disabled={isDisabled}
         icon={ShieldIcon ? <ShieldIcon /> : undefined}
       >
         Dragon Scale
@@ -82,7 +79,6 @@ export default function ChipPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
-        disabled={isDisabled}
         icon={LightningIcon ? <LightningIcon /> : undefined}
         deletable
         onDelete={() => { }}

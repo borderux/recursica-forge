@@ -6,7 +6,7 @@
 
 import { Modal as MantineModal, Box, Group } from '@mantine/core'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { ModalProps as AdapterModalProps } from '../../Modal'
 import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
@@ -52,12 +52,53 @@ export default function Modal({
     const [dragPos, setDragPos] = useState<{ x: number, y: number } | null>(position || null)
     const [isDragging, setIsDragging] = useState(false)
 
+    // Track whether the scrollable body actually overflows. The header/footer
+    // dividers are "scroll dividers" — they should only appear when the content
+    // scrolls, not on modals whose content fits without scrolling.
+    const bodyRef = useRef<HTMLDivElement>(null)
+    const [isScrollable, setIsScrollable] = useState(false)
+
     // Synchronize dragPos with position prop
     useEffect(() => {
         if (position && !isDragging) {
             setDragPos(position)
         }
     }, [position, isDragging])
+
+    // Detect whether the body content overflows (i.e. the modal scrolls) and
+    // toggle the scroll dividers accordingly.
+    useEffect(() => {
+        const el = bodyRef.current
+        if (!isOpen || !el) {
+            setIsScrollable(false)
+            return
+        }
+
+        const check = () => setIsScrollable(el.scrollHeight > el.clientHeight + 1)
+        check()
+        // Re-check after layout settles (fonts loading, async content reflow can
+        // push the content just past the available height without resizing the
+        // scroll container or mutating the DOM).
+        const raf = requestAnimationFrame(check)
+
+        const resizeObserver = new ResizeObserver(check)
+        resizeObserver.observe(el)
+        // Observe the content itself too: when it grows while the flex-constrained
+        // body keeps the same height, only the content's box changes size.
+        if (el.firstElementChild) resizeObserver.observe(el.firstElementChild)
+
+        const mutationObserver = new MutationObserver(check)
+        mutationObserver.observe(el, { childList: true, subtree: true, characterData: true })
+
+        window.addEventListener('resize', check)
+
+        return () => {
+            cancelAnimationFrame(raf)
+            resizeObserver.disconnect()
+            mutationObserver.disconnect()
+            window.removeEventListener('resize', check)
+        }
+    }, [isOpen, content, children])
 
     // Dragging logic
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -339,8 +380,10 @@ export default function Modal({
                     backgroundColor: 'var(--modal-header-bg)',
                     padding: 'var(--modal-hf-padding-y) var(--modal-hf-padding-x)',
                     margin: 0,
-                    // Divider reflects its set size — a 0px border is invisible, so no scrollable gate.
-                    borderBottom: 'var(--modal-divider-thickness) solid var(--modal-divider)',
+                    // Scroll divider: only shown when the body content overflows.
+                    borderBottom: isScrollable
+                        ? 'var(--modal-divider-thickness) solid var(--modal-divider)'
+                        : 'none',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -377,6 +420,7 @@ export default function Modal({
             {...props}
         >
             <Box
+                ref={bodyRef}
                 className="recursica-modal-body"
                 style={{
                     backgroundColor: 'transparent',
@@ -400,7 +444,10 @@ export default function Modal({
                     className="recursica-modal-footer"
                     style={{
                         padding: 'var(--modal-hf-padding-y) var(--modal-hf-padding-x)',
-                        borderTop: 'var(--modal-divider-thickness) solid var(--modal-divider)',
+                        // Scroll divider: only shown when the body content overflows.
+                        borderTop: isScrollable
+                            ? 'var(--modal-divider-thickness) solid var(--modal-divider)'
+                            : 'none',
                         backgroundColor: 'var(--modal-footer-bg)',
                     }}
                 >

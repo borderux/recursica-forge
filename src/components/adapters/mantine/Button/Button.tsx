@@ -353,9 +353,9 @@ export default function Button({
           alignItems: 'center',
           justifyContent: 'center',
         }),
-        // Use component-level disabled-opacity token when disabled - don't change colors, just apply opacity
+        // Use the disabled state's opacity (driven by the global disabled state) - don't change colors, just apply opacity
         ...(disabled && {
-          opacity: `var(${buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'disabled-opacity')})`,
+          opacity: `var(${buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'variants', 'states', 'disabled', 'properties', 'opacity')})`,
         }),
         minWidth: `var(${minWidthVar})`,
         borderRadius: `var(${borderRadiusVar})`,

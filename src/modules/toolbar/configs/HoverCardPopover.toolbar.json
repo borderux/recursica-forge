@@ -2,7 +2,7 @@
   "variants": {},
   "properties": {
     "colors": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Colors",
       "group": {
         "properties.colors.background-color": {
@@ -20,7 +20,7 @@
       "label": "Content text"
     },
     "border": {
-      "icon": "frame-corners",
+      "icon": "square",
       "label": "Border",
       "group": {
         "properties.colors.border-color": {

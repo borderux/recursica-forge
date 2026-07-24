@@ -1,8 +1,80 @@
 {
   "variants": {},
   "properties": {
+    "header": {
+      "icon": "align-top-simple",
+      "label": "Header",
+      "group": {
+        "properties.header-background": {
+          "icon": "paint-bucket",
+          "label": "Background"
+        },
+        "properties.title": {
+          "icon": "text-aa",
+          "label": "Color"
+        },
+        "properties.header-style": {
+          "icon": "text-h-two",
+          "label": "Type style",
+          "options": [
+            {
+              "label": "Heading 1",
+              "value": "{brand.typography.h1}"
+            },
+            {
+              "label": "Heading 2",
+              "value": "{brand.typography.h2}"
+            },
+            {
+              "label": "Heading 3",
+              "value": "{brand.typography.h3}"
+            },
+            {
+              "label": "Heading 4",
+              "value": "{brand.typography.h4}"
+            },
+            {
+              "label": "Heading 5",
+              "value": "{brand.typography.h5}"
+            },
+            {
+              "label": "Heading 6",
+              "value": "{brand.typography.h6}"
+            },
+            {
+              "label": "Subtitle",
+              "value": "{brand.typography.subtitle}"
+            },
+            {
+              "label": "Subtitle (small)",
+              "value": "{brand.typography.subtitle-small}"
+            },
+            {
+              "label": "Body",
+              "value": "{brand.typography.body}"
+            },
+            {
+              "label": "Body (small)",
+              "value": "{brand.typography.body-small}"
+            },
+            {
+              "label": "Caption",
+              "value": "{brand.typography.caption}"
+            },
+            {
+              "label": "Overline",
+              "value": "{brand.typography.overline}"
+            }
+          ]
+        },
+        "properties.header-padding": {
+          "icon": "arrows-out",
+          "label": "Header padding"
+        }
+      }
+    },
     "content": {
-      "icon": "paint-bucket",
+      "icon": "article",
       "label": "Content",
       "group": {
         "properties.colors.background-color": {
@@ -11,7 +83,61 @@
         },
         "properties.content": {
           "icon": "text-aa",
-          "label": "Content color"
+          "label": "Text color"
+        },
+        "properties.content-style": {
+          "icon": "text-align-left",
+          "label": "Type style",
+          "options": [
+            {
+              "label": "Heading 1",
+              "value": "{brand.typography.h1}"
+            },
+            {
+              "label": "Heading 2",
+              "value": "{brand.typography.h2}"
+            },
+            {
+              "label": "Heading 3",
+              "value": "{brand.typography.h3}"
+            },
+            {
+              "label": "Heading 4",
+              "value": "{brand.typography.h4}"
+            },
+            {
+              "label": "Heading 5",
+              "value": "{brand.typography.h5}"
+            },
+            {
+              "label": "Heading 6",
+              "value": "{brand.typography.h6}"
+            },
+            {
+              "label": "Subtitle",
+              "value": "{brand.typography.subtitle}"
+            },
+            {
+              "label": "Subtitle (small)",
+              "value": "{brand.typography.subtitle-small}"
+            },
+            {
+              "label": "Body",
+              "value": "{brand.typography.body}"
+            },
+            {
+              "label": "Body (small)",
+              "value": "{brand.typography.body-small}"
+            },
+            {
+              "label": "Caption",
+              "value": "{brand.typography.caption}"
+            },
+            {
+              "label": "Overline",
+              "value": "{brand.typography.overline}"
+            }
+          ]
         },
         "properties.padding": {
           "icon": "arrows-out",
@@ -27,140 +153,8 @@
         }
       }
     },
-    "type-styles": {
-      "icon": "text-aa",
-      "label": "Type styles",
-      "group": {
-        "properties.header-style": {
-          "icon": "text-h-two",
-          "label": "Header style",
-          "options": [
-            {
-              "label": "Heading 1",
-              "value": "{brand.typography.h1}"
-            },
-            {
-              "label": "Heading 2",
-              "value": "{brand.typography.h2}"
-            },
-            {
-              "label": "Heading 3",
-              "value": "{brand.typography.h3}"
-            },
-            {
-              "label": "Heading 4",
-              "value": "{brand.typography.h4}"
-            },
-            {
-              "label": "Heading 5",
-              "value": "{brand.typography.h5}"
-            },
-            {
-              "label": "Heading 6",
-              "value": "{brand.typography.h6}"
-            },
-            {
-              "label": "Subtitle",
-              "value": "{brand.typography.subtitle}"
-            },
-            {
-              "label": "Subtitle (small)",
-              "value": "{brand.typography.subtitle-small}"
-            },
-            {
-              "label": "Body",
-              "value": "{brand.typography.body}"
-            },
-            {
-              "label": "Body (small)",
-              "value": "{brand.typography.body-small}"
-            },
-            {
-              "label": "Caption",
-              "value": "{brand.typography.caption}"
-            },
-            {
-              "label": "Overline",
-              "value": "{brand.typography.overline}"
-            }
-          ]
-        },
-        "properties.content-style": {
-          "icon": "text-align-left",
-          "label": "Content style",
-          "options": [
-            {
-              "label": "Heading 1",
-              "value": "{brand.typography.h1}"
-            },
-            {
-              "label": "Heading 2",
-              "value": "{brand.typography.h2}"
-            },
-            {
-              "label": "Heading 3",
-              "value": "{brand.typography.h3}"
-            },
-            {
-              "label": "Heading 4",
-              "value": "{brand.typography.h4}"
-            },
-            {
-              "label": "Heading 5",
-              "value": "{brand.typography.h5}"
-            },
-            {
-              "label": "Heading 6",
-              "value": "{brand.typography.h6}"
-            },
-            {
-              "label": "Subtitle",
-              "value": "{brand.typography.subtitle}"
-            },
-            {
-              "label": "Subtitle (small)",
-              "value": "{brand.typography.subtitle-small}"
-            },
-            {
-              "label": "Body",
-              "value": "{brand.typography.body}"
-            },
-            {
-              "label": "Body (small)",
-              "value": "{brand.typography.body-small}"
-            },
-            {
-              "label": "Caption",
-              "value": "{brand.typography.caption}"
-            },
-            {
-              "label": "Overline",
-              "value": "{brand.typography.overline}"
-            }
-          ]
-        }
-      }
-    },
-    "header": {
-      "icon": "rows",
-      "label": "Header",
-      "group": {
-        "properties.header-background": {
-          "icon": "paint-bucket",
-          "label": "Background"
-        },
-        "properties.title": {
-          "icon": "text-aa",
-          "label": "Title color"
-        },
-        "properties.header-padding": {
-          "icon": "arrows-out",
-          "label": "Header padding"
-        }
-      }
-    },
     "footer": {
-      "icon": "rows",
+      "icon": "align-bottom-simple",
       "label": "Footer",
       "group": {
         "properties.footer-background": {
@@ -169,12 +163,12 @@
         },
         "properties.footer-padding": {
           "icon": "arrows-out",
-          "label": "Footer padding"
+          "label": "Padding"
         }
       }
     },
     "border": {
-      "icon": "frame-corners",
+      "icon": "square",
       "label": "Border",
       "group": {
         "properties.colors.border-color": {
@@ -224,8 +218,8 @@
       }
     },
     "widths": {
-      "icon": "arrows-in-line-horizontal",
-      "label": "Sizes",
+      "icon": "ruler",
+      "label": "Dimensions",
       "group": {
         "properties.min-width": {
           "icon": "arrows-in-line-horizontal",

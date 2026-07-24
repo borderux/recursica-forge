@@ -2,7 +2,7 @@
   "variants": {},
   "properties": {
     "color": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Colors",
       "group": {
         "properties.colors.text-color": {
@@ -35,7 +35,7 @@
       }
     },
     "border": {
-      "icon": "rectangle",
+      "icon": "square",
       "label": "Border",
       "group": {
         "properties.border-radius": {

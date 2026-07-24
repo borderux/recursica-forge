@@ -21,7 +21,6 @@ export default function Chip({
   size = 'default',
   layer = 'layer-0',
   elevation,
-  disabled,
   onClick,
   onDelete,
   deletable = false,
@@ -158,8 +157,7 @@ export default function Chip({
       size="xs"
       radius="xl"
       variant="transparent"
-      disabled={disabled}
-      onClick={disabled ? undefined : (e: React.MouseEvent) => {
+      onClick={(e: React.MouseEvent) => {
         e.stopPropagation()
         onDelete(e)
       }}
@@ -237,7 +235,7 @@ export default function Chip({
   ) : undefined
 
   // Merge library-specific props
-  const Component = (onClick && !disabled) ? 'button' : 'div'
+  const Component = onClick ? 'button' : 'div'
   const isButton = Component === 'button'
 
   const rootStyles = {
@@ -292,9 +290,6 @@ export default function Chip({
     '--chip-min-width': `var(${minWidthVar})`,
     '--chip-max-width': `var(${maxWidthVar})`,
 
-    ...(disabled && {
-      opacity: `var(--recursica_brand_${mode}-state-disabled, 0.5)`,
-    }),
     ...(() => {
       const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
       return elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}
@@ -329,10 +324,8 @@ export default function Chip({
       /* Keep the element stable across selection changes so toggling doesn't
          remount it and drop keyboard focus (variant intentionally excluded). */
       key={`chip-${layer}`}
-      disabled={isButton ? disabled : undefined}
-      data-disabled={disabled ? "true" : undefined}
       type={isButton ? "button" : undefined}
-      onClick={disabled ? undefined : onClick}
+      onClick={onClick}
       className={`recursica-chip-root ${mantine?.classNames?.root || ''} ${className || ''}`.trim()}
       style={rootStyles as React.CSSProperties}
       {...props}

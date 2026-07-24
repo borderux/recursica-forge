@@ -51,7 +51,7 @@
       }
     },
     "colors": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Colors",
       "group": {
         "properties.colors.cell-color": {

@@ -1,22 +1,22 @@
 {
   "variants": {
-    "style": {
-      "icon": "diamonds-four",
-      "label": "Type"
+    "size": {
+      "icon": "resize",
+      "label": "Size"
     },
     "types": {
       "icon": "circle-half",
       "label": "Style"
     },
-    "size": {
-      "icon": "resize",
-      "label": "Size"
+    "style": {
+      "icon": "diamonds-four",
+      "label": "Type"
     }
   },
   "properties": {
     "dimensions": {
-      "icon": "resize",
-      "label": "Size",
+      "icon": "ruler",
+      "label": "Dimensions",
       "group": {
         "properties.width": {
           "label": "Width",
@@ -61,8 +61,8 @@
       }
     },
     "color": {
-      "icon": "frame-corners",
-      "label": "Color",
+      "icon": "palette",
+      "label": "Colors",
       "group": {
         "properties.colors.background-color": {
           "icon": "paint-bucket",
@@ -78,7 +78,7 @@
       }
     },
     "icon": {
-      "icon": "image-square",
+      "icon": "star",
       "label": "Icon",
       "showForVariants": [
         "icon"

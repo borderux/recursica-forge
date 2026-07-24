@@ -11,7 +11,7 @@
   },
   "properties": {
     "colors": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Colors",
       "group": {
         "properties.colors.background-color": {
@@ -29,7 +29,7 @@
       }
     },
     "border": {
-      "icon": "rectangle",
+      "icon": "square",
       "label": "Border",
       "group": {
         "properties.border-radius": {
@@ -76,7 +76,7 @@
     },
     "icon-size": {
       "icon": "star",
-      "label": "Icon sizes",
+      "label": "Icons",
       "group": {
         "properties.icon-left-size": {
           "label": "Left icon"

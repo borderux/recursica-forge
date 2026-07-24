@@ -69,7 +69,7 @@
       }
     },
     "content-section": {
-      "icon": "text-align-left",
+      "icon": "article",
       "label": "Content",
       "group": {
         "properties.colors.content-background-color": {

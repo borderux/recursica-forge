@@ -273,9 +273,9 @@ function getButtonStyles(
   styles.textDecoration = textDecorationVar ? `var(${textDecorationVar})` as any : 'none'
   styles.textTransform = textTransformVar ? `var(${textTransformVar})` as any : 'none'
   
-  // Apply disabled styles - use component-level disabled-opacity token
+  // Apply disabled styles - use the disabled state's opacity (driven by the global disabled state)
   if (disabled) {
-    const disabledOpacityVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'disabled-opacity')
+    const disabledOpacityVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'variants', 'states', 'disabled', 'properties', 'opacity')
     styles.opacity = `var(${disabledOpacityVar})`
     styles.cursor = 'not-allowed'
   } else {

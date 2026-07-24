@@ -7,7 +7,7 @@
   },
   "properties": {
     "background": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Colors",
       "group": {
         "properties.colors.background-color": {
@@ -22,7 +22,7 @@
     },
     "properties.text": {
       "icon": "text-aa",
-      "label": "Text style"
+      "label": "Text"
     },
     "padding": {
       "icon": "square-logo",

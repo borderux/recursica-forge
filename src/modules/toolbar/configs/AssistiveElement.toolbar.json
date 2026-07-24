@@ -2,7 +2,7 @@
   "variants": {
     "types": {
       "icon": "info",
-      "label": "Variant"
+      "label": "Type"
     }
   },
   "properties": {
@@ -11,7 +11,7 @@
       "label": "Text"
     },
     "color": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Colors",
       "group": {
         "properties.colors.text-color": {
@@ -36,7 +36,7 @@
     },
     "size": {
       "icon": "arrows-out",
-      "label": "Size",
+      "label": "Sizes",
       "group": {
         "properties.max-width": {
           "label": "Max width",

@@ -2,7 +2,7 @@
   "variants": {
     "selection-states": {
       "icon": "check-circle",
-      "label": "Selection"
+      "label": "State"
     }
   },
   "properties": {
@@ -76,7 +76,7 @@
       }
     },
     "icon": {
-      "icon": "diamond",
+      "icon": "star",
       "label": "Icon",
       "group": {
         "properties.icon-size": {

@@ -146,7 +146,7 @@ export function OnToneModal({ isOpen, onClose, conflict }: OnToneModalProps) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Keep colors readable?"
+      title="Use AA compliant colors?"
       size={560}
       layer="layer-1"
       showCloseButton={false}
@@ -156,8 +156,7 @@ export function OnToneModal({ isOpen, onClose, conflict }: OnToneModalProps) {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <p style={bodyStyle}>
-          You changed the <strong>{changedPropLabel}</strong>. These colors sit on top of it and were
-          matched to the previous color for contrast:
+          You changed the <strong>{changedPropLabel}</strong>. The following items are on top of this new color:
         </p>
 
         <ul style={{ ...bodyStyle, margin: 0, paddingLeft: '22px' }}>
@@ -166,24 +165,25 @@ export function OnToneModal({ isOpen, onClose, conflict }: OnToneModalProps) {
           ))}
         </ul>
 
-        <p style={bodyStyle}>Choose how they should look:</p>
+        <p style={bodyStyle}>What color should these items be?</p>
 
         <div role="radiogroup" style={{ display: 'flex', gap: '12px', alignItems: 'stretch' }}>
-          <OptionCard
-            selected={choice === 'keep'}
-            onSelect={() => setChoice('keep')}
-            bgRef={conflict.newToneRef}
-            fgRef={currentOnToneRef}
-            label="Current color"
-            accentColor={accentColor}
-            idleBorder={idleBorder}
-          />
+
           <OptionCard
             selected={choice === 'update'}
             onSelect={() => setChoice('update')}
             bgRef={conflict.newToneRef}
             fgRef={conflict.newOnToneRef}
             label="WCAG AA compliant color"
+            accentColor={accentColor}
+            idleBorder={idleBorder}
+          />
+          <OptionCard
+            selected={choice === 'keep'}
+            onSelect={() => setChoice('keep')}
+            bgRef={conflict.newToneRef}
+            fgRef={currentOnToneRef}
+            label="Current color"
             accentColor={accentColor}
             idleBorder={idleBorder}
           />

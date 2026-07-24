@@ -41,6 +41,7 @@ import {
   Article,
   Asterisk,
   Bell,
+  BoundingBox,
   BugBeetle as Bug,
   CalendarBlank,
   CaretDoubleLeft,
@@ -478,6 +479,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'line-vertical': LineVertical,
   'file': File,
   'file-dashed': FileDashed,
+  'bounding-box': BoundingBox,
 }
 
 /**
