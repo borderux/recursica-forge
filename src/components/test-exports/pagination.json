@@ -7,13 +7,13 @@
             "layer-0": {
               "dots-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.text.color}"
+                "$value": "{brand.layers.layer-1.elements.text.color}"
               }
             },
             "layer-1": {
               "dots-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.text.color}"
+                "$value": "{brand.layers.layer-0.elements.text.color}"
               }
             },
             "layer-2": {
@@ -31,7 +31,7 @@
           },
           "item-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "active-pages": {
             "$value": "{ui-kit.components.button}",

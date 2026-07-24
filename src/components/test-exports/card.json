@@ -7,31 +7,31 @@
             "layer-0": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.surface}"
+                "$value": "{brand.layers.layer-0.properties.surface}"
               },
               "header-background-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.surface}"
+                "$value": "{brand.layers.layer-0.properties.surface}"
               },
               "footer-background-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.surface}"
+                "$value": "{brand.layers.layer-0.properties.surface}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.border-color}"
+                "$value": "{brand.layers.layer-0.properties.border-color}"
               },
               "divider-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.border-color}"
+                "$value": "{brand.layers.layer-0.properties.border-color}"
               },
               "title": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.text.color}"
+                "$value": "{brand.layers.layer-0.elements.text.color}"
               },
               "content": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.text.color}"
+                "$value": "{brand.layers.layer-0.elements.text.color}"
               }
             },
             "layer-1": {
@@ -129,11 +129,11 @@
             "layer-0": {
               "border-size": {
                 "$type": "dimension",
-                "$value": "{brand.layers.layer-1.properties.border-size}"
+                "$value": "{brand.layers.layer-0.properties.border-size}"
               },
               "border-radius": {
                 "$type": "dimension",
-                "$value": "{brand.layers.layer-1.properties.border-radius}"
+                "$value": "{brand.layers.layer-0.properties.border-radius}"
               }
             },
             "layer-1": {
@@ -219,30 +219,30 @@
           },
           "section-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.md}"
+            "$value": "{brand.dimensions.general.sm}"
           },
           "vertical-gutter": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.lg}"
           },
           "divider-size": {
             "$type": "dimension",
             "$value": {
-              "value": 1,
+              "value": 5,
               "unit": "px"
             }
           },
           "min-width": {
             "$type": "dimension",
             "$value": {
-              "value": 200,
+              "value": 204,
               "unit": "px"
             }
           },
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "value": 640,
+              "value": 644,
               "unit": "px"
             }
           },

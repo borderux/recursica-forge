@@ -5,11 +5,11 @@
         "properties": {
           "padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.lg}"
           },
           "item-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.gutters.horizontal}"
+            "$value": "{brand.dimensions.gutters.vertical}"
           }
         }
       }

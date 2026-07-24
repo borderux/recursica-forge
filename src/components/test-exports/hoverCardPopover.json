@@ -7,20 +7,6 @@
             "layer-0": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.properties.surface}"
-              },
-              "content": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.text.color}"
-              },
-              "border-color": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-0.properties.border-color}"
-              }
-            },
-            "layer-1": {
-              "background-color": {
-                "$type": "color",
                 "$value": "{brand.layers.layer-1.properties.surface}"
               },
               "content": {
@@ -30,6 +16,20 @@
               "border-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.properties.border-color}"
+              }
+            },
+            "layer-1": {
+              "background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.surface}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.border-color}"
               }
             },
             "layer-2": {
@@ -68,7 +68,7 @@
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.md}"
+              "$value": "{tokens.font.sizes.lg}"
             },
             "font-weight": {
               "$type": "number",
@@ -102,7 +102,7 @@
           "border-size": {
             "$type": "dimension",
             "$value": {
-              "value": 1,
+              "value": 5,
               "unit": "px"
             }
           },
@@ -112,26 +112,26 @@
           },
           "vertical-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.lg}"
+            "$value": "{brand.dimensions.general.default}"
           },
           "min-width": {
             "$type": "dimension",
             "$value": {
-              "value": 200,
+              "value": 204,
               "unit": "px"
             }
           },
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "value": 400,
+              "value": 404,
               "unit": "px"
             }
           },
           "beak-size": {
             "$type": "dimension",
             "$value": {
-              "value": 16,
+              "value": 20,
               "unit": "px"
             }
           },

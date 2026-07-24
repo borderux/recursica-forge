@@ -15,21 +15,21 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 24,
+                    "value": 28,
                     "unit": "px"
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 9999,
+                    "value": 10003,
                     "unit": "px"
                   }
                 },
                 "thickness-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 3,
+                    "value": 7,
                     "unit": "px"
                   }
                 }
@@ -40,21 +40,21 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 36,
+                    "value": 40,
                     "unit": "px"
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 9999,
+                    "value": 10003,
                     "unit": "px"
                   }
                 },
                 "thickness-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 4,
+                    "value": 8,
                     "unit": "px"
                   }
                 }
@@ -65,21 +65,21 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 48,
+                    "value": 52,
                     "unit": "px"
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 9999,
+                    "value": 10003,
                     "unit": "px"
                   }
                 },
                 "thickness-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 5,
+                    "value": 9,
                     "unit": "px"
                   }
                 }

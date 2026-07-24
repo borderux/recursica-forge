@@ -83,7 +83,7 @@
                 "border-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 1,
+                    "value": 5,
                     "unit": "px"
                   }
                 },
@@ -123,11 +123,11 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -141,11 +141,11 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -192,7 +192,7 @@
                 "border-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 1,
+                    "value": 5,
                     "unit": "px"
                   }
                 },
@@ -232,15 +232,15 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     }
                   },
                   "layer-1": {
@@ -250,15 +250,15 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     }
                   },
                   "layer-2": {
@@ -276,7 +276,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     }
                   },
                   "layer-3": {
@@ -294,14 +294,14 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     }
                   }
                 },
                 "border-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 1,
+                    "value": 5,
                     "unit": "px"
                   }
                 },
@@ -342,24 +342,24 @@
                 "height": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 48,
+                    "value": 52,
                     "unit": "px"
                   }
                 },
                 "min-width": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 48,
+                    "value": 52,
                     "unit": "px"
                   }
                 },
                 "horizontal-padding": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.lg}"
+                  "$value": "{brand.dimensions.general.default}"
                 },
                 "icon-text-gap": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.default}"
+                  "$value": "{brand.dimensions.general.lg}"
                 },
                 "text": {
                   "font-family": {
@@ -398,7 +398,7 @@
                 "max-label-width": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 500,
+                    "value": 504,
                     "unit": "px"
                   }
                 }
@@ -413,24 +413,24 @@
                 "height": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 32,
+                    "value": 36,
                     "unit": "px"
                   }
                 },
                 "min-width": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 32,
+                    "value": 36,
                     "unit": "px"
                   }
                 },
                 "horizontal-padding": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.md}"
+                  "$value": "{brand.dimensions.general.sm}"
                 },
                 "icon-text-gap": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.sm}"
+                  "$value": "{brand.dimensions.general.md}"
                 },
                 "text": {
                   "font-family": {
@@ -469,7 +469,7 @@
                 "max-label-width": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 500,
+                    "value": 504,
                     "unit": "px"
                   }
                 }
@@ -478,94 +478,6 @@
           },
           "content": {
             "icon-label": {
-              "variants": {
-                "sizes": {
-                  "default": {
-                    "properties": {
-                      "horizontal-padding": {
-                        "$type": "dimension",
-                        "$value": "{brand.dimensions.general.lg}"
-                      },
-                      "border-radius": {
-                        "$type": "dimension",
-                        "$value": "{brand.dimensions.border-radii.xl}"
-                      },
-                      "min-width": {
-                        "$type": "dimension",
-                        "$value": {
-                          "value": 120,
-                          "unit": "px"
-                        }
-                      }
-                    }
-                  },
-                  "small": {
-                    "properties": {
-                      "horizontal-padding": {
-                        "$type": "dimension",
-                        "$value": "{brand.dimensions.general.md}"
-                      },
-                      "border-radius": {
-                        "$type": "dimension",
-                        "$value": "{brand.dimensions.border-radii.xl}"
-                      },
-                      "min-width": {
-                        "$type": "dimension",
-                        "$value": {
-                          "value": 80,
-                          "unit": "px"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "label": {
-              "variants": {
-                "sizes": {
-                  "default": {
-                    "properties": {
-                      "horizontal-padding": {
-                        "$type": "dimension",
-                        "$value": "{brand.dimensions.general.lg}"
-                      },
-                      "border-radius": {
-                        "$type": "dimension",
-                        "$value": "{brand.dimensions.border-radii.xl}"
-                      },
-                      "min-width": {
-                        "$type": "dimension",
-                        "$value": {
-                          "value": 120,
-                          "unit": "px"
-                        }
-                      }
-                    }
-                  },
-                  "small": {
-                    "properties": {
-                      "horizontal-padding": {
-                        "$type": "dimension",
-                        "$value": "{brand.dimensions.general.md}"
-                      },
-                      "border-radius": {
-                        "$type": "dimension",
-                        "$value": "{brand.dimensions.border-radii.xl}"
-                      },
-                      "min-width": {
-                        "$type": "dimension",
-                        "$value": {
-                          "value": 80,
-                          "unit": "px"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "icon-only": {
               "variants": {
                 "sizes": {
                   "default": {
@@ -581,7 +493,7 @@
                       "min-width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 48,
+                          "value": 124,
                           "unit": "px"
                         }
                       }
@@ -600,7 +512,95 @@
                       "min-width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 32,
+                          "value": 84,
+                          "unit": "px"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "label": {
+              "variants": {
+                "sizes": {
+                  "default": {
+                    "properties": {
+                      "horizontal-padding": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.general.default}"
+                      },
+                      "border-radius": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.border-radii.xl}"
+                      },
+                      "min-width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 124,
+                          "unit": "px"
+                        }
+                      }
+                    }
+                  },
+                  "small": {
+                    "properties": {
+                      "horizontal-padding": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.general.sm}"
+                      },
+                      "border-radius": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.border-radii.xl}"
+                      },
+                      "min-width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 84,
+                          "unit": "px"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "icon-only": {
+              "variants": {
+                "sizes": {
+                  "default": {
+                    "properties": {
+                      "horizontal-padding": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.general.lg}"
+                      },
+                      "border-radius": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.border-radii.xl}"
+                      },
+                      "min-width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 52,
+                          "unit": "px"
+                        }
+                      }
+                    }
+                  },
+                  "small": {
+                    "properties": {
+                      "horizontal-padding": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.general.md}"
+                      },
+                      "border-radius": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.border-radii.xl}"
+                      },
+                      "min-width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 36,
                           "unit": "px"
                         }
                       }

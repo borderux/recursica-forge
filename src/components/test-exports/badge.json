@@ -10,57 +10,57 @@
                   "layer-0": {
                     "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     }
                   },
                   "layer-1": {
                     "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     }
                   },
                   "layer-2": {
                     "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     }
                   },
                   "layer-3": {
                     "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     }
                   }
                 }
@@ -291,16 +291,16 @@
           },
           "padding-horizontal": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.lg}"
           },
           "padding-vertical": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "border-size": {
             "$type": "dimension",
             "$value": {
-              "value": 1,
+              "value": 5,
               "unit": "px"
             }
           },

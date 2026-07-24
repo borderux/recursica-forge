@@ -8,12 +8,12 @@
               "properties": {
                 "bottom-padding": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.default}"
+                  "$value": "{brand.dimensions.general.lg}"
                 },
                 "min-height": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 20,
+                    "value": 24,
                     "unit": "px"
                   }
                 }
@@ -25,7 +25,7 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 224,
+                          "value": 228,
                           "unit": "px"
                         }
                       }
@@ -36,7 +36,7 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 80,
+                          "value": 84,
                           "unit": "px"
                         }
                       }
@@ -50,7 +50,7 @@
                 "min-height": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 48,
+                    "value": 52,
                     "unit": "px"
                   }
                 },
@@ -70,7 +70,7 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 224,
+                          "value": 228,
                           "unit": "px"
                         }
                       }
@@ -81,7 +81,7 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 80,
+                          "value": 84,
                           "unit": "px"
                         }
                       }
@@ -97,21 +97,21 @@
             "layer-0": {
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.text.color}"
-              },
-              "asterisk-color": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.text.alert}"
-              }
-            },
-            "layer-1": {
-              "text-color": {
-                "$type": "color",
                 "$value": "{brand.layers.layer-1.elements.text.color}"
               },
               "asterisk-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.elements.text.alert}"
+              }
+            },
+            "layer-1": {
+              "text-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
+              },
+              "asterisk-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.alert}"
               }
             },
             "layer-2": {
@@ -205,15 +205,15 @@
           },
           "required-indicator-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.lg}"
           },
           "label-optional-text-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "edit-icon-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "optional-text-opacity": {
             "$type": "number",

@@ -8,7 +8,7 @@
               "properties": {
                 "top-bottom-margin": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.default}"
+                  "$value": "{brand.dimensions.general.lg}"
                 }
               }
             },
@@ -16,7 +16,7 @@
               "properties": {
                 "top-bottom-margin": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.default}"
+                  "$value": "{brand.dimensions.general.lg}"
                 }
               }
             }
@@ -28,7 +28,7 @@
                   "layer-0": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.200.color.tone}"
+                      "$value": "{brand.palettes.neutral.200.color.on-tone}"
                     },
                     "track-active": {
                       "$type": "color",
@@ -56,7 +56,7 @@
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.400.color.tone}"
+                      "$value": "{brand.palettes.neutral.400.color.on-tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
@@ -66,7 +66,7 @@
                   "layer-1": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.200.color.tone}"
+                      "$value": "{brand.palettes.neutral.200.color.on-tone}"
                     },
                     "track-active": {
                       "$type": "color",
@@ -94,7 +94,7 @@
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.400.color.tone}"
+                      "$value": "{brand.palettes.neutral.400.color.on-tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
@@ -104,7 +104,7 @@
                   "layer-2": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.200.color.tone}"
+                      "$value": "{brand.palettes.neutral.200.color.on-tone}"
                     },
                     "track-active": {
                       "$type": "color",
@@ -132,7 +132,7 @@
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.400.color.tone}"
+                      "$value": "{brand.palettes.neutral.400.color.on-tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
@@ -142,7 +142,7 @@
                   "layer-3": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.200.color.tone}"
+                      "$value": "{brand.palettes.neutral.200.color.on-tone}"
                     },
                     "track-active": {
                       "$type": "color",
@@ -170,7 +170,7 @@
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.400.color.tone}"
+                      "$value": "{brand.palettes.neutral.400.color.on-tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
@@ -190,15 +190,15 @@
                   "layer-0": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.200.color.tone}"
+                      "$value": "{brand.palettes.neutral.200.color.on-tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "icon-color": {
                       "$type": "color",
@@ -218,25 +218,25 @@
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     }
                   },
                   "layer-1": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.200.color.tone}"
+                      "$value": "{brand.palettes.neutral.200.color.on-tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "icon-color": {
                       "$type": "color",
@@ -256,25 +256,25 @@
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     }
                   },
                   "layer-2": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.200.color.tone}"
+                      "$value": "{brand.palettes.neutral.200.color.on-tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "icon-color": {
                       "$type": "color",
@@ -294,25 +294,25 @@
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     }
                   },
                   "layer-3": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.200.color.tone}"
+                      "$value": "{brand.palettes.neutral.200.color.on-tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "icon-color": {
                       "$type": "color",
@@ -332,11 +332,11 @@
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.600.color.on-tone}"
                     }
                   }
                 },
@@ -356,41 +356,41 @@
                   "layer-0": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.300.color.tone}"
+                      "$value": "{brand.palettes.palette-2.300.color.on-tone}"
                     }
                   },
                   "layer-1": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.300.color.tone}"
+                      "$value": "{brand.palettes.palette-2.300.color.on-tone}"
                     }
                   },
                   "layer-2": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.300.color.tone}"
+                      "$value": "{brand.palettes.palette-2.300.color.on-tone}"
                     }
                   },
                   "layer-3": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.300.color.tone}"
+                      "$value": "{brand.palettes.palette-2.300.color.on-tone}"
                     }
                   }
                 }
@@ -405,11 +405,11 @@
           },
           "track-height": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.lg}"
           },
           "thumb-size": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.lg}"
+            "$value": "{brand.dimensions.general.default}"
           },
           "track-border-radius": {
             "$type": "dimension",
@@ -428,13 +428,13 @@
           "input-width": {
             "$type": "dimension",
             "$value": {
-              "value": 90,
+              "value": 94,
               "unit": "px"
             }
           },
           "input-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.lg}"
           },
           "min-max-label": {
             "font-family": {
@@ -519,7 +519,7 @@
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.md}"
+              "$value": "{tokens.font.sizes.lg}"
             },
             "font-weight": {
               "$type": "number",
@@ -552,12 +552,12 @@
           },
           "step-indicator-width": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "input-height": {
             "$type": "dimension",
             "$value": {
-              "value": 36,
+              "value": 40,
               "unit": "px"
             }
           },
@@ -577,15 +577,15 @@
             "layer-0": {
               "track": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.on-tone}"
               },
               "track-active": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
               },
               "thumb": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
               },
               "icon-color": {
                 "$type": "color",
@@ -605,21 +605,21 @@
               },
               "step-indicator-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.400.color.tone}"
+                "$value": "{brand.palettes.neutral.400.color.on-tone}"
               }
             },
             "layer-1": {
               "track": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.on-tone}"
               },
               "track-active": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
               },
               "thumb": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
               },
               "icon-color": {
                 "$type": "color",
@@ -639,13 +639,13 @@
               },
               "step-indicator-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.400.color.tone}"
+                "$value": "{brand.palettes.neutral.400.color.on-tone}"
               }
             },
             "layer-2": {
               "track": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.on-tone}"
               },
               "track-active": {
                 "$type": "color",
@@ -673,13 +673,13 @@
               },
               "step-indicator-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.400.color.tone}"
+                "$value": "{brand.palettes.neutral.400.color.on-tone}"
               }
             },
             "layer-3": {
               "track": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.200.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.on-tone}"
               },
               "track-active": {
                 "$type": "color",
@@ -707,7 +707,7 @@
               },
               "step-indicator-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.400.color.tone}"
+                "$value": "{brand.palettes.neutral.400.color.on-tone}"
               }
             }
           }

@@ -10,24 +10,6 @@
                   "layer-0": {
                     "background-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.surface}"
-                    },
-                    "border-color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.alert}"
-                    },
-                    "text-color": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.alert}"
-                    },
-                    "upload-icon": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.alert}"
-                    }
-                  },
-                  "layer-1": {
-                    "background-color": {
-                      "$type": "color",
                       "$value": "{brand.layers.layer-1.properties.surface}"
                     },
                     "border-color": {
@@ -41,6 +23,24 @@
                     "upload-icon": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.text.alert}"
+                    }
+                  },
+                  "layer-1": {
+                    "background-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.properties.surface}"
+                    },
+                    "border-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.text.alert}"
+                    },
+                    "text-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.text.alert}"
+                    },
+                    "upload-icon": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.text.alert}"
                     }
                   },
                   "layer-2": {
@@ -92,37 +92,37 @@
                   "layer-0": {
                     "background-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.surface}"
+                      "$value": "{brand.layers.layer-1.properties.surface}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.color}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.color}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-1": {
                     "background-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.surface}"
+                      "$value": "{brand.layers.layer-0.properties.surface}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.text.color}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.text.color}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -132,7 +132,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
@@ -150,7 +150,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
@@ -195,11 +195,11 @@
         "properties": {
           "item-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.lg}"
           },
           "list-spacing": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.md}"
+            "$value": "{brand.dimensions.general.sm}"
           },
           "border-style": {
             "$type": "string",
@@ -211,11 +211,11 @@
           },
           "padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.md}"
+            "$value": "{brand.dimensions.general.sm}"
           },
           "vertical-element-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.lg}"
           },
           "text": {
             "font-family": {
@@ -255,37 +255,37 @@
             "layer-0": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.properties.surface}"
+                "$value": "{brand.layers.layer-1.properties.surface}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.default.color.tone}"
+                "$value": "{brand.palettes.neutral.default.color.on-tone}"
               },
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.text.color}"
+                "$value": "{brand.layers.layer-1.elements.text.color}"
               },
               "upload-icon": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.text.color}"
+                "$value": "{brand.layers.layer-1.elements.text.color}"
               }
             },
             "layer-1": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.surface}"
+                "$value": "{brand.layers.layer-0.properties.surface}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.default.color.tone}"
+                "$value": "{brand.palettes.neutral.default.color.on-tone}"
               },
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.text.color}"
+                "$value": "{brand.layers.layer-0.elements.text.color}"
               },
               "upload-icon": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.text.color}"
+                "$value": "{brand.layers.layer-0.elements.text.color}"
               }
             },
             "layer-2": {
@@ -295,7 +295,7 @@
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.default.color.tone}"
+                "$value": "{brand.palettes.neutral.default.color.on-tone}"
               },
               "text-color": {
                 "$type": "color",
@@ -313,7 +313,7 @@
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.default.color.tone}"
+                "$value": "{brand.palettes.neutral.default.color.on-tone}"
               },
               "text-color": {
                 "$type": "color",

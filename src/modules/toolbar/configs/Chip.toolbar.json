@@ -37,10 +37,6 @@
       "icon": "text-aa",
       "label": "Text style"
     },
-    "properties.text-size": {
-      "icon": "text-aa",
-      "label": "Text Size"
-    },
     "border": {
       "icon": "square",
       "label": "Border",

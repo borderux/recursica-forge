@@ -25,7 +25,7 @@
             "layer-0": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.100.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.on-tone}"
               },
               "border-color": {
                 "$type": "color",
@@ -39,7 +39,7 @@
             "layer-1": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.100.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.on-tone}"
               },
               "border-color": {
                 "$type": "color",
@@ -53,7 +53,7 @@
             "layer-2": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.100.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.on-tone}"
               },
               "border-color": {
                 "$type": "color",
@@ -67,7 +67,7 @@
             "layer-3": {
               "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.100.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.on-tone}"
               },
               "border-color": {
                 "$type": "color",
@@ -88,7 +88,7 @@
           "border-size": {
             "$type": "dimension",
             "$value": {
-              "value": 0,
+              "value": 8,
               "unit": "px"
             }
           },
@@ -98,20 +98,20 @@
           },
           "padding-horizontal": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "padding-vertical": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "item-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "divider-size": {
             "$type": "dimension",
             "$value": {
-              "value": 1,
+              "value": 5,
               "unit": "px"
             }
           }

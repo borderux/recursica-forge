@@ -29,7 +29,7 @@
                 "top-bottom-margin": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 0,
+                    "value": 8,
                     "unit": "px"
                   }
                 }

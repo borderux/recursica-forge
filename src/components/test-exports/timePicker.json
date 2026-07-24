@@ -187,7 +187,7 @@
                 "top-bottom-margin": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 0,
+                    "value": 8,
                     "unit": "px"
                   }
                 }
@@ -223,7 +223,7 @@
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.md}"
+              "$value": "{tokens.font.sizes.lg}"
             },
             "font-weight": {
               "$type": "number",
@@ -252,12 +252,12 @@
           },
           "placeholder-opacity": {
             "$type": "number",
-            "$value": "{tokens.opacities.ghost}"
+            "$value": "{tokens.opacities.faint}"
           },
           "width": {
             "$type": "dimension",
             "$value": {
-              "value": 130,
+              "value": 134,
               "unit": "px"
             }
           },

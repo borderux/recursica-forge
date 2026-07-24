@@ -5,27 +5,27 @@
         "properties": {
           "indent": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.md}"
+            "$value": "{brand.dimensions.general.sm}"
           },
           "item-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "button-node-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "value": 500,
+              "value": 504,
               "unit": "px"
             }
           },
           "border-size": {
             "$type": "dimension",
             "$value": {
-              "value": 0,
+              "value": 8,
               "unit": "px"
             }
           },
@@ -35,11 +35,11 @@
           },
           "vertical-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "horizontal-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.md}"
+            "$value": "{brand.dimensions.general.sm}"
           }
         },
         "variants": {
@@ -58,7 +58,7 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.color}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -72,7 +72,7 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.text.color}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -111,7 +111,7 @@
                   },
                   "font-size": {
                     "$type": "dimension",
-                    "$value": "{tokens.font.sizes.md}"
+                    "$value": "{tokens.font.sizes.lg}"
                   },
                   "font-weight": {
                     "$type": "number",
@@ -146,57 +146,57 @@
                   "layer-0": {
                     "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.100.color.tone}"
+                      "$value": "{brand.palettes.palette-2.100.color.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.800.color.tone}"
+                      "$value": "{brand.palettes.palette-2.800.color.on-tone}"
                     }
                   },
                   "layer-1": {
                     "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.100.color.tone}"
+                      "$value": "{brand.palettes.palette-2.100.color.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.800.color.tone}"
+                      "$value": "{brand.palettes.palette-2.800.color.on-tone}"
                     }
                   },
                   "layer-2": {
                     "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.100.color.tone}"
+                      "$value": "{brand.palettes.palette-2.100.color.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.800.color.tone}"
+                      "$value": "{brand.palettes.palette-2.800.color.on-tone}"
                     }
                   },
                   "layer-3": {
                     "background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.100.color.tone}"
+                      "$value": "{brand.palettes.palette-2.100.color.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{brand.palettes.palette-2.default.color.on-tone}"
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.800.color.tone}"
+                      "$value": "{brand.palettes.palette-2.800.color.on-tone}"
                     }
                   }
                 },
@@ -207,7 +207,7 @@
                   },
                   "font-size": {
                     "$type": "dimension",
-                    "$value": "{tokens.font.sizes.md}"
+                    "$value": "{tokens.font.sizes.lg}"
                   },
                   "font-weight": {
                     "$type": "number",

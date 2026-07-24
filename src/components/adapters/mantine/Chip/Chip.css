@@ -31,11 +31,18 @@
   align-items: center !important;
   justify-content: center !important;
   gap: var(--chip-icon-text-gap) !important;
-  cursor: pointer !important;
+  /* Non-selectable chips (rendered as <div>) are not interactive — no pointer cursor.
+     Selectable chips render as <button> and get the pointer via the rule below. */
+  cursor: default !important;
   /* Use Chip's min-width and max-width CSS variables */
   /* This is reactive and updates in real time when the toolbar changes Chip's width */
   min-width: var(--chip-min-width) !important;
   max-width: var(--chip-max-width) !important;
+}
+
+/* Selectable chips render as <button> — they get the interactive pointer cursor. */
+button.recursica-chip-root {
+  cursor: pointer !important;
 }
 
 /* Disabled state */

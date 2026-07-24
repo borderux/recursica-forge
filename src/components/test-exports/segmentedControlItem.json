@@ -73,7 +73,7 @@
                 "border-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 1,
+                    "value": 5,
                     "unit": "px"
                   }
                 },
@@ -88,7 +88,7 @@
                   },
                   "font-size": {
                     "$type": "dimension",
-                    "$value": "{tokens.font.sizes.md}"
+                    "$value": "{tokens.font.sizes.lg}"
                   },
                   "font-weight": {
                     "$type": "number",
@@ -131,7 +131,7 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.color}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -145,7 +145,7 @@
                     },
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.text.color}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -186,7 +186,7 @@
                 "border-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 0,
+                    "value": 8,
                     "unit": "px"
                   }
                 },
@@ -201,7 +201,7 @@
                   },
                   "font-size": {
                     "$type": "dimension",
-                    "$value": "{tokens.font.sizes.md}"
+                    "$value": "{tokens.font.sizes.lg}"
                   },
                   "font-weight": {
                     "$type": "number",
@@ -237,12 +237,12 @@
             "colors": {},
             "padding-horizontal": {
               "$type": "dimension",
-              "$value": "{brand.dimensions.general.lg}"
+              "$value": "{brand.dimensions.general.default}"
             },
             "height": {
               "$type": "dimension",
               "$value": {
-                "value": 40,
+                "value": 44,
                 "unit": "px"
               }
             },
@@ -252,7 +252,7 @@
             },
             "icon-text-gap": {
               "$type": "dimension",
-              "$value": "{brand.dimensions.general.default}"
+              "$value": "{brand.dimensions.general.lg}"
             },
             "border-radius": {
               "$type": "dimension",

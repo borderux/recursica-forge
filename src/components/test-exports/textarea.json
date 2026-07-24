@@ -151,14 +151,14 @@
                 "min-width": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 64,
+                    "value": 68,
                     "unit": "px"
                   }
                 },
                 "max-width": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 400,
+                    "value": 404,
                     "unit": "px"
                   }
                 }
@@ -169,21 +169,21 @@
                 "top-bottom-margin": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 0,
+                    "value": 8,
                     "unit": "px"
                   }
                 },
                 "min-width": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 64,
+                    "value": 68,
                     "unit": "px"
                   }
                 },
                 "max-width": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 400,
+                    "value": 404,
                     "unit": "px"
                   }
                 }
@@ -215,7 +215,7 @@
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.md}"
+              "$value": "{tokens.font.sizes.lg}"
             },
             "font-weight": {
               "$type": "number",
@@ -244,7 +244,7 @@
           },
           "placeholder-opacity": {
             "$type": "number",
-            "$value": "{tokens.opacities.ghost}"
+            "$value": "{tokens.opacities.faint}"
           },
           "colors": {
             "layer-0": {

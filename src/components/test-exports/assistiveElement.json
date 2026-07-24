@@ -10,21 +10,21 @@
                   "layer-0": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.color}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.color}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-1": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.text.color}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.text.color}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -56,21 +56,21 @@
                   "layer-0": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.alert}"
+                      "$value": "{brand.layers.layer-1.elements.text.alert}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.text.alert}"
+                      "$value": "{brand.layers.layer-1.elements.text.alert}"
                     }
                   },
                   "layer-1": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.text.alert}"
+                      "$value": "{brand.layers.layer-0.elements.text.alert}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.text.alert}"
+                      "$value": "{brand.layers.layer-0.elements.text.alert}"
                     }
                   },
                   "layer-2": {
@@ -139,16 +139,16 @@
           },
           "icon-text-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "top-margin": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.lg}"
           },
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "value": 500,
+              "value": 504,
               "unit": "px"
             }
           }

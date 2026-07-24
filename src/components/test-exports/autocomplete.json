@@ -272,7 +272,7 @@
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.md}"
+              "$value": "{tokens.font.sizes.lg}"
             },
             "font-weight": {
               "$type": "number",
@@ -301,7 +301,7 @@
           },
           "placeholder-opacity": {
             "$type": "number",
-            "$value": "{tokens.opacities.ghost}"
+            "$value": "{tokens.opacities.faint}"
           },
           "colors": {
             "layer-0": {
