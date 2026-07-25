@@ -31,6 +31,8 @@
  *      `variants` containers are then pruned.
  */
 
+import uikitTemplate from '../../../recursica_ui-kit.json'
+
 const TARGET_STRUCTURE_VERSION = '2.0.0'
 
 export interface MigrationRule {
@@ -100,6 +102,43 @@ export const MIGRATION_RULES: MigrationRule[] = [
     stringReplacement: {
       pattern: /\{ui-kit\.globals\.form\.field\.colors\.border-error\}/g,
       replacement: '{ui-kit.globals.form.field.colors.error-border-color}',
+    },
+  },
+  // 1.x → 2.x: form-field colour globals gained the `-color` suffix. References in
+  // carried-over component values must be repointed to the renamed globals.
+  {
+    description: 'Rename form-field background reference to background-color',
+    stringReplacement: {
+      pattern: /\{ui-kit\.globals\.form\.field\.colors\.background\}/g,
+      replacement: '{ui-kit.globals.form.field.colors.background-color}',
+    },
+  },
+  {
+    description: 'Rename form-field background-read-only reference',
+    stringReplacement: {
+      pattern: /\{ui-kit\.globals\.form\.field\.colors\.background-read-only\}/g,
+      replacement: '{ui-kit.globals.form.field.colors.background-color-read-only}',
+    },
+  },
+  {
+    description: 'Rename form-field border reference to border-color',
+    stringReplacement: {
+      pattern: /\{ui-kit\.globals\.form\.field\.colors\.border\}/g,
+      replacement: '{ui-kit.globals.form.field.colors.border-color}',
+    },
+  },
+  {
+    description: 'Rename form-field icon reference to icon-color',
+    stringReplacement: {
+      pattern: /\{ui-kit\.globals\.form\.field\.colors\.icon\}/g,
+      replacement: '{ui-kit.globals.form.field.colors.icon-color}',
+    },
+  },
+  {
+    description: 'Rename form-field disabled-background reference',
+    stringReplacement: {
+      pattern: /\{ui-kit\.globals\.form\.field\.colors\.disabled-background\}/g,
+      replacement: '{ui-kit.globals.form.field.colors.disabled-background-color}',
     },
   },
 ]
@@ -203,6 +242,204 @@ export function migrateBrandTo2x(root: any): any {
   }
   stampVersion(root)
   return root
+}
+
+// ── 1.x → 2.x uikit: value overlay ──────────────────────────────────────────
+// The 1.x→2.x uikit refactor touched almost every component (colour-key renames,
+// selection-state axes, component splits, property relocations). Rather than a
+// fragile in-place reshape of every component, we OVERLAY the old file's values
+// onto the CURRENT uikit used as a template: the result is always structurally
+// current (so it validates and renders correctly), and each old value is placed
+// at its 2.x path via `mapOldUikitPath`. Values with no 2.x home (hover/focus/
+// per-component disabled-opacity — all global in 2.x) are intentionally dropped.
+
+const CURRENT_UIKIT_TEMPLATE: any = (uikitTemplate as any)?.['ui-kit']
+
+const FORM_INPUTS = new Set([
+  'text-field', 'textarea', 'number-input', 'date-picker', 'time-picker',
+  'dropdown', 'autocomplete', 'file-input', 'file-upload', 'transfer-list',
+])
+const SELECTION_STATES: Record<string, string[]> = {
+  checkbox: ['checked', 'unchecked', 'indeterminate'],
+  'radio-button': ['selected', 'unselected'],
+  switch: ['selected', 'unselected'],
+}
+const INTERACTION_SUFFIX = /-(hover|focus|visited)$/
+
+/** Rename a 1.x colour-property key to its 2.x form, or null to drop it. */
+function renameColorKey(k: string): string | null {
+  if (INTERACTION_SUFFIX.test(k)) return null
+  if (k.endsWith('-color')) return k
+  if (k === 'background-read-only') return 'background-color-read-only'
+  if (k === 'background' || k === 'text' || k === 'border' || k === 'icon') return `${k}-color`
+  if (/-(background|border)$/.test(k)) return `${k}-color`
+  if (k === 'divider' || k === 'asterisk') return `${k}-color`
+  return k
+}
+
+/** accordion-item was split into accordion-item / accordion-header / accordion-content. */
+function mapAccordionItem(segs: string[]): string[] | null {
+  const p = segs.slice(3)
+  const j = p.join('.')
+  const HDR = 'components.accordion-header.properties.'
+  const CON = 'components.accordion-content.properties.'
+  const IT = 'components.accordion-item.properties.'
+  const simple: Record<string, string> = {
+    'border-radius': `${IT}border-radius`, 'item-border-size': `${IT}border-size`, 'elevation-item': `${IT}elevation`,
+    'header-horizontal-padding': `${HDR}horizontal-padding`, 'header-vertical-padding': `${HDR}vertical-padding`,
+    'icon-gap': `${HDR}icon-gap`, 'icon-left-size': `${HDR}icon-left-size`, 'icon-right-size': `${HDR}icon-right-size`,
+    'content-border-radius': `${CON}border-radius`, 'content-border-size': `${CON}border-size`,
+    'content-bottom-padding': `${CON}bottom-padding`, 'content-horizontal-padding': `${CON}horizontal-padding`,
+    'content-margin': `${CON}margin`, 'content-top-padding': `${CON}top-padding`, 'elevation-content': `${CON}elevation`,
+  }
+  if (simple[j]) return [simple[j]]
+  if (p[0] === 'header-text') return [`${HDR}text.${p.slice(1).join('.')}`]
+  if (p[0] === 'content-text') return [`${CON}text.${p.slice(1).join('.')}`]
+  if (p[0] === 'hover-color' || p[0] === 'hover-opacity') return []
+  if (p[0] === 'colors') {
+    const layer = p[1], key = p[2]
+    const H = (app: string, ck: string) => `components.accordion-header.variants.appearance.${app}.properties.colors.${layer}.${ck}`
+    if (key === 'background-collapsed') return [H('closed', 'background-color')]
+    if (key === 'background-expanded') return [H('open', 'background-color')]
+    if (key === 'text') return [H('closed', 'text-color'), H('open', 'text-color')]
+    if (key === 'icon') return [H('closed', 'icon-color'), H('open', 'icon-color')]
+    if (key === 'item-border-color') return [`components.accordion-item.properties.colors.${layer}.border-color`, H('closed', 'border-color'), H('open', 'border-color')]
+    if (key === 'content-background') return [`components.accordion-content.properties.colors.${layer}.background-color`]
+    if (key === 'content-border-color') return [`components.accordion-content.properties.colors.${layer}.border-color`]
+    if (key === 'content-text') return [`components.accordion-content.properties.colors.${layer}.text-color`]
+  }
+  return null
+}
+
+/**
+ * Maps a 1.x uikit leaf path (relative to `ui-kit`, e.g. `components.button.…`)
+ * to its 2.x path(s). Returns an empty array for values with no 2.x home (they
+ * are intentionally dropped). One old value can map to several 2.x paths (e.g. a
+ * shared disabled colour that became per-selection-state).
+ */
+export function mapOldUikitPath(path: string): string[] {
+  let segs = path.split('.')
+  const comp = segs[0] === 'components' ? segs[1] : null
+  if (/\.states\.(focus|visited|visited-hover|hover)\./.test(`.${path}.`)) return []
+  const last0 = segs[segs.length - 1]
+  if (/^(hover-color|hover-opacity|hover-elevation|border-size-focus)$/.test(last0)) return []
+  if (last0 === 'disabled-opacity' && !(comp && SELECTION_STATES[comp])) return []
+
+  if (comp === 'accordion-item' && segs[2] === 'properties') {
+    const r = mapAccordionItem(segs); if (r) return r
+  }
+  if (comp === 'modal' && segs[2] === 'properties' && segs[3] === 'colors' && segs[5] === 'background') {
+    const layer = segs[4]; return ['header', 'content', 'footer'].map(x => `components.modal.properties.colors.${layer}.${x}-background-color`)
+  }
+  if (comp === 'panel' && segs[2] === 'properties' && segs[3] === 'colors' && segs[5] === 'header-footer-background') {
+    const layer = segs[4]; return ['header', 'footer'].map(x => `components.panel.properties.colors.${layer}.${x}-background-color`)
+  }
+  if (comp === 'chip') {
+    const vi = segs.indexOf('variants')
+    if (vi >= 0 && segs[vi + 1] === 'styles') {
+      const st = segs[vi + 2], rest = segs.slice(vi + 3)
+      const head = st === 'error' ? ['variants', 'selection-states', 'unselected', 'variants', 'states', 'error']
+        : st === 'error-selected' ? ['variants', 'selection-states', 'selected', 'variants', 'states', 'error']
+          : ['variants', 'selection-states', st]
+      segs = ['components', 'chip', ...head, ...rest]
+    }
+  }
+  if (comp && SELECTION_STATES[comp]) {
+    const S = SELECTION_STATES[comp]
+    if (segs[2] === 'properties' && segs[3] === 'colors') {
+      const layer = segs[4], key = segs[5]
+      const m = key.match(/^(background|border|icon|thumb|track)-(checked|unchecked|indeterminate|selected|unselected)$/)
+      if (m) return [`components.${comp}.variants.selection-states.${m[2]}.properties.colors.${layer}.${m[1]}-color`]
+      const dm = key.match(/^disabled-(background|border|icon)$/)
+      if (dm) return S.map(s => `components.${comp}.variants.selection-states.${s}.variants.states.disabled.properties.colors.${layer}.${dm[1]}-color`)
+      if (key === 'icon-color') {
+        const st = comp === 'checkbox' ? ['checked', 'indeterminate'] : ['selected']
+        return st.map(s => `components.${comp}.variants.selection-states.${s}.properties.colors.${layer}.icon-color`)
+      }
+    }
+    if (segs[2] === 'properties' && segs[3] === 'disabled-opacity') {
+      return S.map(s => `components.${comp}.variants.selection-states.${s}.variants.states.disabled.properties.opacity`)
+    }
+  }
+  if (comp === 'timeline-bullet') {
+    const ti = segs.indexOf('types')
+    if (ti >= 0) {
+      const type = segs[ti + 1]
+      if (segs[ti + 2] === 'properties' && segs[ti + 3] === 'colors') {
+        const layer = segs[ti + 4], key = segs[ti + 5] || ''
+        const m = key.match(/^(active|inactive)-(.+)$/)
+        if (m) { const nk = renameColorKey(m[2]) || m[2]; return [`components.timeline-bullet.variants.types.${type}.variants.selection-states.${m[1]}.properties.colors.${layer}.${nk}`] }
+      }
+      if (segs[ti + 2] === 'properties') {
+        const m = (segs[ti + 3] || '').match(/^(active|inactive)-avatar-opacity$/)
+        if (m) return [`components.timeline-bullet.variants.types.${type}.variants.selection-states.${m[1]}.properties.avatar-opacity`]
+      }
+    }
+  }
+  if (comp === 'timeline' && segs[2] === 'properties') {
+    if (segs[3] === 'colors') {
+      const layer = segs[4], key = segs[5] || ''
+      const m = key.match(/^(active|inactive)-(.+)$/)
+      if (m) { const nk = renameColorKey(m[2]) || m[2]; return [`components.timeline.variants.selection-states.${m[1]}.properties.colors.${layer}.${nk}`] }
+    }
+    const cm = (segs[3] || '').match(/^(active|inactive)-connector-size$/)
+    if (cm) return [`components.timeline.variants.selection-states.${cm[1]}.properties.connector-size`]
+  }
+  // Form inputs: the `default` interaction state was promoted to component-level properties.
+  segs = (`.${segs.join('.')}.`).replace('.variants.states.default.properties.', '.properties.').slice(1, -1).split('.')
+  if (comp && FORM_INPUTS.has(comp) && segs[2] === 'properties' && (segs[3] === 'max-width' || segs[3] === 'min-width') && segs.length === 4) {
+    return ['stacked', 'side-by-side'].map(l => `components.${comp}.variants.layouts.${l}.properties.${segs[3]}`)
+  }
+  // Final scalar-property renames / drops.
+  const li = segs.length - 1
+  if (segs[li] === 'step-indicator-color-active') return []
+  if (segs[li] === 'scroll-divider-thickness') segs[li] = 'scroll-divider-size'
+  else if (segs[li] === 'thickness') segs[li] = 'thickness-size'
+  else if (comp === 'autocomplete' && segs[li] === 'min-height') segs[li] = 'height'
+  // Generic colour-key rename (last segment inside a `colors` block).
+  const cIdx = segs.lastIndexOf('colors')
+  if (cIdx >= 0) {
+    const ki = (segs[cIdx + 1] && /^layer-/.test(segs[cIdx + 1])) ? cIdx + 2 : cIdx + 1
+    if (ki === segs.length - 1) { const nk = renameColorKey(segs[ki]); if (nk === null) return []; segs[ki] = nk }
+  }
+  return [segs.join('.')]
+}
+
+/** True when the uikit is the older (1.x) structure that needs the value overlay. */
+function isOldUikitStructure(uikit: any): boolean {
+  const c = uikit?.components
+  if (!c || typeof c !== 'object') return false
+  if (c.chip?.variants?.styles) return true                    // chip axis was `styles`, now `selection-states`
+  if (c['text-field']?.variants?.states?.default) return true  // form-input `default` state was promoted
+  if (c.checkbox?.properties?.colors) return true              // checkbox colours were flat, now per selection-state
+  return false
+}
+
+/** Overlay the (string-migrated) old uikit's values onto the current uikit template. */
+function overlayOldUikit(root: any): any {
+  const oldUikit = root?.['ui-kit'] ?? root
+  const template = JSON.parse(JSON.stringify(CURRENT_UIKIT_TEMPLATE))
+  const setAt = (segs: string[], value: any): void => {
+    let node = template
+    for (let i = 0; i < segs.length - 1; i++) {
+      node = node?.[segs[i]]
+      if (!node || typeof node !== 'object') return
+    }
+    const leaf = segs[segs.length - 1]
+    if (node && typeof node === 'object' && leaf in node) node[leaf] = JSON.parse(JSON.stringify(value))
+  }
+  const walk = (node: any, p: string): void => {
+    if (!node || typeof node !== 'object') return
+    if ('$value' in node) {
+      for (const np of mapOldUikitPath(p)) setAt(np.split('.'), node)
+      return
+    }
+    for (const k of Object.keys(node)) { if (k.startsWith('$')) continue; walk(node[k], p ? `${p}.${k}` : k) }
+  }
+  walk({ components: oldUikit.components, globals: oldUikit.globals }, '')
+  const out = root?.['ui-kit'] ? { ...root, 'ui-kit': template } : template
+  stampVersion(out)
+  return out
 }
 
 /**
@@ -444,6 +681,14 @@ export function migrateUikitTo2x(root: any): any {
     }
   }
   if (uikit?.components && typeof uikit.components === 'object') prune(uikit.components)
+
+  // Older (1.x) files diverge structurally from 2.x in ways the in-place passes above don't
+  // fully cover (colour-key renames, selection-state axes, component splits, …). Overlay the
+  // reshaped-so-far values onto the current uikit template so the result is guaranteed to be
+  // structurally current (validates + renders) while carrying the user's values across.
+  if (isOldUikitStructure(uikit)) {
+    return overlayOldUikit(root)
+  }
 
   stampVersion(root)
   return root
