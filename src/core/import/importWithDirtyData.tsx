@@ -10,6 +10,7 @@ import {
   detectJsonFileType,
   importJsonFiles,
 } from "./jsonImport";
+import { migrateImportedJson } from "./migrateImportedJson";
 import { DirtyDataModal } from "./DirtyDataModal";
 import { ImportValidationErrorModal } from "./ImportValidationErrorModal";
 import { ImportValidationError } from "./importHydration";
@@ -41,15 +42,26 @@ export function useJsonImport() {
 
   const executeImport = (files: ImportFiles, onSuccess?: () => void) => {
     try {
-      // Validate JSON files
+      // Validate the MIGRATED (upgraded) shape, not the raw upload. importJsonFiles upgrades
+      // older (1.x) exports to the current structure on import, so validating the raw file
+      // here would wrongly reject legitimately-importable older files (e.g. a 1.x brand where
+      // `states.hover` is a bare opacity number rather than `{ color, opacity }`).
+      const migrateForValidation = (
+        file: object,
+        wrapperKey: "tokens" | "brand" | "ui-kit",
+        fileType: "tokens" | "brand" | "uikit",
+      ): JsonLike => {
+        const normalized = (file as any)?.[wrapperKey] ? file : { [wrapperKey]: file };
+        return migrateImportedJson(normalized as JsonLike, fileType);
+      };
       if (files.tokens) {
-        validateTokensJson(files.tokens as JsonLike);
+        validateTokensJson(migrateForValidation(files.tokens, "tokens", "tokens"));
       }
       if (files.brand) {
-        validateBrandJson(files.brand as JsonLike);
+        validateBrandJson(migrateForValidation(files.brand, "brand", "brand"));
       }
       if (files.uikit) {
-        validateUIKitJson(files.uikit as JsonLike);
+        validateUIKitJson(migrateForValidation(files.uikit, "ui-kit", "uikit"));
       }
 
       // Determine which files are being imported

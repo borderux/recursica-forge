@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { migrateImportedJson } from './migrateImportedJson'
+import { migrateImportedJson, mapOldUikitPath } from './migrateImportedJson'
+import { validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
+import brandJson from '../../../recursica_brand.json'
 
 describe('migrateImportedJson', () => {
   it('should migrate tokens.opacity to tokens.opacities', () => {
@@ -147,6 +149,21 @@ describe('migrateImportedJson — brand 1.x → 2.x states', () => {
     const once = migrateImportedJson(brand1x(), 'brand')
     const twice = migrateImportedJson(JSON.parse(JSON.stringify(once)), 'brand')
     expect(twice.brand.themes.light.states).toEqual(once.brand.themes.light.states)
+  })
+
+  // Regression: a real user exported from 1.x (bare-number `hover`, no `focus`/`link`) and the
+  // import rejected it because the raw file was validated before migration. A migrated 1.x brand
+  // must satisfy the current schema — otherwise older exports can't be imported.
+  it('a migrated 1.x brand passes current schema validation', () => {
+    const brand = JSON.parse(JSON.stringify(brandJson)) as any
+    for (const mode of ['light', 'dark'] as const) {
+      const states = brand.brand.themes[mode].states
+      states.hover = { $type: 'number', $value: '{tokens.opacities.mist}' }
+      delete states.focus
+      delete states.link
+    }
+    const migrated = migrateImportedJson(brand, 'brand')
+    expect(() => validateBrandJson(migrated)).not.toThrow()
   })
 })
 
@@ -525,5 +542,81 @@ describe('migrateImportedJson — tabs split into tabs + tabs-item', () => {
     const once = migrateImportedJson(tabs1x(), 'uikit')
     const twice = migrateImportedJson(JSON.parse(JSON.stringify(once)), 'uikit')
     expect(twice).toEqual(once)
+  })
+})
+
+describe('mapOldUikitPath — 1.x → 2.x uikit value overlay', () => {
+  it('renames colour keys and promotes the form-input default state', () => {
+    expect(mapOldUikitPath('components.text-field.variants.states.default.properties.colors.layer-0.background'))
+      .toEqual(['components.text-field.properties.colors.layer-0.background-color'])
+    // leading/trailing icon colours stay un-suffixed in 2.x
+    expect(mapOldUikitPath('components.text-field.variants.states.default.properties.colors.layer-0.leading-icon'))
+      .toEqual(['components.text-field.properties.colors.layer-0.leading-icon'])
+  })
+
+  it('moves chip error/error-selected styles to nested selection-state error blocks', () => {
+    expect(mapOldUikitPath('components.chip.variants.styles.error.properties.colors.layer-0.background'))
+      .toEqual(['components.chip.variants.selection-states.unselected.variants.states.error.properties.colors.layer-0.background-color'])
+    expect(mapOldUikitPath('components.chip.variants.styles.error-selected.properties.colors.layer-1.text'))
+      .toEqual(['components.chip.variants.selection-states.selected.variants.states.error.properties.colors.layer-1.text-color'])
+  })
+
+  it('splits checkbox flat colours into selection-states (one → many for shared disabled)', () => {
+    expect(mapOldUikitPath('components.checkbox.properties.colors.layer-0.background-checked'))
+      .toEqual(['components.checkbox.variants.selection-states.checked.properties.colors.layer-0.background-color'])
+    expect(mapOldUikitPath('components.checkbox.properties.colors.layer-0.disabled-background')).toEqual([
+      'components.checkbox.variants.selection-states.checked.variants.states.disabled.properties.colors.layer-0.background-color',
+      'components.checkbox.variants.selection-states.unchecked.variants.states.disabled.properties.colors.layer-0.background-color',
+      'components.checkbox.variants.selection-states.indeterminate.variants.states.disabled.properties.colors.layer-0.background-color',
+    ])
+  })
+
+  it('splits timeline-bullet active/inactive into selection-states', () => {
+    expect(mapOldUikitPath('components.timeline-bullet.variants.types.icon.properties.colors.layer-2.active-background'))
+      .toEqual(['components.timeline-bullet.variants.types.icon.variants.selection-states.active.properties.colors.layer-2.background-color'])
+  })
+
+  it('drops values that became global in 2.x (hover/focus/per-component disabled-opacity)', () => {
+    expect(mapOldUikitPath('components.text-field.variants.states.focus.properties.colors.layer-0.background')).toEqual([])
+    expect(mapOldUikitPath('components.button.variants.sizes.default.properties.disabled-opacity')).toEqual([])
+    expect(mapOldUikitPath('components.button.variants.styles.solid.properties.hover-elevation')).toEqual([])
+  })
+})
+
+describe('migrateImportedJson — 1.x uikit overlays onto the current structure', () => {
+  const oldUikit = () => ({
+    'ui-kit': {
+      components: {
+        chip: { variants: { styles: { selected: { properties: { colors: {
+          'layer-0': { background: { $type: 'color', $value: '{brand.palettes.palette-1.default.color.tone}' } },
+        } } } } } },
+        'text-field': { variants: { states: { default: { properties: { colors: {
+          'layer-0': { background: { $type: 'color', $value: '{brand.palettes.palette-2.default.color.tone}' } },
+        } } } } } },
+        checkbox: { properties: { colors: {
+          'layer-0': { 'background-checked': { $type: 'color', $value: '{brand.palettes.palette-1.default.color.tone}' } },
+        } } },
+      },
+    },
+  })
+
+  it('produces a schema-valid, structurally-current uikit and carries old values to their 2.x paths', () => {
+    const out: any = migrateImportedJson(oldUikit(), 'uikit')
+    expect(() => validateUIKitJson(out)).not.toThrow()
+    const at = (p: string) => p.split('.').reduce((n: any, k) => n?.[k], out['ui-kit'])
+    expect(at('components.chip.variants.selection-states.selected.properties.colors.layer-0.background-color').$value)
+      .toBe('{brand.palettes.palette-1.default.color.tone}')
+    expect(at('components.text-field.properties.colors.layer-0.background-color').$value)
+      .toBe('{brand.palettes.palette-2.default.color.tone}')
+    expect(at('components.checkbox.variants.selection-states.checked.properties.colors.layer-0.background-color').$value)
+      .toBe('{brand.palettes.palette-1.default.color.tone}')
+    // the old `variants.styles` axis is gone (structure is current)
+    expect(at('components.chip.variants.styles')).toBeUndefined()
+  })
+
+  it('leaves an already-2.x uikit untouched (no overlay)', () => {
+    const twoX = { 'ui-kit': { components: { badge: { properties: {} } } } }
+    const out: any = migrateImportedJson(JSON.parse(JSON.stringify(twoX)), 'uikit')
+    expect(out['ui-kit'].components.badge).toEqual({ properties: {} })
   })
 })
