@@ -2,7 +2,8 @@
   "variants": {
     "selection-states": {
       "icon": "toggle-right",
-      "label": "State"
+      "label": "State",
+      "fixedOptions": true
     }
   },
   "properties": {

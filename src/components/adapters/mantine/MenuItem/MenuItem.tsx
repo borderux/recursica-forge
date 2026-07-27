@@ -20,6 +20,7 @@ export default function MenuItem({
   trailingIcon,
   supportingText,
   selected = false,
+  selectionState,
   divider,
   dividerColor,
   dividerOpacity,
@@ -38,41 +39,38 @@ export default function MenuItem({
     return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
   }, [])
 
+  // The built-in selection-states are `selected` / `unselected`. Any other value is a CUSTOM
+  // selection-state created in the editor; it reuses the "selected/active" visual slot but sources
+  // its colours from its own colour group, so edits to a user-created state are reflected.
+  const BUILTIN_SELECTION_STATES = ['selected', 'unselected']
+  const isCustomSelectionState = !!selectionState && !BUILTIN_SELECTION_STATES.includes(selectionState)
+
   // Determine effective variant (used for the CSS class / data-variant only).
   let effectiveVariant = variant
   if (disabled) {
     effectiveVariant = 'disabled'
-  } else if (selected) {
+  } else if (isCustomSelectionState || selected) {
     effectiveVariant = 'selected'
   }
 
   // Selection state is independent of disabled: a disabled item is still either selected or
   // unselected, and it keeps that state's colours (dimmed by that state's disabled opacity).
-  const selectionState: 'selected' | 'unselected' = selected ? 'selected' : 'unselected'
-  const isSelected = selectionState === 'selected'
+  // A custom selection-state resolves to its own name and renders in the selected/active visual.
+  const resolvedSelectionState: string = isCustomSelectionState
+    ? (selectionState as string)
+    : (selected ? 'selected' : 'unselected')
 
-  // Selected/unselected colors are selection-state variants (like segmented-control-item):
+  // Selection-state colors are variants (like segmented-control-item):
   // variants/selection-states/<state>/properties/colors/<layer>/<prop>.
-  const itemColor = (state: 'selected' | 'unselected', prop: string) =>
+  const itemColor = (state: string, prop: string) =>
     buildComponentCssVarPath('MenuItem', 'variants', 'selection-states', state, 'properties', 'colors', layer, prop)
-  const selectedBgVar = itemColor('selected', 'background-color')
-  const selectedTextVar = itemColor('selected', 'text-color')
-  const selectedSupportingTextColorVar = itemColor('selected', 'supporting-text-color')
-  const selectedLeadingIconColorVar = itemColor('selected', 'leading-icon-color')
-  const selectedTrailingIconColorVar = itemColor('selected', 'trailing-icon-color')
 
-  const unselectedBgVar = itemColor('unselected', 'background-color')
-  const unselectedTextVar = itemColor('unselected', 'text-color')
-  const unselectedSupportingTextColorVar = itemColor('unselected', 'supporting-text-color')
-  const unselectedLeadingIconColorVar = itemColor('unselected', 'leading-icon-color')
-  const unselectedTrailingIconColorVar = itemColor('unselected', 'trailing-icon-color')
-
-  // Resolve state-specific vars by selection state (so a selected+disabled item keeps selected colours)
-  const finalBgVar = isSelected ? selectedBgVar : unselectedBgVar
-  const finalTextVar = isSelected ? selectedTextVar : unselectedTextVar
-  const finalSupportingTextColorVar = isSelected ? selectedSupportingTextColorVar : unselectedSupportingTextColorVar
-  const finalLeadingIconColorVar = isSelected ? selectedLeadingIconColorVar : unselectedLeadingIconColorVar
-  const finalTrailingIconColorVar = isSelected ? selectedTrailingIconColorVar : unselectedTrailingIconColorVar
+  // Resolve state-specific vars from the resolved selection state (built-in or custom).
+  const finalBgVar = itemColor(resolvedSelectionState, 'background-color')
+  const finalTextVar = itemColor(resolvedSelectionState, 'text-color')
+  const finalSupportingTextColorVar = itemColor(resolvedSelectionState, 'supporting-text-color')
+  const finalLeadingIconColorVar = itemColor(resolvedSelectionState, 'leading-icon-color')
+  const finalTrailingIconColorVar = itemColor(resolvedSelectionState, 'trailing-icon-color')
 
   // Get component-level dimension/size properties
   const borderRadiusVar = getComponentLevelCssVar('MenuItem', 'border-radius')
@@ -106,7 +104,7 @@ export default function MenuItem({
   // Hover is a GLOBAL state (Theme › States) — no per-component hover vars.
   // Disabled opacity is per selection-state: variants/selection-states/<state>/variants/states/
   // disabled/properties/opacity — so selected and unselected can be dimmed independently.
-  const disabledOpacityVar = buildComponentCssVarPath('MenuItem', 'variants', 'selection-states', selectionState, 'variants', 'states', 'disabled', 'properties', 'opacity')
+  const disabledOpacityVar = buildComponentCssVarPath('MenuItem', 'variants', 'selection-states', resolvedSelectionState, 'variants', 'states', 'disabled', 'properties', 'opacity')
 
   // Determine background
   const finalBgColorValue = readCssVar(finalBgVar)

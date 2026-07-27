@@ -2,7 +2,8 @@
   "variants": {
     "selection-states": {
       "icon": "check-square",
-      "label": "State"
+      "label": "State",
+      "fixedOptions": true
     }
   },
   "properties": {

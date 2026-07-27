@@ -49,7 +49,7 @@ type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 export type Section = {
   name: string
   url: string
-  render?: (selectedLayers: Set<LayerOption>, activeState?: string) => JSX.Element
+  render?: (selectedLayers: Set<LayerOption>, activeState?: string, selectedVariants?: Record<string, string>) => JSX.Element
 }
 
 // Sort layers numerically by layer number
@@ -78,37 +78,20 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     )
   }
 
-  function SwitchGroupExample({ layer }: { layer: string }) {
+  function SwitchGroupExample({ layer, layout }: { layer: string; layout: string }) {
     const [checked1, setChecked1] = React.useState(true)
     const [checked2, setChecked2] = React.useState(false)
-    const [checked3, setChecked3] = React.useState(true)
-    const [checked4, setChecked4] = React.useState(false)
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-        <div>
-          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: `var(${genericLayerText(layer.replace('layer-', ''), 'color')})` }}>Stacked</h2>
-          <SwitchGroup
-            label="Goblin Preferences"
-            layout="stacked"
-            layer={layer as any}
-          >
-            <SwitchItem checked={checked1} onChange={setChecked1} label="Enable goblin mode" layer={layer as any} />
-            <SwitchItem checked={checked2} onChange={setChecked2} label="Bite ankles" layer={layer as any} />
-          </SwitchGroup>
-        </div>
-
-        <div>
-          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: `var(${genericLayerText(layer.replace('layer-', ''), 'color')})` }}>Side-by-side</h2>
-          <SwitchGroup
-            label="Loot Settings"
-            layout="side-by-side"
-            layer={layer as any}
-          >
-            <SwitchItem checked={checked3} onChange={setChecked3} label="Hoard gold" layer={layer as any} />
-            <SwitchItem checked={checked4} onChange={setChecked4} label="Share with clan" layer={layer as any} />
-          </SwitchGroup>
-        </div>
+        <SwitchGroup
+          label="Goblin Preferences"
+          layout={layout as any}
+          layer={layer as any}
+        >
+          <SwitchItem checked={checked1} onChange={setChecked1} label="Enable goblin mode" layer={layer as any} />
+          <SwitchItem checked={checked2} onChange={setChecked2} label="Bite ankles" layer={layer as any} />
+        </SwitchGroup>
       </div>
     )
   }
@@ -373,16 +356,14 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     )
   }
 
-  function RadioButtonGroupExample({ layer }: { layer: string }) {
+  function RadioButtonGroupExample({ layer, layout }: { layer: string; layout: string }) {
     const [selected1, setSelected1] = React.useState('opt1')
-    const [selected2, setSelected2] = React.useState('opt1')
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
-        <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)' }}>Stacked</h2>
         <RadioButtonGroup
           label="Forge Weapon"
-          layout="stacked"
+          layout={layout as any}
           layer={layer as any}
           orientation="vertical"
         >
@@ -405,35 +386,6 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             value="opt3"
             selected={selected1 === 'opt3'}
             onChange={() => setSelected1('opt3')}
-            layer={layer as any}
-          />
-        </RadioButtonGroup>
-        <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)' }}>Side-by-side</h2>
-        <RadioButtonGroup
-          label="Forge Weapon"
-          layout="side-by-side"
-          layer={layer as any}
-          orientation="vertical"
-        >
-          <RadioButtonItem
-            label="Obsidian Hammer"
-            value="opt1"
-            selected={selected2 === 'opt1'}
-            onChange={() => setSelected2('opt1')}
-            layer={layer as any}
-          />
-          <RadioButtonItem
-            label="Runic Longsword"
-            value="opt2"
-            selected={selected2 === 'opt2'}
-            onChange={() => setSelected2('opt2')}
-            layer={layer as any}
-          />
-          <RadioButtonItem
-            label="Crystal Spear"
-            value="opt3"
-            selected={selected2 === 'opt3'}
-            onChange={() => setSelected2('opt3')}
             layer={layer as any}
           />
         </RadioButtonGroup>
@@ -1054,9 +1006,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Radio button group',
       url: `${base}/radio-button-group`,
-      render: (selectedLayers: Set<LayerOption>) => {
+      render: (selectedLayers: Set<LayerOption>, _activeState?: string, selectedVariants?: Record<string, string>) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
-        return <RadioButtonGroupExample layer={layer} />
+        return <RadioButtonGroupExample layer={layer} layout={selectedVariants?.layout || 'stacked'} />
       },
     },
     {
@@ -1283,9 +1235,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Switch group',
       url: `${base}/switch-group`,
-      render: (selectedLayers: Set<LayerOption>) => {
+      render: (selectedLayers: Set<LayerOption>, _activeState?: string, selectedVariants?: Record<string, string>) => {
         const layer = selectedLayers.size > 0 ? Array.from(selectedLayers)[0] as string : 'layer-0'
-        return <SwitchGroupExample layer={layer} />
+        return <SwitchGroupExample layer={layer} layout={selectedVariants?.layout || 'stacked'} />
       },
     },
     {

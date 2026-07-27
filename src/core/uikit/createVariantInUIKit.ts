@@ -206,6 +206,60 @@ export function deleteCustomVariant(
 }
 
 /**
+ * Renames a custom variant (changes its JSON key) while preserving its data and position.
+ * Throws if the variant is not tagged as custom, or if the new name collides with an existing
+ * variant on the same axis. A no-op (returns a clone) when the normalized name is unchanged.
+ */
+export function renameCustomVariant(
+  uikit: JsonLike,
+  componentKey: string,
+  axisCategory: string,
+  oldName: string,
+  newName: string,
+): JsonLike {
+  // Deep-clone before mutating to protect the module-import singleton.
+  const cloned: JsonLike = JSON.parse(JSON.stringify(uikit))
+
+  const component = getComponent(cloned, componentKey)
+  if (!component) {
+    throw new Error(`[renameCustomVariant] Component "${componentKey}" not found in uikit.`)
+  }
+
+  const categorized = component?.variants?.[axisCategory]
+  if (!categorized || !categorized[oldName]) {
+    throw new Error(
+      `[renameCustomVariant] Variant "${oldName}" not found in ${componentKey}.variants.${axisCategory}.`
+    )
+  }
+
+  if (!categorized[oldName]?.$extensions?.['com.recursica.custom']) {
+    throw new Error(
+      `[renameCustomVariant] Variant "${oldName}" on ${componentKey}.${axisCategory} is not a custom variant.`
+    )
+  }
+
+  // Lowercase the key to match the resolver's toCssVarName lowercasing (same rule as cloning).
+  const newKey = newName.toLowerCase()
+  if (newKey === oldName) return cloned
+
+  if (categorized[newKey]) {
+    throw new Error(
+      `[renameCustomVariant] A variant named "${newKey}" already exists on ${componentKey}.${axisCategory}.`
+    )
+  }
+
+  // Rebuild the category object so the renamed key keeps its original position (dropdown order),
+  // rather than being appended at the end.
+  const rebuilt: Record<string, any> = {}
+  for (const [k, v] of Object.entries(categorized)) {
+    rebuilt[k === oldName ? newKey : k] = v
+  }
+  component.variants[axisCategory] = rebuilt
+
+  return cloned
+}
+
+/**
  * Lists all custom variants for a component across all axes.
  * Returns an array of { axis (toolbar prop name), axisCategory (JSON key), name }.
  */

@@ -17,7 +17,7 @@ import { Tooltip } from '../../components/adapters/Tooltip'
 import { Accordion } from '../../components/adapters/Accordion'
 import PropControlContent from './menu/floating-palette/PropControlContent'
 import { iconNameToReactComponent } from '../components/iconUtils'
-import { getPropIcon, getPropLabel, loadToolbarConfig } from './utils/loadToolbarConfig'
+import { getPropIcon, getPropLabel, loadToolbarConfig, getVariantFixedOptions } from './utils/loadToolbarConfig'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar } from '../../core/css/updateCssVar'
@@ -31,13 +31,14 @@ import { getVarsStore } from '../../core/store/varsStore'
 import {
   cloneVariantInUIKit,
   deleteCustomVariant,
+  renameCustomVariant,
   listCustomVariants,
   getExistingVariantNames,
   getExistingAxes,
   categoryKeyToAxis,
 } from '../../core/uikit/createVariantInUIKit'
 import { CreateVariantModal } from './modals/CreateVariantModal'
-import { DeleteVariantModal } from './modals/DeleteVariantModal'
+import { EditVariantModal } from './modals/EditVariantModal'
 import { Modal } from '../../components/adapters/Modal'
 import { RadioButtonGroup } from '../../components/adapters/RadioButtonGroup'
 import { RadioButtonItem } from '../../components/adapters/RadioButtonItem'
@@ -72,7 +73,7 @@ export default function ComponentToolbar({
 
   // Custom variant modal state
   const [createVariantModalOpen, setCreateVariantModalOpen] = useState(false)
-  const [deleteVariantModalOpen, setDeleteVariantModalOpen] = useState(false)
+  const [editVariantModalOpen, setEditVariantModalOpen] = useState(false)
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
   const [resetTarget, setResetTarget] = useState<'imported' | 'original'>('imported')
   const [createVariantAxis, setCreateVariantAxis] = useState<string>('')
@@ -191,6 +192,31 @@ export default function ComponentToolbar({
     }
   }
 
+  const handleRenameVariant = (axisCategory: string, oldName: string, newName: string) => {
+    const store = getVarsStore()
+    const updated = renameCustomVariant(store.getState().uikit, componentKey, axisCategory, oldName, newName)
+    store.setUiKit(updated)
+    // Keep the toolbar pointed at the variant if it was the selected one (its key changed).
+    const axisName = categoryKeyToAxis(axisCategory)
+    if (selectedVariants[axisName] === oldName) {
+      onVariantChange(axisName, newName.toLowerCase())
+    }
+  }
+
+  // Map of axisCategory -> all variant names on that axis (built-in + custom), for rename
+  // uniqueness validation in the Edit modal.
+  const existingNamesByAxis = useMemo(() => {
+    const liveUikit = getVarsStore().getState().uikit
+    const map: Record<string, string[]> = {}
+    for (const v of customVariants) {
+      if (!map[v.axisCategory]) {
+        map[v.axisCategory] = getExistingVariantNames(liveUikit, componentKey, v.axisCategory)
+      }
+    }
+    return map
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customVariants, componentKey, uikit])
+
   const handleReset = (target: 'imported' | 'original') => {
     const store = getVarsStore()
     const sourceUikit = target === 'imported' ? store.getImportedUikit() : uikitJson
@@ -214,6 +240,24 @@ export default function ComponentToolbar({
     }
 
     store.setUiKit(updatedUikit)
+
+    // Reset removes any custom variants that weren't in the base (imported/default) file. If one of
+    // those removed variants was the currently-selected one, the toolbar would keep pointing at a
+    // now-nonexistent value — the dropdown shows nothing selected and the preview renders the stale
+    // temp name. Re-point each affected axis at its first valid variant.
+    const restoredVariants = (baseComponentData as any)?.variants || {}
+    for (const [category, obj] of Object.entries(restoredVariants)) {
+      // The interaction-state axis is driven by the state tabs, not a variant dropdown — leave it.
+      if (category === 'states' || !obj || typeof obj !== 'object') continue
+      const keys = Object.keys(obj as Record<string, unknown>).filter(k => !k.startsWith('$'))
+      if (keys.length === 0) continue
+      const propName = categoryKeyToAxis(category)
+      const current = selectedVariants[propName]
+      if (current && !keys.includes(current)) {
+        onVariantChange(propName, keys[0])
+      }
+    }
+
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
   }
 
@@ -619,6 +663,7 @@ export default function ComponentToolbar({
                     selected={selectedVariants[variant.propName] || variant.variants[0]}
                     onSelect={(variantName) => onVariantChange(variant.propName, variantName)}
                     onCreateVariant={() => handleOpenCreateVariant(variant.propName, variant.variants)}
+                    allowCreate={!getVariantFixedOptions(componentName, variant.propName)}
                     className="full-width"
                   />
                 )}
@@ -722,18 +767,18 @@ export default function ComponentToolbar({
           Reset
         </Button>
         <Button
-          onClick={() => setDeleteVariantModalOpen(true)}
+          onClick={() => setEditVariantModalOpen(true)}
           variant="outline"
           size="small"
           layer="layer-0"
           disabled={customVariants.length === 0}
           style={{ flex: 1 }}
           icon={(() => {
-            const TrashIcon = iconNameToReactComponent('trash')
-            return TrashIcon ? <TrashIcon style={{ width: 14, height: 14 }} /> : undefined
+            const EditIcon = iconNameToReactComponent('pencil')
+            return EditIcon ? <EditIcon style={{ width: 14, height: 14 }} /> : undefined
           })()}
         >
-          Delete variant
+          Edit variant
         </Button>
       </div>
 
@@ -780,12 +825,14 @@ export default function ComponentToolbar({
         existingAxisNames={getExistingAxes(getVarsStore().getState().uikit, componentKey)}
       />
 
-      {/* Delete Variant Modal */}
-      <DeleteVariantModal
-        isOpen={deleteVariantModalOpen}
-        onClose={() => setDeleteVariantModalOpen(false)}
-        onConfirm={handleDeleteVariant}
+      {/* Edit Variant Modal (rename + delete) */}
+      <EditVariantModal
+        isOpen={editVariantModalOpen}
+        onClose={() => setEditVariantModalOpen(false)}
+        onRename={handleRenameVariant}
+        onDelete={handleDeleteVariant}
         customVariants={customVariants}
+        existingNamesByAxis={existingNamesByAxis}
       />
 
       {/* Reset Confirmation Modal */}

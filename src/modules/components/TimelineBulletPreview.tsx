@@ -186,6 +186,24 @@ function buildCssVars(layer: string, bulletType: string) {
             '--timeline-avatar-active-opacity': `var(${bulletPropVar('active-avatar-opacity')})`,
             '--timeline-avatar-inactive-opacity': `var(${bulletPropVar('inactive-avatar-opacity')})`,
         })
+    } else {
+        // Custom bullet type (user-created, not one of the four built-ins). A custom type is a clone
+        // of an existing type, so it always carries the shared dimension/colour props (bullet-size,
+        // border-size, border-radius, background-color, border-color). We render it as a plain dot
+        // (useBullets returns no custom child for unknown types) and map its generically-built vars
+        // onto the SAME `--timeline-default-*` names the default-dot CSS already consumes — so its
+        // prop edits are visible without adding brittle new CSS selectors. Type-shape-specific props
+        // (icon-color / avatar-opacity) aren't shown for custom types.
+        Object.assign(baseVars, {
+            '--_tl-bullet-size': `var(${bulletPropVar('bullet-size')}, 20px)`,
+            '--timeline-default-active-bullet-bg': `var(${bulletColorVar('active-background')})`,
+            '--timeline-default-active-bullet-border': `var(${bulletColorVar('active-border-color')})`,
+            '--timeline-default-inactive-bullet-bg': `var(${bulletColorVar('inactive-background')})`,
+            '--timeline-default-inactive-bullet-border': `var(${bulletColorVar('inactive-border-color')})`,
+            '--timeline-default-bullet-size': `var(${bulletPropVar('bullet-size')})`,
+            '--timeline-default-bullet-border-size': `var(${bulletPropVar('border-size')})`,
+            '--timeline-default-bullet-border-radius': `var(${bulletPropVar('border-radius')})`,
+        })
     }
 
     return baseVars

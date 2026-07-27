@@ -26,6 +26,7 @@ export default function SegmentedControl({
   disabled = false,
   showLabel = true,
   componentNameForCssVars = 'SegmentedControl',
+  selectionState,
   className,
   style,
   mantine,
@@ -53,17 +54,23 @@ export default function SegmentedControl({
 
   // Selected/unselected are now selection-state variants on SegmentedControlItem:
   // variants/selection-states/<selected|unselected>/properties/{colors,border-size,border-radius,elevation,text}.
-  const sciColor = (state: 'selected' | 'unselected', prop: string) =>
+  const sciColor = (state: string, prop: string) =>
     buildComponentCssVarPath('SegmentedControlItem', 'variants', 'selection-states', state, 'properties', 'colors', layer, prop)
-  const sciProp = (state: 'selected' | 'unselected', prop: string) =>
+  const sciProp = (state: string, prop: string) =>
     buildComponentCssVarPath('SegmentedControlItem', 'variants', 'selection-states', state, 'properties', prop)
 
+  // The selected segment reads from the 'selected' state by default, but a custom selection-state
+  // (any name other than the built-in selected/unselected) overrides it so its edits are reflected.
+  const selectedStateName = selectionState && selectionState !== 'selected' && selectionState !== 'unselected'
+    ? selectionState
+    : 'selected'
+
   // Get CSS variables - selected properties
-  const selectedBgVar = sciColor('selected', 'background-color')
-  const selectedBorderColorVar = sciColor('selected', 'border-color')
-  const selectedBorderSizeVar = sciProp('selected', 'border-size')
-  const selectedBorderRadiusVar = sciProp('selected', 'border-radius')
-  const selectedElevationVar = sciProp('selected', 'elevation')
+  const selectedBgVar = sciColor(selectedStateName, 'background-color')
+  const selectedBorderColorVar = sciColor(selectedStateName, 'border-color')
+  const selectedBorderSizeVar = sciProp(selectedStateName, 'border-size')
+  const selectedBorderRadiusVar = sciProp(selectedStateName, 'border-radius')
+  const selectedElevationVar = sciProp(selectedStateName, 'elevation')
 
   // Get CSS variables - unselected properties
   const unselectedBgVar = sciColor('unselected', 'background-color')
@@ -77,7 +84,7 @@ export default function SegmentedControl({
   const itemBorderRadiusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'border-radius')
 
   // Selected text color
-  const selectedTextVar = sciColor('selected', 'text-color')
+  const selectedTextVar = sciColor(selectedStateName, 'text-color')
 
   // Get other properties - always use SegmentedControlItem for item properties, SegmentedControl for container properties
   const itemGapVar = getComponentLevelCssVar('SegmentedControl', 'item-gap')
@@ -96,18 +103,18 @@ export default function SegmentedControl({
   const dividerSizeVar = getComponentLevelCssVar('SegmentedControl', 'divider-size')
 
   // Text style now lives under each selection-state variant: variants/selection-states/<state>/properties/text/*
-  const sciText = (state: 'selected' | 'unselected', prop: string) =>
+  const sciText = (state: string, prop: string) =>
     buildComponentCssVarPath('SegmentedControlItem', 'variants', 'selection-states', state, 'properties', 'text', prop)
 
   // Get selected text properties
-  const selectedFontFamilyVar = sciText('selected', 'font-family')
-  const selectedFontSizeVar = sciText('selected', 'font-size')
-  const selectedFontWeightVar = sciText('selected', 'font-weight')
-  const selectedLetterSpacingVar = sciText('selected', 'letter-spacing')
-  const selectedLineHeightVar = sciText('selected', 'line-height')
-  const selectedTextDecorationVar = sciText('selected', 'text-decoration')
-  const selectedTextTransformVar = sciText('selected', 'text-transform')
-  const selectedFontStyleVar = sciText('selected', 'font-style')
+  const selectedFontFamilyVar = sciText(selectedStateName, 'font-family')
+  const selectedFontSizeVar = sciText(selectedStateName, 'font-size')
+  const selectedFontWeightVar = sciText(selectedStateName, 'font-weight')
+  const selectedLetterSpacingVar = sciText(selectedStateName, 'letter-spacing')
+  const selectedLineHeightVar = sciText(selectedStateName, 'line-height')
+  const selectedTextDecorationVar = sciText(selectedStateName, 'text-decoration')
+  const selectedTextTransformVar = sciText(selectedStateName, 'text-transform')
+  const selectedFontStyleVar = sciText(selectedStateName, 'font-style')
 
   // Get unselected text properties
   const unselectedFontFamilyVar = sciText('unselected', 'font-family')

@@ -15,7 +15,8 @@
       "options": [
         "inactive",
         "active"
-      ]
+      ],
+      "fixedOptions": true
     },
     "orientation": {
       "icon": "arrows-out-cardinal",
@@ -23,7 +24,8 @@
       "options": [
         "horizontal",
         "vertical"
-      ]
+      ],
+      "fixedOptions": true
     }
   },
   "properties": {

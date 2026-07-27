@@ -126,6 +126,22 @@ export default function NumberInputPreview({
                                 step={1}
                             />
                         )}
+
+                        {/* Custom/unknown state — renders a basic field so styling changes are visible */}
+                        {state !== 'default' && state !== 'error' && state !== 'disabled' && state !== 'focus' && (
+                            <NumberInput
+                                label="Quantity"
+                                placeholder="Enter quantity"
+                                defaultValue={42}
+                                leadingIcon={StarIcon ? <StarIcon /> : <span>⭐</span>}
+                                state={state as any}
+                                layout={layoutVariant as any}
+                                layer={selectedLayer as any}
+                                min={0}
+                                max={100}
+                                step={1}
+                            />
+                        )}
                     </div>
                 </div>
             ))}

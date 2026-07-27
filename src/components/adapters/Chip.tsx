@@ -16,7 +16,8 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type ChipProps = {
   children?: React.ReactNode
-  variant?: 'unselected' | 'selected' | 'error' | 'error-selected'
+  // The four legacy names, plus any custom selection-state variant created in the editor.
+  variant?: 'unselected' | 'selected' | 'error' | 'error-selected' | (string & {})
   size?: 'default' | 'small'
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
@@ -251,7 +252,7 @@ export function Chip({
 }
 
 function getChipStyles(
-  variant: 'unselected' | 'selected' | 'error' | 'error-selected',
+  variant: 'unselected' | 'selected' | 'error' | 'error-selected' | (string & {}),
   size: 'default' | 'small',
   layer: ComponentLayer,
   elevation?: string,

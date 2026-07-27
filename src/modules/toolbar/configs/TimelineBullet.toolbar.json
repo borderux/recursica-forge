@@ -12,7 +12,8 @@
     },
     "selection-states": {
       "icon": "circle",
-      "label": "State"
+      "label": "State",
+      "fixedOptions": true
     }
   },
   "properties": {

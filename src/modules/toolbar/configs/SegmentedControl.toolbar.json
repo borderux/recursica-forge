@@ -2,7 +2,8 @@
   "variants": {
     "orientation": {
       "icon": "arrows-out",
-      "label": "Orientation"
+      "label": "Orientation",
+      "fixedOptions": true
     },
     "fill-width": {
       "icon": "arrows-out-line-horizontal",

@@ -20,7 +20,8 @@
         "icon-label": "Icon + Label",
         "label": "Label",
         "icon-only": "Icon Only"
-      }
+      },
+      "fixedOptions": true
     }
   },
   "properties": {
