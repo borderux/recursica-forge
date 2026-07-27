@@ -4691,7 +4691,7 @@
                 "min-width": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 100,
+                    "value": 60,
                     "unit": "px"
                   }
                 },
@@ -4989,7 +4989,7 @@
                 "min-width": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 100,
+                    "value": 60,
                     "unit": "px"
                   }
                 },
@@ -5287,7 +5287,7 @@
                 "min-width": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 100,
+                    "value": 60,
                     "unit": "px"
                   }
                 },
