@@ -17,4 +17,5 @@
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
   text-align: var(--table-cell-text-align, inherit) !important;
+  vertical-align: middle !important;
 }
