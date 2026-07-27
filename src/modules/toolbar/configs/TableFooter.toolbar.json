@@ -68,6 +68,10 @@
     "properties.text-style": {
       "icon": "text-aa",
       "label": "Text Style"
+    },
+    "properties.currency-style": {
+      "icon": "text-aa",
+      "label": "Currency Style"
     }
   }
 }

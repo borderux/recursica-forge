@@ -23,18 +23,19 @@ export default function TableFooter({
   const horizontalDividerSizeVar = getComponentLevelCssVar('TableFooter', 'horizontal-divider-size')
   const verticalDividerSizeVar = getComponentLevelCssVar('TableFooter', 'vertical-divider-size')
 
+  // Currency footers use the footer's own currency-style text token set, mirroring how
+  // TableCell reads its own currency-style (rather than borrowing TableCell's).
   const isCurrency = variant === 'currency'
-  const textComponent = isCurrency ? 'TableCell' : 'TableFooter'
   const textStyleKey = isCurrency ? 'currency-style' : 'text-style'
 
-  const textFamilyVar = getComponentTextCssVar(textComponent, textStyleKey, 'font-family')
-  const textSizeVar = getComponentTextCssVar(textComponent, textStyleKey, 'font-size')
-  const textWeightVar = getComponentTextCssVar(textComponent, textStyleKey, 'font-weight')
-  const textStyleVar = getComponentTextCssVar(textComponent, textStyleKey, 'font-style')
-  const textLetterSpacingVar = getComponentTextCssVar(textComponent, textStyleKey, 'letter-spacing')
-  const textLineHeightVar = getComponentTextCssVar(textComponent, textStyleKey, 'line-height')
-  const textCaseVar = getComponentTextCssVar(textComponent, textStyleKey, 'text-transform')
-  const textDecorationVar = getComponentTextCssVar(textComponent, textStyleKey, 'text-decoration')
+  const textFamilyVar = getComponentTextCssVar('TableFooter', textStyleKey, 'font-family')
+  const textSizeVar = getComponentTextCssVar('TableFooter', textStyleKey, 'font-size')
+  const textWeightVar = getComponentTextCssVar('TableFooter', textStyleKey, 'font-weight')
+  const textStyleVar = getComponentTextCssVar('TableFooter', textStyleKey, 'font-style')
+  const textLetterSpacingVar = getComponentTextCssVar('TableFooter', textStyleKey, 'letter-spacing')
+  const textLineHeightVar = getComponentTextCssVar('TableFooter', textStyleKey, 'line-height')
+  const textCaseVar = getComponentTextCssVar('TableFooter', textStyleKey, 'text-transform')
+  const textDecorationVar = getComponentTextCssVar('TableFooter', textStyleKey, 'text-decoration')
 
   const footerBase = (prop: string) => buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, prop)
   const footerDisabled = (prop: string) => buildComponentCssVarPath('TableFooter', 'variants', 'states', 'disabled', 'properties', 'colors', layer, prop)
