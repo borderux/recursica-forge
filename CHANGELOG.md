@@ -1,5 +1,30 @@
 # recursica-forge
 
+## 0.24.2
+
+### Patch Changes
+
+- f9a5536: - **Variant Management & Editing**:
+  - Replaced the `DeleteVariantModal` with an `EditVariantModal` that supports both deleting and renaming custom design system variants.
+  - Added a `renameCustomVariant` function in `createVariantInUIKit.ts` to rename variant keys in the UI Kit while preserving order, values, and the current toolbar selection.
+  - Added support for fixed/closed variant axes where creation of new variants is disallowed, using the `allowCreate` prop and `getVariantFixedOptions`.
+  - **Dynamic Config Refactoring**:
+    - Replaced hardcoded layouts and variants in component previews and toolbars (e.g. `Chip`, `SegmentedControl`, `MenuItem`) with dynamic configurations loaded from the toolbar configs and adapters.
+  - **Component Schemas**:
+    - Added JSON schema export definitions for `tableCell.json`, `tableFooter.json`, and `tableHeader.json` to complete component test coverage.
+- 62bff43: - **Table Component Overrides**:
+  - Adjusted the styling of `.recursica-table-cell.mantine-table-cell` in `TableCell.css` to use `vertical-align: middle !important`, fixing misalignment of checkboxes and other elements in multi-select table rows.
+  - **Design Tokens**:
+    - Updated the default `min-width` property value from `100px` to `60px` in `recursica_ui-kit.json` for tab elements.
+- d4caf2b: - **Table Component Styles**:
+  - Fixed a styling issue where `text-decoration` was not inheriting or propagating to the actual text content in `TableHeader` and `TableFooter` (due to atomic inline-flex/inline-block behaviors) by explicitly applying the decoration CSS variables inside the inner wrappers of `TableHeader.css` and `TableFooter.css`.
+  - Refactored `TableFooter.tsx` so that `currency` variants read text settings from the component's own new `currency-style` design token rather than borrowing from `TableCell`.
+  - **Design Tokens**:
+    - Added `currency-style` under `TableFooter` definitions in `recursica_ui-kit.json` to match the custom currency styling options.
+  - **Toolbar Configuration & Previews**:
+    - Added the `properties.currency-style` control block to `TableFooter.toolbar.json`.
+    - Cleaned up the `TablePreview.tsx` module by removing hardcoded inline `fontWeight` rules from the footer, allowing the design tokens to properly dictate the text weights.
+
 ## 0.24.1
 
 ### Patch Changes
