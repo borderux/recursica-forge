@@ -77,6 +77,12 @@ export interface ToolbarVariantConfig {
   icon: string
   label: string
   optionLabels?: Record<string, string> // Override display labels per option value
+  /**
+   * When true, this axis is a closed/fixed set (e.g. a checkbox's checked/unchecked/indeterminate,
+   * or a binary active/inactive selection) and the toolbar must NOT offer a "New variant" option —
+   * there can never be additional values.
+   */
+  fixedOptions?: boolean
 }
 
 export interface ToolbarConfig {
@@ -426,6 +432,17 @@ export function getVariantIcon(componentName: string, variantPropName: string): 
 export function getVariantLabel(componentName: string, variantPropName: string): string | null {
   const config = getVariantConfig(componentName, variantPropName)
   return config?.label || null
+}
+
+/**
+ * Returns whether a variant axis is a fixed/closed set that must not offer a "New variant" option.
+ */
+export function getVariantFixedOptions(
+  componentName: string,
+  variantPropName: string
+): boolean {
+  const config = getVariantConfig(componentName, variantPropName)
+  return config?.fixedOptions === true
 }
 
 /**

@@ -117,6 +117,19 @@ export default function AutocompletePreview({
                                 layer={selectedLayer as any}
                             />
                         )}
+
+                        {/* Custom/unknown state — renders a basic field so styling changes are visible */}
+                        {state !== 'default' && state !== 'error' && state !== 'disabled' && state !== 'focus' && (
+                            <Autocomplete
+                                label="Forge Tool"
+                                placeholder="Search goblin forge tools..."
+                                items={items}
+                                leadingIcon={SearchIcon ? <SearchIcon /> : undefined}
+                                state={state as any}
+                                layout={layoutVariant as any}
+                                layer={selectedLayer as any}
+                            />
+                        )}
                     </div>
                 </div>
             ))}

@@ -201,10 +201,7 @@ export function Label({
   // Get CSS variables for layout-specific spacing
   let layoutStyles: Record<string, string> = {}
 
-  if (layout === 'stacked') {
-    const bottomPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'stacked', 'properties', 'bottom-padding')
-    layoutStyles.paddingBottom = `var(${bottomPaddingVar})`
-  } else if (layout === 'side-by-side') {
+  if (layout === 'side-by-side') {
     const minHeightVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'min-height')
     // Use min-height so the label can grow with content
     layoutStyles.minHeight = `var(${minHeightVar})`
@@ -216,6 +213,11 @@ export function Label({
       layoutStyles.justifyContent = 'flex-end'
     }
     // Note: gutter is used by parent container's gap property, not applied to label itself
+  } else {
+    // 'stacked' and any custom layout variant are treated as stacked-like: read the layout's own
+    // bottom-padding generically so a user-created layout variant reflects its edited value.
+    const bottomPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layout, 'properties', 'bottom-padding')
+    layoutStyles.paddingBottom = `var(${bottomPaddingVar})`
   }
 
   // Apply width/minWidth to layoutStyles

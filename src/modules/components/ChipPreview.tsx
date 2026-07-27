@@ -12,7 +12,7 @@ interface ChipPreviewProps {
 }
 
 export default function ChipPreview({
-  selectedVariants: _selectedVariants,
+  selectedVariants,
   selectedLayer,
   selectedAltLayer,
   activeState = 'base',
@@ -24,6 +24,11 @@ export default function ChipPreview({
   // Chips have no disabled state — a non-interactive chip is simply a default chip.
   const isError = activeState === 'error'
 
+  // The selection-state currently chosen in the toolbar. Built-ins are unselected/selected;
+  // any other value is a custom variant the user created and is now editing.
+  const selectedState = selectedVariants['selection-states'] || 'unselected'
+  const isBuiltInState = selectedState === 'unselected' || selectedState === 'selected'
+
   // Selectable chips own their selection state so the user can toggle them on/off.
   const [selected, setSelected] = useState<Record<string, boolean>>({
     moonstone: false,
@@ -32,12 +37,15 @@ export default function ChipPreview({
   const toggle = (key: string) =>
     setSelected((prev) => ({ ...prev, [key]: !prev[key] }))
 
-  // Resolve the chip variant from its selected state, layering the error colours on top.
-  const variantFor = (isSelected: boolean) =>
-    (isError
+  // For built-in states, keep the rich demo: unselected + selected shown together, with the
+  // Error tab overlaying the error colours. For a custom state, every chip renders that state
+  // so its property edits are reflected in the preview.
+  const variantFor = (isSelected: boolean): string => {
+    if (!isBuiltInState) return selectedState
+    return isError
       ? isSelected ? 'error-selected' : 'error'
-      : isSelected ? 'selected' : 'unselected') as
-      'unselected' | 'selected' | 'error' | 'error-selected'
+      : isSelected ? 'selected' : 'unselected'
+  }
 
   // Determine the actual layer to use
   const actualLayer = useMemo(() => {

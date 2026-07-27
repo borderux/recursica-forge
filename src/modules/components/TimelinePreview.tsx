@@ -147,22 +147,29 @@ function bulletPropVar(variant: string, prop: string) {
     return buildComponentCssVarPath('TimelineBullet', 'variants', 'types', variant, 'properties', prop)
 }
 
-function buildCssVars(layer: string) {
+function buildCssVars(layer: string, selState: string) {
+    // The Timeline `selection-states` axis has two built-ins (active/inactive). Any other value is
+    // a custom selection-state the user created and is now editing. For a custom state we route BOTH
+    // the active AND inactive consumed CSS var names at that variant's generically-built vars, so
+    // every item in the preview renders the custom state and its prop edits are visible (mirrors the
+    // Chip preview). Built-in active/inactive behaviour is preserved unchanged.
+    const isBuiltInSel = selState === 'active' || selState === 'inactive'
+
     // Timeline (parent) vars — connector, text colors, spacing, text styles.
     // active-/inactive-prefixed props live under variants.selection-states.<sel>
     // (connector + title/description/timestamp colors, connector-size); everything
     // else is a plain component-level property.
     const timelineColorVar = (prop: string) => {
         const m = prop.match(/^(active|inactive)-(.+)$/)
-        return m
-            ? buildComponentCssVarPath('Timeline', 'variants', 'selection-states', m[1], 'properties', 'colors', layer, m[2])
-            : buildComponentCssVarPath('Timeline', 'properties', 'colors', layer, prop)
+        if (!m) return buildComponentCssVarPath('Timeline', 'properties', 'colors', layer, prop)
+        const sel = isBuiltInSel ? m[1] : selState
+        return buildComponentCssVarPath('Timeline', 'variants', 'selection-states', sel, 'properties', 'colors', layer, m[2])
     }
     const timelinePropVar = (prop: string) => {
         const m = prop.match(/^(active|inactive)-(.+)$/)
-        return m
-            ? buildComponentCssVarPath('Timeline', 'variants', 'selection-states', m[1], 'properties', m[2])
-            : buildComponentCssVarPath('Timeline', 'properties', prop)
+        if (!m) return buildComponentCssVarPath('Timeline', 'properties', prop)
+        const sel = isBuiltInSel ? m[1] : selState
+        return buildComponentCssVarPath('Timeline', 'variants', 'selection-states', sel, 'properties', m[2])
     }
     const textVar = (group: string, prop: string) =>
         getComponentTextCssVar('Timeline', group, prop)
@@ -339,7 +346,10 @@ export default function TimelinePreview({
         return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
     }, [])
 
-    const cssVars = buildCssVars(selectedLayer)
+    // The currently-selected Timeline selection-state (built-in "active"/"inactive", or a custom
+    // variant name). Drives the connector + text colours so a custom state's edits show in the preview.
+    const selState = selectedVariants?.['selection-states'] || 'active'
+    const cssVars = buildCssVars(selectedLayer, selState)
     const { leftBullets, rightBullets } = useBullets()
 
     return (

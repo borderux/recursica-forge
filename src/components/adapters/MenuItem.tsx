@@ -18,6 +18,9 @@ export type MenuItemProps = {
   trailingIcon?: React.ReactNode
   supportingText?: string
   selected?: boolean
+  /** Custom selection-state name (from the toolbar). Built-ins are `selected`/`unselected`;
+   *  any other value renders in the selected/active visual with that state's colours. */
+  selectionState?: string
   divider?: 'none' | 'bottom'
   dividerColor?: string
   dividerOpacity?: number
@@ -36,6 +39,7 @@ export function MenuItem({
   trailingIcon,
   supportingText,
   selected = false,
+  selectionState,
   divider,
   dividerColor,
   dividerOpacity,
@@ -111,6 +115,7 @@ export function MenuItem({
     trailingIcon,
     supportingText,
     selected,
+    selectionState,
     divider,
     dividerColor,
     dividerOpacity,

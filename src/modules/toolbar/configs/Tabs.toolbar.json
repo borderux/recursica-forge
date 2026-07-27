@@ -15,7 +15,8 @@
       "options": [
         "horizontal",
         "vertical"
-      ]
+      ],
+      "fixedOptions": true
     }
   },
   "properties": {

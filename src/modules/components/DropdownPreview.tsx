@@ -119,6 +119,19 @@ export default function DropdownPreview({
                                 layer={selectedLayer as any}
                             />
                         )}
+
+                        {/* Custom/unknown state — renders a basic field so styling changes are visible */}
+                        {state !== 'default' && state !== 'error' && state !== 'disabled' && state !== 'focus' && (
+                            <Dropdown
+                                label="Forge Material"
+                                placeholder="Choose a material"
+                                items={items}
+                                leadingIcon={StarIcon ? <StarIcon /> : undefined}
+                                state={state as any}
+                                layout={layoutVariant as any}
+                                layer={selectedLayer as any}
+                            />
+                        )}
                     </div>
                 </div>
             ))}

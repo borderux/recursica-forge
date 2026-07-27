@@ -24,11 +24,9 @@ export default function LoaderPreview({
     selectedLayer,
     componentElevation,
 }: LoaderPreviewProps) {
-    const sizes = [
-        { key: 'small', label: 'Small' },
-        { key: 'default', label: 'Default' },
-        { key: 'large', label: 'Large' },
-    ] as const
+    // Read the currently-selected size variant so custom variants mount and
+    // reflect prop edits (falls back to the built-in default).
+    const sizeVariant = selectedVariants.size || 'default'
 
     return (
         <div style={{
@@ -38,20 +36,17 @@ export default function LoaderPreview({
             alignItems: 'center',
             width: '100%',
         }}>
-            {sizes.map(({ key, label }) => (
-                <div
-                    key={key}
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
-                        alignItems: 'center',
-                    }}
-                >
-                    <h2 style={h2Style}>{label}</h2>
-                    <Loader size={key} />
-                </div>
-            ))}
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
+                    alignItems: 'center',
+                }}
+            >
+                <h2 style={h2Style}>{sizeVariant}</h2>
+                <Loader size={sizeVariant as any} />
+            </div>
         </div>
     )
 }

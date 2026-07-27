@@ -36,6 +36,10 @@ export type SegmentedControlProps = {
   disabled?: boolean
   showLabel?: boolean // Whether to show labels (default: true)
   componentNameForCssVars?: ComponentName // Component name to use for CSS variables (default: 'SegmentedControl')
+  // Optional selection-state variant name for the SegmentedControlItem. Built-in states
+  // (selected/unselected) keep the default behavior; any other value is a custom variant whose
+  // selected-segment colours resolve generically from variants.selection-states.<name>.
+  selectionState?: string
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
@@ -52,6 +56,7 @@ export function SegmentedControl({
   disabled = false,
   showLabel = true,
   componentNameForCssVars = 'SegmentedControl' as ComponentName,
+  selectionState,
   className,
   style,
   mantine,
@@ -75,11 +80,23 @@ export function SegmentedControl({
     const paddingHorizontalVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'padding-horizontal')
     const heightVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'height')
     
-    // Get CSS variables - selected properties
-    const selectedBgVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'background-color')
-    const selectedBorderColorVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'border-color')
-    const selectedBorderSizeVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'border-size')
-    const selectedElevationVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'elevation')
+    // Get CSS variables - selected properties.
+    // A custom selection-state (any name other than the built-in selected/unselected) resolves the
+    // selected segment's colours generically from variants.selection-states.<name> so its edits show.
+    const customSelState = componentNameForCssVars === 'SegmentedControlItem' &&
+      selectionState && selectionState !== 'selected' && selectionState !== 'unselected'
+      ? selectionState
+      : null
+    const selectedColorVar = (prop: string) => customSelState
+      ? buildComponentCssVarPath(componentNameForCssVars, 'variants', 'selection-states', customSelState, 'properties', 'colors', layer, prop)
+      : buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, prop)
+    const selectedPropVar = (prop: string) => customSelState
+      ? buildComponentCssVarPath(componentNameForCssVars, 'variants', 'selection-states', customSelState, 'properties', prop)
+      : buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', prop)
+    const selectedBgVar = selectedColorVar('background-color')
+    const selectedBorderColorVar = selectedColorVar('border-color')
+    const selectedBorderSizeVar = selectedPropVar('border-size')
+    const selectedElevationVar = selectedPropVar('elevation')
     
     // Get CSS variables - item properties (applied to both regular and selected items)
     const itemBorderRadiusVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'border-radius')
@@ -91,7 +108,7 @@ export function SegmentedControl({
     const textVar = componentNameForCssVars === 'SegmentedControlItem'
       ? buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'text-color')
       : buildComponentCssVarPath(componentNameForCssVars, 'properties', 'container', 'colors', layer, 'text-color')
-    const selectedTextVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'text-color')
+    const selectedTextVar = selectedColorVar('text-color')
     
     // Get text style properties
     const fontFamilyVar = getComponentTextCssVar(componentNameForCssVars, 'text', 'font-family')
@@ -359,6 +376,7 @@ export function SegmentedControl({
         disabled={disabled}
         showLabel={showLabel}
         componentNameForCssVars={componentNameForCssVars}
+        selectionState={selectionState}
         className={className}
         style={style}
         mantine={mantine}

@@ -2,7 +2,8 @@
   "variants": {
     "selection-states": {
       "icon": "circle",
-      "label": "Selection"
+      "label": "Selection",
+      "fixedOptions": true
     }
   },
   "properties": {

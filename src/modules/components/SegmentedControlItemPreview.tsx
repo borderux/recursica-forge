@@ -15,6 +15,13 @@ export default function SegmentedControlItemPreview({
 }: SegmentedControlItemPreviewProps) {
   const [updateKey, setUpdateKey] = useState(0)
 
+  // The selection-state chosen in the toolbar. Built-ins are selected/unselected; any other value
+  // is a custom variant the user created and is now editing. For a custom state, force the selected
+  // segment to render with that state's colours so its property edits are visible in the preview.
+  const selectedState = selectedVariants['selection-states'] || 'selected'
+  const isBuiltInState = selectedState === 'selected' || selectedState === 'unselected'
+  const selectionState = isBuiltInState ? undefined : selectedState
+
   // Listen for CSS variable updates to force re-render
   // CRITICAL: Skip UIKit vars - they're silent and don't need component re-renders
   useEffect(() => {
@@ -119,6 +126,7 @@ export default function SegmentedControlItemPreview({
           layer={selectedLayer as any}
           elevation={componentElevation}
           componentNameForCssVars="SegmentedControlItem"
+          selectionState={selectionState}
         />
       </div>
 
@@ -134,6 +142,7 @@ export default function SegmentedControlItemPreview({
           layer={selectedLayer as any}
           elevation={componentElevation}
           componentNameForCssVars="SegmentedControlItem"
+          selectionState={selectionState}
         />
       </div>
 
@@ -150,6 +159,7 @@ export default function SegmentedControlItemPreview({
           elevation={componentElevation}
           showLabel={false}
           componentNameForCssVars="SegmentedControlItem"
+          selectionState={selectionState}
         />
       </div>
     </div>

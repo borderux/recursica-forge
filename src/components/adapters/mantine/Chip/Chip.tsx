@@ -98,8 +98,15 @@ export default function Chip({
   // Colors now live under variants.selection-states.<sel>[.variants.states.error].properties.colors.
   // The legacy `variant` values map: unselected/selected → base of that selection; error/error-selected
   // → the `error` interaction-state of unselected/selected respectively.
+  const LEGACY_VARIANTS = ['unselected', 'selected', 'error', 'error-selected']
+  const isLegacyVariant = LEGACY_VARIANTS.includes(variant)
   const chipIsError = variant === 'error' || variant === 'error-selected'
-  const chipSel = (variant === 'selected' || variant === 'error-selected') ? 'selected' : 'unselected'
+  // Legacy names collapse onto the built-in unselected/selected selection-states; any other
+  // value is a custom selection-state variant created in the editor, whose colours live at
+  // variants.selection-states.<name>.
+  const chipSel = isLegacyVariant
+    ? ((variant === 'selected' || variant === 'error-selected') ? 'selected' : 'unselected')
+    : variant
   const chipColor = (prop: string) => chipIsError
     ? buildComponentCssVarPath('Chip', 'variants', 'selection-states', chipSel, 'variants', 'states', 'error', 'properties', 'colors', layer, prop)
     : buildComponentCssVarPath('Chip', 'variants', 'selection-states', chipSel, 'properties', 'colors', layer, prop)

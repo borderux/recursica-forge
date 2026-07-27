@@ -228,6 +228,46 @@ export default function Link({
                 }
             })(),
 
+            // Custom interaction-state override.
+            // The ternary above only resolves the four built-in states; an unknown/custom
+            // forceState falls through to the `default` branch, so a custom state's tokens
+            // were never read. Here we build the state's CSS-var paths GENERICALLY from the
+            // passed name (variants.states.<forceState>.properties…) — the same properties the
+            // built-in states set. We redirect the base `--link-*` custom properties (the base
+            // .mantine-Anchor-root rule reads these, and its color/text-decoration use
+            // !important, which would otherwise beat the inline values) AND set the resolved
+            // inline values, mirroring how the built-in IIFE produces its output. For built-in
+            // states and the no-forceState case this returns {}, preserving exact behavior.
+            ...(() => {
+                const builtInStates = ['default', 'hover', 'visited', 'visited-hover']
+                if (!forceState || builtInStates.includes(forceState)) return {} as React.CSSProperties
+
+                const customTextColorVar = buildComponentCssVarPath('Link', 'variants', 'states', forceState, 'properties', 'colors', layer, 'text-color')
+                const customIconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', forceState, 'properties', 'colors', layer, 'icon')
+                const customFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', forceState, 'properties', 'text', 'font-weight')
+                const customTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', forceState, 'properties', 'text', 'text-decoration')
+                const customTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', forceState, 'properties', 'text', 'text-transform')
+                const customFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', forceState, 'properties', 'text', 'font-style')
+
+                return {
+                    // Redirect the base `--link-*` custom properties the .mantine-Anchor-root rule consumes
+                    '--link-color': `var(${customTextColorVar})`,
+                    '--link-font-weight': `var(${customFontWeightVar})`,
+                    '--link-text-decoration': readCssVar(customTextDecorationVar) || 'underline',
+                    '--link-text-transform': readCssVar(customTextTransformVar) || 'none',
+                    '--link-font-style': readCssVar(customFontStyleVar) || 'normal',
+                    '--link-icon-color': `var(${customIconColorVar})`,
+                    // Resolved inline values (mirrors the built-in IIFE output)
+                    color: `var(${customTextColorVar})`,
+                    fontWeight: `var(${customFontWeightVar})`,
+                    fontStyle: `var(${customFontStyleVar})` as any,
+                    textTransform: (readCssVar(customTextTransformVar) || 'none') as any,
+                    textDecoration: (underline === 'always' ? 'underline'
+                        : underline === 'none' ? 'none'
+                            : `var(${customTextDecorationVar})`) as any,
+                } as React.CSSProperties
+            })(),
+
             // Apply emphasis opacity based on variant
             opacity: variant === 'subtle' ? `var(${lowEmphasisOpacityVar})` : `var(${highEmphasisOpacityVar})`,
 

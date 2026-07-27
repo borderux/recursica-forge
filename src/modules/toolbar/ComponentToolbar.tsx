@@ -17,7 +17,7 @@ import { Tooltip } from '../../components/adapters/Tooltip'
 import { Accordion } from '../../components/adapters/Accordion'
 import PropControlContent from './menu/floating-palette/PropControlContent'
 import { iconNameToReactComponent } from '../components/iconUtils'
-import { getPropIcon, getPropLabel, loadToolbarConfig } from './utils/loadToolbarConfig'
+import { getPropIcon, getPropLabel, loadToolbarConfig, getVariantFixedOptions } from './utils/loadToolbarConfig'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar } from '../../core/css/updateCssVar'
@@ -619,6 +619,7 @@ export default function ComponentToolbar({
                     selected={selectedVariants[variant.propName] || variant.variants[0]}
                     onSelect={(variantName) => onVariantChange(variant.propName, variantName)}
                     onCreateVariant={() => handleOpenCreateVariant(variant.propName, variant.variants)}
+                    allowCreate={!getVariantFixedOptions(componentName, variant.propName)}
                     className="full-width"
                   />
                 )}

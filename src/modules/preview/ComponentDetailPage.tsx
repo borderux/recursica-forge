@@ -732,7 +732,7 @@ export default function ComponentDetailPage() {
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}>
-                    {component.render?.(new Set([selectedLayer as any])) || <div>No preview available</div>}
+                    {component.render?.(new Set([selectedLayer as any]), previewState, selectedVariants) || <div>No preview available</div>}
                   </div>
                 )}
               </Suspense>

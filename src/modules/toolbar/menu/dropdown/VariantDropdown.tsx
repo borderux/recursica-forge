@@ -12,6 +12,8 @@ interface VariantDropdownProps {
   selected: string
   onSelect: (variant: string) => void
   onCreateVariant?: () => void
+  /** When false, the "New variant" option is hidden (fixed/closed axis). Defaults to true. */
+  allowCreate?: boolean
   className?: string
 }
 
@@ -24,31 +26,35 @@ export default function VariantDropdown({
   selected,
   onSelect,
   onCreateVariant,
+  allowCreate = true,
   className = ''
 }: VariantDropdownProps) {
   const variantLabel = getVariantLabel(componentName, propName) || toSentenceCase(propName)
 
   // Map variants to DropdownItem format, appending "New variant…" as a special entry
+  // (unless this axis is a fixed/closed set, in which case no new values can exist).
   const items: DropdownItem[] = useMemo(() => {
     const baseItems: DropdownItem[] = variants.map(v => ({
       value: v,
       label: getVariantOptionLabel(componentName, propName, v) ?? toSentenceCase(v)
     }))
 
-    baseItems.push({
-      value: NEW_VARIANT_SENTINEL,
-      label: 'New variant',
-      divider: 'none',
-      leadingIconType: 'icon',
-      leadingIcon: (
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: 14, height: 14 }}>
-          <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      ),
-    })
+    if (allowCreate) {
+      baseItems.push({
+        value: NEW_VARIANT_SENTINEL,
+        label: 'New variant',
+        divider: 'none',
+        leadingIconType: 'icon',
+        leadingIcon: (
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: 14, height: 14 }}>
+            <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        ),
+      })
+    }
 
     return baseItems
-  }, [variants])
+  }, [variants, allowCreate, componentName, propName])
 
   const handleChange = (value: string) => {
     if (value === NEW_VARIANT_SENTINEL) {
