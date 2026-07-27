@@ -34,6 +34,9 @@
   vertical-align: middle !important;
   margin-top: var(--table-header-vertical-margin, 0px) !important;
   margin-bottom: var(--table-header-vertical-margin, 0px) !important;
+  /* text-decoration does not propagate from the <th> into an inline-flex (atomic inline),
+     so it must be re-applied here to reach the actual header text. */
+  text-decoration: var(--table-header-text-decoration) !important;
 }
 
 .recursica-table-header-sort-icon {

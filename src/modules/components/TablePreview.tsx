@@ -473,13 +473,13 @@ export default function TablePreview({
             <tr>
               <TableFooter style={{ width: 48 }} layer={selectedLayer as any} />
               <TableFooter layer={selectedLayer as any}>
-                <span style={{ fontWeight: 'bold' }}>Total Loot:</span>
+                <span>Total Loot:</span>
               </TableFooter>
               <TableFooter layer={selectedLayer as any} />
               <TableFooter layer={selectedLayer as any} />
               <TableFooter layer={selectedLayer as any} />
               <TableFooter variant="currency" style={{ textAlign: 'right' }} layer={selectedLayer as any}>
-                <span style={{ fontWeight: 'bold' }}>
+                <span>
                   {totalLoot} GP
                 </span>
               </TableFooter>

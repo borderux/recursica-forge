@@ -33,4 +33,7 @@
   vertical-align: middle !important;
   margin-top: var(--table-footer-vertical-margin, 0px) !important;
   margin-bottom: var(--table-footer-vertical-margin, 0px) !important;
+  /* text-decoration does not propagate from the <td> into an inline-block (atomic inline),
+     so it must be re-applied here to reach the actual footer text. */
+  text-decoration: var(--table-footer-text-decoration) !important;
 }
