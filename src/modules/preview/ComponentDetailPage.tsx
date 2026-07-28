@@ -217,7 +217,12 @@ export default function ComponentDetailPage() {
     if (hasNonBaseStates) {
       parts.push(activeState.charAt(0).toUpperCase() + activeState.slice(1))
     }
-    return parts.length > 0 ? parts.join(' · ') : (component?.name ?? '')
+    // When there are no variant/state parts (e.g. a component with no variants), show the active
+    // interaction state ("Base") rather than repeating the component name — the name is already the
+    // h1 above the preview.
+    return parts.length > 0
+      ? parts.join(' · ')
+      : (activeState.charAt(0).toUpperCase() + activeState.slice(1))
   }, [selectedVariants, componentStructure, activeState, component])
 
   // Display-toggle variants (e.g. fill-width) render as switches in the preview header, aligned to
