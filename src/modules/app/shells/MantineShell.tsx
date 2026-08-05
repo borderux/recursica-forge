@@ -18,6 +18,14 @@ import { Tabs } from "../../../components/adapters/Tabs";
 import { Dropdown } from "../../../components/adapters/Dropdown";
 import { Modal } from "../../../components/adapters/Modal";
 import "@mantine/core/styles.css";
+// Real Recursica adapter styles — MUST load after Mantine core styles so the
+// adapter's :global(.mantine-*) overrides win. The adapter styles components
+// purely through --recursica_* custom properties, which Forge emits at runtime
+// via core/css/scopedCssEngine.ts. Note we deliberately do NOT import
+// @recursica/official-release's recursica_variables_scoped.css: that file carries
+// the published (older) token values and would mask genuine wiring gaps.
+import "@recursica/adapter-common/style.css";
+import "@recursica/mantine-adapter/style.css";
 import "./MantineShell.css";
 import { RadioButtonGroup } from "../../../components/adapters/RadioButtonGroup";
 import { RadioButtonItem } from "../../../components/adapters/RadioButtonItem";

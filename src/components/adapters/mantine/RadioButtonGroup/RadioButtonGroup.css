@@ -1,8 +1,0 @@
-/* Mantine RadioButtonGroup Overrides */
-
-.recursica-radio-group-items {
-    display: flex;
-    flex-direction: column;
-    gap: var(--radio-group-gap);
-    padding: var(--radio-group-padding);
-}

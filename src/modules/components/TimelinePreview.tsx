@@ -17,7 +17,6 @@ import { Timeline } from '../../components/adapters/Timeline'
 import { Avatar } from '../../components/adapters/Avatar'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from './iconUtils'
-import '../../components/adapters/mantine/Timeline/Timeline.css'
 import { getTypographyStyle } from './typographyStyles'
 
 

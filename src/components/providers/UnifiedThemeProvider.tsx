@@ -6,6 +6,8 @@
  */
 
 import { ReactNode, useState, useEffect } from 'react'
+import { RecursicaThemeProvider } from '@recursica/mantine-adapter'
+import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 
 // Module-level caches: once a provider resolves, subsequent renders use it synchronously.
 // This ensures that pre-warmed imports (e.g. in test beforeAll) take effect immediately
@@ -108,6 +110,24 @@ const CarbonProvider = ({ children }: { children: ReactNode }) => {
   return <Provider>{children}</Provider>
 }
 
+/**
+ * Keeps @recursica/mantine-adapter's theme context in sync with Forge's theme mode.
+ *
+ * initLayer0 is false on purpose: RecursicaThemeProvider's default is to wrap
+ * children in a `<Layer layer={0}>` div, but core/bootstrap.ts already sets
+ * data-recursica-layer="0" on <html> alongside data-recursica-theme, so layer-0
+ * variables resolve on the root and inherit. Letting it inject its own wrapper
+ * would add a display:block div around Mantine's AppShell and disturb the layout.
+ */
+const RecursicaProvider = ({ children }: { children: ReactNode }) => {
+  const { mode } = useThemeMode()
+  return (
+    <RecursicaThemeProvider theme={mode} initLayer0={false}>
+      {children}
+    </RecursicaThemeProvider>
+  )
+}
+
 export function UnifiedThemeProvider({ children }: { children: ReactNode }) {
   // Wrap with all providers to ensure components can render regardless of kit
   // The actual component selection happens at the adapter level
@@ -115,7 +135,9 @@ export function UnifiedThemeProvider({ children }: { children: ReactNode }) {
     <MantineProvider>
       <MaterialProvider>
         <CarbonProvider>
-          {children}
+          <RecursicaProvider>
+            {children}
+          </RecursicaProvider>
         </CarbonProvider>
       </MaterialProvider>
     </MantineProvider>

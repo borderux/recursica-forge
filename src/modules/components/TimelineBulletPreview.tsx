@@ -12,7 +12,6 @@ import { ThemeIcon } from '@mantine/core'
 import { Timeline } from '../../components/adapters/Timeline'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from './iconUtils'
-import '../../components/adapters/mantine/Timeline/Timeline.css'
 
 interface TimelineBulletPreviewProps {
     selectedVariants: Record<string, string>

@@ -1,135 +1,124 @@
 /**
  * Mantine Component Registry
- * 
- * Registers Mantine component implementations
+ *
+ * Registers the REAL published adapter, @recursica/mantine-adapter, as the
+ * Mantine implementation for every component Forge previews.
+ *
+ * Forge's local hand-written Mantine implementations (src/components/adapters/mantine)
+ * have been deleted. There is deliberately no fallback: a component with no upstream
+ * equivalent stays unregistered so `getComponent` returns null and the preview renders
+ * empty. A blank preview is honest signal; a local implementation quietly filling in
+ * would make an unwired prop look wired.
+ *
+ * The adapter styles itself purely from --recursica_* custom properties, so editing a
+ * token in Forge should move the real component. Where it doesn't, the prop isn't wired
+ * up in the adapter — which is the whole point of pointing Forge at the real thing.
+ * Run `npm run report:adapter-wiring` for the exhaustive list.
  */
 
 import { registerComponent } from './index'
 import type { ComponentName } from './types'
 
-// Button
-registerComponent('mantine', 'Button', () => import('../adapters/mantine/Button/Button'))
-registerComponent('mantine', 'Checkbox', () => import('../adapters/mantine/Checkbox/Checkbox'))
-registerComponent('mantine', 'CheckboxItem', () => import('../adapters/mantine/CheckboxItem/CheckboxItem'))
-registerComponent('mantine', 'CheckboxGroup', () => import('../adapters/mantine/CheckboxGroup/CheckboxGroup'))
-registerComponent('mantine', 'RadioButton', () => import('../adapters/mantine/RadioButton/RadioButton'))
-registerComponent('mantine', 'RadioButtonItem', () => import('../adapters/mantine/RadioButtonItem/RadioButtonItem'))
-registerComponent('mantine', 'RadioButtonGroup', () => import('../adapters/mantine/RadioButtonGroup/RadioButtonGroup'))
+type AdapterModule = typeof import('@recursica/mantine-adapter')
 
-// Tabs
-registerComponent('mantine', 'Tabs', () => import('../adapters/mantine/Tabs/Tabs'))
+/**
+ * Registers a component by picking a named export off the adapter and re-shaping it
+ * into the `{ default }` module the registry's lazy loader expects.
+ *
+ * `select` receives the whole adapter module so sub-components can be reached
+ * (e.g. Table.Td, Menu.Item) — upstream composes several of Forge's separately
+ * registered names as static properties of a parent component.
+ */
+function register(
+  componentName: ComponentName,
+  select: (m: AdapterModule) => unknown
+) {
+  registerComponent('mantine', componentName, () =>
+    import('@recursica/mantine-adapter').then((m) => {
+      const Component = select(m)
+      if (!Component) {
+        throw new Error(
+          `[registry] @recursica/mantine-adapter has no export for "${componentName}". ` +
+            `The adapter's export surface likely changed — update src/components/registry/mantine.ts.`
+        )
+      }
+      return { default: Component as React.ComponentType<any> }
+    })
+  )
+}
 
-// Switch
-registerComponent('mantine', 'Switch', () => import('../adapters/mantine/Switch/Switch'))
+// ─── Direct 1:1 exports ──────────────────────────────────────────────────────
 
-// Avatar
-registerComponent('mantine', 'Avatar', () => import('../adapters/mantine/Avatar/Avatar'))
+register('Accordion', (m) => m.Accordion)
+register('AssistiveElement', (m) => m.AssistiveElement)
+register('Avatar', (m) => m.Avatar)
+register('Badge', (m) => m.Badge)
+register('Breadcrumb', (m) => m.Breadcrumb)
+register('Button', (m) => m.Button)
+register('Card', (m) => m.Card)
+register('Checkbox', (m) => m.Checkbox)
+register('CheckboxGroup', (m) => m.CheckboxGroup)
+register('Chip', (m) => m.Chip)
+register('DatePicker', (m) => m.DatePicker)
+register('Dropdown', (m) => m.Dropdown)
+register('FileInput', (m) => m.FileInput)
+register('FileUpload', (m) => m.FileUpload)
+register('HoverCard', (m) => m.HoverCard)
+register('Label', (m) => m.Label)
+register('Link', (m) => m.Link)
+register('Loader', (m) => m.Loader)
+register('Menu', (m) => m.Menu)
+register('Modal', (m) => m.Modal)
+register('NumberInput', (m) => m.NumberInput)
+register('Pagination', (m) => m.Pagination)
+register('Panel', (m) => m.Panel)
+register('Popover', (m) => m.Popover)
+register('ReadOnlyField', (m) => m.ReadOnlyField)
+register('SegmentedControl', (m) => m.SegmentedControl)
+register('Slider', (m) => m.Slider)
+register('Stepper', (m) => m.Stepper)
+register('Switch', (m) => m.Switch)
+register('Table', (m) => m.Table)
+register('Tabs', (m) => m.Tabs)
+register('TextField', (m) => m.TextField)
+register('TimePicker', (m) => m.TimePicker)
+register('Timeline', (m) => m.Timeline)
+register('Toast', (m) => m.Toast)
+register('Tooltip', (m) => m.Tooltip)
+register('TransferList', (m) => m.TransferList)
+register('Tree', (m) => m.Tree)
 
-// Badge
-registerComponent('mantine', 'Badge', () => import('../adapters/mantine/Badge/Badge'))
+// ─── Renamed upstream ────────────────────────────────────────────────────────
 
-// Toast
-registerComponent('mantine', 'Toast', () => import('../adapters/mantine/Toast/Toast'))
+register('Autocomplete', (m) => m.AutoComplete) // capital C upstream
+register('Textarea', (m) => m.TextArea) // capital A upstream
+register('RadioButton', (m) => m.Radio)
+register('RadioButtonGroup', (m) => m.RadioGroup)
 
-// Chip
-registerComponent('mantine', 'Chip', () => import('../adapters/mantine/Chip/Chip'))
+// ─── Collapsed into a parent upstream ────────────────────────────────────────
+// Forge registers these as standalone components; the adapter models them as
+// sub-components or as the plain single-item component.
 
-// Label
-registerComponent('mantine', 'Label', () => import('../adapters/mantine/Label/Label'))
+register('CheckboxItem', (m) => m.Checkbox) // an item in a group is just a Checkbox
+register('RadioButtonItem', (m) => m.Radio)
+register('MenuItem', (m) => m.Menu.Item)
+register('TableCell', (m) => m.Table.Td)
+register('TableHeader', (m) => m.Table.Th)
+register('TableFooter', (m) => m.Table.Tfoot)
 
-// Link
-registerComponent('mantine', 'Link', () => import('../adapters/mantine/Link/Link'))
-
-
-// AssistiveElement
-registerComponent('mantine', 'AssistiveElement', () => import('../adapters/mantine/AssistiveElement/AssistiveElement'))
-
-// TextField
-registerComponent('mantine', 'TextField', () => import('../adapters/mantine/TextField/TextField'))
-
-// Textarea
-registerComponent('mantine', 'Textarea', () => import('../adapters/mantine/Textarea/Textarea'))
-
-// NumberInput
-registerComponent('mantine', 'NumberInput', () => import('../adapters/mantine/NumberInput/NumberInput'))
-
-// Dropdown
-registerComponent('mantine', 'Dropdown', () => import('../adapters/mantine/Dropdown/Dropdown'))
-
-// Autocomplete
-registerComponent('mantine', 'Autocomplete', () => import('../adapters/mantine/Autocomplete/Autocomplete'))
-
-// Breadcrumb
-registerComponent('mantine', 'Breadcrumb', () => import('../adapters/mantine/Breadcrumb/Breadcrumb'))
-
-// Accordion
-registerComponent('mantine', 'Accordion', () => import('../adapters/mantine/Accordion/Accordion'))
-
-// MenuItem
-registerComponent('mantine', 'MenuItem', () => import('../adapters/mantine/MenuItem/MenuItem'))
-
-// Menu
-registerComponent('mantine', 'Menu', () => import('../adapters/mantine/Menu/Menu'))
-
-// Slider
-registerComponent('mantine', 'Slider', () => import('../adapters/mantine/Slider/Slider'))
-
-// SegmentedControl
-registerComponent('mantine', 'SegmentedControl', () => import('../adapters/mantine/SegmentedControl/SegmentedControl'))
-
-// Modal
-registerComponent('mantine', 'Modal', () => import('../adapters/mantine/Modal/Modal'))
-
-// Tooltip
-registerComponent('mantine', 'Tooltip', () => import('../adapters/mantine/Tooltip/Tooltip'))
-
-// ReadOnlyField
-registerComponent('mantine', 'ReadOnlyField', () => import('../adapters/mantine/ReadOnlyField/ReadOnlyField'))
-
-// FileInput
-registerComponent('mantine', 'FileInput', () => import('../adapters/mantine/FileInput/FileInput'))
-
-// FileUpload
-registerComponent('mantine', 'FileUpload', () => import('../adapters/mantine/FileUpload/FileUpload'))
-
-// Panel
-registerComponent('mantine', 'Panel', () => import('../adapters/mantine/Panel/Panel'))
-
-// HoverCard
-registerComponent('mantine', 'HoverCard', () => import('../adapters/mantine/HoverCard/HoverCard'))
-
-// Popover
-registerComponent('mantine', 'Popover', () => import('../adapters/mantine/Popover/Popover'))
-
-// Card
-registerComponent('mantine', 'Card', () => import('../adapters/mantine/Card/Card'))
-
-// Pagination
-registerComponent('mantine', 'Pagination', () => import('../adapters/mantine/Pagination/Pagination'))
-
-// TimePicker
-registerComponent('mantine', 'TimePicker', () => import('../adapters/mantine/TimePicker/TimePicker'))
-
-// DatePicker
-registerComponent('mantine', 'DatePicker', () => import('../adapters/mantine/DatePicker/DatePicker'))
-
-// Loader
-registerComponent('mantine', 'Loader', () => import('../adapters/mantine/Loader/Loader'))
-
-// Stepper
-registerComponent('mantine', 'Stepper', () => import('../adapters/mantine/Stepper/Stepper'))
-registerComponent('mantine', 'Timeline', () => import('../adapters/mantine/Timeline/Timeline'))
-
-// TransferList
-registerComponent('mantine', 'TransferList', () => import('../adapters/mantine/TransferList/TransferList'))
-
-// Tree
-registerComponent('mantine', 'Tree', () => import('../adapters/mantine/Tree/Tree'))
-
-// Table
-registerComponent('mantine', 'Table', () => import('../adapters/mantine/Table/Table'))
-registerComponent('mantine', 'TableCell', () => import('../adapters/mantine/TableCell/TableCell'))
-registerComponent('mantine', 'TableHeader', () => import('../adapters/mantine/TableHeader/TableHeader'))
-registerComponent('mantine', 'TableFooter', () => import('../adapters/mantine/TableFooter/TableFooter'))
-
-// Add more components as they're implemented
+// ─── Intentionally unregistered ──────────────────────────────────────────────
+// No upstream equivalent, so these render as nothing rather than falling back:
+//
+//   TimelineBullet        — upstream has no standalone bullet; it is internal to
+//                           Timeline.Item, so its tokens cannot be exercised.
+//   SegmentedControlItem  — upstream SegmentedControl is data-driven (a `data`
+//                           array), with no per-item component to render.
+//   AccordionItem / AccordionHeader / AccordionContent
+//                         — upstream exposes Accordion.Item / .Control / .Panel,
+//                           but Forge has no dispatcher for these names.
+//   SwitchGroup / SwitchItem
+//                         — dispatchers exist but were never registered for
+//                           Mantine here either; upstream does export SwitchGroup,
+//                           so these are candidates to wire up next.
+//   Divider / List / Select / Radio / Text / TabsItem / HoverCardPopover
+//                         — declared in ComponentName but never registered.

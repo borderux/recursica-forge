@@ -237,7 +237,14 @@ export function Dropdown({
         }}>
             <Suspense fallback={<span />}>
                 <Component
-                    items={items}
+                    // @recursica/mantine-adapter's Dropdown takes Mantine's `data` array,
+                    // not Forge's `items`. Without this the select renders with no options,
+                    // which disables variant switching across every preview.
+                    data={items.map((item) => ({
+                        value: item.value,
+                        label: item.label ?? item.value,
+                        disabled: item.disabled,
+                    }))}
                     value={currentValue}
                     onChange={handleSelect}
                     placeholder={placeholder}

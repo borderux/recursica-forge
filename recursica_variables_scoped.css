@@ -1,0 +1,21 @@
+/*
+ * SENTINEL — intentionally empty. Do not import this file.
+ *
+ * @recursica/official-release ships a postinstall script that copies its own
+ * default theme files into the host project root — recursica_variables_scoped.css
+ * plus recursica_brand.json, recursica_tokens.json, recursica_ui-kit.json and
+ * recursica.json. It gates that copy on whether recursica_variables_scoped.css
+ * already exists at the root.
+ *
+ * Forge's root recursica_*.json files ARE the source of truth for the token
+ * schema, and they are ahead of whatever official-release has published. Without
+ * this file present, every `npm install` silently overwrites them with the
+ * published (older) copies.
+ *
+ * This file exists solely to trip that gate so the copy is skipped. It is committed
+ * (not gitignored) so the guard survives a fresh clone — otherwise the first
+ * `npm install` on a new checkout would silently replace the token files. No code
+ * imports it: Forge generates its scoped CSS variables at runtime via
+ * src/core/css/scopedCssEngine.ts, and generates this filename on export via
+ * EXPORT_FILENAME_CSS_SCOPED.
+ */

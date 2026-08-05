@@ -362,21 +362,27 @@ export function SegmentedControl({
     )
   }
   
+  // @recursica/mantine-adapter's SegmentedControl takes Mantine's `data` array, not
+  // Forge's `items`. Without this mapping Mantine reads `data.map` off undefined and
+  // throws. Forge-only props (showLabel, componentNameForCssVars, selectionState,
+  // elevation) have no counterpart upstream and are dropped rather than leaked onto
+  // the DOM as unknown attributes.
+  const data = items.map((item) => ({
+    value: item.value,
+    label: (showLabel === false ? item.icon : (item.label ?? item.icon)) ?? item.value,
+    disabled: item.disabled,
+  }))
+
   return (
     <Suspense fallback={<span />}>
       <Component
-        items={items}
+        data={data}
         value={value}
         defaultValue={defaultValue}
         onChange={onChange}
         orientation={orientation}
         fullWidth={fullWidth}
         layer={layer}
-        elevation={elevation}
-        disabled={disabled}
-        showLabel={showLabel}
-        componentNameForCssVars={componentNameForCssVars}
-        selectionState={selectionState}
         className={className}
         style={style}
         mantine={mantine}
