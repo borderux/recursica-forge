@@ -10,10 +10,16 @@
  * This module is the single place that reconciles the two vocabularies:
  *
  *   RENAMES   — a Forge prop that has a genuine adapter equivalent, renamed in flight.
+ *   RESHAPES  — the capability exists upstream but under a different *shape* (e.g. nested
+ *               under a Mantine sub-prop object). Expressed as a function.
  *   DROPPED   — a Forge prop with no adapter equivalent. Dropping it is not hiding a
  *               problem: the capability genuinely does not exist upstream, and dropping is
  *               what stops it leaking to the DOM. Each one is logged once (dev only) and
  *               is a candidate to raise upstream.
+ *
+ * Renames and reshapes are translation — the adapter can already do the thing. Drops are
+ * adapter gaps, and are the entries that should drive upstream fixes; they are marked GAP.
+ * Nothing here may substitute a Forge implementation for a missing adapter capability.
  *
  * Keeping this as data rather than edits spread across ~50 dispatcher files means the gap
  * between the two APIs is readable in one place, and shrinks visibly as upstream adds
@@ -21,6 +27,14 @@
  */
 
 import type { ComponentName } from '../registry/types'
+
+/**
+ * How one Forge prop maps onto the adapter:
+ *   string   — rename to this adapter prop
+ *   null     — no upstream equivalent; drop it (an adapter gap)
+ *   function — the capability exists upstream in a different shape; returns the props to merge
+ */
+type PropMapping = string | null | ((value: unknown) => Record<string, unknown>)
 
 /**
  * Props Forge's dispatcher layer adds for its own bookkeeping. No adapter component takes
@@ -50,7 +64,7 @@ export const FORGE_ONLY_PROPS = new Set([
  * uses Mantine's (description / error / leftSection / rightSection) and composes labels
  * through FormControlLayout, so Forge's id and alignment plumbing has nowhere to go.
  */
-const FIELD_CONTRACT: Record<string, string | null> = {
+const FIELD_CONTRACT: Record<string, PropMapping> = {
   helpText: 'assistiveText',
   errorText: 'error',
   leadingIcon: 'leftSection',
@@ -101,7 +115,7 @@ const FIELD_COMPONENTS: ComponentName[] = [
  * Per-component renames: Forge prop name → adapter prop name.
  * A value of null means "no equivalent upstream — drop it".
  */
-export const PROP_CONTRACT: Partial<Record<ComponentName, Record<string, string | null>>> = {
+export const PROP_CONTRACT: Partial<Record<ComponentName, Record<string, PropMapping>>> = {
   Accordion: {
     allowMultiple: 'multiple',
     openItems: 'value',
@@ -125,12 +139,51 @@ export const PROP_CONTRACT: Partial<Record<ComponentName, Record<string, string 
     secondaryActionLabel: null,
     onSecondaryAction: null,
     secondaryActionDisabled: null,
+    // GAP: the adapter's Modal is a centred Mantine Modal with no anchored positioning and
+    // no dragging, which Forge's colour/opacity pickers need — they open beside the control
+    // they edit and can be dragged aside to see the effect underneath. Still an adapter gap
+    // (2.1 in docs/ADAPTER_CAPABILITY_GAPS.md); the pickers now route around it by rendering
+    // in Forge's own FloatingPalette instead of a Modal, so these props never reach here.
+    position: null,
+    draggable: null,
+    onPositionChange: null,
   },
 
   Switch: {
     // Upstream drives colour and size entirely from tokens; there is no per-instance override.
     colorVariant: null,
     sizeVariant: null,
+  },
+
+  Panel: {
+    // Vocabulary only — the adapter's Panel is a Mantine Drawer and has both capabilities.
+    isOpen: 'opened',
+    position: 'placement',
+    // Composed as a child via Panel.Footer in the dispatcher, not passed as a prop.
+    footer: null,
+    // Forge's `overlay` means "fixed, full-viewport-height panel", which is simply what a
+    // Drawer already is — nothing to map, and nothing missing upstream.
+    overlay: null,
+    // GAP: no way to set a panel's width. RecursicaPanelProps omits `size`, `styles`,
+    // `classNames` and `style` from Mantine's Drawer props, so width is token-only and a
+    // caller that needs a specific width (Forge's type-style panel wants 400px) cannot ask
+    // for one without the `overStyled` escape hatch. Left unmapped deliberately: the panel
+    // renders at its token width so the gap stays visible.
+    width: null,
+  },
+
+  TextField: {
+    // GAP: no per-instance minimum width. The adapter Omits `controlMinWidth`/`controlMaxWidth`
+    // from RecursicaTextFieldProps and hardcodes them to var(--text-field-control-min-width),
+    // so a caller that needs a field to shrink below the token (Forge's colour scale passes
+    // minWidth={0} to fit a dense grid) has no way to say so.
+    minWidth: null,
+  },
+
+  Dropdown: {
+    // Not a gap — Mantine's Select takes the popover z-index nested under comboboxProps, and
+    // the adapter does not omit it. Needed when a Dropdown lives inside a high-z-index modal.
+    zIndex: (value) => ({ comboboxProps: { zIndex: value } }),
   },
 
   Link: {
@@ -225,6 +278,20 @@ export function applyPropContract(
     if (FORGE_ONLY_PROPS.has(key)) continue
 
     const mapped = contract && key in contract ? contract[key] : key
+
+    // Reshape: the capability exists upstream under a different shape. Merged rather than
+    // assigned so several Forge props could contribute to the same adapter sub-object.
+    if (typeof mapped === 'function') {
+      for (const [outKey, outValue] of Object.entries(mapped(value))) {
+        const existing = out[outKey]
+        out[outKey] =
+          existing && typeof existing === 'object' && outValue && typeof outValue === 'object'
+            ? { ...(existing as object), ...(outValue as object) }
+            : outValue
+      }
+      continue
+    }
+
     if (mapped === null) {
       if (import.meta.env.DEV) {
         const id = `${componentName}.${key}`

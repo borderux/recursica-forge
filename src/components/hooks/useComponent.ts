@@ -5,8 +5,8 @@
  */
 
 import React, { useMemo } from 'react'
-import { Layer } from '@recursica/mantine-adapter'
 import { AdapterErrorBoundary } from './AdapterErrorBoundary'
+import { LayerScope } from './LayerScope'
 import { applyPropContract } from './adapterPropContract'
 import { useUiKit } from '../../modules/uikit/UiKitContext'
 import { getComponent } from '../registry'
@@ -30,14 +30,12 @@ const REACT_INTERNAL_KEYS = new Set([
 ])
 
 /**
- * Translates Forge's `layer="layer-N"` string into the numeric layer
- * @recursica/mantine-adapter's `<Layer>` expects. Returns null for layer-0 and for
- * anything unparseable.
+ * Translates Forge's `layer="layer-N"` string into the numeric layer LayerScope wants.
+ * Returns null for layer-0 and for anything unparseable.
  *
- * layer-0 returns null on purpose: core/bootstrap.ts puts data-recursica-layer="0"
- * on <html>, so layer-0 variables already resolve ambiently. Skipping the wrapper in
- * that (very common) case avoids injecting a stray block-level div into preview and
- * chrome layouts. Layers 1–3 genuinely need the element to carry the attribute.
+ * layer-0 returns null on purpose: core/bootstrap.ts puts data-recursica-layer="0" on
+ * <html>, so layer-0 variables already resolve ambiently and no wrapper is needed in that
+ * (very common) case. Layers 1–3 need an element to carry the attribute.
  */
 function toWrapperLayer(layer: unknown): 1 | 2 | 3 | null {
   const match = typeof layer === 'string' ? /^layer-([0-9]+)$/.exec(layer) : null
@@ -76,8 +74,11 @@ export function useComponent<T = any>(componentName: ComponentName): React.Compo
         const mantineRest = applyPropContract(componentName, rest)
         const element = React.createElement(Component as any, { ...mantineRest, ref })
         const wrapperLayer = toWrapperLayer(rest.layer)
+        // LayerScope, not the adapter's <Layer>: Forge's `layer` prop asks for token
+        // resolution, whereas <Layer> paints a surface (border, radius, padding, elevation).
+        // Using Layer here drew a box around every control that requested a non-zero layer.
         const layered = wrapperLayer
-          ? React.createElement(Layer, { layer: wrapperLayer }, element)
+          ? React.createElement(LayerScope, { layer: wrapperLayer }, element)
           : element
 
         // Contain render-time throws so one prop-contract mismatch can't blank the route.

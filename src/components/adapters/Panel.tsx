@@ -8,6 +8,11 @@
  */
 
 import { Suspense, useState, useEffect } from 'react'
+// The footer is a composition API upstream: the adapter exposes Panel.Footer (its own
+// addition — Mantine's Drawer has no footer) instead of a `footer` prop, so it has to be
+// rendered as a child. Imported directly for the same reason Accordion imports its
+// sub-components: statics do not survive the registry's React.lazy wrapper.
+import { PanelFooter } from '@recursica/mantine-adapter'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentLevelCssVar , buildComponentCssVarPath } from '../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
@@ -116,14 +121,20 @@ export function Panel({
         )
     }
 
+    // @recursica/mantine-adapter's Panel is a Mantine Drawer: it has an `opened` flag and
+    // renders display:none while closed. Forge's Panel was an always-rendered edge panel
+    // whose visibility came from *mounting* it, so callers like TypeStylePanel pass no open
+    // prop at all — which under the real adapter meant the panel never appeared. Defaulting
+    // to open preserves Forge's mount-to-show contract for those callers while still letting
+    // anyone who does control `isOpen` drive it explicitly.
+    const opened = isOpen ?? true
+
     return (
         <Suspense fallback={<div className={className} style={style} />}>
             <Component
                 title={title}
-                footer={footer}
-                children={children}
                 position={position}
-                isOpen={isOpen}
+                isOpen={opened}
                 onClose={onClose}
                 layer={layer}
                 elevation={componentElevation}
@@ -135,7 +146,10 @@ export function Panel({
                 mantine={mantine}
                 material={material}
                 carbon={carbon}
-            />
+            >
+                {children}
+                {footer && <PanelFooter>{footer}</PanelFooter>}
+            </Component>
         </Suspense>
     )
 }

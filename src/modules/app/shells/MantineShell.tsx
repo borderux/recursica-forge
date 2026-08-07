@@ -645,15 +645,22 @@ export default function MantineShell({
                 },
               ];
               return (
-                <SegmentedControl
-                  items={modeItems}
-                  value={mode}
-                  onChange={(value) => setMode(value as "light" | "dark")}
-                  orientation='horizontal'
-                  fullWidth={false}
-                  layer='layer-0'
-                  componentNameForCssVars='SegmentedControl'
-                />
+                // flexShrink: 0 because this header row is marginally overfull and every child
+                // defaults to shrinking. The two icon segments are a fixed token size and
+                // cannot compress, so when the control was allowed to shrink its contents
+                // spilled past the page edge and the dark-mode segment was cut off. The tabs
+                // beside it are elastic and absorb the difference instead.
+                <div style={{ flexShrink: 0, display: "flex" }}>
+                  <SegmentedControl
+                    items={modeItems}
+                    value={mode}
+                    onChange={(value) => setMode(value as "light" | "dark")}
+                    orientation='horizontal'
+                    fullWidth={false}
+                    layer='layer-0'
+                    componentNameForCssVars='SegmentedControl'
+                  />
+                </div>
               );
             })()}
           </Group>

@@ -7,7 +7,7 @@
 
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { useMemo, useEffect, useState } from 'react'
+import { useMemo, useEffect, useState, useCallback } from 'react'
 import uikitJson from '../../../recursica_ui-kit.json'
 import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
 import { getBrandStateCssVar } from '../../components/utils/brandCssVars'
@@ -310,18 +310,33 @@ export function ComponentsSidebar({
     return componentTree.map(node => toTreeData(node))
   }, [componentTree])
 
-  const handleNavClick = (componentName: string) => {
-    const slug = componentNameToSlug(componentName)
-    navigate(`/components/${slug}`)
-  }
+  const handleNavClick = useCallback(
+    (componentName: string) => {
+      const target = `/components/${componentNameToSlug(componentName)}`
+      // Only navigate on an actual change. @recursica/mantine-adapter's Tree reports its
+      // selection from an effect keyed on [tree.selectedState, onSelectedChange], so it fires
+      // on mount and again whenever this callback's identity changes — not only when the user
+      // picks a node. Navigating unconditionally therefore re-rendered the sidebar, which
+      // re-ran the effect, which navigated again: a loop Chrome eventually cut off with
+      // "Throttling navigation to prevent the browser from hanging".
+      if (location.pathname === target) return
+      navigate(target)
+    },
+    [location.pathname, navigate]
+  )
 
-  const handleSelect = (selectedKeys: string[]) => {
-    if (selectedKeys.length > 0 && selectedKeys[0] !== FORM_INPUTS_GROUP) {
-      // The "Form inputs" node is a synthetic group — clicking it expands/collapses
-      // (handled by the Tree) but never navigates.
-      handleNavClick(selectedKeys[0])
-    }
-  }
+  // Stable identity matters here, not just for render cost: the adapter's Tree effect lists
+  // this callback as a dependency, so a new function every render is itself a trigger.
+  const handleSelect = useCallback(
+    (selectedKeys: string[]) => {
+      if (selectedKeys.length > 0 && selectedKeys[0] !== FORM_INPUTS_GROUP) {
+        // The "Form inputs" node is a synthetic group — clicking it expands/collapses
+        // (handled by the Tree) but never navigates.
+        handleNavClick(selectedKeys[0])
+      }
+    },
+    [handleNavClick]
+  )
 
   return (
     <aside

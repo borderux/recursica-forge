@@ -5,7 +5,12 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Dropdown } from '../../components/adapters/Dropdown'
-import { Modal } from '../../components/adapters/Modal'
+// SHIM for adapter gap 2.1 (docs/ADAPTER_CAPABILITY_GAPS.md): @recursica/mantine-adapter's
+// Modal is a centred Mantine Modal with no anchored placement and no dragging, so driving this
+// picker through it put it centre-screen and pinned it there. Forge's own FloatingPalette does
+// anchored placement + dragging and is already what ColorTokenPicker uses, so both pickers now
+// share one overlay. Revert to the adapter's Modal once it can anchor to a trigger and drag.
+import FloatingPalette from '../toolbar/menu/floating-palette/FloatingPalette'
 import { Label } from '../../components/adapters/Label'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 import { getVarsStore } from '../../core/store/varsStore'
@@ -412,28 +417,14 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const pickerTitle = isOverlay ? 'Edit overlay' : 'Pick a color'
 
   return (
-    <Modal
-      isOpen={true}
+    <FloatingPalette
+      anchorElement={anchor}
+      title={pickerTitle}
+      draggable
+      className="palette-swatch-picker-overlay"
       onClose={() => {
         setAnchor(null)
         setActiveOnSelect(null)
-      }}
-      title={pickerTitle}
-      size="auto"
-      withOverlay={false}
-      centered={false}
-      position={{ x: pos.left, y: pos.top }}
-      onPositionChange={(newPos) => setPos({ top: newPos.y, left: newPos.x })}
-      draggable={true}
-      showHeader={true}
-      showFooter={false}
-      padding={true}
-      layer="layer-3"
-      zIndex={20000}
-      className="palette-swatch-picker-overlay"
-      style={{
-        overflow: 'visible',
-        visibility: pos.top === -9999 ? 'hidden' : 'visible',
       }}
     >
       <div
@@ -802,6 +793,6 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
           )
         })}
       </div>
-    </Modal>
+    </FloatingPalette>
   )
 }

@@ -1,0 +1,128 @@
+/*
+ * ColorTriggerControl — Forge-local styles.
+ *
+ * Every value comes from the same design tokens @recursica/mantine-adapter's own form fields
+ * read (globals.form.field.* and components.text-field.*), so this control matches real
+ * fields and reacts to token edits the same way they do. Nothing here is hardcoded except
+ * structural layout.
+ *
+ * Token names are the layer-free generic form; the theme and layer are resolved by the
+ * cascade via data-recursica-theme / data-recursica-layer (see core/css/scopedCssEngine.ts).
+ */
+
+.color-trigger-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--recursica_ui-kit_globals_form_field_size_vertical-gutter);
+  width: 100%;
+}
+
+.color-trigger-control__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--recursica_ui-kit_globals_form_field_size_icon-text-gap);
+}
+
+.color-trigger-control__label {
+  font-family: var(--recursica_ui-kit_components_label_properties_text_font-family);
+  font-size: var(--recursica_ui-kit_components_label_properties_text_font-size);
+  font-weight: var(--recursica_ui-kit_components_label_properties_text_font-weight);
+  line-height: var(--recursica_ui-kit_components_label_properties_text_line-height);
+  letter-spacing: var(--recursica_ui-kit_components_label_properties_text_letter-spacing);
+  color: var(--recursica_ui-kit_components_label_properties_colors_text-color);
+}
+
+.color-trigger-control__field {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--recursica_ui-kit_components_text-field_properties_icon-text-gap);
+  width: 100%;
+  min-height: var(--recursica_ui-kit_components_text-field_properties_min-height);
+  padding: var(--recursica_ui-kit_components_text-field_properties_vertical-padding)
+    var(--recursica_ui-kit_components_text-field_properties_horizontal-padding);
+
+  background-color: var(--recursica_ui-kit_globals_form_field_colors_background-color);
+  border: var(--recursica_ui-kit_components_text-field_properties_border-size) solid
+    var(--recursica_ui-kit_globals_form_field_colors_border-color);
+  border-radius: var(--recursica_ui-kit_components_text-field_properties_border-radius);
+
+  cursor: pointer;
+  /* The control is a trigger, not a text input — never show a text caret or allow selection. */
+  user-select: none;
+}
+
+.color-trigger-control__field:hover:not([data-disabled]) {
+  border-color: var(--recursica_ui-kit_globals_form_field_colors_border-selected);
+}
+
+/* Match the app's focus-visible convention rather than the browser default outline. */
+.color-trigger-control__field:focus-visible {
+  outline: var(--recursica_ui-kit_globals_form_field_size_border-size-default) solid
+    var(--recursica_ui-kit_globals_form_field_colors_border-selected);
+  outline-offset: 1px;
+}
+
+.color-trigger-control__field[data-disabled] {
+  cursor: not-allowed;
+  background-color: var(--recursica_ui-kit_globals_form_field_colors_disabled-background-color);
+  border-color: var(--recursica_ui-kit_globals_form_field_colors_disabled-border-color);
+}
+
+.color-trigger-control__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-family: var(--recursica_ui-kit_components_text-field_properties_text_font-family);
+  font-size: var(--recursica_ui-kit_components_text-field_properties_text_font-size);
+  font-weight: var(--recursica_ui-kit_components_text-field_properties_text_font-weight);
+  line-height: var(--recursica_ui-kit_components_text-field_properties_text_line-height);
+  letter-spacing: var(--recursica_ui-kit_components_text-field_properties_text_letter-spacing);
+  color: var(--recursica_ui-kit_globals_form_field_colors_text-valued);
+}
+
+.color-trigger-control__field[data-disabled] .color-trigger-control__value {
+  color: var(--recursica_ui-kit_globals_form_field_colors_disabled-text);
+}
+
+.color-trigger-control__swatch,
+.color-trigger-control__trailing {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--recursica_ui-kit_globals_form_field_colors_icon-color);
+}
+
+.color-trigger-control__trailing {
+  width: var(--recursica_ui-kit_components_text-field_properties_icon-size);
+  height: var(--recursica_ui-kit_components_text-field_properties_icon-size);
+}
+
+.color-trigger-control__field[data-disabled] .color-trigger-control__swatch,
+.color-trigger-control__field[data-disabled] .color-trigger-control__trailing {
+  color: var(--recursica_ui-kit_globals_form_field_colors_disabled-icon-color);
+}
+
+/*
+ * Label action — Forge's global-reference affordance beside the label. A bare icon button:
+ * no chrome of its own, inheriting the label's icon colour.
+ */
+.palette-color-control-label-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--recursica_ui-kit_globals_form_field_colors_icon-color);
+}
+
+.palette-color-control-label-action:hover {
+  color: var(--recursica_ui-kit_globals_form_field_colors_border-selected);
+}
