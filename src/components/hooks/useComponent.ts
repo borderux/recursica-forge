@@ -7,6 +7,7 @@
 import React, { useMemo } from 'react'
 import { Layer } from '@recursica/mantine-adapter'
 import { AdapterErrorBoundary } from './AdapterErrorBoundary'
+import { applyPropContract } from './adapterPropContract'
 import { useUiKit } from '../../modules/uikit/UiKitContext'
 import { getComponent } from '../registry'
 import type { ComponentName } from '../registry/types'
@@ -60,22 +61,21 @@ export function useComponent<T = any>(componentName: ComponentName): React.Compo
     const Wrapper = React.forwardRef<unknown, any>((props, ref) => {
       const { mantine, material, carbon, ...rest } = props
 
-      // Mantine is now the real published adapter (@recursica/mantine-adapter), which
-      // has a different prop contract from Forge's old local implementations:
+      // Mantine is now the real published adapter (@recursica/mantine-adapter), whose prop
+      // vocabulary differs from Forge's old local implementations. applyPropContract()
+      // renames what has an equivalent and drops what does not — see adapterPropContract.ts.
       //
-      //  - No `layer` prop. Layering is resolved through the CSS cascade off
-      //    data-recursica-layer, so the request becomes a <Layer> wrapper.
-      //  - No `elevation` prop. Elevation is driven entirely by design tokens upstream.
-      //  - No `mantine` escape-hatch prop. Forwarding it would leak an unknown
-      //    attribute onto the DOM.
+      // Dropping matters: the adapter does not filter unknown props, so anything it doesn't
+      // recognise reaches the DOM and React warns about it. `layer` is handled here rather
+      // than in the table because it becomes a wrapper element, not a prop.
       //
-      // `style` and `className` are deliberately NOT stripped here. The adapter runs its
-      // own filterStylingProps() and ignores them unless overStyled is set — letting its
-      // real policy apply is the point of using the real adapter.
+      // `style` and `className` are deliberately NOT stripped. The adapter runs its own
+      // filterStylingProps() and ignores them unless overStyled is set — letting its real
+      // policy apply is the point of using the real adapter.
       if (kit === 'mantine') {
-        const { layer, elevation: _elevation, ...mantineRest } = rest
+        const mantineRest = applyPropContract(componentName, rest)
         const element = React.createElement(Component as any, { ...mantineRest, ref })
-        const wrapperLayer = toWrapperLayer(layer)
+        const wrapperLayer = toWrapperLayer(rest.layer)
         const layered = wrapperLayer
           ? React.createElement(Layer, { layer: wrapperLayer }, element)
           : element

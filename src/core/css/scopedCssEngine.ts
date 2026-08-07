@@ -19,6 +19,10 @@ const PREFIX = '--recursica_'
 interface ScopedAlias {
   genericName: string
   specificName: string
+  /** Theme the alias belongs to. */
+  theme: 'light' | 'dark'
+  /** Layer the alias belongs to, when it is layer-scoped rather than theme-only. */
+  layer?: string
 }
 
 /**
@@ -38,6 +42,7 @@ function classifyVar(specificName: string): {
   layer?: string
   genericName: string
 } | null {
+  // (see aliasesFor below — this returns the primary alias only)
   // Brand theme-scoped vars: --recursica_brand_themes_{theme}_{rest}
   const brandThemeMatch = specificName.match(
     /^--recursica_brand_themes_(light|dark)_(.+)$/
@@ -98,6 +103,56 @@ function classifyVar(specificName: string): {
 }
 
 /**
+ * Matches a layer segment embedded inside a ui-kit path, e.g.
+ * `..._properties_colors_layer-0_background-color` or a trailing `..._elevation_layer-0`.
+ */
+const EMBEDDED_LAYER = /_layer-(\d+)(?=_|$)/
+
+/**
+ * Returns every alias a specific var should produce.
+ *
+ * Most vars produce exactly one, as before. The extra case is a ui-kit var whose *name*
+ * carries the layer (`..._colors_layer-0_background-color`): consumers read a layer-FREE
+ * name and let `[data-recursica-layer="N"]` pick the value — that is how the published
+ * adapter and Forge's own export both work. So such a var also produces a second alias
+ * with the layer segment removed, emitted into the matching theme+layer block.
+ *
+ * Both aliases are emitted rather than replacing the layered one:
+ *   - Toast authors elevation as `..._elevation_layer-0..3` and consumers read it WITH the
+ *     layer in the name, so removing that form would break it.
+ *   - Keeping it costs only stylesheet size and cannot break an existing reader.
+ */
+function aliasesFor(specificName: string): ScopedAlias[] {
+  const primary = classifyVar(specificName)
+  if (!primary) return []
+
+  const aliases: ScopedAlias[] = [
+    {
+      genericName: primary.genericName,
+      specificName,
+      theme: primary.theme,
+      layer: primary.layer,
+    },
+  ]
+
+  // Only ui-kit names embed the layer mid-path. Brand layer vars already use the
+  // `brand_layer_N_` form that consumers read directly, so they are left alone.
+  if (primary.genericName.startsWith(`${PREFIX}ui-kit_`)) {
+    const embedded = EMBEDDED_LAYER.exec(primary.genericName)
+    if (embedded) {
+      aliases.push({
+        genericName: primary.genericName.replace(EMBEDDED_LAYER, ''),
+        specificName,
+        theme: primary.theme,
+        layer: embedded[1],
+      })
+    }
+  }
+
+  return aliases
+}
+
+/**
  * Generates the CSS text for scoped alias blocks.
  */
 function generateScopedCss(allSpecificVars: CssVarMap): string {
@@ -106,21 +161,15 @@ function generateScopedCss(allSpecificVars: CssVarMap): string {
   const themePlusLayer: Map<string, ScopedAlias[]> = new Map()
 
   for (const specificName of Object.keys(allSpecificVars)) {
-    const info = classifyVar(specificName)
-    if (!info) continue
-
-    const alias: ScopedAlias = {
-      genericName: info.genericName,
-      specificName,
-    }
-
-    if (info.layer != null) {
-      const key = `${info.theme}+${info.layer}`
-      if (!themePlusLayer.has(key)) themePlusLayer.set(key, [])
-      themePlusLayer.get(key)!.push(alias)
-    } else {
-      if (!themeOnly.has(info.theme)) themeOnly.set(info.theme, [])
-      themeOnly.get(info.theme)!.push(alias)
+    for (const alias of aliasesFor(specificName)) {
+      if (alias.layer != null) {
+        const key = `${alias.theme}+${alias.layer}`
+        if (!themePlusLayer.has(key)) themePlusLayer.set(key, [])
+        themePlusLayer.get(key)!.push(alias)
+      } else {
+        if (!themeOnly.has(alias.theme)) themeOnly.set(alias.theme, [])
+        themeOnly.get(alias.theme)!.push(alias)
+      }
     }
   }
 
@@ -156,19 +205,60 @@ function generateScopedCss(allSpecificVars: CssVarMap): string {
 }
 
 /**
+ * Order-sensitive hash of the var NAMES in the map (values are ignored).
+ *
+ * A wrong-but-different hash only causes a needless regeneration, which is harmless; the
+ * dangerous direction — two different name sets hashing the same — would require the exact
+ * same name sequence. Hashing without building an intermediate string keeps this cheap
+ * enough to run on every recompute.
+ */
+function nameSetSignature(vars: CssVarMap): string {
+  let hash = 0x811c9dc5 // FNV-1a offset basis
+  let count = 0
+  for (const name in vars) {
+    count++
+    for (let i = 0; i < name.length; i++) {
+      hash ^= name.charCodeAt(i)
+      hash = Math.imul(hash, 0x01000193) >>> 0
+    }
+    // Separator so ['ab','c'] and ['a','bc'] cannot collide.
+    hash ^= 0x2c
+    hash = Math.imul(hash, 0x01000193) >>> 0
+  }
+  return `${count}:${hash.toString(16)}`
+}
+
+let lastSignature: string | null = null
+
+/**
  * Updates the runtime scoped CSS <style> element.
  * Call this after applyCssVars() with the full var map.
+ *
+ * Every line this generates has the form `genericName: var(specificName)` — it maps names
+ * to names and never embeds a value. Editing a token therefore changes only the specific
+ * var on :root (applyCssVars' job), leaving this stylesheet byte-identical. So the sheet is
+ * regenerated only when the SET OF NAMES changes — a variant or component being added or
+ * removed — which makes an ordinary prop edit cost one hash instead of rebuilding ~1MB of
+ * CSS and reparsing it.
  */
 export function updateScopedCss(allSpecificVars: CssVarMap): void {
-  const css = generateScopedCss(allSpecificVars)
-
   let styleEl = document.getElementById(STYLE_ID) as HTMLStyleElement | null
   if (!styleEl) {
     styleEl = document.createElement('style')
     styleEl.id = STYLE_ID
     document.head.appendChild(styleEl)
   }
-  styleEl.textContent = css
+
+  const signature = nameSetSignature(allSpecificVars)
+  if (signature === lastSignature && styleEl.textContent) return
+
+  styleEl.textContent = generateScopedCss(allSpecificVars)
+  lastSignature = signature
+}
+
+/** Clears the memoized name-set signature. Exposed for tests. */
+export function resetScopedCssCache(): void {
+  lastSignature = null
 }
 
 /**

@@ -6,6 +6,13 @@
  */
 
 import { Suspense, useMemo, useRef, useState, useEffect } from 'react'
+// Aliased: Forge exports its own `AccordionItem` *type* below, and an unaliased import would
+// shadow it confusingly.
+import {
+  AccordionItem as AdapterAccordionItem,
+  AccordionControl,
+  AccordionPanel,
+} from '@recursica/mantine-adapter'
 import { useComponent } from '../hooks/useComponent'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
@@ -170,9 +177,31 @@ export function Accordion({
     carbon,
   }
 
+  // @recursica/mantine-adapter's Accordion is a COMPOSITION api — it renders children and
+  // has no `items` prop. Passing `items` produced an Accordion with no children at all,
+  // which is why every toolbar prop control silently disappeared.
+  //
+  // Control and Panel are composed explicitly rather than via AccordionItem's `title`
+  // shortcut: `title` intersects with the DOM title attribute there, so it only accepts a
+  // string, while Forge item titles are ReactNode. Open/close state still flows through the
+  // props computed above (openItems / allowMultiple become value / multiple via the contract).
+  const { items: _items, ...containerProps } = libraryProps
+
   return (
     <Suspense fallback={<span />}>
-      <Component {...libraryProps} />
+      <Component {...containerProps}>
+        {items.map((item) => {
+          const ItemIcon = item.icon
+          return (
+            <AdapterAccordionItem key={item.id} value={item.id} divider={item.divider}>
+              <AccordionControl leftIcon={ItemIcon ? <ItemIcon /> : undefined}>
+                {item.title}
+              </AccordionControl>
+              <AccordionPanel>{item.content}</AccordionPanel>
+            </AdapterAccordionItem>
+          )
+        })}
+      </Component>
     </Suspense>
   )
 }
