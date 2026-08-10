@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.24.4
+
+### Patch Changes
+
+- 7f9b52b: Fixed CSS export incorrectly quoting literal string token values that are valid bare CSS keywords or numeric strings (e.g. `text-decoration: "underline"` and `font-weight: "400"` instead of `underline` and `400`). Affects both `recursica_variables_scoped.css` and `recursica_variables_specific.css`.
+
 ## 0.24.3
 
 ### Patch Changes
