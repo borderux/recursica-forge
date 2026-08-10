@@ -140,4 +140,18 @@ describe('recursicaJsonTransform (Scoped)', () => {
     
     expect(() => recursicaJsonTransform(invalidJson as any)).toThrow(/targets non-existent var/i)
   })
+
+  it('emits literal CSS keyword and numeric string values bare, not quoted (link decoration/style/weight)', () => {
+    const result = recursicaJsonTransform(json)
+    const css = result[0].contents
+    // text-decoration: "underline" must be a bare keyword, not a quoted string
+    expect(css).toMatch(/--recursica_brand_themes_light_states_link_decoration:\s*underline;/)
+    // font-style: "normal" was already correct; confirm it still is
+    expect(css).toMatch(/--recursica_brand_themes_light_states_link_style:\s*normal;/)
+    // font-weight: "400" (a numeric string) must be emitted bare, not quoted
+    expect(css).toMatch(/--recursica_brand_themes_light_states_link_weight:\s*400;/)
+    // None of the three should ever appear quoted
+    expect(css).not.toMatch(/--recursica_brand_themes_light_states_link_decoration:\s*"underline";/)
+    expect(css).not.toMatch(/--recursica_brand_themes_light_states_link_weight:\s*"400";/)
+  })
 })
