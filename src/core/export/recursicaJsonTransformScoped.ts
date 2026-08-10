@@ -13,7 +13,7 @@
 
 const FILENAME = 'recursica_variables_scoped.css'
 const PREFIX = '--recursica_'
-const TRANSFORM_VERSION = '1.3.0'
+const TRANSFORM_VERSION = '1.3.1'
 
 /** Maps brand.typography $value keys (camelCase) to CSS property names. */
 const TYPOGRAPHY_JSON_TO_CSS_PROP: Record<string, string> = {
@@ -233,6 +233,28 @@ type FormatValueRootOptions = {
 }
 
 /**
+ * CSS keywords that must be emitted bare (unquoted) when a token's literal value is one of
+ * these words — e.g. `text-decoration: underline`, `font-weight: bold`. Any other string
+ * (that isn't a numeric string, hex color, or var() reference) is wrapped in quotes, since
+ * DTCG token values are otherwise free-form strings that aren't necessarily valid bare CSS.
+ *
+ * Keep this in sync with the identical list in recursicaJsonTransformSpecific.ts — both
+ * transforms are intentionally self-contained (no cross-file imports), so the list is
+ * duplicated rather than shared.
+ */
+const BARE_CSS_KEYWORDS = new Set([
+  'none', 'normal', 'inherit', 'initial', 'unset', 'revert', 'currentcolor', 'transparent',
+  // font-style
+  'italic', 'oblique',
+  // text-transform / text-case
+  'uppercase', 'lowercase', 'capitalize',
+  // text-decoration-line
+  'underline', 'overline', 'line-through', 'blink',
+  // font-weight keywords
+  'bold', 'bolder', 'lighter'
+])
+
+/**
  * Formats a value for CSS output. Validates refs and values; pushes errors to the errors array.
  * When options.refNamer is provided (for root output), refs use that namer and options.themeForExpand
  * controls which theme expandRefPath uses for theme-relative refs.
@@ -274,7 +296,8 @@ function formatValue(
 
   if (typeof val === 'string') {
     if (/^#[0-9a-fA-F]{3,8}$/.test(val)) return val
-    if (val === 'none' || val === 'normal' || val === 'italic' || val === 'uppercase' || val === 'lowercase' || val === 'transparent' || val === 'inherit' || val === 'initial' || val === 'unset' || val === 'currentcolor') return val
+    if (BARE_CSS_KEYWORDS.has(val)) return val
+    if (/^\d+(\.\d+)?$/.test(val)) return val // numeric string (e.g. font-weight "400") — emit bare, not quoted
     if (val.includes('var(')) return val
     return `"${val.replace(/"/g, '\\"')}"`
   }
