@@ -24,7 +24,8 @@ import "@mantine/core/styles.css";
 // via core/css/scopedCssEngine.ts. Note we deliberately do NOT import
 // @recursica/official-release's recursica_variables_scoped.css: that file carries
 // the published (older) token values and would mask genuine wiring gaps.
-import "@recursica/adapter-common/style.css";
+// (mantine-adapter's style.css already bundles @recursica/adapter-common's shared
+// component styles — e.g. Layer — so there's no separate adapter-common import here.)
 import "@recursica/mantine-adapter/style.css";
 import "./MantineShell.css";
 import { RadioButtonGroup } from "../../../components/adapters/RadioButtonGroup";

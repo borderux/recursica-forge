@@ -1,3 +1,21 @@
+/* Mantine's color scheme is independent of Recursica's own theme toggle and is persisted to
+   localStorage under 'mantine-color-scheme-value' — shared by ANY Mantine app on this origin.
+   A stale "dark" (or "auto", which follows OS preference) written by some other app/session
+   sticks around and leaks through in two ways: @mantine/core/styles.css paints `body` from
+   --mantine-color-body, and sets `:root { color-scheme: var(--mantine-color-scheme) }`, which
+   also darkens native UI (e.g. the OS scrollbar) — all independent of what Forge's own
+   light/dark toggle is set to. Pin both to Recursica's theme attribute instead, so the page
+   chrome always follows the app's actual toggle rather than Mantine's separate, stale state. */
+:root {
+  color-scheme: light;
+}
+:root[data-recursica-theme="dark"] {
+  color-scheme: dark;
+}
+body {
+  background-color: var(--recursica_brand_layer_0_properties_surface);
+}
+
 /* Ensure active tab styles have high specificity to override Mantine defaults */
 /* Target the custom class we added plus the data-active attribute */
 .header-nav-tab[data-active],
