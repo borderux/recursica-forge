@@ -1195,52 +1195,12 @@ class ComplianceServiceImpl {
                 const lastKey = jsonKeys[jsonKeys.length - 1]
                 target[lastKey] = { $type: 'color', $value: jsonValue }
 
-                // When fixing interactive-color (which maps to interactive.tone),
-                // also remove the legacy interactive.color property since buildLayerVars
-                // gives interactive.color priority over interactive.tone
-                if (subpath === 'interactive-color') {
-                    const elements = themes[mode].layers[layer].elements
-                    if (elements?.interactive?.color) {
-                        delete elements.interactive.color
-                    }
-
-                    // Also sync interactive-tone CSS var — the compliance scan reads
-                    // interactive-tone (not interactive-color) for the on-tone check,
-                    // so we must update it immediately to prevent false positives.
-                    try {
-                        if (this.getTokens) {
-                            const tokens = this.getTokens()
-                            const toneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-tone`
-                            updateCssVar(toneVar, value, tokens)
-
-                            // Also compute and persist a compliant on-tone for the new tone.
-                            const tokenIndex = buildTokenIndex(tokens)
-                            const newToneHex = resolveCssVarToHex(value, tokenIndex)
-                            if (newToneHex) {
-                                const onToneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-on-tone`
-                                const onToneValue = readCssVar(onToneVar)
-                                const onToneHex = onToneValue ? resolveCssVarToHex(onToneValue, tokenIndex) : null
-
-                                const currentRatio = onToneHex ? contrastRatio(newToneHex, onToneHex) : 0
-                                if (currentRatio < AA_THRESHOLD) {
-                                    const onToneSuggestion = this.generateSteppedColorSuggestion(
-                                        onToneHex || '#ffffff', newToneHex, onToneVar, tokens, mode as 'light' | 'dark'
-                                    )
-                                    if (onToneSuggestion) {
-                                        if (!elements.interactive) elements.interactive = {}
-                                        const onToneJsonValue = this.cssVarRefToJsonRef(onToneSuggestion.suggestedValue, onToneVar)
-                                        if (onToneJsonValue) {
-                                            elements.interactive['on-tone'] = { $type: 'color', $value: onToneJsonValue }
-                                        }
-                                        updateCssVar(onToneVar, onToneSuggestion.suggestedValue, tokens)
-                                    }
-                                }
-                            }
-                        }
-                    } catch (err) {
-                        console.warn('[persistFixToThemeJson] Failed to sync tone/on-tone:', err)
-                    }
-                }
+                // Nothing further to do. Structure 2.1.0 separates the interactive fill
+                // (`interactive.tone`) from the per-layer readable interactive colour
+                // (`interactive.color`), and interactive-color now writes straight to
+                // `interactive.color` above. Previously this also deleted `interactive.color`
+                // and pushed the fixed value into `interactive-tone` (cascading an on-tone
+                // fix), which meant a text-contrast fix silently repainted the fill.
                 return
             }
         } catch (err) {
@@ -1386,52 +1346,12 @@ class ComplianceServiceImpl {
                 const lastKey = jsonKeys[jsonKeys.length - 1]
                 target[lastKey] = { $type: 'color', $value: jsonValue }
 
-                // When fixing interactive-color (which maps to interactive.tone),
-                // also remove the legacy interactive.color property since buildLayerVars
-                // gives interactive.color priority over interactive.tone
-                if (subpath === 'interactive-color') {
-                    const elements = themes[mode].layers[layer].elements
-                    if (elements?.interactive?.color) {
-                        delete elements.interactive.color
-                    }
-
-                    // Also sync interactive-tone CSS var — the compliance scan reads
-                    // interactive-tone (not interactive-color) for the on-tone check,
-                    // so we must update it immediately to prevent false positives.
-                    try {
-                        if (this.getTokens) {
-                            const tokens = this.getTokens()
-                            const toneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-tone`
-                            updateCssVar(toneVar, value, tokens)
-
-                            // Also compute and persist a compliant on-tone for the new tone.
-                            const tokenIndex = buildTokenIndex(tokens)
-                            const newToneHex = resolveCssVarToHex(value, tokenIndex)
-                            if (newToneHex) {
-                                const onToneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-on-tone`
-                                const onToneValue = readCssVar(onToneVar)
-                                const onToneHex = onToneValue ? resolveCssVarToHex(onToneValue, tokenIndex) : null
-
-                                const currentRatio = onToneHex ? contrastRatio(newToneHex, onToneHex) : 0
-                                if (currentRatio < AA_THRESHOLD) {
-                                    const onToneSuggestion = this.generateSteppedColorSuggestion(
-                                        onToneHex || '#ffffff', newToneHex, onToneVar, tokens, mode as 'light' | 'dark'
-                                    )
-                                    if (onToneSuggestion) {
-                                        if (!elements.interactive) elements.interactive = {}
-                                        const onToneJsonValue = this.cssVarRefToJsonRef(onToneSuggestion.suggestedValue, onToneVar)
-                                        if (onToneJsonValue) {
-                                            elements.interactive['on-tone'] = { $type: 'color', $value: onToneJsonValue }
-                                        }
-                                        updateCssVar(onToneVar, onToneSuggestion.suggestedValue, tokens)
-                                    }
-                                }
-                            }
-                        }
-                    } catch (err) {
-                        console.warn('[persistFixToThemeJson] Failed to sync tone/on-tone:', err)
-                    }
-                }
+                // Nothing further to do. Structure 2.1.0 separates the interactive fill
+                // (`interactive.tone`) from the per-layer readable interactive colour
+                // (`interactive.color`), and interactive-color now writes straight to
+                // `interactive.color` above. Previously this also deleted `interactive.color`
+                // and pushed the fixed value into `interactive-tone` (cascading an on-tone
+                // fix), which meant a text-contrast fix silently repainted the fill.
 
                 this.setTheme!(themeCopy)
                 return
@@ -1504,7 +1424,7 @@ class ComplianceServiceImpl {
             'text-success': ['text', 'success'],
             'text-alert': ['text', 'alert'],
             'interactive-tone': ['interactive', 'tone'],
-            'interactive-color': ['interactive', 'tone'], // CSS interactive-color is alias for interactive.tone
+            'interactive-color': ['interactive', 'color'], // the per-layer readable interactive colour (2.1.0)
             'interactive-on-tone': ['interactive', 'on-tone'],
             'interactive-tone-hover': ['interactive', 'tone-hover'],
             'interactive-on-tone-hover': ['interactive', 'on-tone-hover'],

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { getComplianceService } from './ComplianceService'
 
 // Mock varsStore to get a basic state
@@ -253,5 +253,96 @@ describe('ComplianceService Components Audit', () => {
     expect(toastTextIssue).toBeDefined()
     expect(toastTextIssue?.light.passes).toBe(false)
     expect(toastTextIssue?.dark.passes).toBe(false)
+  })
+})
+
+describe('ComplianceService interactive-color write path (2.1.0)', () => {
+  // Regression guard. Before 2.1.0 the layer's readable interactive colour lived under
+  // `elements.interactive.tone`, which is also the fill. A contrast fix for text therefore
+  // repainted the fill, and the routine additionally deleted `elements.interactive.color`
+  // and cascaded an `on-tone` fix. Those slots are now independent, so a scan must write
+  // `color` and leave `tone` alone — otherwise the next compliance run silently reverts
+  // the 2.1.0 structural change.
+  //
+  // Scope: this exercises the var -> JSON-path ROUTING only. The value resolver
+  // (cssVarRefToJsonRef) needs injected tokens plus live DOM CSS vars, so it is stubbed;
+  // routing is the part 2.1.0 changed.
+
+  // Shape matters: the layer write path resolves `root.themes?.[mode] ?? root[mode]`, so
+  // the fixture must be mode-keyed. A bare { layers: ... } matches nothing and makes every
+  // "left untouched" assertion vacuously true.
+  const makeThemeCopy = () => ({
+    themes: {
+      dark: {
+        layers: {
+          'layer-3': {
+            elements: {
+              interactive: {
+                tone: { $type: 'color', $value: '{tokens.colors.scale-06.60}' },
+                color: { $type: 'color', $value: '{tokens.colors.scale-06.80}' },
+                'on-tone': { $type: 'color', $value: '{tokens.colors.scale-06.10}' }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  const interOf = (t: any) => t.themes.dark.layers['layer-3'].elements.interactive
+  const VAR = '--recursica_brand_themes_dark_layers_layer-3_elements_interactive-color'
+  const TONE_VAR = '--recursica_brand_themes_dark_layers_layer-3_elements_interactive-tone'
+  const FIXED = '{tokens.colors.scale-06.100}'
+
+  let svc: any
+  let original: any
+
+  beforeEach(() => {
+    // getComplianceService() is a singleton, so stash and restore the real resolver.
+    svc = getComplianceService() as any
+    original = svc.cssVarRefToJsonRef
+    svc.cssVarRefToJsonRef = () => FIXED
+  })
+
+  afterEach(() => {
+    svc.cssVarRefToJsonRef = original
+  })
+
+  it('writes the fixed value to elements.interactive.color', () => {
+    const theme = makeThemeCopy()
+    svc.applyFixToThemeCopy(theme, VAR, 'var(--whatever)')
+    expect(interOf(theme).color.$value).toBe(FIXED)
+  })
+
+  it('leaves elements.interactive.tone (the fill) untouched', () => {
+    const theme = makeThemeCopy()
+    svc.applyFixToThemeCopy(theme, VAR, 'var(--whatever)')
+    expect(interOf(theme).tone.$value).toBe('{tokens.colors.scale-06.60}')
+  })
+
+  it('does not delete elements.interactive.color as a side effect', () => {
+    const theme = makeThemeCopy()
+    svc.applyFixToThemeCopy(theme, VAR, 'var(--whatever)')
+    expect(interOf(theme).color).toBeDefined()
+  })
+
+  it('does not cascade an on-tone fix when only the readable colour changed', () => {
+    const theme = makeThemeCopy()
+    svc.applyFixToThemeCopy(theme, VAR, 'var(--whatever)')
+    expect(interOf(theme)['on-tone'].$value).toBe('{tokens.colors.scale-06.10}')
+  })
+
+  it('still routes interactive-tone to the fill, independently', () => {
+    const theme = makeThemeCopy()
+    svc.applyFixToThemeCopy(theme, TONE_VAR, 'var(--whatever)')
+    expect(interOf(theme).tone.$value).toBe(FIXED)
+    expect(interOf(theme).color.$value).toBe('{tokens.colors.scale-06.80}')
+  })
+
+  it('is idempotent across repeated scans', () => {
+    const theme = makeThemeCopy()
+    for (let i = 0; i < 3; i++) svc.applyFixToThemeCopy(theme, VAR, 'var(--whatever)')
+    expect(interOf(theme).color.$value).toBe(FIXED)
+    expect(interOf(theme).tone.$value).toBe('{tokens.colors.scale-06.60}')
   })
 })

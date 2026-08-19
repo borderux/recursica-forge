@@ -59,7 +59,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding: 3px 0; /* Symmetrical padding prevents descenders from being clipped while preserving center alignment */
     color: var(--transfer-list-header-color, inherit);
 }
 

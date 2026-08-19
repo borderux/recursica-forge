@@ -122,7 +122,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 3px 0;
 }
 
 .mui-menu-item-supporting-text {
@@ -132,7 +131,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 3px 0;
 }
 
 .mui-menu-item-trailing-icon {
