@@ -391,3 +391,62 @@ describe('ComplianceService interactive-color write path (2.1.0)', () => {
     expect(interOf(theme).tone.$value).toBe('{tokens.colors.scale-06.60}')
   })
 })
+
+describe('ComplianceService interactive on-tone issue (flat var fallback)', () => {
+  // The seed theme only defines the flat `interactive_tone` / `interactive_on-tone`
+  // pair; the nested `default_*` / `hover_*` vars appear only after the interactive
+  // colour is edited. The check used to read the nested names unconditionally, so it
+  // bailed on an unset var and never raised an issue — which is why editing the
+  // interactive colour into an unreadable state produced no suggestion modal.
+  beforeEach(() => {
+    document.documentElement.style.cssText = ''
+    for (const mode of ['light', 'dark'] as const) {
+      const base = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive`
+      // tone and on-tone identical => exactly 1.00:1, an invisible label
+      document.documentElement.style.setProperty(`${base}_tone`, '#1a7f8c')
+      document.documentElement.style.setProperty(`${base}_on-tone`, '#1a7f8c')
+    }
+  })
+
+  it('raises a core-on-tone issue when the interactive on-tone matches its tone', () => {
+    const service = getComplianceService()
+    service.connect(() => mockTokens, () => mockTheme)
+    service.runFullScan()
+
+    const issue = service.getIssues().find(
+      i => i.type === 'core-on-tone' && i.location.includes('Interactive default')
+    )
+    expect(issue).toBeDefined()
+    expect(issue?.contrastRatio).toBeCloseTo(1, 2)
+  })
+
+  it('exposes the issue via getThemeIssues keyed to the var the core-colors cell uses', () => {
+    // This is the exact chain the UI depends on: ComplianceProvider reads
+    // getThemeIssues(), and BaseColorsGrid's cells match on
+    // paletteCore(mode, 'interactive', 'tone'). If the issue's toneCssVar does not
+    // equal that builder's output, the warning never becomes clickable.
+    const service = getComplianceService()
+    service.connect(() => mockTokens, () => mockTheme)
+    service.runFullScan()
+
+    const cellToneVar = '--recursica_brand_themes_light_palettes_core-colors_interactive_tone'
+    const cellOnToneVar = '--recursica_brand_themes_light_palettes_core-colors_interactive_on-tone'
+
+    const match = service.getThemeIssues().find(
+      i => i.suggestion?.targetCssVar === cellOnToneVar || i.toneCssVar === cellToneVar
+    )
+    expect(match).toBeDefined()
+  })
+
+  it('carries a suggestion so the tone-suggestion modal has something to show', () => {
+    const service = getComplianceService()
+    service.connect(() => mockTokens, () => mockTheme)
+    service.runFullScan()
+
+    const issue = service.getIssues().find(
+      i => i.type === 'core-on-tone' && i.location.includes('Interactive default')
+    )
+    expect(issue?.toneCssVar).toContain('core-colors_interactive_tone')
+    expect(issue?.suggestion).toBeDefined()
+  })
+})

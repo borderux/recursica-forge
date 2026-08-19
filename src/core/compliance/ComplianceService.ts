@@ -467,8 +467,22 @@ class ComplianceServiceImpl {
         ]
 
         interactiveVariants.forEach(({ variant, label }) => {
-            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_tone`
-            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_on-tone`
+            const nestedToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_tone`
+            const nestedOnToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_on-tone`
+
+            // The nested default/hover vars are only emitted once the interactive colour
+            // has been edited. The seed theme carries just the flat `interactive_tone` /
+            // `interactive_on-tone` pair, so reading the nested names returned nothing and
+            // this check bailed out — meaning a broken interactive on-tone was never
+            // reported and no suggestion modal could open. Fall back to the flat pair for
+            // `default`; `hover` has no flat equivalent, so it still skips when absent.
+            const useFlat = variant === 'default' && !readCssVar(nestedToneVar)
+            const toneVar = useFlat
+                ? `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`
+                : nestedToneVar
+            const onToneVar = useFlat
+                ? `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_on-tone`
+                : nestedOnToneVar
 
             const toneValue = readCssVar(toneVar)
             const onToneValue = readCssVar(onToneVar)

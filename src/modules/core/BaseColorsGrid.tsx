@@ -12,6 +12,9 @@ import { Button } from '../../components/adapters/Button'
 import { ResetButton } from '../../components/shared/ResetButton'
 import { Tooltip } from '../../components/adapters/Tooltip'
 import { layerProperty, layerText, paletteCore, state, textEmphasis } from '../../core/css/cssVarBuilder'
+import { useCompliance } from '../../core/compliance/ComplianceContext'
+import { SuggestTonesModal } from '../compliance/SuggestTonesModal'
+import { applySuggestTone } from '../../core/compliance/applySuggestTone'
 
 
 
@@ -111,8 +114,28 @@ function EmphasisCell({
   const showAAWarning = aaStatus ? !aaStatus.passesAA : false
   const WarningIcon = iconNameToReactComponent('warning')
 
+  const { issues } = useCompliance()
+  const [suggestOpen, setSuggestOpen] = useState(false)
+
+  // Same matching as PaletteGridCell: prefer the low-emphasis issue, since its lower
+  // opacity is the harder constraint, and fall back to any issue for this pair.
+  const matchingIssue = useMemo(() => {
+    const byLow = issues.find(
+      i =>
+        (i.suggestion?.targetCssVar === onToneCssVar || i.toneCssVar === toneCssVar) &&
+        i.emphasis === 'low',
+    )
+    return (
+      byLow ??
+      issues.find(
+        i => i.suggestion?.targetCssVar === onToneCssVar || i.toneCssVar === toneCssVar,
+      ) ??
+      null
+    )
+  }, [issues, onToneCssVar, toneCssVar])
+
   const tooltipLabel = aaStatus
-    ? `AA Compliance Issue: Both black and white don't pass contrast (≥4.5:1). Current: ${aaStatus.currentRatio.toFixed(2)}:1`
+    ? `AA Compliance Issue: Both black and white don't pass contrast (≥4.5:1). Current: ${aaStatus.currentRatio.toFixed(2)}:1${matchingIssue ? '. Click to view suggestions.' : ''}`
     : 'AA Compliance Issue'
 
   return (
@@ -132,13 +155,20 @@ function EmphasisCell({
         <Tooltip label={tooltipLabel} withinPortal>
           <div
             className="palette-warning"
+            role={matchingIssue ? 'button' : undefined}
+            tabIndex={matchingIssue ? 0 : undefined}
+            onClick={matchingIssue ? (e) => { e.stopPropagation(); setSuggestOpen(true) } : undefined}
+            onKeyDown={matchingIssue ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSuggestOpen(true) }
+            } : undefined}
             style={{
               color: `var(${onToneCssVar})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               width: '100%',
-              opacity: `var(${emphasisCssVar})`
+              opacity: `var(${emphasisCssVar})`,
+              cursor: matchingIssue ? 'pointer' : undefined,
             }}
           >
             {WarningIcon && <WarningIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} />}
@@ -156,6 +186,22 @@ function EmphasisCell({
           }}
         />
       )}
+
+      {/* Stop-propagation wrapper keeps portal clicks from bubbling back to the cell
+          and immediately reopening the modal (mirrors PaletteGridCell). */}
+      <div onClick={e => e.stopPropagation()}>
+        {matchingIssue && suggestOpen && (
+          <SuggestTonesModal
+            issue={matchingIssue}
+            isOpen
+            onClose={() => setSuggestOpen(false)}
+            onApply={(iss, newHex, family, level, onToneColor) => {
+              applySuggestTone(iss, newHex, family, level, onToneColor)
+              setSuggestOpen(false)
+            }}
+          />
+        )}
+      </div>
     </div>
   )
 }
@@ -223,8 +269,19 @@ function InteractiveCell({
   const showAAWarning = aaStatus ? !aaStatus.passesAA : false
   const WarningIcon = iconNameToReactComponent('warning')
 
+  const { issues } = useCompliance()
+  const [suggestOpen, setSuggestOpen] = useState(false)
+
+  const matchingIssue = useMemo(
+    () =>
+      issues.find(
+        i => i.suggestion?.targetCssVar === interactiveCssVar || i.toneCssVar === toneCssVar,
+      ) ?? null,
+    [issues, interactiveCssVar, toneCssVar],
+  )
+
   const tooltipLabel = aaStatus
-    ? `AA Compliance Issue: Interactive color contrast ratio ${aaStatus.currentRatio.toFixed(2)}:1 < 4.5:1`
+    ? `AA Compliance Issue: Interactive color contrast ratio ${aaStatus.currentRatio.toFixed(2)}:1 < 4.5:1${matchingIssue ? '. Click to view suggestions.' : ''}`
     : 'AA Compliance Issue'
 
   return (
@@ -244,12 +301,19 @@ function InteractiveCell({
         <Tooltip label={tooltipLabel} withinPortal>
           <div
             className="palette-warning"
+            role={matchingIssue ? 'button' : undefined}
+            tabIndex={matchingIssue ? 0 : undefined}
+            onClick={matchingIssue ? (e) => { e.stopPropagation(); setSuggestOpen(true) } : undefined}
+            onKeyDown={matchingIssue ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSuggestOpen(true) }
+            } : undefined}
             style={{
               color: `var(${interactiveCssVar})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               width: '100%',
+              cursor: matchingIssue ? 'pointer' : undefined,
             }}
           >
             {WarningIcon && <WarningIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} />}
@@ -266,6 +330,20 @@ function InteractiveCell({
           }}
         />
       )}
+
+      <div onClick={e => e.stopPropagation()}>
+        {matchingIssue && suggestOpen && (
+          <SuggestTonesModal
+            issue={matchingIssue}
+            isOpen
+            onClose={() => setSuggestOpen(false)}
+            onApply={(iss, newHex, family, level, onToneColor) => {
+              applySuggestTone(iss, newHex, family, level, onToneColor)
+              setSuggestOpen(false)
+            }}
+          />
+        )}
+      </div>
     </div>
   )
 }
