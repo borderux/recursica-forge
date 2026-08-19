@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { getComplianceService } from './ComplianceService'
+import realTokens from '../../../recursica_tokens.json'
+import { buildTokenIndex } from '../resolvers/tokens'
+import { resolveCssVarToHex } from './layerColorStepping'
+import { contrastRatio } from '../../modules/theme/contrastUtil'
 
 // Mock varsStore to get a basic state
 vi.mock('../store/varsStore', () => ({
@@ -448,5 +452,72 @@ describe('ComplianceService interactive on-tone issue (flat var fallback)', () =
     )
     expect(issue?.toneCssVar).toContain('core-colors_interactive_tone')
     expect(issue?.suggestion).toBeDefined()
+  })
+})
+
+describe('ComplianceService per-mode component fix', () => {
+  // No single colour can clear a near-white light background and a near-dark dark
+  // background at 4.5:1 — the two constraints leave an empty luminance range — so the
+  // dual-mode search always reported "no dual-mode fix" for these components. The two
+  // modes resolve through separate mode-scoped brand vars though, so the failing mode
+  // can be fixed on its own. These use real token values: scale-02/300 (#359ead) is
+  // 3.00:1 on #f9f9f9 and fails, while scale-02/400 (#007889) is 4.93:1 and passes.
+  const FG_TEMPLATE =
+    '--recursica_ui-kit_themes_MODE_components_toast_variants_styles_default_properties_colors_layer-0_button'
+  const BG_TEMPLATE =
+    '--recursica_ui-kit_themes_MODE_components_toast_variants_styles_default_properties_colors_layer-0_background-color'
+  const BRAND_LIGHT = '--recursica_brand_themes_light_palettes_core-colors_interactive_tone'
+
+  const failingLight = { bgHex: '#f9f9f9', fgHex: '#359ead', contrastRatio: 3.0, passes: false }
+
+  const setup = (componentValue: string) => {
+    document.documentElement.style.cssText = ''
+    document.documentElement.style.setProperty(BRAND_LIGHT, '#359ead')
+    document.documentElement.style.setProperty(
+      FG_TEMPLATE.replace('_themes_MODE_', '_themes_light_'), componentValue
+    )
+    document.documentElement.style.setProperty(
+      BG_TEMPLATE.replace('_themes_MODE_', '_themes_light_'), '#f9f9f9'
+    )
+  }
+
+  const call = () => {
+    const svc = getComplianceService() as any
+    return svc.generatePerModeSuggestion(
+      'light', failingLight, FG_TEMPLATE, BG_TEMPLATE, realTokens, buildTokenIndex(realTokens as any)
+    )
+  }
+
+  it('produces a fix for the failing mode', () => {
+    setup(`var(${BRAND_LIGHT})`)
+    expect(call()).not.toBeNull()
+  })
+
+  it('targets the mode-scoped brand var, not the shared component binding', () => {
+    setup(`var(${BRAND_LIGHT})`)
+    const s = call()
+    // Writing the component var would move both modes; the brand var is per-mode.
+    expect(s.targetCssVar).toBe(BRAND_LIGHT)
+    expect(s.targetCssVar).toContain('_themes_light_')
+    expect(s.targetCssVar).not.toContain('ui-kit')
+  })
+
+  it('suggests a colour that actually clears 4.5:1 in that mode', () => {
+    setup(`var(${BRAND_LIGHT})`)
+    const s = call()
+    const hex = resolveCssVarToHex(s.suggestedValue, buildTokenIndex(realTokens as any) as any)
+    expect(hex).toBeTruthy()
+    expect(contrastRatio('#f9f9f9', hex as string)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('labels the suggestion as mode-scoped', () => {
+    setup(`var(${BRAND_LIGHT})`)
+    expect(call().description).toContain('light mode only')
+  })
+
+  it('returns null when the component colour is a literal, not a brand reference', () => {
+    // Nothing mode-specific to write to, so this is a genuine "no fix".
+    setup('#359ead')
+    expect(call()).toBeNull()
   })
 })

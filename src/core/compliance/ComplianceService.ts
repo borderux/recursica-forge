@@ -839,6 +839,68 @@ class ComplianceServiceImpl {
      *  3. If nothing passes, return null (changing the background is out of scope)
      */
 
+    /**
+     * Build a fix for a single failing mode.
+     *
+     * A per-mode value cannot be stored on the component: the ui-kit binding is one
+     * mode-less reference (e.g. `{brand.palettes.core-colors.interactive.tone}`) that the
+     * theme resolves separately per mode, so writing it would move both modes together.
+     * The mode-specific value lives on the brand var that binding resolves to, which is
+     * what this targets — and only that mode's contrast has to pass.
+     *
+     * Returns null when the component's colour is a literal rather than a brand
+     * reference, or when no token in range clears the surface in that mode. Those are
+     * genuine "no fix" cases, unlike the impossible dual-mode constraint.
+     */
+    private generatePerModeSuggestion(
+        mode: 'light' | 'dark',
+        res: ModeResult,
+        fgVarTemplate: string,
+        bgVarTemplate: string,
+        tokens: JsonLike,
+        tokenIndex: ReturnType<typeof buildTokenIndex>,
+    ): SuggestedFix | null {
+        const AA_THRESHOLD = 4.5
+        const fgVar = fgVarTemplate.replace('_themes_MODE_', `_themes_${mode}_`)
+        const fgValue = readCssVar(fgVar)
+        if (!fgValue) return null
+
+        // Follow the component var to the mode-scoped brand var behind it.
+        const brandVar = unwrapVar(fgValue)
+        if (!brandVar || !brandVar.includes(`_themes_${mode}_`)) return null
+
+        const bgVar = bgVarTemplate.replace('_themes_MODE_', `_themes_${mode}_`)
+        const bgValue = readCssVar(bgVar) || ''
+
+        const passesThisMode = (sugg: SuggestedFix | null): SuggestedFix | null => {
+            if (!sugg) return null
+            const hex = resolveCssVarToHex(sugg.suggestedValue, tokenIndex as any)
+            if (!hex || contrastRatio(res.bgHex, hex) < AA_THRESHOLD) return null
+            return sugg
+        }
+
+        // Same ladder as the dual-mode path, minus the cross-mode constraint.
+        let suggestion = passesThisMode(
+            this.getSemanticPairSuggestion(bgValue, brandVar, mode, tokens)
+        )
+        if (!suggestion) {
+            suggestion = passesThisMode(
+                this.generateSteppedColorSuggestion(res.fgHex, res.bgHex, brandVar, tokens, mode)
+            )
+        }
+        if (!suggestion) {
+            suggestion = passesThisMode(
+                this.tryBlackWhiteTokens(res.bgHex, brandVar, tokens, 1)
+            )
+        }
+        if (!suggestion) return null
+
+        return {
+            ...suggestion,
+            description: `${suggestion.description} (${mode} mode only)`,
+        }
+    }
+
     private getSemanticPairSuggestion(
         bgValue: string,
         targetCssVar: string,
@@ -2190,6 +2252,27 @@ class ComplianceServiceImpl {
                     }
                     if (!suggestion) {
                         suggestion = this.tryBlackWhiteTokens(light.bgHex, lightFgVar, tokens, 1, dark.bgHex)
+                    }
+                }
+
+                // A single shared colour usually cannot satisfy both modes: clearing a
+                // near-white light background caps luminance, while clearing a near-dark
+                // dark background floors it, and for typical layer surfaces those two
+                // ranges do not overlap at 4.5:1. Reporting "no dual-mode fix" in that
+                // case is arithmetically true but useless, since the two modes resolve
+                // through separate mode-scoped brand vars and can be fixed independently.
+                // So fall back to fixing only the mode that actually fails.
+                if (!suggestion) {
+                    const failing: Array<['light' | 'dark', ModeResult]> = []
+                    if (!light.passes) failing.push(['light', light])
+                    if (!dark.passes) failing.push(['dark', dark])
+                    // If both fail, fix the worse one first; the rescan re-reports the other.
+                    failing.sort((a, b) => a[1].contrastRatio - b[1].contrastRatio)
+                    for (const [failMode, res] of failing) {
+                        suggestion = this.generatePerModeSuggestion(
+                            failMode, res, fgVarTemplate, bgVarTemplate, tokens, tokenIndex
+                        )
+                        if (suggestion) break
                     }
                 }
 
