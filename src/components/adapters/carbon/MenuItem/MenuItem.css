@@ -110,8 +110,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  /* Ensure descenders aren't clipped */
-  padding: 3px 0;
 }
 
 .cds-menu-item-supporting-text {
@@ -122,8 +120,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  /* Ensure descenders aren't clipped */
-  padding: 3px 0;
 }
 
 .cds-menu-item-trailing-icon {

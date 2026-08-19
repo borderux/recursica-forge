@@ -349,9 +349,9 @@ export default function MantineShell({
                 else if (value === "components") navigate("/components");
               }}
             >
-              <MantineTabs.List>
-                <MantineTabs.Tab value='tokens'>Tokens</MantineTabs.Tab>
-                <MantineTabs.Tab value='theme'>
+              <Tabs.List>
+                <Tabs.Tab value='tokens'>Tokens</Tabs.Tab>
+                <Tabs.Tab value='theme'>
                   {issueCount > 0 ? (
                     <Tooltip label={`${issueCount} compliance ${issueCount === 1 ? 'issue' : 'issues'}`} withinPortal={true} position="bottom" mantine={{ offset: 14 }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -373,9 +373,9 @@ export default function MantineShell({
                   ) : (
                     <span>Theme</span>
                   )}
-                </MantineTabs.Tab>
-                <MantineTabs.Tab value='components'>Components</MantineTabs.Tab>
-              </MantineTabs.List>
+                </Tabs.Tab>
+                <Tabs.Tab value='components'>Components</Tabs.Tab>
+              </Tabs.List>
             </Tabs>
 
             {/* Chunk 3: Action Buttons and Framework Dropdown */}

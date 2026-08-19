@@ -467,8 +467,22 @@ class ComplianceServiceImpl {
         ]
 
         interactiveVariants.forEach(({ variant, label }) => {
-            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_tone`
-            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_on-tone`
+            const nestedToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_tone`
+            const nestedOnToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_on-tone`
+
+            // The nested default/hover vars are only emitted once the interactive colour
+            // has been edited. The seed theme carries just the flat `interactive_tone` /
+            // `interactive_on-tone` pair, so reading the nested names returned nothing and
+            // this check bailed out — meaning a broken interactive on-tone was never
+            // reported and no suggestion modal could open. Fall back to the flat pair for
+            // `default`; `hover` has no flat equivalent, so it still skips when absent.
+            const useFlat = variant === 'default' && !readCssVar(nestedToneVar)
+            const toneVar = useFlat
+                ? `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`
+                : nestedToneVar
+            const onToneVar = useFlat
+                ? `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_on-tone`
+                : nestedOnToneVar
 
             const toneValue = readCssVar(toneVar)
             const onToneValue = readCssVar(onToneVar)
@@ -824,6 +838,68 @@ class ComplianceServiceImpl {
      *  2. Try black and white token values
      *  3. If nothing passes, return null (changing the background is out of scope)
      */
+
+    /**
+     * Build a fix for a single failing mode.
+     *
+     * A per-mode value cannot be stored on the component: the ui-kit binding is one
+     * mode-less reference (e.g. `{brand.palettes.core-colors.interactive.tone}`) that the
+     * theme resolves separately per mode, so writing it would move both modes together.
+     * The mode-specific value lives on the brand var that binding resolves to, which is
+     * what this targets — and only that mode's contrast has to pass.
+     *
+     * Returns null when the component's colour is a literal rather than a brand
+     * reference, or when no token in range clears the surface in that mode. Those are
+     * genuine "no fix" cases, unlike the impossible dual-mode constraint.
+     */
+    private generatePerModeSuggestion(
+        mode: 'light' | 'dark',
+        res: ModeResult,
+        fgVarTemplate: string,
+        bgVarTemplate: string,
+        tokens: JsonLike,
+        tokenIndex: ReturnType<typeof buildTokenIndex>,
+    ): SuggestedFix | null {
+        const AA_THRESHOLD = 4.5
+        const fgVar = fgVarTemplate.replace('_themes_MODE_', `_themes_${mode}_`)
+        const fgValue = readCssVar(fgVar)
+        if (!fgValue) return null
+
+        // Follow the component var to the mode-scoped brand var behind it.
+        const brandVar = unwrapVar(fgValue)
+        if (!brandVar || !brandVar.includes(`_themes_${mode}_`)) return null
+
+        const bgVar = bgVarTemplate.replace('_themes_MODE_', `_themes_${mode}_`)
+        const bgValue = readCssVar(bgVar) || ''
+
+        const passesThisMode = (sugg: SuggestedFix | null): SuggestedFix | null => {
+            if (!sugg) return null
+            const hex = resolveCssVarToHex(sugg.suggestedValue, tokenIndex as any)
+            if (!hex || contrastRatio(res.bgHex, hex) < AA_THRESHOLD) return null
+            return sugg
+        }
+
+        // Same ladder as the dual-mode path, minus the cross-mode constraint.
+        let suggestion = passesThisMode(
+            this.getSemanticPairSuggestion(bgValue, brandVar, mode, tokens)
+        )
+        if (!suggestion) {
+            suggestion = passesThisMode(
+                this.generateSteppedColorSuggestion(res.fgHex, res.bgHex, brandVar, tokens, mode)
+            )
+        }
+        if (!suggestion) {
+            suggestion = passesThisMode(
+                this.tryBlackWhiteTokens(res.bgHex, brandVar, tokens, 1)
+            )
+        }
+        if (!suggestion) return null
+
+        return {
+            ...suggestion,
+            description: `${suggestion.description} (${mode} mode only)`,
+        }
+    }
 
     private getSemanticPairSuggestion(
         bgValue: string,
@@ -1195,52 +1271,12 @@ class ComplianceServiceImpl {
                 const lastKey = jsonKeys[jsonKeys.length - 1]
                 target[lastKey] = { $type: 'color', $value: jsonValue }
 
-                // When fixing interactive-color (which maps to interactive.tone),
-                // also remove the legacy interactive.color property since buildLayerVars
-                // gives interactive.color priority over interactive.tone
-                if (subpath === 'interactive-color') {
-                    const elements = themes[mode].layers[layer].elements
-                    if (elements?.interactive?.color) {
-                        delete elements.interactive.color
-                    }
-
-                    // Also sync interactive-tone CSS var — the compliance scan reads
-                    // interactive-tone (not interactive-color) for the on-tone check,
-                    // so we must update it immediately to prevent false positives.
-                    try {
-                        if (this.getTokens) {
-                            const tokens = this.getTokens()
-                            const toneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-tone`
-                            updateCssVar(toneVar, value, tokens)
-
-                            // Also compute and persist a compliant on-tone for the new tone.
-                            const tokenIndex = buildTokenIndex(tokens)
-                            const newToneHex = resolveCssVarToHex(value, tokenIndex)
-                            if (newToneHex) {
-                                const onToneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-on-tone`
-                                const onToneValue = readCssVar(onToneVar)
-                                const onToneHex = onToneValue ? resolveCssVarToHex(onToneValue, tokenIndex) : null
-
-                                const currentRatio = onToneHex ? contrastRatio(newToneHex, onToneHex) : 0
-                                if (currentRatio < AA_THRESHOLD) {
-                                    const onToneSuggestion = this.generateSteppedColorSuggestion(
-                                        onToneHex || '#ffffff', newToneHex, onToneVar, tokens, mode as 'light' | 'dark'
-                                    )
-                                    if (onToneSuggestion) {
-                                        if (!elements.interactive) elements.interactive = {}
-                                        const onToneJsonValue = this.cssVarRefToJsonRef(onToneSuggestion.suggestedValue, onToneVar)
-                                        if (onToneJsonValue) {
-                                            elements.interactive['on-tone'] = { $type: 'color', $value: onToneJsonValue }
-                                        }
-                                        updateCssVar(onToneVar, onToneSuggestion.suggestedValue, tokens)
-                                    }
-                                }
-                            }
-                        }
-                    } catch (err) {
-                        console.warn('[persistFixToThemeJson] Failed to sync tone/on-tone:', err)
-                    }
-                }
+                // Nothing further to do. Structure 2.1.0 separates the interactive fill
+                // (`interactive.tone`) from the per-layer readable interactive colour
+                // (`interactive.color`), and interactive-color now writes straight to
+                // `interactive.color` above. Previously this also deleted `interactive.color`
+                // and pushed the fixed value into `interactive-tone` (cascading an on-tone
+                // fix), which meant a text-contrast fix silently repainted the fill.
                 return
             }
         } catch (err) {
@@ -1386,52 +1422,12 @@ class ComplianceServiceImpl {
                 const lastKey = jsonKeys[jsonKeys.length - 1]
                 target[lastKey] = { $type: 'color', $value: jsonValue }
 
-                // When fixing interactive-color (which maps to interactive.tone),
-                // also remove the legacy interactive.color property since buildLayerVars
-                // gives interactive.color priority over interactive.tone
-                if (subpath === 'interactive-color') {
-                    const elements = themes[mode].layers[layer].elements
-                    if (elements?.interactive?.color) {
-                        delete elements.interactive.color
-                    }
-
-                    // Also sync interactive-tone CSS var — the compliance scan reads
-                    // interactive-tone (not interactive-color) for the on-tone check,
-                    // so we must update it immediately to prevent false positives.
-                    try {
-                        if (this.getTokens) {
-                            const tokens = this.getTokens()
-                            const toneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-tone`
-                            updateCssVar(toneVar, value, tokens)
-
-                            // Also compute and persist a compliant on-tone for the new tone.
-                            const tokenIndex = buildTokenIndex(tokens)
-                            const newToneHex = resolveCssVarToHex(value, tokenIndex)
-                            if (newToneHex) {
-                                const onToneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-on-tone`
-                                const onToneValue = readCssVar(onToneVar)
-                                const onToneHex = onToneValue ? resolveCssVarToHex(onToneValue, tokenIndex) : null
-
-                                const currentRatio = onToneHex ? contrastRatio(newToneHex, onToneHex) : 0
-                                if (currentRatio < AA_THRESHOLD) {
-                                    const onToneSuggestion = this.generateSteppedColorSuggestion(
-                                        onToneHex || '#ffffff', newToneHex, onToneVar, tokens, mode as 'light' | 'dark'
-                                    )
-                                    if (onToneSuggestion) {
-                                        if (!elements.interactive) elements.interactive = {}
-                                        const onToneJsonValue = this.cssVarRefToJsonRef(onToneSuggestion.suggestedValue, onToneVar)
-                                        if (onToneJsonValue) {
-                                            elements.interactive['on-tone'] = { $type: 'color', $value: onToneJsonValue }
-                                        }
-                                        updateCssVar(onToneVar, onToneSuggestion.suggestedValue, tokens)
-                                    }
-                                }
-                            }
-                        }
-                    } catch (err) {
-                        console.warn('[persistFixToThemeJson] Failed to sync tone/on-tone:', err)
-                    }
-                }
+                // Nothing further to do. Structure 2.1.0 separates the interactive fill
+                // (`interactive.tone`) from the per-layer readable interactive colour
+                // (`interactive.color`), and interactive-color now writes straight to
+                // `interactive.color` above. Previously this also deleted `interactive.color`
+                // and pushed the fixed value into `interactive-tone` (cascading an on-tone
+                // fix), which meant a text-contrast fix silently repainted the fill.
 
                 this.setTheme!(themeCopy)
                 return
@@ -1504,7 +1500,7 @@ class ComplianceServiceImpl {
             'text-success': ['text', 'success'],
             'text-alert': ['text', 'alert'],
             'interactive-tone': ['interactive', 'tone'],
-            'interactive-color': ['interactive', 'tone'], // CSS interactive-color is alias for interactive.tone
+            'interactive-color': ['interactive', 'color'], // the per-layer readable interactive colour (2.1.0)
             'interactive-on-tone': ['interactive', 'on-tone'],
             'interactive-tone-hover': ['interactive', 'tone-hover'],
             'interactive-on-tone-hover': ['interactive', 'on-tone-hover'],
@@ -1635,17 +1631,17 @@ class ComplianceServiceImpl {
                 {
                     names: ['text-field', 'textarea', 'dropdown', 'autocomplete', 'number-input', 'date-picker', 'time-picker', 'file-input', 'file-upload', 'transfer-list'],
                     variantGroup: 'states',
-                    fgProps: ['text', 'leading-icon', 'trailing-icon', 'upload-icon', 'header-color']
+                    fgProps: ['text-color', 'leading-icon', 'trailing-icon', 'icon-color', 'upload-icon', 'header-color']
                 },
                 {
                     names: ['button', 'toast'],
                     variantGroup: 'styles',
-                    fgProps: ['text', 'text-hover', 'icon-color', 'button']
+                    fgProps: ['text-color', 'icon-color', 'button']
                 },
                 {
                     names: ['chip', 'badge'],
                     variantGroup: 'styles',
-                    fgProps: ['text', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon']
+                    fgProps: ['text-color', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon-color']
                 }
             ];
 
@@ -1663,9 +1659,9 @@ class ComplianceServiceImpl {
 
                         for (const layer of layers) {
                             const layerColors = colors[layer]
-                            if (!layerColors?.background) continue
+                            if (!layerColors?.['background-color']) continue
 
-                            const bgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_background`
+                            const bgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_background-color`
                             const bgValue = readCssVar(bgVar)
                             if (!bgValue) continue
                             const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
@@ -2259,6 +2255,27 @@ class ComplianceServiceImpl {
                     }
                 }
 
+                // A single shared colour usually cannot satisfy both modes: clearing a
+                // near-white light background caps luminance, while clearing a near-dark
+                // dark background floors it, and for typical layer surfaces those two
+                // ranges do not overlap at 4.5:1. Reporting "no dual-mode fix" in that
+                // case is arithmetically true but useless, since the two modes resolve
+                // through separate mode-scoped brand vars and can be fixed independently.
+                // So fall back to fixing only the mode that actually fails.
+                if (!suggestion) {
+                    const failing: Array<['light' | 'dark', ModeResult]> = []
+                    if (!light.passes) failing.push(['light', light])
+                    if (!dark.passes) failing.push(['dark', dark])
+                    // If both fail, fix the worse one first; the rescan re-reports the other.
+                    failing.sort((a, b) => a[1].contrastRatio - b[1].contrastRatio)
+                    for (const [failMode, res] of failing) {
+                        suggestion = this.generatePerModeSuggestion(
+                            failMode, res, fgVarTemplate, bgVarTemplate, tokens, tokenIndex
+                        )
+                        if (suggestion) break
+                    }
+                }
+
                 results.push({
                     id: `comp-${compName}-${variantName}-${layer}-${prop}`,
                     componentName: compName,
@@ -2279,17 +2296,17 @@ class ComplianceServiceImpl {
                 {
                     names: ['text-field', 'textarea', 'dropdown', 'autocomplete', 'number-input', 'date-picker', 'time-picker', 'file-input', 'file-upload', 'transfer-list'],
                     variantGroup: 'states',
-                    fgProps: ['text', 'leading-icon', 'trailing-icon', 'upload-icon', 'header-color']
+                    fgProps: ['text-color', 'leading-icon', 'trailing-icon', 'icon-color', 'upload-icon', 'header-color']
                 },
                 {
                     names: ['button', 'toast'],
                     variantGroup: 'styles',
-                    fgProps: ['text', 'text-hover', 'icon-color', 'button']
+                    fgProps: ['text-color', 'icon-color', 'button']
                 },
                 {
                     names: ['chip', 'badge'],
                     variantGroup: 'styles',
-                    fgProps: ['text', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon']
+                    fgProps: ['text-color', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon-color']
                 }
             ]
 
@@ -2307,7 +2324,7 @@ class ComplianceServiceImpl {
 
                         for (const layer of layers) {
                             const layerColors = colors[layer]
-                            if (!layerColors?.background) continue
+                            if (!layerColors?.['background-color']) continue
 
                             for (const prop of config.fgProps) {
                                 if (!layerColors[prop]) continue
@@ -2316,7 +2333,7 @@ class ComplianceServiceImpl {
                                 const location = `${displayName} / ${toLabel(variantName)} / ${toLabel(layer)} / ${propLabel}`
 
                                 const fgTemplate = `--recursica_ui-kit_themes_MODE_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_${prop}`
-                                const bgTemplate = `--recursica_ui-kit_themes_MODE_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_background`
+                                const bgTemplate = `--recursica_ui-kit_themes_MODE_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_background-color`
 
                                 checkDualMode(compName, variantName, layer, prop, propLabel, location, fgTemplate, bgTemplate)
                             }

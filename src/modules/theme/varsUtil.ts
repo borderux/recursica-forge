@@ -21,6 +21,31 @@ export function extractCssVarsFromObject(obj: unknown): ThemeVars {
   return vars
 }
 
+/**
+ * True for the theme-less form of a ui-kit component property, e.g.
+ *   --recursica_ui-kit_components_button_..._background-color
+ * as opposed to its themed source of truth
+ *   --recursica_ui-kit_themes_light_components_button_..._background-color
+ *
+ * These must NOT be written as inline styles on :root. core/css/scopedCssEngine.ts already
+ * defines every one of them inside [data-recursica-theme="light"] / ["dark"] blocks pointing at
+ * the themed var (measured: 2898 names, 100% covered in both themes), and an inline style on
+ * :root outranks those stylesheet rules. Writing the generic copy therefore pins the property
+ * to whichever theme was applied last, with two visible consequences:
+ *
+ *   - switching light/dark does not change components that read the generic name;
+ *   - editing a themed value updates the themed var but leaves the stale generic one, so the
+ *     preview does not move — the "changing a prop does nothing" class of bug.
+ *
+ * :root is meant to carry only specific/full-path names; that is the invariant scopedCssEngine
+ * documents. This keeps it that way.
+ */
+function isThemeScopedGenericName(name: string): boolean {
+  const n = !name.startsWith('--') || name.startsWith('--recursica_') ? name : `--recursica_${name.slice(2)}`
+  if (!n.startsWith('--recursica_ui-kit_components_')) return false
+  return !/_themes_(light|dark)_/.test(n)
+}
+
 export function applyCssVars(theme: ThemeVars) {
   const root = document.documentElement
   const toPrefixed = (name: string): string => {
@@ -31,6 +56,12 @@ export function applyCssVars(theme: ThemeVars) {
   }
   for (const [key, value] of Object.entries(theme)) {
     const pref = toPrefixed(key)
+    if (isThemeScopedGenericName(pref)) {
+      // Drop any copy an earlier build left behind so the theme-scoped alias can win.
+      root.style.removeProperty(pref)
+      if (pref !== key) root.style.removeProperty(key)
+      continue
+    }
     // Write ONLY the prefixed variable
     root.style.setProperty(pref, value)
     // Remove the legacy/unprefixed variable if present

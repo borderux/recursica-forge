@@ -1,5 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { getComplianceService } from './ComplianceService'
+import realTokens from '../../../recursica_tokens.json'
+import { buildTokenIndex } from '../resolvers/tokens'
+import { resolveCssVarToHex } from './layerColorStepping'
+import { contrastRatio } from '../../modules/theme/contrastUtil'
 
 // Mock varsStore to get a basic state
 vi.mock('../store/varsStore', () => ({
@@ -62,6 +66,22 @@ vi.mock('../store/varsStore', () => ({
                 }
               }
             },
+            button: {
+              variants: {
+                styles: {
+                  solid: {
+                    properties: {
+                      colors: {
+                        'layer-0': {
+                          'background-color': '{brand.palettes.core-colors.interactive.tone}',
+                          'text-color': '{brand.palettes.core-colors.interactive.on-tone}'
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
             toast: {
               variants: {
                 styles: {
@@ -69,8 +89,11 @@ vi.mock('../store/varsStore', () => ({
                     properties: {
                       colors: {
                         'layer-0': {
-                          background: '{brand.palettes.neutral.050.color.tone}',
-                          text: '{brand.palettes.neutral.050.color.on-tone}'
+                          // Real ui-kit keys are `background-color` / `text-color`.
+                          // The fixture previously used `background` / `text`, which only
+                          // matched the audit's own incorrect key names.
+                          'background-color': '{brand.palettes.neutral.050.color.tone}',
+                          'text-color': '{brand.palettes.neutral.050.color.on-tone}'
                         }
                       }
                     }
@@ -197,11 +220,11 @@ describe('ComplianceService Components Audit', () => {
       '#cccccc'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_toast_variants_styles_default_properties_colors_layer-0_background',
+      '--recursica_ui-kit_themes_light_components_toast_variants_styles_default_properties_colors_layer-0_background-color',
       '#ffffff'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_toast_variants_styles_default_properties_colors_layer-0_text',
+      '--recursica_ui-kit_themes_light_components_toast_variants_styles_default_properties_colors_layer-0_text-color',
       '#cccccc'
     )
 
@@ -214,13 +237,39 @@ describe('ComplianceService Components Audit', () => {
       '#333333'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_toast_variants_styles_default_properties_colors_layer-0_background',
+      '--recursica_ui-kit_themes_dark_components_toast_variants_styles_default_properties_colors_layer-0_background-color',
       '#000000'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_toast_variants_styles_default_properties_colors_layer-0_text',
+      '--recursica_ui-kit_themes_dark_components_toast_variants_styles_default_properties_colors_layer-0_text-color',
       '#333333'
     )
+  })
+
+  // Button solid: text and background resolve to the SAME colour, i.e. invisible label
+  // at exactly 1.00:1. This is the state produced by editing the interactive colour, and
+  // the audit must report it. Before the key-name fix the standard-components loop bailed
+  // on a missing `background` key and never checked button at all.
+  beforeEach(() => {
+    for (const mode of ['light', 'dark'] as const) {
+      const base = `--recursica_ui-kit_themes_${mode}_components_button_variants_styles_solid_properties_colors_layer-0`
+      document.documentElement.style.setProperty(`${base}_background-color`, '#1a7f8c')
+      document.documentElement.style.setProperty(`${base}_text-color`, '#1a7f8c')
+    }
+  })
+
+  it('reports the button solid label when it matches its own background (1.00:1)', () => {
+    const service = getComplianceService()
+    service.connect(() => mockTokens, () => mockTheme)
+    service.runFullScan()
+    const componentIssues = service.getComponentIssues()
+    const buttonIssues = componentIssues.filter(i => i.componentName === 'button')
+
+    expect(buttonIssues.length).toBeGreaterThan(0)
+    const textIssue = buttonIssues.find(i => i.location.includes('Text'))
+    expect(textIssue).toBeDefined()
+    expect(textIssue?.light.passes).toBe(false)
+    expect(textIssue?.dark.passes).toBe(false)
   })
 
   it('should detect low contrast issues for tabs, links, tooltips, and toasts', () => {
@@ -253,5 +302,222 @@ describe('ComplianceService Components Audit', () => {
     expect(toastTextIssue).toBeDefined()
     expect(toastTextIssue?.light.passes).toBe(false)
     expect(toastTextIssue?.dark.passes).toBe(false)
+  })
+})
+
+describe('ComplianceService interactive-color write path (2.1.0)', () => {
+  // Regression guard. Before 2.1.0 the layer's readable interactive colour lived under
+  // `elements.interactive.tone`, which is also the fill. A contrast fix for text therefore
+  // repainted the fill, and the routine additionally deleted `elements.interactive.color`
+  // and cascaded an `on-tone` fix. Those slots are now independent, so a scan must write
+  // `color` and leave `tone` alone — otherwise the next compliance run silently reverts
+  // the 2.1.0 structural change.
+  //
+  // Scope: this exercises the var -> JSON-path ROUTING only. The value resolver
+  // (cssVarRefToJsonRef) needs injected tokens plus live DOM CSS vars, so it is stubbed;
+  // routing is the part 2.1.0 changed.
+
+  // Shape matters: the layer write path resolves `root.themes?.[mode] ?? root[mode]`, so
+  // the fixture must be mode-keyed. A bare { layers: ... } matches nothing and makes every
+  // "left untouched" assertion vacuously true.
+  const makeThemeCopy = () => ({
+    themes: {
+      dark: {
+        layers: {
+          'layer-3': {
+            elements: {
+              interactive: {
+                tone: { $type: 'color', $value: '{tokens.colors.scale-06.60}' },
+                color: { $type: 'color', $value: '{tokens.colors.scale-06.80}' },
+                'on-tone': { $type: 'color', $value: '{tokens.colors.scale-06.10}' }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  const interOf = (t: any) => t.themes.dark.layers['layer-3'].elements.interactive
+  const VAR = '--recursica_brand_themes_dark_layers_layer-3_elements_interactive-color'
+  const TONE_VAR = '--recursica_brand_themes_dark_layers_layer-3_elements_interactive-tone'
+  const FIXED = '{tokens.colors.scale-06.100}'
+
+  let svc: any
+  let original: any
+
+  beforeEach(() => {
+    // getComplianceService() is a singleton, so stash and restore the real resolver.
+    svc = getComplianceService() as any
+    original = svc.cssVarRefToJsonRef
+    svc.cssVarRefToJsonRef = () => FIXED
+  })
+
+  afterEach(() => {
+    svc.cssVarRefToJsonRef = original
+  })
+
+  it('writes the fixed value to elements.interactive.color', () => {
+    const theme = makeThemeCopy()
+    svc.applyFixToThemeCopy(theme, VAR, 'var(--whatever)')
+    expect(interOf(theme).color.$value).toBe(FIXED)
+  })
+
+  it('leaves elements.interactive.tone (the fill) untouched', () => {
+    const theme = makeThemeCopy()
+    svc.applyFixToThemeCopy(theme, VAR, 'var(--whatever)')
+    expect(interOf(theme).tone.$value).toBe('{tokens.colors.scale-06.60}')
+  })
+
+  it('does not delete elements.interactive.color as a side effect', () => {
+    const theme = makeThemeCopy()
+    svc.applyFixToThemeCopy(theme, VAR, 'var(--whatever)')
+    expect(interOf(theme).color).toBeDefined()
+  })
+
+  it('does not cascade an on-tone fix when only the readable colour changed', () => {
+    const theme = makeThemeCopy()
+    svc.applyFixToThemeCopy(theme, VAR, 'var(--whatever)')
+    expect(interOf(theme)['on-tone'].$value).toBe('{tokens.colors.scale-06.10}')
+  })
+
+  it('still routes interactive-tone to the fill, independently', () => {
+    const theme = makeThemeCopy()
+    svc.applyFixToThemeCopy(theme, TONE_VAR, 'var(--whatever)')
+    expect(interOf(theme).tone.$value).toBe(FIXED)
+    expect(interOf(theme).color.$value).toBe('{tokens.colors.scale-06.80}')
+  })
+
+  it('is idempotent across repeated scans', () => {
+    const theme = makeThemeCopy()
+    for (let i = 0; i < 3; i++) svc.applyFixToThemeCopy(theme, VAR, 'var(--whatever)')
+    expect(interOf(theme).color.$value).toBe(FIXED)
+    expect(interOf(theme).tone.$value).toBe('{tokens.colors.scale-06.60}')
+  })
+})
+
+describe('ComplianceService interactive on-tone issue (flat var fallback)', () => {
+  // The seed theme only defines the flat `interactive_tone` / `interactive_on-tone`
+  // pair; the nested `default_*` / `hover_*` vars appear only after the interactive
+  // colour is edited. The check used to read the nested names unconditionally, so it
+  // bailed on an unset var and never raised an issue — which is why editing the
+  // interactive colour into an unreadable state produced no suggestion modal.
+  beforeEach(() => {
+    document.documentElement.style.cssText = ''
+    for (const mode of ['light', 'dark'] as const) {
+      const base = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive`
+      // tone and on-tone identical => exactly 1.00:1, an invisible label
+      document.documentElement.style.setProperty(`${base}_tone`, '#1a7f8c')
+      document.documentElement.style.setProperty(`${base}_on-tone`, '#1a7f8c')
+    }
+  })
+
+  it('raises a core-on-tone issue when the interactive on-tone matches its tone', () => {
+    const service = getComplianceService()
+    service.connect(() => mockTokens, () => mockTheme)
+    service.runFullScan()
+
+    const issue = service.getIssues().find(
+      i => i.type === 'core-on-tone' && i.location.includes('Interactive default')
+    )
+    expect(issue).toBeDefined()
+    expect(issue?.contrastRatio).toBeCloseTo(1, 2)
+  })
+
+  it('exposes the issue via getThemeIssues keyed to the var the core-colors cell uses', () => {
+    // This is the exact chain the UI depends on: ComplianceProvider reads
+    // getThemeIssues(), and BaseColorsGrid's cells match on
+    // paletteCore(mode, 'interactive', 'tone'). If the issue's toneCssVar does not
+    // equal that builder's output, the warning never becomes clickable.
+    const service = getComplianceService()
+    service.connect(() => mockTokens, () => mockTheme)
+    service.runFullScan()
+
+    const cellToneVar = '--recursica_brand_themes_light_palettes_core-colors_interactive_tone'
+    const cellOnToneVar = '--recursica_brand_themes_light_palettes_core-colors_interactive_on-tone'
+
+    const match = service.getThemeIssues().find(
+      i => i.suggestion?.targetCssVar === cellOnToneVar || i.toneCssVar === cellToneVar
+    )
+    expect(match).toBeDefined()
+  })
+
+  it('carries a suggestion so the tone-suggestion modal has something to show', () => {
+    const service = getComplianceService()
+    service.connect(() => mockTokens, () => mockTheme)
+    service.runFullScan()
+
+    const issue = service.getIssues().find(
+      i => i.type === 'core-on-tone' && i.location.includes('Interactive default')
+    )
+    expect(issue?.toneCssVar).toContain('core-colors_interactive_tone')
+    expect(issue?.suggestion).toBeDefined()
+  })
+})
+
+describe('ComplianceService per-mode component fix', () => {
+  // No single colour can clear a near-white light background and a near-dark dark
+  // background at 4.5:1 — the two constraints leave an empty luminance range — so the
+  // dual-mode search always reported "no dual-mode fix" for these components. The two
+  // modes resolve through separate mode-scoped brand vars though, so the failing mode
+  // can be fixed on its own. These use real token values: scale-02/300 (#359ead) is
+  // 3.00:1 on #f9f9f9 and fails, while scale-02/400 (#007889) is 4.93:1 and passes.
+  const FG_TEMPLATE =
+    '--recursica_ui-kit_themes_MODE_components_toast_variants_styles_default_properties_colors_layer-0_button'
+  const BG_TEMPLATE =
+    '--recursica_ui-kit_themes_MODE_components_toast_variants_styles_default_properties_colors_layer-0_background-color'
+  const BRAND_LIGHT = '--recursica_brand_themes_light_palettes_core-colors_interactive_tone'
+
+  const failingLight = { bgHex: '#f9f9f9', fgHex: '#359ead', contrastRatio: 3.0, passes: false }
+
+  const setup = (componentValue: string) => {
+    document.documentElement.style.cssText = ''
+    document.documentElement.style.setProperty(BRAND_LIGHT, '#359ead')
+    document.documentElement.style.setProperty(
+      FG_TEMPLATE.replace('_themes_MODE_', '_themes_light_'), componentValue
+    )
+    document.documentElement.style.setProperty(
+      BG_TEMPLATE.replace('_themes_MODE_', '_themes_light_'), '#f9f9f9'
+    )
+  }
+
+  const call = () => {
+    const svc = getComplianceService() as any
+    return svc.generatePerModeSuggestion(
+      'light', failingLight, FG_TEMPLATE, BG_TEMPLATE, realTokens, buildTokenIndex(realTokens as any)
+    )
+  }
+
+  it('produces a fix for the failing mode', () => {
+    setup(`var(${BRAND_LIGHT})`)
+    expect(call()).not.toBeNull()
+  })
+
+  it('targets the mode-scoped brand var, not the shared component binding', () => {
+    setup(`var(${BRAND_LIGHT})`)
+    const s = call()
+    // Writing the component var would move both modes; the brand var is per-mode.
+    expect(s.targetCssVar).toBe(BRAND_LIGHT)
+    expect(s.targetCssVar).toContain('_themes_light_')
+    expect(s.targetCssVar).not.toContain('ui-kit')
+  })
+
+  it('suggests a colour that actually clears 4.5:1 in that mode', () => {
+    setup(`var(${BRAND_LIGHT})`)
+    const s = call()
+    const hex = resolveCssVarToHex(s.suggestedValue, buildTokenIndex(realTokens as any) as any)
+    expect(hex).toBeTruthy()
+    expect(contrastRatio('#f9f9f9', hex as string)).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('labels the suggestion as mode-scoped', () => {
+    setup(`var(${BRAND_LIGHT})`)
+    expect(call().description).toContain('light mode only')
+  })
+
+  it('returns null when the component colour is a literal, not a brand reference', () => {
+    // Nothing mode-specific to write to, so this is a genuine "no fix".
+    setup('#359ead')
+    expect(call()).toBeNull()
   })
 })

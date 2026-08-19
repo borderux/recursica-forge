@@ -156,10 +156,6 @@
   /* When icon size is 0px (text-only), this simplifies to just max-width */
   max-width: calc(var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max-label-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
   height: auto !important;
-  padding-top: 4px !important;
-  padding-bottom: 4px !important;
-  margin-top: -4px !important;
-  margin-bottom: -4px !important;
 }
 
 /* Trailing icons - use Mantine's section[data-position='right'] */

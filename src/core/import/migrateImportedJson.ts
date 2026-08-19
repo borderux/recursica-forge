@@ -33,7 +33,7 @@
 
 import uikitTemplate from '../../../recursica_ui-kit.json'
 
-const TARGET_STRUCTURE_VERSION = '2.0.0'
+const TARGET_STRUCTURE_VERSION = '2.1.0'
 
 export interface MigrationRule {
   description: string
@@ -694,6 +694,100 @@ export function migrateUikitTo2x(root: any): any {
   return root
 }
 
+// ── 2.0.x → 2.1.0: split the interactive fill from the readable interactive colour ──────
+//
+// A brand layer models two different interactive values, but before 2.1.0 both lived under a
+// single key:
+//
+//   elements.interactive.tone   — the interactive *fill* (solid button backgrounds, switch
+//                                 tracks, stepper indicators)
+//   elements.interactive.color  — the colour that must stay legible against this layer's own
+//                                 surface (interactive text, icons, outlines)
+//
+// With one key the two could not diverge, so a fill colour that failed contrast as text could
+// not be corrected without also repainting the fill — and every component text/icon binding
+// pointed at the fill. On a theme whose interactive tone works as a fill but not as text, all
+// interactive text rendered unreadable.
+//
+// The rename is safe because `tone` carried no per-layer information in practice: it was a
+// pass-through of palettes.core-colors.interactive.tone on every layer except where a contrast
+// fix had been written into it — and such a value is a readable colour, so it belongs under
+// `color`.
+
+/**
+ * Brand: rename `layers.<layer>.elements.interactive.tone` to `.color`, preserving the value
+ * and key order. Idempotent — a layer that already has `.color` is left alone, and `.tone`
+ * beside an existing `.color` is left in place rather than clobbering it.
+ */
+export function migrateInteractiveElementTo2_1(root: any): any {
+  const themes = root?.brand?.themes
+  if (!themes || typeof themes !== 'object') return root
+
+  for (const theme of Object.values<any>(themes)) {
+    const layers = theme?.layers
+    if (!layers || typeof layers !== 'object') continue
+
+    for (const layer of Object.values<any>(layers)) {
+      const elements = layer?.elements
+      const interactive = elements?.interactive
+      if (!interactive || typeof interactive !== 'object') continue
+      if (interactive.color || !interactive.tone) continue
+
+      // Rebuild so `color` takes the position `tone` held.
+      const rebuilt: Record<string, unknown> = {}
+      for (const [key, value] of Object.entries(interactive)) {
+        rebuilt[key === 'tone' ? 'color' : key] = value
+      }
+      elements.interactive = rebuilt
+    }
+  }
+
+  return root
+}
+
+/**
+ * ui-kit: repoint references to `layers.<n>.elements.interactive.tone` by role.
+ *
+ *   text-color / icon-color  → layers.<n>.elements.interactive.color   (readable)
+ *   everything else          → palettes.core-colors.interactive.tone   (the fill)
+ *
+ * Fills move off the layer entirely: the layer never carried a distinct fill, so pointing them
+ * at the brand palette is both truer and stable across layers.
+ *
+ * Path-aware by necessity — MIGRATION_RULES applies to string leaves with no knowledge of the
+ * owning key, so a blanket replacement could not tell a text colour from a fill.
+ */
+export function repointInteractiveRefsTo2_1(root: any): any {
+  const READABLE = new Set(['text-color', 'icon-color'])
+  const LAYER_TONE = /^\{brand\.layers\.layer-([0-3])\.elements\.interactive\.tone\}$/
+
+  const visit = (node: any, ownKey: string | null): void => {
+    if (!node || typeof node !== 'object') return
+
+    if (Array.isArray(node)) {
+      for (const entry of node) visit(entry, ownKey)
+      return
+    }
+
+    if (typeof node.$value === 'string') {
+      const match = LAYER_TONE.exec(node.$value.trim())
+      if (match) {
+        node.$value = ownKey && READABLE.has(ownKey)
+          ? `{brand.layers.layer-${match[1]}.elements.interactive.color}`
+          : '{brand.palettes.core-colors.interactive.tone}'
+      }
+    }
+
+    for (const [key, value] of Object.entries(node)) {
+      if (key.startsWith('$')) continue
+      visit(value, key)
+    }
+  }
+
+  visit(root, null)
+  return root
+}
+
 /**
  * Deep clones and migrates an imported JSON file to the current (2.x) structure.
  * Applies string rules to every file; applies file-type-specific structural
@@ -701,8 +795,8 @@ export function migrateUikitTo2x(root: any): any {
  */
 export function migrateImportedJson(data: any, fileType?: 'tokens' | 'brand' | 'uikit'): any {
   const migrated = applyStringRules(data)
-  if (fileType === 'brand') return migrateBrandTo2x(migrated)
-  if (fileType === 'uikit') return migrateUikitTo2x(migrated)
+  if (fileType === 'brand') return migrateInteractiveElementTo2_1(migrateBrandTo2x(migrated))
+  if (fileType === 'uikit') return repointInteractiveRefsTo2_1(migrateUikitTo2x(migrated))
   if (fileType === 'tokens') { stampVersion(migrated); return migrated }
   return migrated
 }

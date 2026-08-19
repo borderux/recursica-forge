@@ -70,15 +70,28 @@ export function resolveBraceRef(ref: any, tokenIndex: TokenIndex, themeAccessor?
   if (typeof ref === 'object') return resolveBraceRef((ref as any).$value ?? (ref as any).value ?? ref, tokenIndex, themeAccessor, depth + 1)
   const s = String(ref).trim()
   if (!s) return undefined
-  const inner = s.startsWith('{') && s.endsWith('}') ? s.slice(1, -1).trim() : s
-  if (/^(tokens|token)\./i.test(inner)) {
-    const path = inner.replace(/^(tokens|token)\./i, '').replace(/[.]/g, '/').replace(/\/+/, '/')
-    return resolveBraceRef(tokenIndex.get(path), tokenIndex, themeAccessor, depth + 1)
+  if (!s.startsWith('{') || !s.endsWith('}')) {
+    return s
   }
+
+  const inner = s.slice(1, -1).trim()
+
+  // Try themeAccessor if it's a theme/brand reference
   if (/^(theme|brand)\./i.test(inner) && themeAccessor) {
-    const path = inner.replace(/^(theme|brand)\./i, '').trim()
-    return resolveBraceRef(themeAccessor(path), tokenIndex, themeAccessor, depth + 1)
+    const themePath = inner.replace(/^(theme|brand)\./i, '').trim()
+    const themeVal = themeAccessor(themePath)
+    if (themeVal !== undefined) {
+      return resolveBraceRef(themeVal, tokenIndex, themeAccessor, depth + 1)
+    }
   }
+
+  // Strip prefixes (tokens, token, theme, brand) and normalize separators
+  const cleanPath = inner.replace(/^(tokens|token|theme|brand)\./i, '').replace(/[.]/g, '/').replace(/\/+/, '/')
+  const tokenVal = tokenIndex.get(cleanPath)
+  if (tokenVal !== undefined) {
+    return resolveBraceRef(tokenVal, tokenIndex, themeAccessor, depth + 1)
+  }
+
   return s
 }
 

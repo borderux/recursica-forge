@@ -167,7 +167,7 @@ describe("importJsonFiles", () => {
     expect(validateSchemasModule.validateBrandJson).toHaveBeenCalled();
     expect(validateSchemasModule.validateUIKitJson).toHaveBeenCalled();
     // Imported files are migrated to the current (2.x) structure and stamped.
-    const stamp = { $extensions: { "recursica.metadata": { version: "2.0.0" } } };
+    const stamp = { $extensions: { "recursica.metadata": { version: "2.1.0" } } };
     expect(mockStore.bulkImport).toHaveBeenCalledWith({
       tokens: { tokens: {}, ...stamp },
       brand: { brand: {}, ...stamp },
@@ -197,7 +197,7 @@ describe("importJsonFiles", () => {
     importJsonFiles(files);
 
     // Multi-file import uses bulkImport which handles ordering atomically
-    const stamp = { $extensions: { "recursica.metadata": { version: "2.0.0" } } };
+    const stamp = { $extensions: { "recursica.metadata": { version: "2.1.0" } } };
     expect(mockStore.bulkImport).toHaveBeenCalledWith({
       tokens: { tokens: {}, ...stamp },
       brand: { brand: {}, ...stamp },
