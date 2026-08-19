@@ -59,6 +59,16 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    /* header-style is brand.typography.h6, whose lineHeight is the `default` token
+       (1.05em). At 20px that is a 21px line box while the glyphs need 23px, and the
+       `overflow: hidden` above — required for text-overflow: ellipsis — clips the
+       overflow vertically too, cutting descenders (the g in "Selected for crafting").
+       `tall` (1.175em = 23.5px) fits the glyphs. This replaces a `padding: 3px 0` hack
+       that padded around the clipping rather than sizing the line box.
+       !important is needed because the component applies the h6 type style inline.
+       Every brand type style uses the `default` line-height, so any truncated text with
+       a descender has this problem — fixing that in the type scale is a broader call. */
+    line-height: var(--recursica_tokens_font_line-heights_tall) !important;
     color: var(--transfer-list-header-color, inherit);
 }
 
