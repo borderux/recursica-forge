@@ -1555,17 +1555,17 @@ class ComplianceServiceImpl {
                 {
                     names: ['text-field', 'textarea', 'dropdown', 'autocomplete', 'number-input', 'date-picker', 'time-picker', 'file-input', 'file-upload', 'transfer-list'],
                     variantGroup: 'states',
-                    fgProps: ['text', 'leading-icon', 'trailing-icon', 'upload-icon', 'header-color']
+                    fgProps: ['text-color', 'leading-icon', 'trailing-icon', 'icon-color', 'upload-icon', 'header-color']
                 },
                 {
                     names: ['button', 'toast'],
                     variantGroup: 'styles',
-                    fgProps: ['text', 'text-hover', 'icon-color', 'button']
+                    fgProps: ['text-color', 'icon-color', 'button']
                 },
                 {
                     names: ['chip', 'badge'],
                     variantGroup: 'styles',
-                    fgProps: ['text', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon']
+                    fgProps: ['text-color', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon-color']
                 }
             ];
 
@@ -1583,9 +1583,9 @@ class ComplianceServiceImpl {
 
                         for (const layer of layers) {
                             const layerColors = colors[layer]
-                            if (!layerColors?.background) continue
+                            if (!layerColors?.['background-color']) continue
 
-                            const bgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_background`
+                            const bgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_background-color`
                             const bgValue = readCssVar(bgVar)
                             if (!bgValue) continue
                             const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
@@ -2199,17 +2199,17 @@ class ComplianceServiceImpl {
                 {
                     names: ['text-field', 'textarea', 'dropdown', 'autocomplete', 'number-input', 'date-picker', 'time-picker', 'file-input', 'file-upload', 'transfer-list'],
                     variantGroup: 'states',
-                    fgProps: ['text', 'leading-icon', 'trailing-icon', 'upload-icon', 'header-color']
+                    fgProps: ['text-color', 'leading-icon', 'trailing-icon', 'icon-color', 'upload-icon', 'header-color']
                 },
                 {
                     names: ['button', 'toast'],
                     variantGroup: 'styles',
-                    fgProps: ['text', 'text-hover', 'icon-color', 'button']
+                    fgProps: ['text-color', 'icon-color', 'button']
                 },
                 {
                     names: ['chip', 'badge'],
                     variantGroup: 'styles',
-                    fgProps: ['text', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon']
+                    fgProps: ['text-color', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon-color']
                 }
             ]
 
@@ -2227,7 +2227,7 @@ class ComplianceServiceImpl {
 
                         for (const layer of layers) {
                             const layerColors = colors[layer]
-                            if (!layerColors?.background) continue
+                            if (!layerColors?.['background-color']) continue
 
                             for (const prop of config.fgProps) {
                                 if (!layerColors[prop]) continue
@@ -2236,7 +2236,7 @@ class ComplianceServiceImpl {
                                 const location = `${displayName} / ${toLabel(variantName)} / ${toLabel(layer)} / ${propLabel}`
 
                                 const fgTemplate = `--recursica_ui-kit_themes_MODE_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_${prop}`
-                                const bgTemplate = `--recursica_ui-kit_themes_MODE_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_background`
+                                const bgTemplate = `--recursica_ui-kit_themes_MODE_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_background-color`
 
                                 checkDualMode(compName, variantName, layer, prop, propLabel, location, fgTemplate, bgTemplate)
                             }

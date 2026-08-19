@@ -62,6 +62,22 @@ vi.mock('../store/varsStore', () => ({
                 }
               }
             },
+            button: {
+              variants: {
+                styles: {
+                  solid: {
+                    properties: {
+                      colors: {
+                        'layer-0': {
+                          'background-color': '{brand.palettes.core-colors.interactive.tone}',
+                          'text-color': '{brand.palettes.core-colors.interactive.on-tone}'
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
             toast: {
               variants: {
                 styles: {
@@ -69,8 +85,11 @@ vi.mock('../store/varsStore', () => ({
                     properties: {
                       colors: {
                         'layer-0': {
-                          background: '{brand.palettes.neutral.050.color.tone}',
-                          text: '{brand.palettes.neutral.050.color.on-tone}'
+                          // Real ui-kit keys are `background-color` / `text-color`.
+                          // The fixture previously used `background` / `text`, which only
+                          // matched the audit's own incorrect key names.
+                          'background-color': '{brand.palettes.neutral.050.color.tone}',
+                          'text-color': '{brand.palettes.neutral.050.color.on-tone}'
                         }
                       }
                     }
@@ -197,11 +216,11 @@ describe('ComplianceService Components Audit', () => {
       '#cccccc'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_toast_variants_styles_default_properties_colors_layer-0_background',
+      '--recursica_ui-kit_themes_light_components_toast_variants_styles_default_properties_colors_layer-0_background-color',
       '#ffffff'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_toast_variants_styles_default_properties_colors_layer-0_text',
+      '--recursica_ui-kit_themes_light_components_toast_variants_styles_default_properties_colors_layer-0_text-color',
       '#cccccc'
     )
 
@@ -214,13 +233,39 @@ describe('ComplianceService Components Audit', () => {
       '#333333'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_toast_variants_styles_default_properties_colors_layer-0_background',
+      '--recursica_ui-kit_themes_dark_components_toast_variants_styles_default_properties_colors_layer-0_background-color',
       '#000000'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_toast_variants_styles_default_properties_colors_layer-0_text',
+      '--recursica_ui-kit_themes_dark_components_toast_variants_styles_default_properties_colors_layer-0_text-color',
       '#333333'
     )
+  })
+
+  // Button solid: text and background resolve to the SAME colour, i.e. invisible label
+  // at exactly 1.00:1. This is the state produced by editing the interactive colour, and
+  // the audit must report it. Before the key-name fix the standard-components loop bailed
+  // on a missing `background` key and never checked button at all.
+  beforeEach(() => {
+    for (const mode of ['light', 'dark'] as const) {
+      const base = `--recursica_ui-kit_themes_${mode}_components_button_variants_styles_solid_properties_colors_layer-0`
+      document.documentElement.style.setProperty(`${base}_background-color`, '#1a7f8c')
+      document.documentElement.style.setProperty(`${base}_text-color`, '#1a7f8c')
+    }
+  })
+
+  it('reports the button solid label when it matches its own background (1.00:1)', () => {
+    const service = getComplianceService()
+    service.connect(() => mockTokens, () => mockTheme)
+    service.runFullScan()
+    const componentIssues = service.getComponentIssues()
+    const buttonIssues = componentIssues.filter(i => i.componentName === 'button')
+
+    expect(buttonIssues.length).toBeGreaterThan(0)
+    const textIssue = buttonIssues.find(i => i.location.includes('Text'))
+    expect(textIssue).toBeDefined()
+    expect(textIssue?.light.passes).toBe(false)
+    expect(textIssue?.dark.passes).toBe(false)
   })
 
   it('should detect low contrast issues for tabs, links, tooltips, and toasts', () => {
