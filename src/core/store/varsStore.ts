@@ -168,7 +168,7 @@ type Listener = () => void
  */
 function sortFontTokenObjects(tokens: JsonLike): JsonLike {
   const sorted = JSON.parse(JSON.stringify(tokens)) as JsonLike
-  const tokensRoot: any = (sorted as any)?.tokens || {}
+  const tokensRoot: any = (sorted as any)?.tokens?.font ? (sorted as any).tokens : (sorted?.font ? sorted : ((sorted as any)?.tokens || sorted || {}))
 
   if (tokensRoot.font) {
     const font = tokensRoot.font
@@ -283,6 +283,15 @@ class VarsStore {
   
   /** Read-only structural metadata (what keys/palettes/layers exist) */
   public structure: StructuralMetadata | null = null
+
+  private getTokensRoot(t?: any): any {
+    const obj = t || this.state?.tokens
+    if (!obj || typeof obj !== 'object') return {}
+    if (obj.tokens && typeof obj.tokens === 'object' && (obj.tokens.colors || obj.tokens.font || obj.tokens.sizes || obj.tokens.opacities)) {
+      return obj.tokens
+    }
+    return obj
+  }
   /** The allVars map produced by the most recent recomputeAndApplyAll (for snapshotting) */
   private lastComputedVars: Record<string, string> = {}
   /** Exposes the pre-delta computed vars for clean CSS snapshotting (no stale delta pollution). */
@@ -365,8 +374,6 @@ class VarsStore {
     // Ensure tokens is defined before passing to initElevationState
     // initElevationState will create elevation tokens and add them to the tokens object
     const elevation = this.initElevationState(theme as any, tokens || {})
-    // Ensure tokens structure is properly set (initElevationState modifies tokens in place)
-    if (!(tokens as any).tokens) (tokens as any).tokens = {}
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
 
     // Bundle version check: clear uikit cache when source JSON changes so new
@@ -388,7 +395,7 @@ class VarsStore {
       if (typeof window !== 'undefined') {
         // Populate fontUrlMap directly by reading from tokens synchronously
         // This duplicates logic from fontUtils but ensures it runs before recomputeAndApplyAll
-        const fontRoot = (this.state.tokens as any)?.tokens?.font || (this.state.tokens as any)?.font || {}
+        const fontRoot = this.getTokensRoot().font || {}
         const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
 
         // Store URLs in window.__fontUrlMap so ensureFontLoaded can look them up
@@ -1233,7 +1240,7 @@ class VarsStore {
 
     const [category, ...rest] = parts
     const varsToUpdate: Record<string, string> = {}
-    const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+    const tokensRoot: any = this.getTokensRoot()
 
     try {
       if (category === 'font' && rest.length >= 2) {
@@ -1389,7 +1396,7 @@ class VarsStore {
 
     // Deep clone tokens to avoid mutation
     const nextTokens = JSON.parse(JSON.stringify(this.state.tokens)) as JsonLike
-    const tokensRoot: any = (nextTokens as any)?.tokens || {}
+    const tokensRoot: any = (nextTokens as any)?.tokens || nextTokens || {}
 
     try {
       const [category, ...rest] = parts
@@ -2118,7 +2125,7 @@ class VarsStore {
 
       // Tokens: expose size tokens as CSS vars under --recursica_tokens_sizes_<key>
       try {
-        const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+        const tokensRoot: any = this.getTokensRoot()
 
         // Elevation tokens should NOT be in tokens - they belong in brand.json
         // CSS variables for elevations are generated directly from brand.json elevations
@@ -2163,7 +2170,7 @@ class VarsStore {
       } catch { }
       // Tokens: expose opacity tokens as CSS vars under --recursica_tokens_opacities_<key> (normalized 0..1)
       try {
-        const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+        const tokensRoot: any = this.getTokensRoot()
 
         // Elevation opacity tokens should NOT be in tokens - they belong in brand.json
         // CSS variables for elevations are generated directly from brand.json elevations
@@ -2199,7 +2206,7 @@ class VarsStore {
       // Tokens: expose color tokens as CSS vars under --recursica_tokens_colors_<scale>_<level>
       // New structure: tokens.colors.scale-XX.XXX with alias property
       try {
-        const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+        const tokensRoot: any = this.getTokensRoot()
         const colorsRoot: any = tokensRoot?.colors
         const vars: Record<string, string> = {}
         const processedKeys = new Set<string>()
@@ -2215,7 +2222,10 @@ class VarsStore {
 
             // Emit family-name CSS var for the display name
             if (typeof alias === 'string' && alias) {
-              const displayName = alias.charAt(0).toUpperCase() + alias.slice(1)
+              const extName = scale.$extensions?.['com.recursica.friendlyName']
+              const displayName = (typeof extName === 'string' && extName) 
+                ? extName 
+                : alias.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
               vars[tokenColorFamilyName(scaleKey)] = displayName
             }
 
@@ -2250,7 +2260,7 @@ class VarsStore {
       } catch { }
       // Tokens: expose font cases and decorations as CSS vars under --recursica_tokens_font_cases_<key> and --recursica_tokens_font_decorations_<key>
       try {
-        const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+        const tokensRoot: any = this.getTokensRoot()
         const fontRoot: any = tokensRoot?.font || {}
 
         // Generate font cases CSS variables
@@ -2294,7 +2304,7 @@ class VarsStore {
       // Tokens: expose ALL font token categories as CSS vars
       // This ensures font CSS variables are available on every page, not just the font tokens page
       try {
-        const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+        const tokensRoot: any = this.getTokensRoot()
         const fontRoot: any = tokensRoot?.font || {}
         const vars: Record<string, string> = {}
 
@@ -2751,7 +2761,7 @@ class VarsStore {
           const tokenIndex = {
             get: (path: string): any => {
               const parts = path.split('/')
-              const root: any = (this.state.tokens as any)?.tokens || {}
+              const root: any = this.getTokensRoot()
               if ((parts[0] === 'size' || parts[0] === 'sizes') && parts[1]) {
                 return root?.sizes?.[parts[1]]?.$value || root?.size?.[parts[1]]?.$value
               }
@@ -2824,7 +2834,7 @@ class VarsStore {
           const baseElevationNode: any = modeElevations?.['elevation-0']?.['$value'] || {}
 
           const vars: Record<string, string> = {}
-          const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+          const tokensRoot: any = this.getTokensRoot()
           if (!tokensRoot.sizes) tokensRoot.sizes = {}
           const sizeTokens = tokensRoot.sizes
 

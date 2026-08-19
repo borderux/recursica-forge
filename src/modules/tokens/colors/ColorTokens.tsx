@@ -92,10 +92,10 @@ export function AddColorScaleButton() {
     const currentState = store.getState()
     const currentTokens = currentState.tokens
     const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
-    const tokensRoot = nextTokens?.tokens || {}
+    const tokensRoot = (nextTokens as any)?.tokens || nextTokens || {}
 
     // Find the next available scale number
-    const colorsRoot = tokensRoot?.colors || {}
+    const colorsRoot = tokensRoot?.colors || (tokensRoot.colors = {})
     let scaleNumber = 1
     while (colorsRoot[`scale-${String(scaleNumber).padStart(2, '0')}`]) {
       scaleNumber++
@@ -103,8 +103,7 @@ export function AddColorScaleButton() {
     const scaleKey = `scale-${String(scaleNumber).padStart(2, '0')}`
 
     // Create the new scale in the new format with alias
-    if (!tokensRoot.colors) tokensRoot.colors = {}
-    tokensRoot.colors[scaleKey] = {
+    colorsRoot[scaleKey] = {
       alias: newFamilySlug,
       $extensions: {
         'com.recursica.friendlyName': toTitleCase(friendlyName)
@@ -118,7 +117,6 @@ export function AddColorScaleButton() {
     }
 
     // Update tokens structure
-    if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
     setTokens(nextTokens)
 
     // Create token entries for each level
@@ -305,7 +303,8 @@ export default function ColorTokens() {
       if (typeof v === 'string' || typeof v === 'number') list.push({ name, type, value: v })
     }
     try {
-      const t: any = (tokensJson as any)?.tokens || {}
+      const resolveRoot = (t: any) => (t && typeof t === 'object' && t.tokens && typeof t.tokens === 'object' && (t.tokens.colors || t.tokens.font)) ? t.tokens : t
+      const t: any = resolveRoot(tokensJson)
 
       // Process new scale structure (colors.scale-XX.level)
       const colorsRoot = t?.colors || {}
@@ -459,17 +458,20 @@ export default function ColorTokens() {
 
     cascadeColor(tokenName, hex, cascadeDown, cascadeUp, handleChange)
 
-      // Update friendly family name using the 500 level hex
-      ; (async () => {
-        const startIdx = IDX_MAP[levelNum]
-        if (startIdx === undefined) return
-        const fiveHex = computeLevel500Hex(tokenName, hex, levelNum, cascadeDown, cascadeUp, startIdx, values)
-        if (fiveHex) {
-          const label = await getFriendlyNamePreferNtc(fiveHex)
-          setFamilyNames((prev) => ({ ...prev, [family]: label }))
-          setFamilyNameByAlias(family, label, tokensJson)
+    // Update friendly scale name dynamically using the updated color hex and PERSIST it to store & localStorage
+    ; (async () => {
+      const startIdx = IDX_MAP[levelNum]
+      const fiveHex = startIdx !== undefined ? computeLevel500Hex(tokenName, hex, levelNum, cascadeDown, cascadeUp, startIdx, values) : null
+      const targetHex = fiveHex || hex
+      if (targetHex) {
+        const label = await getFriendlyNamePreferNtc(targetHex)
+        if (label && label.trim()) {
+          const displayLabel = label.trim()
+          setFamilyNames((prev) => ({ ...prev, [family]: displayLabel }))
+          setFamilyNameByAlias(family, displayLabel, tokensJson)
         }
-      })()
+      }
+    })()
   }
 
   const createColorScale = async (seedHex: string) => {
@@ -522,9 +524,9 @@ export default function ColorTokens() {
     const currentState = store.getState()
     const currentTokens = currentState.tokens
     const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
-    const tokensRoot = nextTokens?.tokens || {}
+    const tokensRoot = (nextTokens as any)?.tokens || nextTokens || {}
     
-    const colorsRoot = tokensRoot?.colors || {}
+    const colorsRoot = tokensRoot?.colors || (tokensRoot.colors = {})
     const existingNums = Object.keys(colorsRoot)
       .filter(k => k.startsWith('scale-'))
       .map(k => parseInt(k.replace('scale-', ''), 10))
@@ -534,8 +536,7 @@ export default function ColorTokens() {
     const scaleKey = `scale-${String(maxNum + 1).padStart(2, '0')}`
 
     // Create the new scale in the new format with alias
-    if (!tokensRoot.colors) tokensRoot.colors = {}
-    tokensRoot.colors[scaleKey] = {
+    colorsRoot[scaleKey] = {
       alias: newFamilySlug,
       $extensions: {
         'com.recursica.friendlyName': toTitleCase(friendlyName)
@@ -549,7 +550,6 @@ export default function ColorTokens() {
     }
 
     // Update tokens structure
-    if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
     setTokens(nextTokens)
 
     // Update local values state - use alias-based token names for display
@@ -834,11 +834,12 @@ export default function ColorTokens() {
     const store = getVarsStore()
     const currentTokens = store.getState().tokens
     const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
-    const tokensRoot = nextTokens?.tokens || {}
+    const resolveRoot = (t: any) => (t && typeof t === 'object' && t.tokens && typeof t.tokens === 'object' && (t.tokens.colors || t.tokens.font)) ? t.tokens : t
+    const tokensRoot = resolveRoot(nextTokens)
     const colorsRoot = tokensRoot?.colors || {}
     
     const scaleKey = Object.keys(colorsRoot).find(k =>
-      k.startsWith('scale-') && colorsRoot[k]?.alias === family
+      k.startsWith('scale-') && (colorsRoot[k]?.alias === family || k === family)
     )
 
     let tokensUpdated = false
@@ -874,6 +875,7 @@ export default function ColorTokens() {
       const updatedFamilyNames = { ...familyNames }
       delete updatedFamilyNames[family]
       updatedFamilyNames[newFamilySlug] = v
+      updatedFamilyNames[family] = v
       setFamilyNames(updatedFamilyNames)
 
       if (scaleKey) {
@@ -881,7 +883,6 @@ export default function ColorTokens() {
       }
 
       if (tokensUpdated) {
-        if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
         setTokens(nextTokens)
       }
 
@@ -898,11 +899,10 @@ export default function ColorTokens() {
 
     // If slug matches, just update the JSON with the display name and update the CSS var
     if (tokensUpdated) {
-      if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
       setTokens(nextTokens)
     }
     
-    setFamilyNames((prev) => ({ ...prev, [family]: v }))
+    setFamilyNames((prev) => ({ ...prev, [family]: v, [scaleKey || family]: v }))
     setFamilyNameByAlias(family, v, nextTokens)
   }
 
@@ -922,7 +922,8 @@ export default function ColorTokens() {
   // Helper function to get scale key for a family alias
   const getScaleKeyForFamily = (familyAlias: string): string | null => {
     try {
-      const tokensRoot: any = (tokensJson as any)?.tokens || {}
+      const resolveRoot = (t: any) => (t && typeof t === 'object' && t.tokens && typeof t.tokens === 'object' && (t.tokens.colors || t.tokens.font)) ? t.tokens : t
+      const tokensRoot: any = resolveRoot(tokensJson)
       const colorsRoot: any = tokensRoot?.colors || {}
       for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
         if (!scaleKey.startsWith('scale-')) continue

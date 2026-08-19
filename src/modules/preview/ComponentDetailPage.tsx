@@ -56,7 +56,7 @@ import { parseComponentStructure, isDisplayToggleVariant } from '../toolbar/util
 import VariantSwitch from '../toolbar/menu/dropdown/VariantSwitch'
 import { extractBraceContent, parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import type { ComponentName } from '../../components/registry/types'
-import { layerProperty, layerText } from '../../core/css/cssVarBuilder'
+import { layerProperty, genericLayerProperty, layerText } from '../../core/css/cssVarBuilder'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
@@ -362,10 +362,7 @@ export default function ComponentDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          // No padding here: the layer surface below already pads the component with the
-          // layer's own padding token. Only the heading gets an inset (below) so it isn't
-          // flush to the card — this avoids double-padding the preview.
-          padding: 0,
+          padding: component.name.toLowerCase().includes('table') ? 0 : 'var(--recursica_brand_dimensions_general_xl)',
           position: 'sticky',
           top: 0,
           alignSelf: component.name.toLowerCase().includes('table') ? 'stretch' : 'flex-start',
@@ -380,7 +377,7 @@ export default function ComponentDetailPage() {
               width) sit to the right of the title, aligned to the right edge of the preview area.
               Hidden for table components — their previews are full-bleed and the heading is noise. */}
           {!component.name.toLowerCase().includes('table') && (
-          <div style={{ padding: 'var(--recursica_brand_dimensions_general_xl) var(--recursica_brand_dimensions_general_xl) 0', marginBottom: 'var(--recursica_brand_dimensions_general_md)', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
+          <div style={{ padding: '0 0 var(--recursica_brand_dimensions_general_md)', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
             <div style={{ minWidth: 0 }}>
               <h2 style={{ ...getTypographyStyle('h2'), color: `var(${layerText(mode, 0, 'color')})` }}>
                 {variantHeading}
@@ -414,14 +411,12 @@ export default function ComponentDetailPage() {
             alignItems: 'stretch',
             justifyContent: 'space-between',
             gap: 'var(--recursica_brand_dimensions_general_md)',
-            background: `var(${layerProperty(mode, layerNum, 'surface')})`,
-            padding: component.name.toLowerCase().includes('table') ? 0 : `var(${layerProperty(mode, layerNum, 'padding')})`,
-            border: layerNum !== '0'
-              ? `var(${layerProperty(mode, layerNum, 'border-size')}, 1px) solid var(${layerProperty(mode, layerNum, 'border-color')})`
-              : 'none',
-            borderRadius: layerNum !== '0'
-              ? `var(${layerProperty(mode, layerNum, 'border-radius')})`
-              : undefined,
+            background: `var(${layerProperty(mode, layerNum, 'surface')}, var(${genericLayerProperty(layerNum, 'surface')}))`,
+            padding: component.name.toLowerCase().includes('table')
+              ? 0
+              : `var(${layerProperty(mode, layerNum, 'padding')}, var(${genericLayerProperty(layerNum, 'padding')}))`,
+            border: `var(${layerProperty(mode, layerNum, 'border-size')}, var(${genericLayerProperty(layerNum, 'border-size')}, 0px)) solid var(${layerProperty(mode, layerNum, 'border-color')}, var(${genericLayerProperty(layerNum, 'border-color')}))`,
+            borderRadius: `var(${layerProperty(mode, layerNum, 'border-radius')}, var(${genericLayerProperty(layerNum, 'border-radius')}))`,
             boxShadow: elevationBoxShadow,
             position: 'relative',
             minHeight: debugMode ? '400px' : 0,
