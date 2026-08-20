@@ -6,7 +6,7 @@
           "layer-0": {
             "elements": {
               "interactive": {
-                "tone": {
+                "color": {
                   "$type": "color",
                   "$value": "{brand.themes.light.palettes.core-colors.interactive.tone}"
                 }
@@ -114,7 +114,7 @@
                 }
               },
               "interactive": {
-                "tone": {
+                "color": {
                   "$type": "color",
                   "$value": "{brand.themes.light.palettes.core-colors.interactive.tone}"
                 }
@@ -173,7 +173,7 @@
                 }
               },
               "interactive": {
-                "tone": {
+                "color": {
                   "$type": "color",
                   "$value": "{brand.themes.light.palettes.core-colors.interactive.tone}"
                 }
@@ -201,7 +201,7 @@
                 }
               },
               "interactive": {
-                "tone": {
+                "color": {
                   "$type": "color",
                   "$value": "{brand.themes.light.palettes.core-colors.interactive.tone}"
                 }
@@ -1141,7 +1141,7 @@
           "layer-0": {
             "elements": {
               "interactive": {
-                "tone": {
+                "color": {
                   "$type": "color",
                   "$value": "{brand.themes.dark.palettes.core-colors.interactive.tone}"
                 }
@@ -1249,7 +1249,7 @@
                 }
               },
               "interactive": {
-                "tone": {
+                "color": {
                   "$type": "color",
                   "$value": "{brand.themes.dark.palettes.core-colors.interactive.tone}"
                 }
@@ -1308,7 +1308,7 @@
                 }
               },
               "interactive": {
-                "tone": {
+                "color": {
                   "$type": "color",
                   "$value": "{tokens.colors.scale-06.100}"
                 }
@@ -1336,7 +1336,7 @@
                 }
               },
               "interactive": {
-                "tone": {
+                "color": {
                   "$type": "color",
                   "$value": "{brand.themes.dark.palettes.core-colors.interactive.tone}"
                 }
@@ -2671,7 +2671,7 @@
   "$extensions": {
     "recursica.metadata": {
       "exportedAt": "2026-05-06T17:14:27.179Z",
-      "version": "2.0.0"
+      "version": "2.1.0"
     }
   }
 }

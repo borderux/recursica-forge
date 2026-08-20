@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { migrateImportedJson, mapOldUikitPath } from './migrateImportedJson'
+import {
+  migrateImportedJson,
+  mapOldUikitPath,
+  migrateInteractiveElementTo2_1,
+  repointInteractiveRefsTo2_1,
+} from './migrateImportedJson'
 import { validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
 import brandJson from '../../../recursica_brand.json'
 
@@ -140,9 +145,9 @@ describe('migrateImportedJson — brand 1.x → 2.x states', () => {
       .toBe('{brand.themes.light.palettes.core-colors.high-contrast.tone}')
   })
 
-  it('stamps the structure version to 2.0.0', () => {
+  it('stamps the current structure version', () => {
     const out = migrateImportedJson(brand1x(), 'brand')
-    expect(out.$extensions['recursica.metadata'].version).toBe('2.0.0')
+    expect(out.$extensions['recursica.metadata'].version).toBe('2.1.0')
   })
 
   it('is idempotent — a 2.x brand is left unchanged', () => {
@@ -618,5 +623,99 @@ describe('migrateImportedJson — 1.x uikit overlays onto the current structure'
     const twoX = { 'ui-kit': { components: { badge: { properties: {} } } } }
     const out: any = migrateImportedJson(JSON.parse(JSON.stringify(twoX)), 'uikit')
     expect(out['ui-kit'].components.badge).toEqual({ properties: {} })
+  })
+})
+
+describe('2.0.x → 2.1.0: interactive fill vs readable interactive colour', () => {
+  const leaf = (v: string) => ({ $type: 'color', $value: v })
+  const CORE_TONE = '{brand.themes.light.palettes.core-colors.interactive.tone}'
+  const STEPPED = '{tokens.colors.scale-06.100}'
+
+  describe('migrateInteractiveElementTo2_1 (brand)', () => {
+    const brand = (interactive: any) => ({
+      brand: { themes: { light: { layers: { 'layer-0': { elements: { interactive } } } } } },
+    })
+    const inter = (b: any) => b.brand.themes.light.layers['layer-0'].elements.interactive
+
+    it('renames interactive.tone to interactive.color, preserving the value', () => {
+      const out = migrateInteractiveElementTo2_1(brand({ tone: leaf(CORE_TONE) }))
+      expect(inter(out).color).toEqual(leaf(CORE_TONE))
+      expect(inter(out).tone).toBeUndefined()
+    })
+
+    it('preserves a contrast-fixed value — that is exactly what belongs under color', () => {
+      const out = migrateInteractiveElementTo2_1(brand({ tone: leaf(STEPPED) }))
+      expect(inter(out).color.$value).toBe(STEPPED)
+    })
+
+    it('keeps sibling keys and the position of the renamed key', () => {
+      const out = migrateInteractiveElementTo2_1(
+        brand({ tone: leaf(CORE_TONE), 'on-tone': leaf('{x.y}') }),
+      )
+      expect(Object.keys(inter(out))).toEqual(['color', 'on-tone'])
+    })
+
+    it('does not clobber an existing color', () => {
+      const mine = leaf('{tokens.colors.scale-05.700}')
+      const out = migrateInteractiveElementTo2_1(brand({ tone: leaf(CORE_TONE), color: mine }))
+      expect(inter(out).color).toEqual(mine)
+      expect(inter(out).tone).toEqual(leaf(CORE_TONE))
+    })
+
+    it('is idempotent', () => {
+      const once = migrateInteractiveElementTo2_1(brand({ tone: leaf(CORE_TONE) }))
+      const twice = migrateInteractiveElementTo2_1(JSON.parse(JSON.stringify(once)))
+      expect(twice).toEqual(once)
+    })
+
+    it('runs as part of the brand import path', () => {
+      const out: any = migrateImportedJson(brand({ tone: leaf(CORE_TONE) }), 'brand')
+      expect(inter(out).color).toEqual(leaf(CORE_TONE))
+    })
+  })
+
+  describe('repointInteractiveRefsTo2_1 (ui-kit)', () => {
+    const tone = (n: number) => `{brand.layers.layer-${n}.elements.interactive.tone}`
+    const sample = () => ({
+      'ui-kit': { components: { link: { properties: { colors: { 'layer-2': {
+        'text-color': leaf(tone(2)),
+        'icon-color': leaf(tone(2)),
+        'background-color': leaf(tone(2)),
+        'border-color': leaf(tone(2)),
+        'track-color': leaf(tone(2)),
+      } } } } } },
+    })
+    const colors = (o: any) => o['ui-kit'].components.link.properties.colors['layer-2']
+
+    it('sends text and icon colours to the layer readable colour', () => {
+      const c = colors(repointInteractiveRefsTo2_1(sample()))
+      expect(c['text-color'].$value).toBe('{brand.layers.layer-2.elements.interactive.color}')
+      expect(c['icon-color'].$value).toBe('{brand.layers.layer-2.elements.interactive.color}')
+    })
+
+    it('sends every other role to the brand interactive fill', () => {
+      const c = colors(repointInteractiveRefsTo2_1(sample()))
+      for (const k of ['background-color', 'border-color', 'track-color']) {
+        expect(c[k].$value).toBe('{brand.palettes.core-colors.interactive.tone}')
+      }
+    })
+
+    it('leaves unrelated references alone', () => {
+      const other = '{brand.palettes.palette-1.800.color.tone}'
+      const input: any = { c: { colors: { 'layer-0': { 'text-color': leaf(other) } } } }
+      expect(repointInteractiveRefsTo2_1(input).c.colors['layer-0']['text-color'].$value).toBe(other)
+    })
+
+    it('is idempotent', () => {
+      const once = repointInteractiveRefsTo2_1(sample())
+      const twice = repointInteractiveRefsTo2_1(JSON.parse(JSON.stringify(once)))
+      expect(twice).toEqual(once)
+    })
+
+    it('runs as part of the uikit import path', () => {
+      const c = colors(migrateImportedJson(sample(), 'uikit'))
+      expect(c['text-color'].$value).toBe('{brand.layers.layer-2.elements.interactive.color}')
+      expect(c['background-color'].$value).toBe('{brand.palettes.core-colors.interactive.tone}')
+    })
   })
 })

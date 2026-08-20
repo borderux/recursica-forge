@@ -7,7 +7,7 @@ import { getAllFamilyNames, setFamilyNameByAlias } from '../../core/utils/family
 import { readCssVar, readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
-import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { buildTokenIndex, resolveBraceRef } from '../../core/resolvers/tokens'
 import { getVarsStore } from '../../core/store/varsStore'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { paletteCore } from '../../core/css/cssVarBuilder'
@@ -303,40 +303,53 @@ export default function PaletteColorSelector({
   const getTokenValueByName = useCallback((tokenName: string): string | number | undefined => {
     const parts = tokenName.split('/')
     const overrideMap = readOverrides()
+    let rawValue: any = undefined
 
     // Check overrides first
-    if ((overrideMap as any)[tokenName]) return (overrideMap as any)[tokenName]
+    if ((overrideMap as any)[tokenName]) {
+      rawValue = (overrideMap as any)[tokenName]
+    } else {
+      // Handle new format: colors/scale-XX/level or colors/alias/level
+      if (parts[0] === 'colors' && parts.length >= 3) {
+        const scaleOrAlias = parts[1]
+        const level = parts[2]
+        const tokensRoot: any = (tokensJson as any)?.tokens || {}
+        const colorsRoot: any = tokensRoot?.colors || {}
 
-    // Handle new format: colors/scale-XX/level or colors/alias/level
-    if (parts[0] === 'colors' && parts.length >= 3) {
-      const scaleOrAlias = parts[1]
-      const level = parts[2]
-      const tokensRoot: any = (tokensJson as any)?.tokens || {}
-      const colorsRoot: any = tokensRoot?.colors || {}
-
-      // If it's a scale key (starts with "scale-"), get directly
-      if (scaleOrAlias.startsWith('scale-')) {
-        return colorsRoot?.[scaleOrAlias]?.[level]?.$value
-      } else {
-        // It's an alias - find the scale that has this alias
-        for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
-          if (!scaleKey.startsWith('scale-')) continue
-          const scaleObj = scale as any
-          if (scaleObj?.alias === scaleOrAlias) {
-            return scaleObj?.[level]?.$value
+        // If it's a scale key (starts with "scale-"), get directly
+        if (scaleOrAlias.startsWith('scale-')) {
+          rawValue = colorsRoot?.[scaleOrAlias]?.[level]?.$value
+        } else {
+          // It's an alias - find the scale that has this alias
+          for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+            if (!scaleKey.startsWith('scale-')) continue
+            const scaleObj = scale as any
+            if (scaleObj?.alias === scaleOrAlias) {
+              rawValue = scaleObj?.[level]?.$value
+              break
+            }
           }
         }
       }
+
+      // Handle old format: color/family/level
+      if (rawValue === undefined && parts[0] === 'color' && parts.length >= 3) {
+        const family = parts[1]
+        const level = parts[2]
+        rawValue = (tokensJson as any)?.tokens?.colors?.[family]?.[level]?.$value
+      }
     }
 
-    // Handle old format: color/family/level
-    if (parts[0] === 'color' && parts.length >= 3) {
-      const family = parts[1]
-      const level = parts[2]
-      return (tokensJson as any)?.tokens?.colors?.[family]?.[level]?.$value
+    if (rawValue !== undefined && typeof rawValue === 'string') {
+      const tokenIndex = buildTokenIndex(tokensJson)
+      const resolved = resolveBraceRef(rawValue, tokenIndex)
+      if (typeof resolved === 'string' && resolved.trim().startsWith('{')) {
+        return undefined
+      }
+      return resolved
     }
 
-    return undefined
+    return rawValue
   }, [tokensJson, overrideVersion])
 
   // Detect current family from theme (use the already computed familiesUsedByPalettes)

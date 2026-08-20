@@ -563,6 +563,7 @@ export const REF_WORKAROUND_IDS = [
   'typography-composite-subproperty',
   'variant-group-reference',
   'recursica-component-token',
+  'color-scale-alias-resolution',
 ] as const
 
 export type RefWorkaroundId = (typeof REF_WORKAROUND_IDS)[number]
@@ -689,6 +690,55 @@ function resolveRefToToken(
     if (path.startsWith('ui-kit.components.') && !path.includes('.variants.') && !path.includes('.properties.')) {
       if (strict !== undefined && typeof strict === 'object' && !isToken(strict)) {
         return { resolved: true, workaround: 'recursica-component-token' }
+      }
+    }
+  }
+
+  if (allowedWorkarounds.has('color-scale-alias-resolution') && path.startsWith('tokens.colors.')) {
+    const parts = path.split('.')
+    if (parts.length >= 3) {
+      const family = parts[2]
+      const level = parts[3] || '500'
+      const colorsRoot: any = (combined.tokens as any)?.colors || {}
+
+      // 1. Try finding by key, alias, or friendlyName
+      for (const [key, scaleObj] of Object.entries(colorsRoot)) {
+        const s: any = scaleObj
+        if (
+          key === family ||
+          s?.alias === family ||
+          (typeof s?.$extensions?.['com.recursica.friendlyName'] === 'string' &&
+            s.$extensions['com.recursica.friendlyName'].toLowerCase() === family.toLowerCase())
+        ) {
+          const targetToken = s?.[level]
+          if (isToken(targetToken)) return { resolved: true, workaround: 'color-scale-alias-resolution' }
+        }
+      }
+
+      // 2. Try positional scale index (e.g. scale-05 -> 5th scale, 0-based index 4)
+      const scaleMatch = family.match(/^scale-(\d+)$/i)
+      const scaleIndex = scaleMatch ? parseInt(scaleMatch[1], 10) - 1 : -1
+      const scaleEntries = Object.values(colorsRoot)
+      if (scaleIndex >= 0 && scaleIndex < scaleEntries.length) {
+        const targetScale: any = scaleEntries[scaleIndex]
+        const targetToken = targetScale?.[level]
+        if (isToken(targetToken)) return { resolved: true, workaround: 'color-scale-alias-resolution' }
+      }
+
+      // 3. Fallback: clamped index or any scale in colorsRoot containing the level
+      if (scaleEntries.length > 0) {
+        if (scaleIndex >= 0) {
+          const clampedIndex = Math.min(Math.max(0, scaleIndex), scaleEntries.length - 1)
+          const clampedScale: any = scaleEntries[clampedIndex]
+          if (isToken(clampedScale?.[level])) {
+            return { resolved: true, workaround: 'color-scale-alias-resolution' }
+          }
+        }
+        for (const scaleObj of scaleEntries) {
+          if (isToken((scaleObj as any)?.[level])) {
+            return { resolved: true, workaround: 'color-scale-alias-resolution' }
+          }
+        }
       }
     }
   }

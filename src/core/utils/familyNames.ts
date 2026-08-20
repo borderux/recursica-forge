@@ -23,6 +23,14 @@ export function getFamilyName(scaleKey: string): string | undefined {
   return value || undefined
 }
 
+function resolveTokensRoot(tokens: any): any {
+  if (!tokens || typeof tokens !== 'object') return {}
+  if (tokens.tokens && typeof tokens.tokens === 'object' && (tokens.tokens.colors || tokens.tokens.font || tokens.tokens.sizes || tokens.tokens.opacities)) {
+    return tokens.tokens
+  }
+  return tokens
+}
+
 /**
  * Get a map of ALL family names { alias → displayName } by scanning CSS vars.
  * Reads from the store's in-memory tokens if no tokensJson is provided.
@@ -31,12 +39,12 @@ export function getAllFamilyNames(tokensJson?: any): Record<string, string> {
   const names: Record<string, string> = {}
   let tokensRoot: any
   if (tokensJson) {
-    tokensRoot = tokensJson?.tokens || tokensJson || {}
+    tokensRoot = resolveTokensRoot(tokensJson)
   } else {
     try {
       const store = getVarsStore()
       const state = store.getState()
-      tokensRoot = (state.tokens as any)?.tokens || {}
+      tokensRoot = resolveTokensRoot(state.tokens)
     } catch {
       tokensRoot = {}
     }
@@ -48,13 +56,13 @@ export function getAllFamilyNames(tokensJson?: any): Record<string, string> {
       if (!scaleKey.startsWith('scale-')) return
       const scale = colorsRoot[scaleKey]
       if (!scale || typeof scale !== 'object') return
-      const alias = scale.alias
-      if (typeof alias !== 'string' || !alias) return
+      const alias = scale.alias || scaleKey
 
       // Check JSON extensions first!
       const friendlyNameExt = scale.$extensions?.['com.recursica.friendlyName']
       if (friendlyNameExt && typeof friendlyNameExt === 'string') {
         names[alias] = friendlyNameExt
+        names[scaleKey] = friendlyNameExt
         return
       }
 
@@ -62,15 +70,17 @@ export function getAllFamilyNames(tokensJson?: any): Record<string, string> {
       const cssVar = tokenColorFamilyName(scaleKey)
       const displayName = readCssVar(cssVar)
       if (displayName) {
-        names[alias] = displayName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+        const formatted = displayName.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
+        names[alias] = formatted
+        names[scaleKey] = formatted
       } else {
-        // Fallback: remove hyphens and title-case the alias
-        names[alias] = alias.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+        // Format scale alias as display name when custom name is not set
+        const formatted = alias.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
+        names[alias] = formatted
+        names[scaleKey] = formatted
       }
     })
   }
-
-
 
   return names
 }
@@ -81,12 +91,12 @@ export function getAllFamilyNames(tokensJson?: any): Record<string, string> {
 export function findScaleKeyByAlias(alias: string, tokensJson?: any): string | undefined {
   let tokensRoot: any
   if (tokensJson) {
-    tokensRoot = tokensJson?.tokens || tokensJson || {}
+    tokensRoot = resolveTokensRoot(tokensJson)
   } else {
     try {
       const store = getVarsStore()
       const state = store.getState()
-      tokensRoot = (state.tokens as any)?.tokens || {}
+      tokensRoot = resolveTokensRoot(state.tokens)
     } catch {
       return undefined
     }
@@ -94,7 +104,7 @@ export function findScaleKeyByAlias(alias: string, tokensJson?: any): string | u
   const colorsRoot = tokensRoot?.colors || {}
   return Object.keys(colorsRoot).find((key) => {
     const scale = colorsRoot[key]
-    return scale && typeof scale === 'object' && scale.alias === alias
+    return scale && typeof scale === 'object' && (scale.alias === alias || key === alias)
   })
 }
 
@@ -120,6 +130,19 @@ export function setFamilyNameByAlias(alias: string, displayName: string, tokensJ
   const scaleKey = findScaleKeyByAlias(alias, tokensJson)
   if (scaleKey) {
     setFamilyName(scaleKey, displayName)
+    try {
+      const store = getVarsStore()
+      const currentTokens = store.getState().tokens
+      const root = resolveTokensRoot(currentTokens)
+      const colors = root?.colors
+      if (colors && colors[scaleKey]) {
+        if (!colors[scaleKey].$extensions) colors[scaleKey].$extensions = {}
+        if (colors[scaleKey].$extensions['com.recursica.friendlyName'] !== displayName) {
+          colors[scaleKey].$extensions['com.recursica.friendlyName'] = displayName
+          store.setTokens(currentTokens)
+        }
+      }
+    } catch { }
   }
   // Always dispatch event so listeners update
   try {

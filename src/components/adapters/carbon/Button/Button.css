@@ -61,10 +61,6 @@
   min-width: 0 !important;
   text-align: left !important;
   height: auto !important;
-  padding-top: 4px !important;
-  padding-bottom: 4px !important;
-  margin-top: -4px !important;
-  margin-bottom: -4px !important;
 }
 
 /* For text-only buttons (no icon), use full content max width and left-align */

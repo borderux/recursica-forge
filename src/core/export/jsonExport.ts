@@ -277,6 +277,16 @@ export function exportTokensJson(): object {
         result.tokens.colors[scaleKey].alias = scale.alias
       }
 
+      if (scale.$extensions) {
+        result.tokens.colors[scaleKey].$extensions = { ...scale.$extensions }
+      }
+      if (liveFamilyName) {
+        if (!result.tokens.colors[scaleKey].$extensions) {
+          result.tokens.colors[scaleKey].$extensions = {}
+        }
+        result.tokens.colors[scaleKey].$extensions['com.recursica.friendlyName'] = liveFamilyName
+      }
+
       // Export color levels in proper order: 000, 050, then 100-1000
       const levelKeys = Object.keys(scale).filter(key => key !== 'alias')
       const sortedLevels = levelKeys.sort((a, b) => {

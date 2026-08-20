@@ -945,6 +945,14 @@ export default function PropControlContent({
     const propName = propToRender.name.toLowerCase()
     const structure = parseComponentStructure(componentName)
 
+    // getCssVarsForProp short-circuits to `customCssVars` whenever the toolbar supplied
+    // them, which is the var of the control being rendered — not of the prop passed in.
+    // Asking it for the *paired* prop therefore handed back this control's own var, so
+    // every contrast badge compared a colour against itself and read exactly 1.00:1.
+    // Read the paired prop's own cssVar instead.
+    const pairedVar = (p: ComponentProp): string | undefined =>
+      p.cssVar || getCssVarsForProp(p)[0]
+
     if (propName === 'text-color' || propName === 'text-hover') {
       const bgPropName = propName === 'text-hover' ? 'background-hover' : 'background-color'
       const bgProp = structure.props.find(p =>
@@ -954,8 +962,7 @@ export default function PropControlContent({
         (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
       )
       if (bgProp) {
-        const bgCssVars = getCssVarsForProp(bgProp)
-        return bgCssVars[0]
+        return pairedVar(bgProp)
       }
     }
 
@@ -968,8 +975,7 @@ export default function PropControlContent({
         (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
       )
       if (textProp) {
-        const textCssVars = getCssVarsForProp(textProp)
-        return textCssVars[0]
+        return pairedVar(textProp)
       }
     }
 
@@ -981,8 +987,7 @@ export default function PropControlContent({
         (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
       )
       if (thumbProp) {
-        const thumbCssVars = getCssVarsForProp(thumbProp)
-        return thumbCssVars[0]
+        return pairedVar(thumbProp)
       }
     }
 
@@ -994,8 +999,7 @@ export default function PropControlContent({
         (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
       )
       if (trackProp) {
-        const trackCssVars = getCssVarsForProp(trackProp)
-        return trackCssVars[0]
+        return pairedVar(trackProp)
       }
     }
 

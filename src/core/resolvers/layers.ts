@@ -637,18 +637,20 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       result[`${brandInterBase}on-tone-hover`] = getDefaultInteractiveRef('on-tone-hover')
     }
 
-    // Legacy support: if old 'color' property exists, use it for backward compatibility
+    // `elements.interactive.color` is the canonical per-layer interactive colour (structure
+    // 2.1.0): the one that has to stay legible against this layer's own surface, used for
+    // interactive text, icons and outlines. `tone` above is the interactive *fill* and comes
+    // from the brand palette. The two are deliberately separate — before 2.1.0 they shared a
+    // single `tone` key, so a fill colour that failed contrast as text (or vice versa) could
+    // not be expressed, and AA fixes written for one silently changed the other.
     if (icolorVar) {
-      // Map old 'color' to tone for backward compatibility
       result[`${brandInterBase}color`] = icolorVar
-      // Also set as tone if not already set
-      if (!itoneVar) {
-        result[`${brandInterBase}tone`] = icolorVar
-      }
+    } else if (itoneVar) {
+      // Pre-2.1.0 brand: the readable colour lived under `tone`. Read it from there so older
+      // files keep rendering, but never write it back over the fill.
+      result[`${brandInterBase}color`] = itoneVar
     } else {
-      // Backward compatibility: set element-interactive-color to element-interactive-tone if color not explicitly defined
-      // This ensures element-interactive-color always exists for legacy code
-      result[`${brandInterBase}color`] = result[`${brandInterBase}tone`] || getDefaultInteractiveRef('tone')
+      result[`${brandInterBase}color`] = getDefaultInteractiveRef('tone')
     }
     // Default interactive high-emphasis to text high-emphasis if not provided; prefer opacity tokens
     if (ihRaw) {
