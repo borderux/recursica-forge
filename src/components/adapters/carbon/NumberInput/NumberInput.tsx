@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react'
-import type { NumberInputProps as AdapterNumberInputProps } from '../../NumberInput'
+import type { NumberInputProps as AdapterNumberInputProps } from '../../common/NumberInput'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'

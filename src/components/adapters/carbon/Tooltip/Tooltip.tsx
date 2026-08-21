@@ -3,7 +3,7 @@
  */
 
 import React from 'react'
-import type { TooltipProps } from '../../Tooltip'
+import type { TooltipProps } from '../../common/Tooltip'
 
 export default function Tooltip({ children, label, opened, zIndex }: TooltipProps) {
     return (

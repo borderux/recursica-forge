@@ -6,7 +6,7 @@
 
 import { Checkbox as CarbonCheckbox } from '@carbon/react'
 import { useId } from 'react'
-import type { CheckboxProps as AdapterCheckboxProps } from '../../Checkbox'
+import type { CheckboxProps as AdapterCheckboxProps } from '../../common/Checkbox'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './Checkbox.css'

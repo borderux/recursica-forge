@@ -8,24 +8,14 @@
 import { Suspense, useState, useEffect, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
-import { parseElevationValue, getElevationBoxShadow } from '../utils/brandCssVars'
+import { parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { TooltipProps } from './common/Tooltip'
 
-export type TooltipProps = {
-  children?: React.ReactNode
-  label?: string
-  position?: 'top' | 'right' | 'bottom' | 'left'
-  alignment?: 'start' | 'middle' | 'end'
-  layer?: ComponentLayer
-  elevation?: string
-  opened?: boolean
-  zIndex?: number
-  withinPortal?: boolean
-  className?: string
-  style?: React.CSSProperties
-} & LibrarySpecificProps
+// Re-exported so existing `import type { TooltipProps } from '.../adapters/Tooltip'`
+// call sites keep working — the types now live in common/Tooltip.ts.
+export type { TooltipProps } from './common/Tooltip'
 
 export function Tooltip({
   children,
@@ -125,33 +115,6 @@ export function Tooltip({
   }, [elevationVar, mode])
 
   const componentElevation = elevation ?? elevationFromVar ?? 'elevation-4'
-
-  if (!Component) {
-    return (
-      <div className={className} style={{ display: 'inline-block', position: 'relative', ...style }}>
-        {label && opened && (
-          <div style={{
-            position: 'absolute',
-            bottom: '100%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            padding: '4px 8px',
-            backgroundColor: '#333',
-            color: '#fff',
-            borderRadius: 4,
-            fontSize: 12,
-            whiteSpace: 'nowrap',
-            marginBottom: 8,
-            zIndex: zIndex ?? 300,
-            boxShadow: getElevationBoxShadow(mode, componentElevation)
-          }}>
-            {label}
-          </div>
-        )}
-        {children}
-      </div>
-    )
-  }
 
   return (
     <Suspense fallback={<span />}>

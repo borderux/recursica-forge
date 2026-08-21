@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import React from 'react'
 import { Accordion as CarbonAccordion, AccordionItem } from '@carbon/react'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import type { AccordionProps as AdapterAccordionProps } from '../../Accordion'
+import type { AccordionAdapterProps } from '../../common/Accordion'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
@@ -19,18 +19,12 @@ export default function Accordion({
   openItems,
   onItemToggle,
   onOpenItemsChange: _onOpenItemsChange,
-  onToggle: _onToggle,
   elevation,
   className,
   style: _style,
   carbon,
   ...props
-}: Omit<AdapterAccordionProps, 'onOpenItemsChange' | 'onToggle'> & {
-  openItems: string[]
-  onItemToggle: (id: string, open: boolean) => void
-  onOpenItemsChange?: (openItems: string[]) => void
-  onToggle?: (id: string, open: boolean) => void
-}) {
+}: AccordionAdapterProps) {
   const { mode } = useThemeMode()
 
   // Container properties (Accordion)

@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import { Tag, DismissibleTag } from '@carbon/react'
-import type { ChipProps as AdapterChipProps } from '../../Chip'
+import type { ChipProps as AdapterChipProps } from '../../common/Chip'
 import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'

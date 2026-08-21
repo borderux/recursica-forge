@@ -7,19 +7,11 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { TableHeaderProps } from './common/TableHeader'
 
-export type TableHeaderProps = {
-  children?: React.ReactNode
-  variant?: string
-  layer?: ComponentLayer
-  elevation?: string
-  className?: string
-  style?: React.CSSProperties
-  disabled?: boolean
-  sorted?: 'asc' | 'desc' | null
-  onClick?: React.MouseEventHandler<HTMLTableCellElement>
-} & LibrarySpecificProps
+// Re-exported so existing `import type { TableHeaderProps } from '.../adapters/TableHeader'`
+// call sites keep working — the types now live in common/TableHeader.ts.
+export type { TableHeaderProps } from './common/TableHeader'
 
 export function TableHeader({
   children,
@@ -36,10 +28,6 @@ export function TableHeader({
   carbon,
 }: TableHeaderProps) {
   const Component = useComponent('TableHeader')
-
-  if (!Component) {
-    return null
-  }
 
   return (
     <Suspense fallback={<th />}>

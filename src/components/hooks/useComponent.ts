@@ -1,7 +1,10 @@
 /**
  * useComponent Hook
  *
- * Returns the appropriate component implementation based on the current UI kit.
+ * Returns the appropriate component implementation based on the current UI kit. Never
+ * returns null: a component with nothing registered for the active kit gets
+ * NoAdapterImplementation instead, so every dispatcher shows the same honest "not wired
+ * up" box rather than each hand-rolling its own blank/fallback state.
  */
 
 import React, { useMemo } from 'react'
@@ -10,6 +13,7 @@ import { LayerScope } from './LayerScope'
 import { applyPropContract } from './adapterPropContract'
 import { useUiKit } from '../../modules/uikit/UiKitContext'
 import { getComponent } from '../registry'
+import { NoAdapterImplementation } from '../adapters/NoAdapterImplementation'
 import type { ComponentName } from '../registry/types'
 
 /**
@@ -43,12 +47,20 @@ function toWrapperLayer(layer: unknown): 1 | 2 | 3 | null {
   return n === 1 || n === 2 || n === 3 ? n : null
 }
 
-export function useComponent<T = any>(componentName: ComponentName): React.ComponentType<T> | null {
+export function useComponent<T = any>(componentName: ComponentName): React.ComponentType<T> {
   const { kit } = useUiKit()
 
   return useMemo(() => {
     const Component = getComponent(kit, componentName)
-    if (!Component) return null
+    if (!Component) {
+      // Ignore whatever props/children a dispatcher passes through — there's no real
+      // component underneath to receive them, just the "not implemented" box.
+      const Fallback = React.forwardRef<unknown, any>(() =>
+        React.createElement(NoAdapterImplementation, { componentName })
+      )
+      Fallback.displayName = `NoAdapterImplementation(${componentName})`
+      return Fallback as unknown as React.ComponentType<T>
+    }
 
     // Return a wrapper that strips out other library props before passing to the adapter
     // This allows inner adapters to omit `mantine`, `material`, `carbon` from their destructuring

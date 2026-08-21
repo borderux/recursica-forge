@@ -8,26 +8,13 @@
 import React, { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
-import { useThemeMode } from '../../modules/theme/ThemeModeContext'
+import { parseElevationValue } from '../utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
-import { useCssVar } from '../hooks/useCssVar'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { ButtonProps } from './common/Button'
 
-export type ButtonProps = {
-  children?: React.ReactNode
-  variant?: 'solid' | 'outline' | 'text'
-  size?: 'default' | 'small'
-  layer?: ComponentLayer
-  elevation?: string // e.g., "elevation-0", "elevation-1", etc.
-  disabled?: boolean
-  onClick?: (e: React.MouseEvent) => void
-  type?: 'button' | 'submit' | 'reset'
-  className?: string
-  style?: React.CSSProperties
-  icon?: React.ReactNode
-  title?: string
-} & LibrarySpecificProps
+// Re-exported so existing `import type { ButtonProps } from '.../adapters/Button'`
+// call sites keep working — the types now live in common/Button.ts.
+export type { ButtonProps } from './common/Button'
 
 export const Button = React.forwardRef<any, ButtonProps>((props, ref) => {
   const {
@@ -49,8 +36,7 @@ export const Button = React.forwardRef<any, ButtonProps>((props, ref) => {
     ...rest
   } = props
   const Component = useComponent('Button')
-  const { mode } = useThemeMode()
-  
+
   // Get elevation from CSS vars if not provided as props
   // These are set by the toolbar and initialized from recursica_ui-kit.json
   const elevationVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'elevation')
@@ -122,47 +108,7 @@ export const Button = React.forwardRef<any, ButtonProps>((props, ref) => {
   }, [activeElevationVar])
   
   const componentElevation = elevation ?? elevationFromVar ?? undefined
-  
-  if (!Component) {
-    // Fallback to native button if component not available
-    const sizePrefix = size === 'small' ? 'sm' : size === ('large' as any) ? 'lg' : (size || 'default')
-    const iconSizeVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'icon')
-    const iconGapVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'icon-text-gap')
-    
-    return (
-      <button
-        ref={ref}
-        type={type}
-        disabled={disabled}
-        onClick={onClick}
-        className={className}
-        title={title}
-        style={{
-          ...getButtonStyles(variant, size, layer, disabled, componentElevation, mode),
-          display: 'flex',
-          alignItems: 'center',
-          gap: icon ? `var(${iconGapVar})` : 0,
-          ...style,
-        }}
-        {...rest}
-      >
-        {icon && (
-          <span style={{
-            display: 'inline-flex',
-            width: `var(${iconSizeVar})`,
-            height: `var(${iconSizeVar})`,
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            {icon}
-          </span>
-        )}
-        {children}
-      </button>
-    )
-  }
-  
+
   // Map unified props to library-specific props
   const libraryProps = mapButtonProps({
     ...props,
@@ -187,110 +133,6 @@ export const Button = React.forwardRef<any, ButtonProps>((props, ref) => {
     </Suspense>
   )
 })
-
-function getButtonStyles(
-  variant: 'solid' | 'outline' | 'text',
-  size: 'default' | 'small',
-  layer: ComponentLayer,
-  disabled: boolean,
-  elevation?: string,
-  mode: 'light' | 'dark' = 'light'
-): React.CSSProperties {
-  const styles: React.CSSProperties = {}
-  
-  const cssVarVariant = variant
-  
-  // Use recursica_ui-kit.json button colors for standard layers
-  const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background-color')
-  const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text-color')
-  // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
-  const borderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
-  
-  const heightVar = buildComponentCssVarPath('Button', 'properties', 'height')
-  const minWidthVar = buildComponentCssVarPath('Button', 'properties', 'min-width')
-  const paddingVar = buildComponentCssVarPath('Button', 'properties', 'horizontal-padding')
-  const borderRadiusVar = buildComponentCssVarPath('Button', 'properties', 'border-radius')
-  
-  // Get border-size CSS variable (variant-specific property)
-  const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'border-size')
-  // Reactively read border-size to trigger re-renders when it changes
-  const borderSizeValue = useCssVar(borderSizeVar, '1px')
-  
-  // Get all text properties from component text property group
-  const fontFamilyVar = getComponentTextCssVar('Button', 'text', 'font-family')
-  const fontSizeVar = getComponentTextCssVar('Button', 'text', 'font-size')
-  const fontWeightVar = getComponentTextCssVar('Button', 'text', 'font-weight')
-  const letterSpacingVar = getComponentTextCssVar('Button', 'text', 'letter-spacing')
-  const lineHeightVar = getComponentTextCssVar('Button', 'text', 'line-height')
-  const textDecorationVar = getComponentTextCssVar('Button', 'text', 'text-decoration')
-  const textTransformVar = getComponentTextCssVar('Button', 'text', 'text-transform')
-  const fontStyleVar = getComponentTextCssVar('Button', 'text', 'font-style')
-  
-  // Size-specific vars - recursica_ui-kit.json structure: size.default.height, size.sm.height
-  const sizePrefix = size === 'small' ? 'sm' : size === ('large' as any) ? 'lg' : (size || 'default')
-  const sizeHeightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'height')
-  const sizeMinWidthVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'min-width')
-  const sizePaddingVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'horizontal-padding')
-  
-  // Use CSS variable references directly instead of reading values
-  // This allows dynamic updates and proper CSS variable resolution
-  const heightVarName = sizeHeightVar || heightVar
-  const minWidthVarName = sizeMinWidthVar || minWidthVar
-  const paddingVarName = sizePaddingVar || paddingVar
-  
-  // Apply variant styles - always use CSS variable references directly
-  if (variant === 'solid') {
-    styles.backgroundColor = `var(${bgVar})`
-    styles.color = `var(${textVar})`
-    // Use actual CSS border instead of box-shadow
-    styles.border = `${borderSizeValue || '1px'} solid var(${borderColorVar || textVar})`
-  } else if (variant === 'outline') {
-    // For outline, use outline-specific CSS variables
-    styles.backgroundColor = `var(${bgVar})`
-    styles.color = `var(${textVar})`
-    // Use actual CSS border instead of box-shadow
-    styles.border = `${borderSizeValue || '1px'} solid var(${borderColorVar || textVar})`
-  } else {
-    // text variant — use CSS variable-driven border so toolbar changes apply.
-    // When border-color is null (default for layers 0-2), the border is effectively invisible.
-    styles.backgroundColor = `var(${bgVar})`
-    styles.color = `var(${textVar})`
-    styles.border = `${borderSizeValue || '1px'} solid var(${borderColorVar || textVar})`
-  }
-  
-  // Apply size styles using CSS variable references directly
-  styles.height = heightVarName ? `var(${heightVarName})` : (size === 'small' ? '32px' : '48px')
-  styles.minWidth = minWidthVarName ? `var(${minWidthVarName})` : (size === 'small' ? '32px' : '48px')
-  styles.paddingLeft = paddingVarName ? `var(${paddingVarName})` : '12px'
-  styles.paddingRight = paddingVarName ? `var(${paddingVarName})` : '12px'
-  styles.borderRadius = borderRadiusVar ? `var(${borderRadiusVar})` : '8px'
-  styles.fontFamily = `var(${fontFamilyVar})`
-  styles.fontSize = `var(${fontSizeVar})`
-  styles.fontWeight = `var(${fontWeightVar})`
-  styles.fontStyle = fontStyleVar ? `var(${fontStyleVar})` as any : 'normal'
-  styles.letterSpacing = letterSpacingVar ? `var(${letterSpacingVar})` : undefined
-  styles.lineHeight = `var(${lineHeightVar})`
-  styles.textDecoration = textDecorationVar ? `var(${textDecorationVar})` as any : 'none'
-  styles.textTransform = textTransformVar ? `var(${textTransformVar})` as any : 'none'
-  
-  // Apply disabled styles - use the disabled state's opacity (driven by the global disabled state)
-  if (disabled) {
-    const disabledOpacityVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'variants', 'states', 'disabled', 'properties', 'opacity')
-    styles.opacity = `var(${disabledOpacityVar})`
-    styles.cursor = 'not-allowed'
-  } else {
-    styles.cursor = 'pointer'
-  }
-  
-  // Apply elevation if set (and not elevation-0)
-  // Note: borders are now actual CSS borders, not box-shadow, so only apply elevation shadow
-  const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
-  if (elevationBoxShadow) {
-    styles.boxShadow = elevationBoxShadow
-  }
-  
-  return styles
-}
 
 function mapButtonProps(props: ButtonProps & { elevation?: string }): any {
   const { mantine, material, carbon, title, ...rest } = props

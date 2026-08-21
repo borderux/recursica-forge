@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react'
-import type { TextareaProps as AdapterTextareaProps } from '../../Textarea'
+import type { TextareaProps as AdapterTextareaProps } from '../../common/Textarea'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'

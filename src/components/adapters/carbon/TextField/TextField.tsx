@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react'
-import type { TextFieldProps as AdapterTextFieldProps } from '../../TextField'
+import type { TextFieldProps as AdapterTextFieldProps } from '../../common/TextField'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'

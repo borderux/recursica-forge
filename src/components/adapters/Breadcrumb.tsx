@@ -7,22 +7,11 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
-import { Link } from './Link'
+import type { BreadcrumbProps } from './common/Breadcrumb'
 
-export type BreadcrumbItem = {
-  label: string
-  href?: string
-}
-
-export type BreadcrumbProps = {
-  items: BreadcrumbItem[]
-  separator?: 'slash' | 'chevron' | 'arrow'
-  showHomeIcon?: boolean
-  layer?: ComponentLayer
-  className?: string
-  style?: React.CSSProperties
-} & LibrarySpecificProps
+// Re-exported so existing `import type { BreadcrumbItem } from '.../adapters/Breadcrumb'`
+// call sites keep working — the types now live in common/Breadcrumb.ts.
+export type { BreadcrumbItem, BreadcrumbProps } from './common/Breadcrumb'
 
 export function Breadcrumb({
   items,
@@ -39,33 +28,6 @@ export function Breadcrumb({
 
   // Limit to 5 items maximum
   const limitedItems = items.slice(0, 5)
-
-  if (!Component) {
-    // Fallback to basic HTML with Link component
-    return (
-      <nav aria-label="Breadcrumb" className={className} style={style}>
-        <ol style={{ display: 'flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0 }}>
-          {limitedItems.map((item, index) => {
-            const isLast = index === limitedItems.length - 1
-            const isInteractive = !isLast && item.href
-
-            return (
-              <li key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {index > 0 && <span>/</span>}
-                <Link
-                  href={isInteractive ? item.href : undefined}
-                  layer={layer}
-                  forceState={isInteractive ? 'default' : 'visited'} // Or just default
-                >
-                  {item.label}
-                </Link>
-              </li>
-            )
-          })}
-        </ol>
-      </nav>
-    )
-  }
 
   // Map unified props to library-specific props
   const libraryProps = {

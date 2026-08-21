@@ -5,7 +5,7 @@
  */
 
 import { Checkbox as MaterialCheckbox, FormControlLabel } from '@mui/material'
-import type { CheckboxProps as AdapterCheckboxProps } from '../../Checkbox'
+import type { CheckboxProps as AdapterCheckboxProps } from '../../common/Checkbox'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './Checkbox.css'

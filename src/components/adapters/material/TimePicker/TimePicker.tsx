@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import type { TimePickerProps as AdapterTimePickerProps } from '../../TimePicker'
+import type { TimePickerProps as AdapterTimePickerProps } from '../../common/TimePicker'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarNumber } from '../../../../core/css/readCssVar'

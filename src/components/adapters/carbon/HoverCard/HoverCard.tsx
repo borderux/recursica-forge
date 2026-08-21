@@ -3,7 +3,7 @@
  */
 
 import React from 'react'
-import type { HoverCardProps } from '../../HoverCard'
+import type { HoverCardProps } from '../../common/HoverCard'
 
 export default function HoverCard({ children, content, isOpen }: HoverCardProps) {
     return (

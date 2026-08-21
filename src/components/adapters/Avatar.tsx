@@ -7,25 +7,16 @@
 
 import { Suspense, useMemo, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentLevelCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
+import { getComponentLevelCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import { parseElevationValue } from '../utils/brandCssVars'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { AvatarProps } from './common/Avatar'
 
-export type AvatarProps = {
-  src?: string
-  alt?: string
-  fallback?: React.ReactNode // e.g., initials or icon
-  colorVariant?: 'text' | 'text-solid' | 'text-ghost' | 'icon' | 'icon-solid' | 'icon-ghost' | 'image'
-  sizeVariant?: 'small' | 'default' | 'large'
-  layer?: ComponentLayer
-  elevation?: string // e.g., "elevation-0", "elevation-1", etc.
-  shape?: 'circle' | 'square'
-  className?: string
-  style?: React.CSSProperties
-} & LibrarySpecificProps
+// Re-exported so existing `import type { AvatarProps } from '.../adapters/Avatar'`
+// call sites keep working — the types now live in common/Avatar.ts.
+export type { AvatarProps } from './common/Avatar'
 
 export function Avatar({
   src,
@@ -118,41 +109,6 @@ export function Avatar({
     
     return src
   }, [src, colorVariant])
-  
-  if (!Component) {
-    // Fallback to native implementation if component not available
-    const sizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'size')
-    
-    return (
-      <div
-        className={className}
-        style={{
-          width: `var(${sizeVar})`,
-          height: `var(${sizeVar})`,
-          borderRadius: shape === 'circle' ? '50%' : '0px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          ...style,
-        }}
-      >
-        {resolvedSrc ? (
-          <img
-            src={resolvedSrc}
-            alt={alt || ''}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-          />
-        ) : (
-          resolvedFallback
-        )}
-      </div>
-    )
-  }
   
   return (
     <Suspense fallback={<span />}>

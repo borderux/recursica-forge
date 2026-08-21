@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react'
-import type { ToastProps as AdapterToastProps } from '../../Toast'
+import type { ToastProps as AdapterToastProps } from '../../common/Toast'
 import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, extractElevationMode, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'

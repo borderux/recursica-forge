@@ -7,44 +7,14 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentLevelCssVar, getComponentTextCssVar , buildComponentCssVarPath } from '../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
-import { useThemeMode } from '../../modules/theme/ThemeModeContext'
+import { getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
+import { parseElevationValue } from '../utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { ModalProps } from './common/Modal'
 
-export type ModalProps = {
-    children?: React.ReactNode
-    content?: React.ReactNode // Slot content, can be text or component
-    isOpen: boolean
-    onClose: () => void
-    title?: React.ReactNode
-    showHeader?: boolean
-    /** Show the header close (×) button. Defaults to true. Set false to force a decision via the footer. */
-    showCloseButton?: boolean
-    showFooter?: boolean
-    scrollable?: boolean
-    padding?: boolean
-    showSecondaryButton?: boolean
-    primaryActionLabel?: string
-    onPrimaryAction?: () => void
-    secondaryActionLabel?: string
-    onSecondaryAction?: () => void
-    primaryActionDisabled?: boolean
-    secondaryActionDisabled?: boolean
-    size?: string | number
-    layer?: ComponentLayer
-    elevation?: string // e.g., "elevation-0", "elevation-1", etc.
-    className?: string
-    style?: React.CSSProperties
-    withOverlay?: boolean
-    centered?: boolean
-    position?: { x: number; y: number }
-    trapFocus?: boolean
-    zIndex?: number
-    draggable?: boolean
-    onPositionChange?: (position: { x: number; y: number }) => void
-} & LibrarySpecificProps
+// Re-exported so existing `import type { ModalProps } from '.../adapters/Modal'`
+// call sites keep working — the types now live in common/Modal.ts.
+export type { ModalProps } from './common/Modal'
 
 export function Modal({
     children,
@@ -81,7 +51,6 @@ export function Modal({
     carbon,
 }: ModalProps) {
     const Component = useComponent('Modal')
-    const { mode } = useThemeMode()
 
     // Get elevation from CSS vars if not provided as props
     const elevationVar = getComponentLevelCssVar('Modal', 'elevation')
@@ -143,69 +112,6 @@ export function Modal({
 
     const componentElevation = elevation ?? elevationFromVar ?? undefined
 
-    if (!Component) {
-        // Basic fallback if no library implementation is available
-        if (!isOpen) return null
-
-        return (
-            <div
-                className={className}
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    ...style
-                }}
-            >
-                <div
-                    style={getModalFallbackStyles(layer, componentElevation, mode)}
-                >
-                    {showHeader && (
-                        <div style={{ padding: '16px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
-                            <div style={{ fontWeight: 'bold' }}>{title}</div>
-                            <button onClick={onClose}>&times;</button>
-                        </div>
-                    )}
-                    <div style={{ padding: padding ? '16px' : 0, overflowY: scrollable ? 'auto' : 'visible', flex: 1 }}>
-                        {(() => {
-                            const slotContent = content || children
-                            if (!slotContent) return null
-                            if (typeof slotContent === 'string') {
-                                return <p style={{ margin: 0 }}>{slotContent}</p>
-                            }
-                            return slotContent
-                        })()}
-                    </div>
-                    {showFooter && (
-                        <div style={{ padding: '16px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                            {showSecondaryButton && (
-                                <button
-                                    onClick={onSecondaryAction}
-                                    disabled={secondaryActionDisabled}
-                                >
-                                    {secondaryActionLabel}
-                                </button>
-                            )}
-                            <button
-                                onClick={onPrimaryAction}
-                                disabled={primaryActionDisabled}
-                            >
-                                {primaryActionLabel}
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
-        )
-    }
-
     return (
         <Suspense fallback={null}>
             <Component
@@ -244,32 +150,4 @@ export function Modal({
             />
         </Suspense>
     )
-}
-
-function getModalFallbackStyles(
-    layer: ComponentLayer,
-    elevation?: string,
-    mode: 'light' | 'dark' = 'light'
-): React.CSSProperties {
-    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'background-color')
-    const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
-    const minWidthVar = getComponentLevelCssVar('Modal', 'min-width')
-    const maxWidthVar = getComponentLevelCssVar('Modal', 'max-width')
-
-    const styles: React.CSSProperties = {
-        backgroundColor: `var(${bgVar}, #fff)`,
-        borderRadius: `var(${borderRadiusVar}, 8px)`,
-        minWidth: `var(${minWidthVar}, 304px)`,
-        maxWidth: `var(${maxWidthVar}, 542px)`,
-        display: 'flex',
-        flexDirection: 'column',
-        maxHeight: '90vh',
-    }
-
-    const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
-    if (elevationBoxShadow) {
-        styles.boxShadow = elevationBoxShadow
-    }
-
-    return styles
 }

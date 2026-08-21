@@ -7,45 +7,13 @@
 
 import { Suspense, useState, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
-import { getBrandStateCssVar } from '../utils/brandCssVars'
-import { useThemeMode } from '../../modules/theme/ThemeModeContext'
-import { Label } from './Label'
-import { AssistiveElement } from './AssistiveElement'
-import { Button } from './Button'
-import { Chip } from './Chip'
+import { buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
 import { iconNameToReactComponent, iconNameToReactComponent as getIcon } from '../../modules/components/iconUtils'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { FileUploadItem, FileUploadProps } from './common/FileUpload'
 
-export type FileUploadItem = {
-    id: string
-    name: string
-    size?: number
-    type?: string
-    status?: 'success' | 'error' | 'uploading'
-}
-
-export type FileUploadProps = {
-    files?: FileUploadItem[]
-    onUpload?: (files: File[]) => void
-    onRemove?: (fileId: string) => void
-    label?: string
-    helpText?: string
-    errorText?: string
-    layout?: string  // accepts custom layout variant names
-    state?: string  // accepts custom state variant names
-    layer?: ComponentLayer
-    multiple?: boolean
-    accept?: string
-    required?: boolean
-    optional?: boolean
-    labelAlign?: 'left' | 'right'
-    labelSize?: 'default' | 'small'
-    id?: string
-    className?: string
-    style?: React.CSSProperties
-    disableTopBottomMargin?: boolean
-} & LibrarySpecificProps
+// Re-exported so existing `import type { FileUploadItem, FileUploadProps } from '.../adapters/FileUpload'`
+// call sites keep working — the types now live in common/FileUpload.ts.
+export type { FileUploadItem, FileUploadProps } from './common/FileUpload'
 
 export function FileUpload({
     files = [],
@@ -72,7 +40,6 @@ export function FileUpload({
     carbon,
 }: FileUploadProps) {
     const Component = useComponent('FileUpload')
-    const { mode } = useThemeMode()
 
     // Generate unique ID if not provided
     const fieldId = id || `file-upload-${Math.random().toString(36).substr(2, 9)}`
@@ -80,163 +47,11 @@ export function FileUpload({
     const helpId = helpText ? `${fieldId}-help` : undefined
     const errorId = errorText ? `${fieldId}-error` : undefined
 
-    // Get CSS variables for colors based on state variant
-    const backgroundVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'background-color')
-    const borderColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'border-color')
-    const textColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'text')
-    const uploadIconColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'upload-icon')
-    const borderSizeVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'border-size')
-
-    // Get component-level properties
-    const borderRadiusVar = getComponentLevelCssVar('FileUpload', 'border-radius')
-    const borderStyleVar = getComponentLevelCssVar('FileUpload', 'border-style')
-    const itemGapVar = getComponentLevelCssVar('FileUpload', 'item-gap')
-    const listSpacingVar = getComponentLevelCssVar('FileUpload', 'list-spacing')
-    const paddingVar = getComponentLevelCssVar('FileUpload', 'padding')
-    const verticalElementGapVar = getComponentLevelCssVar('FileUpload', 'vertical-element-gap')
-
     // Get top-bottom-margin from layout variant
     const topBottomMarginVar = buildComponentCssVarPath('FileUpload', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
 
-    // Get Label's gutter for side-by-side layout
-    const labelGutterVar = layout === 'side-by-side'
-        ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
-        : undefined
-
-    const labelElement = label ? (
-        <Label
-            htmlFor={fieldId}
-            variant={required ? 'required' : (optional ? 'optional' : 'default')}
-            size={labelSize}
-            layout={layout}
-            align={labelAlign}
-            layer={layer}
-            id={labelId}
-        // style handled via margin or flex
-        >
-            {label}
-        </Label>
-    ) : null
-
     // Get icon components
-    const UploadIcon = useMemo(() => iconNameToReactComponent('arrow-up-tray'), [])
     const XIcon = useMemo(() => iconNameToReactComponent('x'), [])
-    const HelpIcon = useMemo(() => iconNameToReactComponent('info'), [])
-    const ErrorIcon = useMemo(() => iconNameToReactComponent('warning'), [])
-
-    const assistiveElement = errorText ? (
-        <AssistiveElement
-            text={errorText}
-            variant="error"
-            layer={layer}
-            id={errorId}
-            icon={ErrorIcon ? <ErrorIcon /> : null}
-        />
-    ) : helpText ? (
-        <AssistiveElement
-            text={helpText}
-            variant="help"
-            layer={layer}
-            id={helpId}
-            icon={HelpIcon ? <HelpIcon /> : null}
-        />
-    ) : null
-
-    if (!Component) {
-        // Simple fallback
-        return (
-            <div className={className} style={{
-                marginTop: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
-                marginBottom: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
-                ...style
-            }}>
-                <div style={{ display: 'flex', flexDirection: layout === 'side-by-side' ? 'row' : 'column', gap: labelGutterVar ? `var(${labelGutterVar})` : '8px' }}>
-                    {labelElement}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
-                        <div style={{
-                            border: `var(${borderSizeVar}, 1px) var(${borderStyleVar}, dashed) var(${borderColorVar})`,
-                            borderRadius: `var(${borderRadiusVar})`,
-                            padding: `var(${paddingVar})`,
-                            backgroundColor: `var(${backgroundVar})`,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: `var(${verticalElementGapVar}, 12px)`,
-                            boxSizing: 'border-box'
-                        }}>
-                            {UploadIcon && (
-                                <div style={{
-                                    color: `var(${uploadIconColorVar})`,
-                                    width: '2em',
-                                    height: '2em',
-                                    flexShrink: 0,
-                                    opacity: state === 'disabled' ? `var(${getBrandStateCssVar(mode, 'disabled')})` : undefined,
-                                }}>
-                                    <UploadIcon width="100%" height="100%" />
-                                </div>
-                            )}
-                            <div style={{
-                                color: `var(${textColorVar})`,
-                                fontSize: '0.9em',
-                                opacity: state === 'disabled' ? `var(${getBrandStateCssVar(mode, 'disabled')})` : 0.8,
-                                textAlign: 'center'
-                            }}>
-                                Drag and drop files here to upload
-                            </div>
-                            <Button
-                                variant="outline"
-                                layer={layer}
-                                disabled={state === 'disabled'}
-                                onClick={() => {
-                                    if (state === 'disabled') return
-                                    const input = document.createElement('input');
-                                    input.type = 'file';
-                                    input.multiple = multiple;
-                                    input.accept = accept || '';
-                                    input.onchange = (e) => {
-                                        const target = e.target as HTMLInputElement;
-                                        if (target.files) {
-                                            onUpload?.(Array.from(target.files));
-                                        }
-                                    };
-                                    input.click();
-                                }}
-                            >
-                                Browse files
-                            </Button>
-                        </div>
-
-                        {assistiveElement}
-                        {files.length > 0 && (
-                            <div style={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: `var(${itemGapVar}, 8px)`,
-                                marginTop: `var(${listSpacingVar}, 8px)`
-                            }}>
-                                {files.map(file => (
-                                    <Chip
-                                        key={file.id}
-                                        variant="unselected"
-                                        size="small"
-                                        layer={layer}
-                                        deletable={state !== 'disabled'}
-                                        onDelete={(e: React.MouseEvent) => {
-                                            e.stopPropagation();
-                                            if (state === 'disabled') return;
-                                            onRemove?.(file.id);
-                                        }}
-                                    >
-                                        {file.name}
-                                    </Chip>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        )
-    }
 
     // Render library-specific component
     return (

@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
-import type { MenuItemProps as AdapterMenuItemProps } from '../../MenuItem'
+import type { MenuItemProps as AdapterMenuItemProps } from '../../common/MenuItem'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './MenuItem.css'

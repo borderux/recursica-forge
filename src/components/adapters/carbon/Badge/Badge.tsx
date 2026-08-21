@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import type { BadgeProps as AdapterBadgeProps } from '../../Badge'
+import type { BadgeProps as AdapterBadgeProps } from '../../common/Badge'
 import { getComponentLevelCssVar, getComponentTextCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'

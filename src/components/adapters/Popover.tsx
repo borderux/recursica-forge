@@ -9,24 +9,13 @@
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
-import { useThemeMode } from '../../modules/theme/ThemeModeContext'
+import { parseElevationValue } from '../utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { PopoverProps } from './common/Popover'
 
-export type PopoverProps = {
-    children?: React.ReactNode
-    content?: React.ReactNode
-    isOpen?: boolean
-    onClose?: () => void
-    layer?: ComponentLayer
-    elevation?: string
-    className?: string
-    style?: React.CSSProperties
-    withBeak?: boolean
-    position?: 'top' | 'right' | 'bottom' | 'left'
-    zIndex?: number
-} & LibrarySpecificProps
+// Re-exported so existing `import type { PopoverProps } from '.../adapters/Popover'`
+// call sites keep working — the types now live in common/Popover.ts.
+export type { PopoverProps } from './common/Popover'
 
 export function Popover({
     children,
@@ -45,7 +34,6 @@ export function Popover({
     carbon,
 }: PopoverProps) {
     const Component = useComponent('Popover')
-    const { mode } = useThemeMode()
 
     // Get elevation from CSS vars if not provided as props
     const elevationVar = getComponentLevelCssVar('HoverCardPopover', 'elevation')
@@ -111,33 +99,6 @@ export function Popover({
     }, [elevationVar])
 
     const componentElevation = elevation ?? elevationFromVar ?? undefined
-
-    if (!Component) {
-        // Basic fallback
-        return (
-            <div className={className} style={{ display: 'inline-block', position: 'relative', ...style }}>
-                {children}
-                {isOpen && (
-                    <div style={{
-                        position: 'absolute',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        ...(position === 'top' ? { bottom: '100%', marginBottom: 8 } : { top: '100%', marginTop: 8 }),
-                        padding: '12px 16px',
-                        backgroundColor: '#fff',
-                        borderRadius: 8,
-                        border: '1px solid #ddd',
-                        boxShadow: getElevationBoxShadow(mode, componentElevation) || '0 2px 8px rgba(0,0,0,0.1)',
-                        zIndex: zIndex ?? 300,
-                        minWidth: 200,
-                        maxWidth: 400,
-                    }}>
-                        {content}
-                    </div>
-                )}
-            </div>
-        )
-    }
 
     return (
         <Suspense fallback={<span />}>

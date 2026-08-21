@@ -3,7 +3,7 @@
  */
 
 import Checkbox from '../Checkbox/Checkbox'
-import type { CheckboxItemProps as AdapterCheckboxItemProps } from '../../CheckboxItem'
+import type { CheckboxItemProps as AdapterCheckboxItemProps } from '../../common/CheckboxItem'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import './CheckboxItem.css'
 

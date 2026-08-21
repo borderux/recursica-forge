@@ -5,20 +5,13 @@
  * based on the current UI kit selection.
  */
 
-import { Suspense, useRef, useEffect } from 'react'
+import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { CheckboxProps } from './common/Checkbox'
 
-export type CheckboxProps = {
-  checked: boolean
-  indeterminate?: boolean
-  onChange: (checked: boolean) => void
-  disabled?: boolean
-  label?: React.ReactNode
-  layer?: ComponentLayer
-  className?: string
-  style?: React.CSSProperties
-} & LibrarySpecificProps
+// Re-exported so existing `import type { CheckboxProps } from '.../adapters/Checkbox'`
+// call sites keep working — the types now live in common/Checkbox.ts.
+export type { CheckboxProps } from './common/Checkbox'
 
 export function Checkbox({
   checked,
@@ -34,43 +27,7 @@ export function Checkbox({
   carbon,
 }: CheckboxProps) {
   const Component = useComponent('Checkbox')
-  
-  if (!Component) {
-    // Fallback to native checkbox if component not available
-    const checkboxRef = useRef<HTMLInputElement>(null)
-    
-    useEffect(() => {
-      if (checkboxRef.current) {
-        checkboxRef.current.indeterminate = indeterminate
-      }
-    }, [indeterminate])
-    
-    return (
-      <label
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          ...style,
-        }}
-        className={className}
-      >
-        <input
-          ref={checkboxRef}
-          type="checkbox"
-          checked={checked && !indeterminate}
-          onChange={(e) => onChange(e.target.checked)}
-          disabled={disabled}
-          style={{
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          }}
-        />
-        {label && <span style={{ opacity: disabled ? 0.6 : 1 }}>{label}</span>}
-      </label>
-    )
-  }
-  
+
   return (
     <Suspense fallback={<span />}>
       <Component

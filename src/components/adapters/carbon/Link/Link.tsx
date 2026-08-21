@@ -6,7 +6,7 @@
 
 import { Link as CarbonLink } from '@carbon/react'
 import { useState, useEffect } from 'react'
-import type { LinkProps as AdapterLinkProps } from '../../Link'
+import type { LinkProps as AdapterLinkProps } from '../../common/Link'
 import { getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'

@@ -6,7 +6,7 @@
 
 import { RadioButton as CarbonRadioButton } from '@carbon/react'
 import { useId } from 'react'
-import type { RadioButtonProps as AdapterRadioButtonProps } from '../../RadioButton'
+import type { RadioButtonProps as AdapterRadioButtonProps } from '../../common/RadioButton'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './RadioButton.css'

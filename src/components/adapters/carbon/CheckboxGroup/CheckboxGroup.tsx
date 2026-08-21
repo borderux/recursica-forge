@@ -5,7 +5,7 @@
  */
 
 import { useMemo } from 'react'
-import type { CheckboxGroupProps as AdapterCheckboxGroupProps } from '../../CheckboxGroup'
+import type { CheckboxGroupProps as AdapterCheckboxGroupProps } from '../../common/CheckboxGroup'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { Label } from '../../Label'
 import { AssistiveElement } from '../../AssistiveElement'

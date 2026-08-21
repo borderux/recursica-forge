@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import type { LoaderProps as AdapterLoaderProps } from '../../Loader'
+import type { LoaderProps as AdapterLoaderProps } from '../../common/Loader'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { toCssVarName } from '../../../utils/cssVarNames'
 import './Loader.css'

@@ -5,7 +5,7 @@
  */
 
 import { useMemo } from 'react'
-import type { RadioButtonGroupProps as AdapterRadioButtonGroupProps } from '../../RadioButtonGroup'
+import type { RadioButtonGroupProps as AdapterRadioButtonGroupProps } from '../../common/RadioButtonGroup'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { Label } from '../../Label'
 import { AssistiveElement } from '../../AssistiveElement'

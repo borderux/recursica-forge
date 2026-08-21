@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import type { AssistiveElementProps as AdapterAssistiveElementProps } from '../../AssistiveElement'
+import type { AssistiveElementProps as AdapterAssistiveElementProps } from '../../common/AssistiveElement'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'

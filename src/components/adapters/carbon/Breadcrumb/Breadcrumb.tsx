@@ -5,7 +5,7 @@
  */
 
 import React from 'react'
-import type { BreadcrumbProps as AdapterBreadcrumbProps, BreadcrumbItem } from '../../Breadcrumb'
+import type { BreadcrumbProps as AdapterBreadcrumbProps, BreadcrumbItem } from '../../common/Breadcrumb'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import { Link } from '../../Link'

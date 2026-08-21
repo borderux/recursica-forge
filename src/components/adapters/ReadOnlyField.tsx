@@ -10,24 +10,11 @@ import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import { Label } from './Label'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { ReadOnlyFieldProps } from './common/ReadOnlyField'
 
-export type ReadOnlyFieldProps = {
-    value?: string | number
-    label?: string
-    layout?: string  // accepts custom layout variant names
-    layer?: ComponentLayer
-    required?: boolean
-    optional?: boolean
-    labelAlign?: 'left' | 'right'
-    labelSize?: 'default' | 'small'
-    editIcon?: React.ReactNode | boolean
-    editIconGap?: string | number
-    id?: string
-    className?: string
-    style?: React.CSSProperties
-    disableTopBottomMargin?: boolean
-} & LibrarySpecificProps
+// Re-exported so existing `import type { ReadOnlyFieldProps } from '.../adapters/ReadOnlyField'`
+// call sites keep working — the types now live in common/ReadOnlyField.ts.
+export type { ReadOnlyFieldProps } from './common/ReadOnlyField'
 
 export function ReadOnlyField({
     value,
@@ -94,10 +81,6 @@ export function ReadOnlyField({
             {label}
         </Label>
     ) : null
-
-    if (!Component) {
-        return null
-    }
 
     // Render library-specific component
     return (

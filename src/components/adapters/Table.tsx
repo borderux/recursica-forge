@@ -7,17 +7,11 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { TableProps } from './common/Table'
 
-export type TableProps = {
-  children?: React.ReactNode
-  variant?: string
-  layer?: ComponentLayer
-  elevation?: string
-  className?: string
-  style?: React.CSSProperties
-  data?: any
-} & LibrarySpecificProps
+// Re-exported so existing `import type { TableProps } from '.../adapters/Table'`
+// call sites keep working — the types now live in common/Table.ts.
+export type { TableProps } from './common/Table'
 
 export function Table({
   children,
@@ -32,10 +26,6 @@ export function Table({
   carbon,
 }: TableProps) {
   const Component = useComponent('Table')
-
-  if (!Component) {
-    return null
-  }
 
   return (
     <Suspense fallback={<div />}>

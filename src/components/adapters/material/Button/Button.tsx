@@ -5,7 +5,7 @@
  */
 
 import { Button as MaterialButton } from '@mui/material'
-import type { ButtonProps as AdapterButtonProps } from '../../Button'
+import type { ButtonProps as AdapterButtonProps } from '../../common/Button'
 import { useState, useEffect } from 'react'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'

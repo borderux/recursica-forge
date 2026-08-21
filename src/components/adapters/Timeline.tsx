@@ -8,25 +8,11 @@
 
 import { Suspense, ReactNode } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { LibrarySpecificProps } from '../registry/types'
+import type { TimelineItemData, TimelineProps } from './common/Timeline'
 
-export type TimelineItemData = {
-    title: string
-    description?: string
-    timestamp?: string
-    bullet?: ReactNode
-    lineVariant?: 'solid' | 'dashed' | 'dotted'
-}
-
-export type TimelineProps = {
-    active?: number
-    align?: 'left' | 'right'
-    layer?: string
-    children?: ReactNode
-    items?: TimelineItemData[]
-    className?: string
-    style?: React.CSSProperties
-} & LibrarySpecificProps
+// Re-exported so existing `import type { TimelineItemData } from '.../adapters/Timeline'`
+// call sites keep working — the types now live in common/Timeline.ts.
+export type { TimelineItemData, TimelineProps } from './common/Timeline'
 
 export function Timeline({
     active = 1,
@@ -41,15 +27,6 @@ export function Timeline({
     carbon,
 }: TimelineProps) {
     const Component = useComponent('Timeline')
-
-    if (!Component) {
-        // Fallback to simple div if component not available
-        return (
-            <div className={className} style={style}>
-                {children}
-            </div>
-        )
-    }
 
     const libraryProps = {
         active,

@@ -3,51 +3,21 @@
  *
  * Unified Accordion component that renders the appropriate library implementation
  * based on the current UI kit selection.
+ *
+ * Open/close state is normalized here (controlled vs. uncontrolled, single vs. multiple)
+ * because every library needs the same answer to "what's open right now" — duplicating that
+ * logic per library would just be three copies of the same bookkeeping. Everything
+ * library-specific — translating that state, and `items`, into what Mantine/Material/Carbon
+ * actually render — lives in each library's own wrapper under adapters/{mantine,material,carbon}/Accordion.
  */
 
 import { Suspense, useMemo, useRef, useState, useEffect } from 'react'
-// Aliased: Forge exports its own `AccordionItem` *type* below, and an unaliased import would
-// shadow it confusingly.
-import {
-  AccordionItem as AdapterAccordionItem,
-  AccordionControl,
-  AccordionPanel,
-} from '@recursica/mantine-adapter'
 import { useComponent } from '../hooks/useComponent'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { AccordionAdapterProps, AccordionProps } from './common/Accordion'
 
-export type AccordionItem = {
-  id: string
-  title: React.ReactNode
-  content: React.ReactNode
-  icon?: React.ComponentType<{ className?: string; size?: number; style?: React.CSSProperties }> | null
-  open?: boolean
-  defaultOpen?: boolean
-  divider?: boolean
-  disabled?: boolean
-}
-
-export type AccordionProps = {
-  items: AccordionItem[]
-  layer?: ComponentLayer
-  allowMultiple?: boolean
-  elevation?: string
-  onToggle?: (id: string, open: boolean) => void
-  className?: string
-  style?: React.CSSProperties
-} & LibrarySpecificProps
-
-type AccordionLibraryProps = {
-  items: AccordionItem[]
-  layer?: ComponentLayer
-  allowMultiple: boolean
-  elevation?: string
-  openItems: string[]
-  onOpenItemsChange: (openItems: string[]) => void
-  onItemToggle: (id: string, open: boolean) => void
-  className?: string
-  style?: React.CSSProperties
-} & LibrarySpecificProps
+// Re-exported so existing `import type { AccordionItem } from '.../adapters/Accordion'`
+// call sites keep working — the types now live in common/Accordion.ts.
+export type { AccordionItem, AccordionProps } from './common/Accordion'
 
 export function Accordion({
   items,
@@ -130,39 +100,7 @@ export function Accordion({
     applyOpenItems(nextOpenItems)
   }
 
-  if (!Component) {
-    return (
-      <div className={className} style={style}>
-        {items.map((item, index) => {
-          const isOpen = openItems.includes(item.id)
-          const ItemIcon = item.icon
-          const titleWithIcon = ItemIcon ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <ItemIcon style={{ width: '100%', height: '100%', display: 'block' }} />
-              </div>
-              <span>{item.title}</span>
-            </div>
-          ) : item.title
-          return (
-            <div key={item.id}>
-              <button
-                type="button"
-                onClick={() => handleItemToggle(item.id, !isOpen)}
-                aria-expanded={isOpen}
-                disabled={item.disabled}
-              >
-                {titleWithIcon}
-              </button>
-              {isOpen && <div>{item.content}</div>}
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
-  const libraryProps: AccordionLibraryProps = {
+  const adapterProps: AccordionAdapterProps = {
     items,
     layer,
     allowMultiple,
@@ -177,32 +115,9 @@ export function Accordion({
     carbon,
   }
 
-  // @recursica/mantine-adapter's Accordion is a COMPOSITION api — it renders children and
-  // has no `items` prop. Passing `items` produced an Accordion with no children at all,
-  // which is why every toolbar prop control silently disappeared.
-  //
-  // Control and Panel are composed explicitly rather than via AccordionItem's `title`
-  // shortcut: `title` intersects with the DOM title attribute there, so it only accepts a
-  // string, while Forge item titles are ReactNode. Open/close state still flows through the
-  // props computed above (openItems / allowMultiple become value / multiple via the contract).
-  const { items: _items, ...containerProps } = libraryProps
-
   return (
     <Suspense fallback={<span />}>
-      <Component {...containerProps}>
-        {items.map((item) => {
-          const ItemIcon = item.icon
-          return (
-            <AdapterAccordionItem key={item.id} value={item.id} divider={item.divider}>
-              <AccordionControl leftIcon={ItemIcon ? <ItemIcon /> : undefined}>
-                {item.title}
-              </AccordionControl>
-              <AccordionPanel>{item.content}</AccordionPanel>
-            </AdapterAccordionItem>
-          )
-        })}
-      </Component>
+      <Component {...adapterProps} />
     </Suspense>
   )
 }
-

@@ -7,21 +7,11 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { TreeProps } from './common/Tree'
 
-export type TreeProps = {
-  children?: React.ReactNode
-  variant?: string
-  layer?: ComponentLayer
-  elevation?: string
-  className?: string
-  style?: React.CSSProperties
-  data?: any[]
-  selected?: string[]
-  onSelect?: (selected: string[]) => void
-  /** Force the hover appearance on all nodes — used by the toolbar preview when the Hover tab is active. */
-  forceHover?: boolean
-} & LibrarySpecificProps
+// Re-exported so existing `import type { TreeProps } from '.../adapters/Tree'`
+// call sites keep working — the types now live in common/Tree.ts.
+export type { TreeProps } from './common/Tree'
 
 export function Tree({
   children,
@@ -39,10 +29,6 @@ export function Tree({
   carbon,
 }: TreeProps) {
   const Component = useComponent('Tree')
-
-  if (!Component) {
-    return null
-  }
 
   return (
     <Suspense fallback={<div />}>

@@ -1,4 +1,4 @@
-import type { TableCellProps } from '../../TableCell'
+import type { TableCellProps } from '../../common/TableCell'
 
 export default function TableCell(props: TableCellProps) {
   const Component = props.isHeader ? 'th' : 'td'

@@ -9,23 +9,14 @@
 import { Suspense, ReactNode, createContext, useContext, useState, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { useUiKit } from '../../modules/uikit/UiKitContext'
-import type { LibrarySpecificProps } from '../registry/types'
 import { Tabs as MantineTabs } from '@mantine/core'
 import { Tabs as MaterialTabs, Tab as MaterialTab } from '@mui/material'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
+import type { TabsProps, TabsListProps, TabsTabProps, TabsPanelProps } from './common/Tabs'
 
-export type TabsProps = {
-  value?: string
-  defaultValue?: string
-  onChange?: (value: string | null) => void
-  orientation?: 'horizontal' | 'vertical'
-  variant?: 'default' | 'pills' | 'outline'
-  tabContentAlignment?: 'left' | 'center' | 'right'
-  layer?: string
-  children: ReactNode
-  className?: string
-  style?: React.CSSProperties
-} & LibrarySpecificProps
+// Re-exported so existing `import type { TabsProps, TabsListProps, TabsTabProps, TabsPanelProps }
+// from '.../adapters/Tabs'` call sites keep working — the types now live in common/Tabs.ts.
+export type { TabsProps, TabsListProps, TabsTabProps, TabsPanelProps } from './common/Tabs'
 
 interface TabsContextValue {
   value?: string
@@ -79,16 +70,6 @@ export function Tabs({
 
   if (kit === 'mantine') {
     const Component = useComponent('Tabs')
-
-    if (!Component) {
-      return (
-        <TabsContext.Provider value={contextValue}>
-          <div className={className} style={style}>
-            {children}
-          </div>
-        </TabsContext.Provider>
-      )
-    }
 
     const libraryProps = {
       value: activeValue,
@@ -160,12 +141,6 @@ export function Tabs({
 }
 
 // ---------------- Tabs.List Adapter ----------------
-
-export type TabsListProps = {
-  children: ReactNode
-  style?: React.CSSProperties
-  className?: string
-}
 
 export function TabsList({ children, style, className }: TabsListProps) {
   const context = useContext(TabsContext)
@@ -239,16 +214,6 @@ export function TabsList({ children, style, className }: TabsListProps) {
 }
 
 // ---------------- Tabs.Tab Adapter ----------------
-
-export type TabsTabProps = {
-  value: string
-  children: ReactNode
-  leftSection?: ReactNode
-  rightSection?: ReactNode
-  disabled?: boolean
-  style?: React.CSSProperties
-  className?: string
-}
 
 export function TabsTab({
   value,
@@ -409,13 +374,6 @@ export function TabsTab({
 }
 
 // ---------------- Tabs.Panel Adapter ----------------
-
-export type TabsPanelProps = {
-  value: string
-  children: ReactNode
-  style?: React.CSSProperties
-  className?: string
-}
 
 export function TabsPanel({ value, children, style, className }: TabsPanelProps) {
   const context = useContext(TabsContext)

@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '../../Button'
 import { Tooltip } from '../../Tooltip'
-import type { LabelProps as AdapterLabelProps } from '../../Label'
+import type { LabelProps as AdapterLabelProps } from '../../common/Label'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'

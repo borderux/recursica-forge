@@ -6,7 +6,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { getComponentLevelCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
-import type { MenuProps as AdapterMenuProps } from '../../Menu'
+import type { MenuProps as AdapterMenuProps } from '../../common/Menu'
 import './Menu.css'
 
 export default function Menu({

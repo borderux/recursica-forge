@@ -361,11 +361,9 @@ The adapter component provides a unified interface that works across all librari
    
    export function {ComponentName}(props: {ComponentName}Props) {
      const Component = useComponent('{ComponentName}')
-     
-     if (!Component) {
-       // Fallback to native HTML element with styles
-       return <native-element style={getFallbackStyles(...)} />
-     }
+     // No null check needed: useComponent() never returns null. If no library has this
+     // component registered, it returns NoAdapterImplementation instead — one shared
+     // "not implemented" box, rather than every dispatcher hand-rolling its own fallback UI.
      
      return (
        <Suspense fallback={<loading-state />}>

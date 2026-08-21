@@ -1,188 +1,34 @@
 /**
  * Panel Component Adapter
- * 
- * Unified Panel component that renders the appropriate library implementation
- * based on the current UI kit selection. A Panel is an edge-attached side panel
- * that fills the full height of its container, with optional header, footer,
- * close button, and elevation.
+ *
+ * Unified Panel component that renders the appropriate library implementation based on the
+ * current UI kit selection. A Panel is an edge-attached side panel that fills the full height
+ * of its container, with optional header, footer, close button, and elevation.
+ *
+ * Panel has no shared interaction state to normalize here — visibility is driven directly by
+ * `isOpen`/`onClose` — so this dispatcher just picks the implementation and forwards props.
+ * Everything library-specific — Mantine's Panel being a Drawer with a composed `Panel.Footer`
+ * child instead of a `footer` prop, for instance — lives in each library's own wrapper under
+ * adapters/{mantine,material,carbon}/Panel.
+ *
+ * Panel is currently Mantine-only: Material and Carbon have no registered implementation, so
+ * `useComponent` falls back to NoAdapterImplementation for those kits.
  */
 
-import { Suspense, useState, useEffect } from 'react'
-// The footer is a composition API upstream: the adapter exposes Panel.Footer (its own
-// addition — Mantine's Drawer has no footer) instead of a `footer` prop, so it has to be
-// rendered as a child. Imported directly for the same reason Accordion imports its
-// sub-components: statics do not survive the registry's React.lazy wrapper.
-import { PanelFooter } from '@recursica/mantine-adapter'
+import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentLevelCssVar , buildComponentCssVarPath } from '../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
-import { useThemeMode } from '../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../core/css/readCssVar'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { PanelProps } from './common/Panel'
 
-export type PanelPosition = 'left' | 'right'
+// Re-exported so existing `import type { PanelPosition } from '.../adapters/Panel'`
+// call sites keep working — the types now live in common/Panel.ts.
+export type { PanelPosition, PanelProps } from './common/Panel'
 
-export type PanelProps = {
-    children?: React.ReactNode
-    title?: React.ReactNode
-    footer?: React.ReactNode
-    position?: PanelPosition
-    isOpen?: boolean
-    onClose?: () => void
-    layer?: ComponentLayer
-    elevation?: string
-    className?: string
-    style?: React.CSSProperties
-    /** When true, renders as a fixed overlay panel (full viewport height) */
-    overlay?: boolean
-    /** Custom width for the panel (e.g., '320px') */
-    width?: string
-    /** z-index for overlay panels */
-    zIndex?: number
-} & LibrarySpecificProps
-
-export function Panel({
-    children,
-    title,
-    footer,
-    position = 'right',
-    isOpen,
-    onClose,
-    layer = 'layer-0',
-    elevation,
-    className,
-    style,
-    overlay = false,
-    width,
-    zIndex,
-    mantine,
-    material,
-    carbon,
-}: PanelProps) {
+export function Panel(props: PanelProps) {
     const Component = useComponent('Panel')
-    const { mode } = useThemeMode()
-
-    // Get elevation from CSS vars if not provided as props
-    const elevationVar = getComponentLevelCssVar('Panel', 'elevation')
-
-    // Reactively read elevation from CSS variable
-    const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
-        const value = readCssVar(elevationVar)
-        return value ? parseElevationValue(value) : undefined
-    })
-
-    // Listen for CSS variable updates from the toolbar
-    useEffect(() => {
-        const handleCssVarUpdate = (e: Event) => {
-            const detail = (e as CustomEvent).detail
-            const shouldUpdateElevation = !detail?.cssVars || detail.cssVars.includes(elevationVar)
-
-            if (shouldUpdateElevation) {
-                const value = readCssVar(elevationVar)
-                setElevationFromVar(value ? parseElevationValue(value) : undefined)
-            }
-        }
-
-        window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-
-        const observer = new MutationObserver(() => {
-            const elevationValue = readCssVar(elevationVar)
-            setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
-        })
-
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['style'],
-        })
-
-        return () => {
-            window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-            observer.disconnect()
-        }
-    }, [elevationVar])
-
-    const componentElevation = elevation ?? elevationFromVar ?? undefined
-
-    if (!Component) {
-        // Basic fallback if no library implementation is available
-        return (
-            <div
-                className={className}
-                style={getPanelFallbackStyles(layer, position, componentElevation, mode, style)}
-            >
-                {title && (
-                    <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-                        {title}
-                    </div>
-                )}
-                <div style={{ flex: 1 }}>{children}</div>
-                {footer && <div>{footer}</div>}
-            </div>
-        )
-    }
-
-    // @recursica/mantine-adapter's Panel is a Mantine Drawer: it has an `opened` flag and
-    // renders display:none while closed. Forge's Panel was an always-rendered edge panel
-    // whose visibility came from *mounting* it, so callers like TypeStylePanel pass no open
-    // prop at all — which under the real adapter meant the panel never appeared. Defaulting
-    // to open preserves Forge's mount-to-show contract for those callers while still letting
-    // anyone who does control `isOpen` drive it explicitly.
-    const opened = isOpen ?? true
 
     return (
-        <Suspense fallback={<div className={className} style={style} />}>
-            <Component
-                title={title}
-                position={position}
-                isOpen={opened}
-                onClose={onClose}
-                layer={layer}
-                elevation={componentElevation}
-                overlay={overlay}
-                width={width}
-                zIndex={zIndex}
-                className={className}
-                style={style}
-                mantine={mantine}
-                material={material}
-                carbon={carbon}
-            >
-                {children}
-                {footer && <PanelFooter>{footer}</PanelFooter>}
-            </Component>
+        <Suspense fallback={<div className={props.className} style={props.style} />}>
+            <Component {...props} />
         </Suspense>
     )
-}
-
-function getPanelFallbackStyles(
-    layer: ComponentLayer,
-    position: PanelPosition,
-    elevation?: string,
-    mode: 'light' | 'dark' = 'light',
-    additionalStyle?: React.CSSProperties
-): React.CSSProperties {
-    const bgVar = buildComponentCssVarPath('Panel', 'properties', 'colors', layer, 'background-color')
-    const borderColorVar = buildComponentCssVarPath('Panel', 'properties', 'colors', layer, 'border-color')
-    const hfHPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-horizontal-padding')
-    const hfVPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-vertical-padding')
-    const maxWidthVar = getComponentLevelCssVar('Panel', 'max-width')
-
-    const styles: React.CSSProperties = {
-        backgroundColor: `var(${bgVar}, #fff)`,
-        borderLeft: position === 'right' ? `1px solid var(${borderColorVar}, #e0e0e0)` : 'none',
-        borderRight: position === 'left' ? `1px solid var(${borderColorVar}, #e0e0e0)` : 'none',
-        padding: `var(${hfVPaddingVar}, 16px) var(${hfHPaddingVar}, 24px)`,
-        maxWidth: `var(${maxWidthVar}, 400px)`,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        ...additionalStyle,
-    }
-
-    const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
-    if (elevationBoxShadow) {
-        styles.boxShadow = elevationBoxShadow
-    }
-
-    return styles
 }

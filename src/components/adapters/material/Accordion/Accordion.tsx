@@ -9,7 +9,7 @@ import {
   AccordionDetails,
 } from '@mui/material'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import type { AccordionProps as AdapterAccordionProps } from '../../Accordion'
+import type { AccordionAdapterProps } from '../../common/Accordion'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -28,18 +28,12 @@ export default function Accordion({
   openItems,
   onItemToggle,
   onOpenItemsChange: _onOpenItemsChange,
-  onToggle: _onToggle,
   elevation,
   className,
   style,
   material,
   ...props
-}: Omit<AdapterAccordionProps, 'onOpenItemsChange' | 'onToggle'> & {
-  openItems: string[]
-  onItemToggle: (id: string, open: boolean) => void
-  onOpenItemsChange?: (openItems: string[]) => void
-  onToggle?: (id: string, open: boolean) => void
-}) {
+}: AccordionAdapterProps) {
   const { mode } = useThemeMode()
 
   // Container properties (Accordion)

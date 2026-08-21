@@ -5,62 +5,17 @@
  * It wraps the platform-specific implementation.
  */
 
-import { Suspense, useRef, useEffect } from 'react'
+import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { CheckboxProps } from './Checkbox'
-import type { LibrarySpecificProps } from '../registry/types'
+import type { CheckboxItemProps } from './common/CheckboxItem'
 
-export type CheckboxItemProps = CheckboxProps & LibrarySpecificProps
+// Re-exported so existing `import type { CheckboxItemProps } from '.../adapters/CheckboxItem'`
+// call sites keep working — the types now live in common/CheckboxItem.ts.
+export type { CheckboxItemProps } from './common/CheckboxItem'
 
 export function CheckboxItem(props: CheckboxItemProps) {
   const Component = useComponent('CheckboxItem')
-  
-  // Fallback behavior if component not found (same as Checkbox fallback)
-  if (!Component) {
-    const { 
-      checked, 
-      indeterminate, 
-      onChange, 
-      disabled, 
-      label, 
-      className, 
-      style 
-    } = props
 
-    const checkboxRef = useRef<HTMLInputElement>(null)
-    
-    useEffect(() => {
-      if (checkboxRef.current) {
-        checkboxRef.current.indeterminate = !!indeterminate
-      }
-    }, [indeterminate])
-    
-    return (
-      <label
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          ...style,
-        }}
-        className={className}
-      >
-        <input
-          ref={checkboxRef}
-          type="checkbox"
-          checked={checked && !indeterminate}
-          onChange={(e) => onChange(e.target.checked)}
-          disabled={disabled}
-          style={{
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          }}
-        />
-        {label && <span style={{ opacity: disabled ? 0.6 : 1 }}>{label}</span>}
-      </label>
-    )
-  }
-  
   return (
     <Suspense fallback={null}>
       <Component {...props} />

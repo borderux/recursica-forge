@@ -8,13 +8,11 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { LibrarySpecificProps } from '../registry/types'
+import type { LoaderProps } from './common/Loader'
 
-export type LoaderProps = {
-    size?: 'small' | 'default' | 'large'
-    className?: string
-    style?: React.CSSProperties
-} & LibrarySpecificProps
+// Re-exported so existing `import type { LoaderProps } from '.../adapters/Loader'`
+// call sites keep working — the types now live in common/Loader.ts.
+export type { LoaderProps } from './common/Loader'
 
 export function Loader({
     size = 'default',
@@ -25,10 +23,6 @@ export function Loader({
     carbon,
 }: LoaderProps) {
     const Component = useComponent('Loader')
-
-    if (!Component) {
-        return null
-    }
 
     return (
         <Suspense fallback={<span />}>

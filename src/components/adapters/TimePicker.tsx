@@ -15,39 +15,11 @@ import { readCssVar } from '../../core/css/readCssVar'
 import { Label } from './Label'
 import { AssistiveElement } from './AssistiveElement'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { TimePickerProps } from './common/TimePicker'
 
-export type TimePickerProps = {
-    value?: string
-    defaultValue?: string
-    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
-    onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
-    onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
-    onClick?: (event: React.MouseEvent<HTMLDivElement | HTMLInputElement>) => void
-    placeholder?: string
-    label?: string
-    helpText?: string
-    errorText?: string
-    leadingIcon?: React.ReactNode
-    state?: string  // accepts custom state variant names
-    layout?: string  // accepts custom layout variant names
-    layer?: ComponentLayer
-    required?: boolean
-    optional?: boolean
-    labelAlign?: 'left' | 'right'
-    labelSize?: 'default' | 'small'
-    id?: string
-    name?: string
-    className?: string
-    style?: React.CSSProperties
-    autoFocus?: boolean
-    readOnly?: boolean
-    disableTopBottomMargin?: boolean
-    editIcon?: React.ReactNode | boolean
-    editIconGap?: string | number
-    period?: 'AM' | 'PM'
-    onPeriodChange?: (period: 'AM' | 'PM') => void
-} & LibrarySpecificProps
+// Re-exported so existing `import type { TimePickerProps } from '.../adapters/TimePicker'`
+// call sites keep working — the types now live in common/TimePicker.ts.
+export type { TimePickerProps } from './common/TimePicker'
 
 export function TimePicker({
     value,
@@ -100,19 +72,6 @@ export function TimePicker({
 
     // Get top-bottom-margin from layout variant
     const topBottomMarginVar = buildComponentCssVarPath('TimePicker', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
-
-    // If no library component is available, render fallback
-    if (!Component) {
-        return (
-            <div style={{
-                marginTop: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
-                marginBottom: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
-                ...style
-            }}>
-                <span>TimePicker (no library loaded)</span>
-            </div>
-        )
-    }
 
     // Render library-specific component
     return (

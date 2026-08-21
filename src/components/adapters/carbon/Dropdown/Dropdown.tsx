@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import type { DropdownProps as AdapterDropdownProps } from '../../Dropdown'
+import type { DropdownAdapterProps } from '../../common/Dropdown'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -46,7 +46,7 @@ export default function Dropdown({
     zIndex,
 
     carbon,
-}: AdapterDropdownProps & { labelId?: string; helpId?: string; errorId?: string }) {
+}: DropdownAdapterProps) {
     const { mode } = useThemeMode()
     const [opened, setOpened] = useState(false)
     const triggerRef = useRef<HTMLButtonElement>(null)

@@ -4,7 +4,7 @@
  * Carbon-specific MenuItem component that uses CSS variables for theming.
  */
 
-import type { MenuItemProps as AdapterMenuItemProps } from '../../MenuItem'
+import type { MenuItemProps as AdapterMenuItemProps } from '../../common/MenuItem'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'

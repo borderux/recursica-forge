@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react'
 import { Slider as MaterialSlider } from '@mui/material'
-import type { SliderProps as AdapterSliderProps } from '../../Slider'
+import type { SliderProps as AdapterSliderProps } from '../../common/Slider'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'

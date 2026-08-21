@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
+import type { AvatarProps as AdapterAvatarProps } from '../../common/Avatar'
 import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'

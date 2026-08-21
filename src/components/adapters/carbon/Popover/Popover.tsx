@@ -3,7 +3,7 @@
  */
 
 import React from 'react'
-import type { PopoverProps } from '../../Popover'
+import type { PopoverProps } from '../../common/Popover'
 
 export default function Popover({ children, content, isOpen }: PopoverProps) {
     return (

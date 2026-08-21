@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { Popover } from '@mui/material'
-import type { DropdownProps as AdapterDropdownProps } from '../../Dropdown'
+import type { DropdownAdapterProps } from '../../common/Dropdown'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -47,7 +47,7 @@ export default function Dropdown({
 
     material,
 
-}: AdapterDropdownProps & { labelId?: string; helpId?: string; errorId?: string }) {
+}: DropdownAdapterProps) {
     const { mode } = useThemeMode()
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
     const opened = Boolean(anchorEl)

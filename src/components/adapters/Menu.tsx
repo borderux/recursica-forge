@@ -10,16 +10,11 @@ import { useComponent } from '../hooks/useComponent'
 import { getComponentLevelCssVar } from '../utils/cssVarNames'
 import { parseElevationValue } from '../utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { MenuProps } from './common/Menu'
 
-export type MenuProps = {
-  children?: React.ReactNode
-  layer?: ComponentLayer
-  elevation?: string
-  maxHeight?: number
-  className?: string
-  style?: React.CSSProperties
-} & LibrarySpecificProps
+// Re-exported so existing `import type { MenuProps } from '.../adapters/Menu'`
+// call sites keep working — the types now live in common/Menu.ts.
+export type { MenuProps } from './common/Menu'
 
 export function Menu({
   children,
@@ -86,15 +81,6 @@ export function Menu({
 
   const componentElevation = elevation ?? elevationFromVar ?? undefined
   const componentMaxHeight = maxHeight ?? maxHeightFromVar ?? 600
-
-  if (!Component) {
-    // Fallback to simple div if component not available
-    return (
-      <div className={className} style={style}>
-        {children}
-      </div>
-    )
-  }
 
   const libraryProps = {
     layer,

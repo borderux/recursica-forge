@@ -13,7 +13,7 @@ import { Button } from '../../Button'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { usePaginationConfig } from '../../hooks/usePaginationConfig'
-import type { PaginationProps as AdapterPaginationProps } from '../../Pagination'
+import type { PaginationProps as AdapterPaginationProps } from '../../common/Pagination'
 import './Pagination.css'
 
 /**

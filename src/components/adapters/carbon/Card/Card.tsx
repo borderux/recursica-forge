@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import type { CardProps as AdapterCardProps } from '../../Card'
+import type { CardProps as AdapterCardProps } from '../../common/Card'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readRawCssVar as readCssVar } from '../../../../core/css/readCssVar'

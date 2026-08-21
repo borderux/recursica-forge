@@ -8,7 +8,7 @@
 
 import { useState, useEffect } from 'react'
 import { Chip } from '@mui/material'
-import type { BadgeProps as AdapterBadgeProps } from '../../Badge'
+import type { BadgeProps as AdapterBadgeProps } from '../../common/Badge'
 import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'

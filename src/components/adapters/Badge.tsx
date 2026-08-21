@@ -7,17 +7,11 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { BadgeProps } from './common/Badge'
 
-export type BadgeProps = {
-  children?: React.ReactNode
-  variant?: string
-  size?: 'small' | 'large'
-  layer?: ComponentLayer
-  elevation?: string
-  className?: string
-  style?: React.CSSProperties
-} & LibrarySpecificProps
+// Re-exported so existing `import type { BadgeProps } from '.../adapters/Badge'`
+// call sites keep working — the types now live in common/Badge.ts.
+export type { BadgeProps } from './common/Badge'
 
 export function Badge({
   children,
@@ -32,10 +26,6 @@ export function Badge({
   carbon,
 }: BadgeProps) {
   const Component = useComponent('Badge')
-
-  if (!Component) {
-    return null
-  }
 
   return (
     <Suspense fallback={<span />}>

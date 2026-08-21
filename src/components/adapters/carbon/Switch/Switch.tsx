@@ -7,7 +7,7 @@
 
 import { Toggle } from '@carbon/react'
 import { useEffect, useRef, useState, useId } from 'react'
-import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
+import type { SwitchProps as AdapterSwitchProps } from '../../common/Switch'
 import { getComponentLevelCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'

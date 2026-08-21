@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react'
 import { Switch as MaterialSwitch } from '@mui/material'
-import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
+import type { SwitchProps as AdapterSwitchProps } from '../../common/Switch'
 import { getComponentLevelCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'

@@ -11,19 +11,11 @@ import { buildComponentCssVarPath } from '../utils/cssVarNames'
 import { parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { ToastProps } from './common/Toast'
 
-export type ToastProps = {
-  children?: React.ReactNode
-  variant?: 'default' | 'success' | 'error'
-  layer?: ComponentLayer
-  elevation?: string
-  className?: string
-  style?: React.CSSProperties
-  icon?: React.ReactNode
-  onClose?: () => void
-  action?: React.ReactNode
-} & LibrarySpecificProps
+// Re-exported so existing `import type { ToastProps } from '.../adapters/Toast'`
+// call sites keep working — the types now live in common/Toast.ts.
+export type { ToastProps } from './common/Toast'
 
 export function Toast({
   children,

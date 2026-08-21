@@ -5,63 +5,17 @@
  * based on the current UI kit selection.
  */
 
-import React, { Suspense, useState, useEffect } from 'react'
+import React, { Suspense } from 'react'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useComponent } from '../hooks/useComponent'
-import { Button } from './Button'
-import { Tooltip } from './Tooltip'
-import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
+import { getComponentLevelCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { LabelProps } from './common/Label'
 
-function isButtonOrHasClick(node: React.ReactNode): boolean {
-  if (!React.isValidElement(node)) return false
-  
-  const props = node.props as any
-  if (!props) return false
-
-  if (props.onClick !== undefined) return true
-  
-  const type = node.type
-  if (
-    type === 'button' ||
-    (typeof type === 'function' &&
-      (type.name === 'Button' ||
-        type.name === 'MantineButton' ||
-        (type as any).displayName === 'Button' ||
-        (type as any).displayName === 'MantineButton'))
-  ) {
-    return true
-  }
-
-  if (props.children) {
-    if (Array.isArray(props.children)) {
-      return props.children.some((child: any) => isButtonOrHasClick(child))
-    }
-    return isButtonOrHasClick(props.children)
-  }
-
-  return false
-}
-
-export type LabelProps = {
-  children?: React.ReactNode
-  htmlFor?: string
-  variant?: 'default' | 'required' | 'optional'
-  size?: 'default' | 'small'
-  layout?: string  // accepts custom layout variant names
-  align?: 'left' | 'right'
-  layer?: ComponentLayer
-  className?: string
-  style?: React.CSSProperties
-  required?: boolean
-  id?: string
-  editIcon?: React.ReactNode | boolean
-  editIconGap?: string | number
-  onEditIconClick?: (e: React.MouseEvent) => void
-  editIconTitle?: string
-} & LibrarySpecificProps
+// Re-exported so existing `import type { LabelProps } from '.../adapters/Label'`
+// call sites keep working — the types now live in common/Label.ts.
+export type { LabelProps } from './common/Label'
 
 export function Label({
   children,
@@ -85,28 +39,6 @@ export function Label({
   const Component = useComponent('Label')
   const { mode } = useThemeMode()
 
-  // Get text CSS variables for reactive updates
-  const labelFontSizeVar = getComponentTextCssVar('Label', 'label-text', 'font-size')
-  const labelFontFamilyVar = getComponentTextCssVar('Label', 'label-text', 'font-family')
-  const labelFontWeightVar = getComponentTextCssVar('Label', 'label-text', 'font-weight')
-  const labelLetterSpacingVar = getComponentTextCssVar('Label', 'label-text', 'letter-spacing')
-  const labelLineHeightVar = getComponentTextCssVar('Label', 'label-text', 'line-height')
-  const labelTextDecorationVar = getComponentTextCssVar('Label', 'label-text', 'text-decoration')
-  const labelTextTransformVar = getComponentTextCssVar('Label', 'label-text', 'text-transform')
-  const labelFontStyleVar = getComponentTextCssVar('Label', 'label-text', 'font-style')
-
-  const optionalFontSizeVar = getComponentTextCssVar('Label', 'optional-text', 'font-size')
-  const optionalFontFamilyVar = getComponentTextCssVar('Label', 'optional-text', 'font-family')
-  const optionalFontWeightVar = getComponentTextCssVar('Label', 'optional-text', 'font-weight')
-  const optionalLetterSpacingVar = getComponentTextCssVar('Label', 'optional-text', 'letter-spacing')
-  const optionalLineHeightVar = getComponentTextCssVar('Label', 'optional-text', 'line-height')
-  const optionalTextDecorationVar = getComponentTextCssVar('Label', 'optional-text', 'text-decoration')
-  const optionalTextTransformVar = getComponentTextCssVar('Label', 'optional-text', 'text-transform')
-  const optionalTextOpacityVar = getComponentLevelCssVar('Label', 'optional-text-opacity')
-
-  // State to force re-renders when text CSS variables change
-  const [, setTextVarsUpdate] = useState(0)
-
   // Get CSS variable for size-based width based on layout and size variants (moved up to use in listener)
   // Width is nested: variants.layouts.{layout}.variants.sizes.{size}.properties.width
   let widthVar: string | undefined
@@ -115,79 +47,8 @@ export function Label({
   const labelWidthVar = getComponentLevelCssVar('Label', 'label-width')
   const effectiveWidthVar = widthVar || labelWidthVar
 
-  // Listen for CSS variable updates from the toolbar
-  useEffect(() => {
-    const textCssVars = [
-      labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar,
-      labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
-      optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
-      optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar,
-      optionalTextOpacityVar
-    ]
-
-    // Include width CSS vars in the update check
-    const widthCssVars = effectiveWidthVar ? [effectiveWidthVar, widthVar, labelWidthVar].filter(Boolean) : []
-    const allCssVars = [...textCssVars, ...widthCssVars]
-
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      // Update if any text or width CSS var was updated
-      const shouldUpdate = !detail?.cssVars || detail.cssVars.some((cssVar: string) =>
-        allCssVars.includes(cssVar) || cssVar.includes('label') || cssVar.includes('components-label')
-      )
-
-      if (shouldUpdate) {
-        // Force re-render by updating state
-        setTextVarsUpdate(prev => prev + 1)
-      }
-    }
-
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-
-    // Also watch for direct style changes using MutationObserver
-    const observer = new MutationObserver(() => {
-      // Force re-render for text and width vars
-      setTextVarsUpdate(prev => prev + 1)
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-
-    return () => {
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-      observer.disconnect()
-    }
-  }, [
-    labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar,
-    labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
-    optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
-    optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar,
-    optionalTextOpacityVar,
-    effectiveWidthVar, widthVar, labelWidthVar, effectiveSize, layout
-  ])
-
   // Determine variant based on required prop if not explicitly set
   const styleVariant = variant === 'default' && required ? 'required' : variant
-
-  // Get CSS variables for colors
-  // Text color and asterisk color are at component level, not variant-specific
-  const textColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text-color')
-  const asteriskColorVar = styleVariant === 'required'
-    ? buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'asterisk-color')
-    : undefined
-
-  // Get CSS variables for text emphasis opacity
-  const highEmphasisOpacityVar = `--recursica_brand_text-emphasis_high`
-
-  // Get CSS variables for layout-specific sizes
-  const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
-  const optionalTextGapVar = getComponentLevelCssVar('Label', 'label-optional-text-gap')
-  const editIconGapVar = getComponentLevelCssVar('Label', 'edit-icon-gap')
-  const finalEditIconGap = editIconGap !== undefined
-    ? (typeof editIconGap === 'number' ? `${editIconGap}px` : editIconGap)
-    : `var(${editIconGapVar})`
-
 
   // Handle boolean editIcon
   const EditIconComp = editIcon === true ? iconNameToReactComponent('pencil') || iconNameToReactComponent('edit') : null
@@ -229,102 +90,6 @@ export function Label({
       // In stacked, use width
       layoutStyles.width = `var(${effectiveWidthVar})`
     }
-  }
-
-  if (!Component) {
-    // Fallback to native label element
-    return (
-      <label
-        htmlFor={htmlFor}
-        className={className}
-        style={{
-          color: `var(${textColorVar})`,
-          display: 'block',
-          fontSize: `var(${labelFontSizeVar})`,
-          fontFamily: `var(${labelFontFamilyVar})`,
-          fontWeight: `var(${labelFontWeightVar})`,
-          fontStyle: labelFontStyleVar ? `var(${labelFontStyleVar})` as any : 'normal',
-          letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
-          lineHeight: `var(${labelLineHeightVar})`,
-          textDecoration: labelTextDecorationVar ? `var(${labelTextDecorationVar})` as any : 'none',
-          textTransform: labelTextTransformVar ? `var(${labelTextTransformVar})` as any : 'none',
-          textAlign: align,
-          opacity: `var(${highEmphasisOpacityVar})`,
-          ...layoutStyles,
-          ...style,
-        }}
-      >
-        {styleVariant === 'optional' ? (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: layout === 'side-by-side'
-              ? (align === 'right' ? 'flex-end' : 'flex-start')
-              : (align === 'right' ? 'flex-end' : 'stretch'),
-            gap: optionalTextGapVar ? `var(${optionalTextGapVar})` : undefined,
-          }}>
-            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, padding: '0.15em 0' }}>{children}</span>
-            <span
-              style={{
-                display: 'block',
-                opacity: `var(${optionalTextOpacityVar}, var(--recursica_brand_text-emphasis_low))`,
-                fontSize: `var(${optionalFontSizeVar})`,
-                fontFamily: `var(${optionalFontFamilyVar})`,
-                fontWeight: `var(${optionalFontWeightVar})`,
-                fontStyle: 'normal',
-                letterSpacing: optionalLetterSpacingVar ? `var(${optionalLetterSpacingVar})` : undefined,
-                lineHeight: `var(${optionalLineHeightVar})`,
-                textDecoration: optionalTextDecorationVar ? `var(${optionalTextDecorationVar})` as any : 'none',
-                textTransform: optionalTextTransformVar ? `var(${optionalTextTransformVar})` as any : 'none',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                textAlign: align,
-                paddingBottom: '0.05em',
-              }}
-            >
-              (optional)
-            </span>
-          </div>
-        ) : (
-          <span style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: align === 'right' ? 'flex-end' : 'flex-start',
-            width: '100%',
-            gap: finalEditIcon ? finalEditIconGap : 0
-          }}>
-            <span style={{ display: 'inline-block', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, padding: '0.15em 0' }}>
-              {children}
-              {styleVariant === 'required' && (
-                <span
-                  style={{
-                    color: asteriskColorVar ? `var(${asteriskColorVar})` : undefined,
-                    marginLeft: `var(${requiredIndicatorGapVar})`,
-                  }}
-                >
-                  *
-                </span>
-              )}
-            </span>
-            {finalEditIcon && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
-                {isButtonOrHasClick(finalEditIcon) ? (
-                  finalEditIcon
-                ) : editIconTitle ? (
-                  <Tooltip label={editIconTitle} withinPortal zIndex={10000}>
-                    <Button variant="text" size="small" icon={finalEditIcon} layer={layer} onClick={onEditIconClick} />
-                  </Tooltip>
-                ) : (
-                  <Button variant="text" size="small" icon={finalEditIcon} layer={layer} onClick={onEditIconClick} title={editIconTitle} />
-                )}
-              </span>
-            )}
-          </span>
-        )}
-      </label>
-    )
   }
 
   return (

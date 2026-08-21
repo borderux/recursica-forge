@@ -7,18 +7,11 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { RadioButtonProps } from './common/RadioButton'
 
-export type RadioButtonProps = {
-    selected: boolean
-    onChange: (selected: boolean) => void
-    disabled?: boolean
-    label?: React.ReactNode
-    value?: string
-    layer?: ComponentLayer
-    className?: string
-    style?: React.CSSProperties
-} & LibrarySpecificProps
+// Re-exported so existing `import type { RadioButtonProps } from '.../adapters/RadioButton'`
+// call sites keep working — the types now live in common/RadioButton.ts.
+export type { RadioButtonProps } from './common/RadioButton'
 
 export function RadioButton({
     selected,
@@ -34,34 +27,6 @@ export function RadioButton({
     carbon,
 }: RadioButtonProps) {
     const Component = useComponent('RadioButton')
-
-    if (!Component) {
-        // Fallback to native radio if component not available
-        return (
-            <label
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    ...style,
-                }}
-                className={className}
-            >
-                <input
-                    type="radio"
-                    checked={selected}
-                    onChange={(e) => onChange(e.target.checked)}
-                    disabled={disabled}
-                    value={value}
-                    style={{
-                        cursor: disabled ? 'not-allowed' : 'pointer',
-                    }}
-                />
-                {label && <span style={{ opacity: disabled ? 0.6 : 1 }}>{label}</span>}
-            </label>
-        )
-    }
 
     return (
         <Suspense fallback={<span />}>

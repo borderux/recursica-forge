@@ -5,7 +5,7 @@
  */
 
 import { Button as CarbonButton } from '@carbon/react'
-import type { ButtonProps as AdapterButtonProps } from '../../Button'
+import type { ButtonProps as AdapterButtonProps } from '../../common/Button'
 import { useState, useEffect } from 'react'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'

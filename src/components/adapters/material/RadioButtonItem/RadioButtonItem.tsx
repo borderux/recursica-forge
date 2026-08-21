@@ -3,7 +3,7 @@
  */
 
 import RadioButton from '../RadioButton/RadioButton'
-import type { RadioButtonItemProps as AdapterRadioButtonItemProps } from '../../RadioButtonItem'
+import type { RadioButtonItemProps as AdapterRadioButtonItemProps } from '../../common/RadioButtonItem'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import './RadioButtonItem.css'
 

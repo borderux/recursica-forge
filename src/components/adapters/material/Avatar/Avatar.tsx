@@ -5,7 +5,7 @@
  */
 
 import { Avatar as MaterialAvatar } from '@mui/material'
-import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
+import type { AvatarProps as AdapterAvatarProps } from '../../common/Avatar'
 import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'

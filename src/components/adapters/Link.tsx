@@ -9,37 +9,15 @@ import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
 import { getBrandStateCssVar } from '../utils/brandCssVars'
-import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import { useCssVar } from '../hooks/useCssVar'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { LinkProps } from './common/Link'
 
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 
-export type LinkProps = {
-  children?: React.ReactNode
-  href?: string
-  target?: string
-  rel?: string
-  layer?: ComponentLayer
-  underline?: 'hover' | 'always' | 'none'
-  onClick?: (e: React.MouseEvent) => void
-  className?: string
-  inlineStyle?: React.CSSProperties
-  /** Style prop used by library adapters (mapped from inlineStyle by mapLinkProps) */
-  style?: React.CSSProperties
-  startIcon?: React.ReactNode
-  endIcon?: React.ReactNode
-  title?: string
-  showIcon?: boolean
-  iconPosition?: 'start' | 'end'
-  /** Library-specific variant */
-  variant?: string
-  /** Library-specific size */
-  size?: string
-  /** Force a specific visual state for preview (bypasses CSS pseudo-states) */
-  forceState?: string  // accepts custom state variant names
-} & LibrarySpecificProps
+// Re-exported so existing `import type { LinkProps } from '.../adapters/Link'`
+// call sites keep working — the types now live in common/Link.ts.
+export type { LinkProps } from './common/Link'
 
 export function Link({
   children,
@@ -62,7 +40,6 @@ export function Link({
   carbon,
 }: LinkProps) {
   const Component = useComponent('Link')
-  const { mode } = useThemeMode()
 
   // Get theme-agnostic CSS variables for logical icon settings
   const componentKebab = 'link'
@@ -191,43 +168,6 @@ export function Link({
     }
   }, [layer, showIconVar, iconPositionVar, iconNameVar])
 
-  if (!Component) {
-    // Fallback to native anchor if component not available
-    const iconGapVar = buildComponentCssVarPath('Link', 'properties', 'icon-text-gap')
-    const iconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'icon')
-
-    return (
-      <a
-        href={href}
-        target={target}
-        rel={rel}
-        onClick={onClick}
-        className={className}
-        title={title}
-        style={{
-          ...getLinkStyles(layer, underline, mode),
-          display: 'inline-flex',
-          alignItems: 'baseline',
-          gap: renderedStartIcon || renderedEndIcon ? `var(${iconGapVar})` : 0,
-          cursor: 'pointer',
-          ...inlineStyle,
-        }}
-      >
-        {renderedStartIcon && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', color: `var(${iconColorVar})` }}>
-            {renderedStartIcon}
-          </span>
-        )}
-        {children}
-        {renderedEndIcon && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', color: `var(${iconColorVar})` }}>
-            {renderedEndIcon}
-          </span>
-        )}
-      </a>
-    )
-  }
-
   // Map unified props to library-specific props
   const libraryProps = mapLinkProps({
     href,
@@ -259,48 +199,6 @@ export function Link({
       </Component>
     </Suspense>
   )
-}
-
-function getLinkStyles(
-  layer: ComponentLayer,
-  underline: 'hover' | 'always' | 'none' | undefined,
-  mode: 'light' | 'dark' = 'light'
-): React.CSSProperties {
-  const styles: React.CSSProperties = {}
-
-  // Use recursica_ui-kit.json link colors from state variants
-  const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'text')
-
-  // Shared text properties (component level)
-  const fontFamilyVar = getComponentTextCssVar('Link', 'text', 'font-family')
-  const fontSizeVar = getComponentTextCssVar('Link', 'text', 'font-size')
-  const letterSpacingVar = getComponentTextCssVar('Link', 'text', 'letter-spacing')
-  const lineHeightVar = getComponentTextCssVar('Link', 'text', 'line-height')
-
-  // State-dependent text properties (default state)
-  const fontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-weight')
-  const textDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'text-decoration')
-  const fontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-style')
-
-  // Apply styles using CSS variable references directly
-  styles.color = `var(${textVar})`
-  styles.fontWeight = `var(${fontWeightVar})`
-  styles.fontStyle = fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal'
-
-  const textDecorationValue = textDecorationVar ? (readCssVar(textDecorationVar) || 'underline') : 'underline'
-
-  if (underline === 'always') {
-    styles.textDecoration = 'underline'
-  } else if (underline === 'none') {
-    styles.textDecoration = 'none'
-  } else {
-    // If underline prop is hover or undefined, respect the CSS variable
-    styles.textDecoration = (textDecorationValue || 'underline') as any
-  }
-
-  // Don't apply emphasis opacity - colors are already defined in variants
-
-  return styles
 }
 
 function mapLinkProps(props: LinkProps): any {
