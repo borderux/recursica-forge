@@ -42,13 +42,12 @@ export default function Switch({ checked, onChange, disabled, mantine }: SwitchP
 
 // Compile-time only — fails the build the moment SwitchProps declares a prop with no real,
 // type-compatible home on the real Switch. `onChange` is excluded: adapted above (event ->
-// boolean), same reasoning as Checkbox's identical exclusion. `colorVariant`/`sizeVariant` are
-// excluded: upstream drives colour/size entirely from tokens, no per-instance override (this
-// used to live as a documented drop in adapterPropContract.ts's PROP_CONTRACT['Switch'], now
-// folded in here since this wrapper does its own translation).
+// boolean), same reasoning as Checkbox's identical exclusion. `colorVariant`/`sizeVariant`
+// removed from SwitchProps entirely (2026-08) rather than left in the Ignore list — see
+// common/Switch.ts.
 type _Wiring = AssertWired<
     SwitchProps,
     typeof MantineSwitch,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'onChange' | 'colorVariant' | 'sizeVariant'
+    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'onChange'
 >
 const _wiringCheck: _Wiring = true

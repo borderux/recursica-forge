@@ -298,7 +298,7 @@ function useBullets() {
             {CheckIcon ? <CheckIcon size={14} /> : null}
         </ThemeIcon>, // icon-alt
         <div className="recursica-timeline-avatar-container">
-            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-smith.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" colorVariant="image" src="/goblin-avatar-smith.png" className="recursica-timeline-avatar-bullet" />
         </div>, // avatar
         undefined, // default dot
         BellIcon ? <BellIcon size={14} /> : undefined, // icon
@@ -306,7 +306,7 @@ function useBullets() {
             {WarningIcon ? <WarningIcon size={14} /> : null}
         </ThemeIcon>, // icon-alt
         <div className="recursica-timeline-avatar-container">
-            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-elder.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" colorVariant="image" src="/goblin-avatar-elder.png" className="recursica-timeline-avatar-bullet" />
         </div>, // avatar
     ]
 
@@ -317,7 +317,7 @@ function useBullets() {
             {HeartIcon ? <HeartIcon size={14} /> : null}
         </ThemeIcon>,
         <div className="recursica-timeline-avatar-container">
-            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-shaman.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" colorVariant="image" src="/goblin-avatar-shaman.png" className="recursica-timeline-avatar-bullet" />
         </div>,
         undefined,
         InfoIcon ? <InfoIcon size={14} /> : undefined,
@@ -325,7 +325,7 @@ function useBullets() {
             {StarIcon ? <StarIcon size={14} /> : null}
         </ThemeIcon>,
         <div className="recursica-timeline-avatar-container">
-            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-scout.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" colorVariant="image" src="/goblin-avatar-scout.png" className="recursica-timeline-avatar-bullet" />
         </div>,
     ]
 

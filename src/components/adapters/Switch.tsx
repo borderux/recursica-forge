@@ -18,8 +18,6 @@ export function Switch({
   onChange,
   disabled = false,
   layer = 'layer-0',
-  colorVariant = 'default',
-  sizeVariant = 'default',
   elevation,
   className,
   style,
@@ -36,8 +34,6 @@ export function Switch({
         onChange={onChange}
         disabled={disabled}
         layer={layer}
-        colorVariant={colorVariant}
-        sizeVariant={sizeVariant}
         elevation={elevation}
         className={className}
         style={style}

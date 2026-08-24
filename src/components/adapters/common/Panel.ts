@@ -9,6 +9,13 @@ import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'
 
 export type PanelPosition = 'left' | 'right'
 
+/**
+ * `position` matches raw `@mantine/core`'s own `Drawer` prop name exactly (`Panel` wraps
+ * `Drawer`) — it's `@recursica/mantine-adapter` that renamed it to `placement` internally, not
+ * Forge that diverged. Tracked as an upstream ask, see
+ * `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md`; Forge's own name stays `position`.
+ */
+
 /** Public prop interface. What consumer/demo code uses — identical across every UI kit. */
 export type PanelProps = {
     children?: React.ReactNode

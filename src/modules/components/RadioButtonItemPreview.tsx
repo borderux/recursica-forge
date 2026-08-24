@@ -60,7 +60,7 @@ export default function RadioButtonItemPreview({
         }} data-update-key={updateKey}>
             <RadioButtonItem
                 label="A curious goblin crept through the moonlit forest, muttering about a treasure map"
-                selected={selected}
+                checked={selected}
                 disabled={isDisabled}
                 onChange={setSelected}
                 layer={selectedLayer as any}

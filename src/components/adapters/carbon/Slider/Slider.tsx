@@ -363,9 +363,9 @@ export default function Slider({
             max={max}
             step={step}
             value={value[0]}
-            onChange={(e) => {
+            onChange={(val) => {
               if (!readOnly) {
-                const newValue = Number(e.target.value)
+                const newValue = Number(val)
                 if (!isNaN(newValue)) {
                   const clampedValue = Math.max(min, Math.min(value[1], newValue))
                   onChange([clampedValue, value[1]])
@@ -525,9 +525,9 @@ export default function Slider({
             max={max}
             step={step}
             value={isRange ? value[1] : singleValue}
-          onChange={(e) => {
+          onChange={(val) => {
             if (!readOnly) {
-              const newValue = Number(e.target.value)
+              const newValue = Number(val)
               if (!isNaN(newValue)) {
                 if (isRange) {
                   onChange([value[0], newValue])

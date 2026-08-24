@@ -1,12 +1,11 @@
 /**
  * Mantine NumberInput Adapter
  *
- * Not actually a 1:1 pass-through: the real NumberInput's `onChange` fires with the parsed
- * `number | string` value directly (confirmed against @mantine/core's own NumberInputProps —
- * `onChange?: (value: number | string) => void`), never a native `ChangeEvent`. Forge's
- * declared `onChange(event: ChangeEvent<HTMLInputElement>)` was never going to receive a real
- * event from this path; a minimal synthetic event carrying the value on `target.value` is
- * built here so existing `event.target.value` call sites keep working.
+ * `onChange` is now a straight, same-shape pass-through: the real NumberInput's `onChange`
+ * fires with the parsed `number | string` value directly (confirmed against @mantine/core's
+ * own NumberInputProps — `onChange?: (value: number | string) => void`), and Forge's own type
+ * was corrected (2026-08) to match exactly, rather than declaring a `ChangeEvent`-based shape
+ * this path never actually delivered.
  *
  * `min`/`max`/`step` also need adapting, not just renaming: Forge types them `number | string`
  * (matching the native `<input>` attribute convention used by TextField), but the real
@@ -56,9 +55,7 @@ export default function NumberInput({
         <MantineNumberInput
             value={value}
             defaultValue={defaultValue}
-            onChange={(val) =>
-                onChange?.({ target: { value: String(val) } } as unknown as React.ChangeEvent<HTMLInputElement>)
-            }
+            onChange={onChange}
             onKeyDown={onKeyDown}
             onBlur={onBlur}
             onClick={onClick}
@@ -87,11 +84,10 @@ export default function NumberInput({
 
 // Compile-time only — fails the build the moment NumberInputProps declares a prop with no
 // real, type-compatible home on the real NumberInput (directly, or via the renames below).
-// `onChange` is excluded: it's explicitly adapted above (value -> synthetic event), so
-// checking its untranslated shape here would be a false positive. `min`/`max`/`step` are
-// excluded for the same reason: each is coerced to `number` above, which is what actually
-// gets type-checked. `layout` is excluded like DatePicker's: Forge types it as an open
-// `string`, wider than the real `formLayout` union, and the ternary above is the real
+// `onChange` now matches the real prop directly (no exclusion needed since the 2026-08 type
+// correction). `min`/`max`/`step` are excluded: each is coerced to `number` above, which is
+// what actually gets type-checked. `layout` is excluded like DatePicker's: Forge types it as
+// an open `string`, wider than the real `formLayout` union, and the ternary above is the real
 // translation. `state` and `minWidth` are excluded with no rename and no adaptation:
 // confirmed no real equivalent exists for either (see header).
 type _Wiring = AssertWired<
@@ -104,7 +100,6 @@ type _Wiring = AssertWired<
     | 'carbon'
     | 'className'
     | 'style'
-    | 'onChange'
     | 'min'
     | 'max'
     | 'step'

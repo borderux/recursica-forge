@@ -9,7 +9,9 @@
  *
  * `separator` is a real, matching field upstream, but it wants a `ReactNode` glyph, not Forge's
  * `'slash' | 'chevron' | 'arrow'` keyword — translated below into an icon (falling back to a
- * plain `/` character if the icon library ever comes up short).
+ * plain `/` character if the icon library ever comes up short). `separatorNode`, when
+ * provided, is passed straight through as that same real `separator` prop, taking precedence
+ * over the translated keyword.
  *
  * `showHomeIcon` has no upstream equivalent (`RecursicaBreadcrumbProps` is empty) — implemented
  * here as a real fix, prefixing a home icon onto the first breadcrumb item, mirroring how the
@@ -36,12 +38,13 @@ const SEPARATOR_ICON_NAMES = {
 export default function Breadcrumb({
   items,
   separator = 'slash',
+  separatorNode,
   showHomeIcon = false,
   layer = 'layer-0',
   mantine,
 }: BreadcrumbProps) {
   const SeparatorIcon = iconNameToReactComponent(SEPARATOR_ICON_NAMES[separator])
-  const separatorElement = SeparatorIcon ? <SeparatorIcon size={14} /> : <span>/</span>
+  const separatorElement = separatorNode ?? (SeparatorIcon ? <SeparatorIcon size={14} /> : <span>/</span>)
 
   const HomeIcon = showHomeIcon ? iconNameToReactComponent('house') : null
 
@@ -70,14 +73,16 @@ export default function Breadcrumb({
   )
 }
 
-// `items`/`separator`/`showHomeIcon` are all consumed above to build the real `children` array
-// and the translated separator glyph, not forwarded raw. `layer` only feeds the composed
-// `Link` elements. `className`/`style` are dropped per the `RecursicaOverStyled` note above.
+// `items`/`separator`/`separatorNode`/`showHomeIcon` are all consumed above to build the real
+// `children` array and the translated separator glyph, not forwarded raw. `layer` only feeds
+// the composed `Link` elements. `className`/`style` are dropped per the `RecursicaOverStyled`
+// note above.
 type _Wiring = AssertWired<
   BreadcrumbProps,
   typeof MantineBreadcrumb,
   | 'items'
   | 'separator'
+  | 'separatorNode'
   | 'showHomeIcon'
   | 'layer'
   | 'className'

@@ -105,7 +105,6 @@ export function CreateVariantModal({
       isOpen={isOpen}
       onClose={onClose}
       title="New variant"
-      size="sm"
       layer="layer-1"
       primaryActionLabel="Create variant"
       primaryActionDisabled={!isValid}

@@ -201,7 +201,6 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
       secondaryActionDisabled={secondaryDisabled}
       scrollable={true}
       layer="layer-3"
-      size="md"
       content={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {import.meta.env.DEV && (

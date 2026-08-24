@@ -13,7 +13,12 @@ export type TimelineItemData = {
     description?: string
     timestamp?: string
     bullet?: ReactNode
-    lineVariant?: 'solid' | 'dashed' | 'dotted'
+    /**
+     * Removed (2026-08): only a solid line is actually supported — styling comes from CSS,
+     * not a runtime prop. Raw `@mantine/core`'s own `TimelineItem` does have an identically
+     * shaped, real `lineVariant` prop, but the real adapter structurally removes it with no
+     * escape hatch back, and no Material/Carbon Timeline implementation exists to weigh in.
+     */
 }
 
 /** Public prop interface. What consumer/demo code uses — identical across every UI kit. */

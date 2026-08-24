@@ -840,7 +840,6 @@ export default function ComponentToolbar({
         isOpen={resetConfirmOpen}
         onClose={() => setResetConfirmOpen(false)}
         title={`Reset ${componentName}`}
-        size="sm"
         layer="layer-1"
         primaryActionLabel="Reset"
         onPrimaryAction={() => {
@@ -856,12 +855,12 @@ export default function ComponentToolbar({
             </p>
             <RadioButtonGroup label="Version" required>
               <RadioButtonItem
-                selected={resetTarget === 'imported'}
+                checked={resetTarget === 'imported'}
                 onChange={() => setResetTarget('imported')}
                 label="Reset to last imported version"
               />
               <RadioButtonItem
-                selected={resetTarget === 'original'}
+                checked={resetTarget === 'original'}
                 onChange={() => setResetTarget('original')}
                 label="Reset to Forge defaults"
               />

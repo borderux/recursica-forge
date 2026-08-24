@@ -16,6 +16,7 @@ export type { BreadcrumbItem, BreadcrumbProps } from './common/Breadcrumb'
 export function Breadcrumb({
   items,
   separator = 'slash',
+  separatorNode,
   showHomeIcon = false,
   layer = 'layer-0',
   className,
@@ -33,6 +34,7 @@ export function Breadcrumb({
   const libraryProps = {
     items: limitedItems,
     separator,
+    separatorNode,
     showHomeIcon,
     layer,
     className,

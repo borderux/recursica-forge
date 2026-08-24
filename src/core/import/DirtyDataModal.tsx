@@ -23,7 +23,6 @@ export function DirtyDataModal({ onAcknowledge, onCancel }: DirtyDataModalProps)
       secondaryActionLabel="Cancel"
       onSecondaryAction={onCancel}
       layer="layer-3"
-      size="md"
       content={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <p style={{ margin: 0, opacity: 0.7 }}>

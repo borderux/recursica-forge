@@ -187,7 +187,6 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
             primaryActionDisabled={!selectedHex}
             secondaryActionLabel="Cancel"
             onSecondaryAction={handleClose}
-            size="sm"
             centered
             scrollable
         >
@@ -244,7 +243,7 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                                 <div className="suggest-tones__radio-cell">
                                     {isSelectable && (
                                         <RadioButton
-                                            selected={isSelected}
+                                            checked={isSelected}
                                             onChange={() => setSelectedHex(tone.hex)}
                                         />
                                     )}

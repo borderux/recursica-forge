@@ -45,8 +45,13 @@ export type TransferListProps = {
     required?: boolean
     /** Optional indicator */
     optional?: boolean
-    /** Layout — accepts any variant name including custom layouts */
-    layout?: string
+    /**
+     * Narrowed (2026-08) to document the two values the real adapter actually recognizes
+     * ('stacked'/'side-by-side' — anything else silently falls back to 'stacked'), while
+     * still allowing custom strings through for other CSS-variable lookup uses elsewhere
+     * in the app.
+     */
+    layout?: 'stacked' | 'side-by-side' | (string & {})
     /** Additional className */
     className?: string
     /** Additional styles */

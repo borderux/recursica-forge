@@ -14,6 +14,7 @@ import './Breadcrumb.css'
 export default function Breadcrumb({
   items,
   separator = 'slash',
+  separatorNode,
   showHomeIcon = false,
   layer = 'layer-0',
   className,
@@ -55,7 +56,7 @@ export default function Breadcrumb({
             <li key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {index > 0 && (
                 <span>
-                  {separator === 'chevron' ? '›' : separator === 'arrow' ? '→' : '/'}
+                  {separatorNode ?? (separator === 'chevron' ? '›' : separator === 'arrow' ? '→' : '/')}
                 </span>
               )}
               <Link

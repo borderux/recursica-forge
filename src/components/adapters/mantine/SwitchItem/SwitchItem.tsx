@@ -10,10 +10,7 @@
  * `ElementProps<'input', 'size' | 'children'>`, i.e. native input attributes), not the
  * `(checked: boolean) => void` Forge declares. Adapted here the same way.
  *
- * `colorVariant`/`sizeVariant` — no real equivalent: upstream drives colour and size
- * entirely from tokens (see the central PROP_CONTRACT's own `Switch: { colorVariant: null,
- * sizeVariant: null }` entry — the same gap applies here). `elevation` is token-driven, not
- * a prop, same as every other component.
+ * `elevation` is token-driven, not a prop, same as every other component.
  */
 
 import { Switch as MantineSwitch } from '@recursica/mantine-adapter'
@@ -40,8 +37,9 @@ export default function SwitchItem({
 
 // Compile-time only — fails the build the moment SwitchItemProps declares a prop with no
 // real, type-compatible home on the real Switch. `onChange` is excluded: it's explicitly
-// adapted above (event -> boolean), not passed through unchanged. `colorVariant`/
-// `sizeVariant`/`elevation` are genuine adapter gaps — see file header.
+// adapted above (event -> boolean), not passed through unchanged. `elevation` is a genuine
+// adapter gap — see file header. `colorVariant`/`sizeVariant` removed from the type entirely
+// (2026-08), no longer need excluding.
 type _Wiring = AssertWired<
     SwitchItemProps,
     typeof MantineSwitch,
@@ -52,8 +50,6 @@ type _Wiring = AssertWired<
     | 'className'
     | 'style'
     | 'onChange'
-    | 'colorVariant'
-    | 'sizeVariant'
     | 'elevation'
 >
 const _wiringCheck: _Wiring = true

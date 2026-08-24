@@ -9,11 +9,13 @@
  * `Timeline.Item`'s `children` — its own docs describe that slot as "content displayed below
  * the title", which is exactly Forge's `description`. `timestamp` maps onto
  * `RecursicaTimelineItemProps.timestamp`, which the real component was extended to support
- * natively. `lineVariant` has no home: the real `TimelineItem_2` type explicitly
- * `Omit<TimelineItemProps_2, "radius" | "color" | "lineVariant">`s it out even though upstream
- * Mantine's own `TimelineItem` has an identically-shaped `lineVariant` prop — the adapter
- * strips it structurally, not just behind `RecursicaOverStyled`, so there's no `overStyled`
- * escape hatch that brings it back. Dropped, per-item, rather than half-wired.
+ * natively — a wholesale Recursica addition, not something native to raw Mantine's own
+ * `TimelineItem`. Forge's own `lineVariant` was removed from `TimelineItemData` entirely
+ * (2026-08, see common/Timeline.ts) rather than kept as a documented drop: the real
+ * `TimelineItem_2` type explicitly `Omit<TimelineItemProps_2, "radius" | "color" |
+ * "lineVariant">`s it out structurally (no `overStyled` escape hatch brings it back), even
+ * though upstream Mantine's own `TimelineItem` has an identically-shaped `lineVariant` prop —
+ * only solid lines are supported, styled via CSS.
  *
  * `active`/`align` are real, matching root fields, passed through unchanged. Forge's root
  * `children` prop is dropped: nothing in the app passes raw JSX children to `Timeline` (every

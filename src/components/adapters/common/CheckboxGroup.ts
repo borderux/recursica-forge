@@ -17,8 +17,21 @@ export type CheckboxGroupProps = {
     optional?: boolean
     padding?: string // CSS var or token
     itemGap?: string // CSS var or token
+    /**
+     * The real `@recursica/mantine-adapter`'s own `RecursicaCheckboxGroupProps.row` field
+     * (the intended destination for this) is confirmed dead code — declared but never
+     * destructured or read by the real `CheckboxGroup.tsx`, so it falls into `...rest` and is
+     * spread onto `Mantine.Checkbox.Group`, which has no `row` prop of its own either. Filed
+     * as a bug upstream, see `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md`.
+     */
     orientation?: 'horizontal' | 'vertical'
-    layout?: string  // accepts custom layout variant names
+    /**
+     * Narrowed (2026-08) to document the two values the real adapter actually
+     * recognizes ('stacked'/'side-by-side' — anything else silently falls back to
+     * 'stacked'), while still allowing custom strings through for other CSS-variable
+     * lookup uses elsewhere in the app.
+     */
+    layout?: 'stacked' | 'side-by-side' | (string & {})
     layer?: ComponentLayer
     labelAlign?: 'left' | 'right'
     labelSize?: 'default' | 'small'

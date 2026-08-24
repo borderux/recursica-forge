@@ -551,7 +551,6 @@ export default function MantineShell({
                             }, 500); // Small delay to ensure CSS vars are ready
                           }
                         }}
-                        sizeVariant='small'
                       />
                     </div>
                   </Tooltip>
@@ -784,13 +783,13 @@ export default function MantineShell({
                   label="Reset destination"
                   required
                 >
-                  <RadioButtonItem 
-                    selected={resetTarget === 'imported'} 
-                    onChange={() => setResetTarget('imported')} 
-                    label="Reset to last imported version" 
+                  <RadioButtonItem
+                    checked={resetTarget === 'imported'}
+                    onChange={() => setResetTarget('imported')}
+                    label="Reset to last imported version"
                   />
-                  <RadioButtonItem 
-                    selected={resetTarget === 'original'} 
+                  <RadioButtonItem
+                    checked={resetTarget === 'original'}
                     onChange={() => setResetTarget('original')} 
                     label="Reset to app defaults" 
                   />

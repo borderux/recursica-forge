@@ -23,7 +23,6 @@ export default function Avatar({
   sizeVariant = 'default',
   layer = 'layer-0',
   elevation,
-  shape = 'circle',
   className,
   style,
   carbon,
@@ -140,7 +139,9 @@ export default function Avatar({
         '--avatar-icon-size': `var(${iconSizeVar})`,
         '--avatar-border-size': borderSizeStyleVar ? `var(${borderSizeStyleVar})` : `var(${sizeBorderSizeVar})`,
         // Set the CSS variable - for circle, use 50%, otherwise use the resolved value
-        '--avatar-border-radius': shape === 'circle' ? '50%' : (borderRadiusValue || `var(${borderRadiusVar})`),
+        // Corner radius is token-driven, not a runtime prop (matches the real Mantine
+        // adapter, which has no shape/radius override either) — always resolves from the CSS var.
+        '--avatar-border-radius': borderRadiusValue || `var(${borderRadiusVar})`,
         '--avatar-padding': `var(${paddingVar})`,
         '--avatar-font-family': `var(${fontFamilyVar})`,
         '--avatar-font-size': `var(${fontSizeVar})`,

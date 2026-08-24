@@ -476,7 +476,6 @@ export function EditFontVariantsModal({
       isOpen={open}
       onClose={handleClose}
       title={`Edit ${fontName}`}
-      size={600}
       layer="layer-2"
       primaryActionLabel={loading ? 'Saving...' : 'Save'}
       onPrimaryAction={handleAccept}

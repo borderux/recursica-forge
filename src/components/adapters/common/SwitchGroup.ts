@@ -18,7 +18,13 @@ export type SwitchGroupProps = {
     padding?: string // CSS var or token
     itemGap?: string // CSS var or token
     orientation?: 'horizontal' | 'vertical'
-    layout?: string  // accepts custom layout variant names
+    /**
+     * Narrowed (2026-08) to document the two values the real adapter actually
+     * recognizes ('stacked'/'side-by-side' — anything else silently falls back to
+     * 'stacked'), while still allowing custom strings through for other CSS-variable
+     * lookup uses elsewhere in the app.
+     */
+    layout?: 'stacked' | 'side-by-side' | (string & {})
     layer?: ComponentLayer
     labelAlign?: 'left' | 'right'
     labelSize?: 'default' | 'small'

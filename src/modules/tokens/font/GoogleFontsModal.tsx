@@ -526,7 +526,6 @@ export function GoogleFontsModal({
       isOpen={open}
       onClose={handleClose}
       title="Add font family"
-      size={600}
       layer="layer-2"
       primaryActionLabel={loading ? 'Adding...' : 'Add Font'}
       onPrimaryAction={handleAccept}

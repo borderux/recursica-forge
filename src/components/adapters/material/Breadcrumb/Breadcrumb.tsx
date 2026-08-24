@@ -14,6 +14,7 @@ import './Breadcrumb.css'
 export default function Breadcrumb({
   items,
   separator = 'slash',
+  separatorNode,
   showHomeIcon = false,
   layer = 'layer-0',
   className,
@@ -76,7 +77,7 @@ export default function Breadcrumb({
   })
 
   // Create separator element - spacing is handled by CSS using item-gap
-  const separatorElement = SeparatorIcon ? (
+  const separatorElement = separatorNode ?? (SeparatorIcon ? (
     <SeparatorIcon
       style={{
         width: '1em',
@@ -87,7 +88,7 @@ export default function Breadcrumb({
     />
   ) : (
     <span style={{ fontSize: '1em' }}>/</span>
-  )
+  ))
 
   const muiProps = {
     className,

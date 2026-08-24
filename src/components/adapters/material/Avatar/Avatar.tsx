@@ -22,7 +22,6 @@ export default function Avatar({
   sizeVariant = 'default',
   layer = 'layer-0',
   elevation,
-  shape = 'circle',
   className,
   style,
   material,
@@ -129,8 +128,9 @@ export default function Avatar({
   // Handle elevation
   const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
   
-  // Calculate border radius value
-  const borderRadiusForSx = shape === 'circle' ? '50%' : (borderRadiusValue || `var(${borderRadiusVar})`)
+  // Corner radius is token-driven, not a runtime prop (matches the real Mantine adapter, which
+  // has no shape/radius override either) — always resolves from the CSS var.
+  const borderRadiusForSx = borderRadiusValue || `var(${borderRadiusVar})`
   
   return (
     <MaterialAvatar

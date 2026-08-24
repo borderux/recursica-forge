@@ -246,7 +246,7 @@ export default function NumberInput({
                 type="number"
                 value={value}
                 defaultValue={defaultValue}
-                onChange={onChange}
+                onChange={(e) => onChange?.(e.target.value)}
                 onKeyDown={domProps.onKeyDown}
                 onBlur={domProps.onBlur}
                 placeholder={placeholder}

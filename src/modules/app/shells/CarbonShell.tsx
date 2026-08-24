@@ -646,7 +646,6 @@ export default function CarbonShell({
                             }, 500); // Small delay to ensure CSS vars are ready
                           }
                         }}
-                        sizeVariant='small'
                       />
                     </div>
                   </Tooltip>

@@ -26,6 +26,16 @@ export type SegmentedControlProps = {
   fullWidth?: boolean
   layer?: ComponentLayer
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
+  /**
+   * Whole-control disable. Real and native on raw `@mantine/core`'s and raw `@mui/material`'s
+   * own components, and wired straight through on the Material and Carbon kits. The real
+   * `@recursica/mantine-adapter`'s `SegmentedControl` explicitly forbids this prop
+   * (`disabled: never`), so on the Mantine kit it's synthesized instead: the wrapper marks
+   * every item disabled (OR'd with each item's own `disabled`) rather than setting a
+   * top-level flag — same visible/functional result, no real destination to forward to
+   * directly. (Previously removed 2026-08 on the assumption SegmentedControls should never
+   * be disabled as a whole; restored once a real product need for it came up.)
+   */
   disabled?: boolean
   showLabel?: boolean // Whether to show labels (default: true)
   componentNameForCssVars?: ComponentName // Component name to use for CSS variables (default: 'SegmentedControl')

@@ -34,7 +34,6 @@ export function Modal({
     onSecondaryAction,
     primaryActionDisabled = false,
     secondaryActionDisabled = false,
-    size = 'md',
     layer = 'layer-1', // Default to layer-1 for modals as they usually sit on top
     elevation,
     className,
@@ -132,7 +131,6 @@ export function Modal({
                 onSecondaryAction={onSecondaryAction}
                 primaryActionDisabled={primaryActionDisabled}
                 secondaryActionDisabled={secondaryActionDisabled}
-                size={size}
                 layer={layer}
                 elevation={componentElevation}
                 className={className}

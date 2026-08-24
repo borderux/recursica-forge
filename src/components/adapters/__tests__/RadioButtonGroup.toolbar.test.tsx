@@ -54,14 +54,14 @@ describe('RadioButtonGroup Toolbar Props Integration', () => {
                         <RadioButtonItem
                             label="Option 1"
                             value="opt1"
-                            selected={true}
+                            checked={true}
                             onChange={() => { }}
                             layer="layer-0"
                         />
                         <RadioButtonItem
                             label="Option 2"
                             value="opt2"
-                            selected={false}
+                            checked={false}
                             onChange={() => { }}
                             layer="layer-0"
                         />
@@ -102,7 +102,7 @@ describe('RadioButtonGroup Toolbar Props Integration', () => {
                         <RadioButtonItem
                             label="Option 1"
                             value="opt1"
-                            selected={true}
+                            checked={true}
                             onChange={() => { }}
                             layer="layer-0"
                         />
@@ -146,14 +146,14 @@ describe('RadioButtonGroup Toolbar Props Integration', () => {
                         <RadioButtonItem
                             label="Option 1"
                             value="opt1"
-                            selected={true}
+                            checked={true}
                             onChange={() => { }}
                             layer="layer-0"
                         />
                         <RadioButtonItem
                             label="Option 2"
                             value="opt2"
-                            selected={false}
+                            checked={false}
                             onChange={() => { }}
                             layer="layer-0"
                         />
@@ -182,7 +182,7 @@ describe('RadioButtonGroup Toolbar Props Integration', () => {
                         <RadioButtonItem
                             label="Option 1"
                             value="opt1"
-                            selected={true}
+                            checked={true}
                             onChange={() => { }}
                             layer="layer-0"
                         />
@@ -211,7 +211,7 @@ describe('RadioButtonGroup Toolbar Props Integration', () => {
                         <RadioButtonItem
                             label="Option 1"
                             value="opt1"
-                            selected={true}
+                            checked={true}
                             onChange={() => { }}
                             layer="layer-0"
                         />

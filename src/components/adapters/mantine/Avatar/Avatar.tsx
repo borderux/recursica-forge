@@ -20,8 +20,8 @@
  *     prefix decides whether `fallback` is routed into `icon` (content type "icon") or
  *     `children` (content type "text"). Both are genuine reshapes, done as literal
  *     attributes below so each is independently type-checked.
- *   - `shape` has no real equivalent: the real Avatar Omits Mantine's own `radius`, so corner
- *     shape is token-only upstream. Dropped — an adapter gap, not an oversight.
+ *
+ * `shape` removed from AvatarProps entirely (2026-08) — see common/Avatar.ts.
  */
 
 import { Avatar as MantineAvatar } from '@recursica/mantine-adapter'
@@ -64,12 +64,11 @@ export default function Avatar({
 // type-compatible home on the real Avatar (directly, or via the rename below). `fallback` and
 // `colorVariant` are excluded: both are explicitly translated above (see header comment for
 // why `colorVariant` is a reshape, not a straight rename), so checking their untranslated
-// shape here would be a false positive. `shape` is excluded with no rename: confirmed no real
-// equivalent exists (Mantine's `radius` is Omitted upstream).
+// shape here would be a false positive.
 type _Wiring = AssertWired<
     AvatarProps,
     typeof MantineAvatar,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'fallback' | 'colorVariant' | 'shape',
+    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'fallback' | 'colorVariant',
     { sizeVariant: 'size' }
 >
 const _wiringCheck: _Wiring = true

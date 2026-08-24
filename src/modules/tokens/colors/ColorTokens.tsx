@@ -1049,7 +1049,6 @@ export default function ColorTokens() {
         }}
         onSecondaryAction={() => setDeleteConfirmFamily(null)}
         layer="layer-1"
-        size="sm"
       >
         <p style={{ margin: 0, lineHeight: 1.5 }}>
           Are you sure you want to permanently delete the color scale <strong>{familyNames[deleteConfirmFamily ?? ''] || deleteConfirmFamily}</strong>?

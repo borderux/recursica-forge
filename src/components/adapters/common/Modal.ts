@@ -26,7 +26,13 @@ export type ModalProps = {
     onSecondaryAction?: () => void
     primaryActionDisabled?: boolean
     secondaryActionDisabled?: boolean
-    size?: string | number
+    /**
+     * Removed (2026-08): the real adapter's Modal type explicitly `Omit`s `size`/`radius`/
+     * `shadow` from Mantine's own Modal props — width/height are enforced entirely through
+     * CSS-module tokens, not a runtime prop, and neither the Material nor Carbon kit has a
+     * Modal implementation to support it either. Was declared here but never wired to
+     * anything on any kit.
+     */
     layer?: ComponentLayer
     elevation?: string // e.g., "elevation-0", "elevation-1", etc.
     className?: string

@@ -40,10 +40,7 @@
  *     adapter gap (2.1 in docs/ADAPTER_CAPABILITY_GAPS.md); the pickers route around it via
  *     Forge's own FloatingPalette instead of a Modal, so these props don't reach here in
  *     practice.
- * `size` — newly found, previously undocumented: the real type Omits `size`/`radius`/`shadow`
- * entirely (Modal's width/height are enforced via CSS module tokens, not Mantine's `size`
- * scale), so this was always silently stripped with no record of it anywhere. Dropped here,
- * now documented.
+ * `size`/`radius`/`shadow` removed from ModalProps entirely (2026-08) — see common/Modal.ts.
  */
 
 import { Modal as MantineModal } from '@recursica/mantine-adapter'
@@ -112,7 +109,7 @@ type _Wiring = AssertWired<
     | 'showHeader' | 'showFooter' | 'scrollable' | 'showSecondaryButton'
     | 'primaryActionLabel' | 'onPrimaryAction' | 'primaryActionDisabled'
     | 'secondaryActionLabel' | 'onSecondaryAction' | 'secondaryActionDisabled'
-    | 'position' | 'draggable' | 'onPositionChange' | 'size',
+    | 'position' | 'draggable' | 'onPositionChange',
     { isOpen: 'opened'; showCloseButton: 'withCloseButton' }
 >
 const _wiringCheck: _Wiring = true

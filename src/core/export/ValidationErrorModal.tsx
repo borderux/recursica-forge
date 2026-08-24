@@ -86,7 +86,6 @@ export function ValidationErrorModal({ show, errors, onClose }: ValidationErrorM
       secondaryActionLabel="Close"
       onSecondaryAction={onClose}
       layer="layer-3"
-      size="md"
       scrollable={true}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

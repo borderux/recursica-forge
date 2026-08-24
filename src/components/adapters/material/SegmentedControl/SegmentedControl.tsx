@@ -308,7 +308,7 @@ export default function SegmentedControl({
           <ToggleButton
             key={item.value}
             value={item.value}
-            disabled={item.disabled || disabled}
+            disabled={disabled || item.disabled}
             sx={{
               // Prevent Material UI default transitions that cause white flash
               transition: 'none !important',

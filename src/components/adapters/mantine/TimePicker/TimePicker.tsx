@@ -4,11 +4,10 @@
  * Not actually a 1:1 pass-through — several real mismatches were hiding behind the bare
  * re-export:
  *
- *   - `onChange` only ever fires with a time STRING (confirmed against @mantine/dates' own
- *     TimePickerProps — `onChange?: (value: string) => void`), never a native `ChangeEvent`.
- *     Forge's declared `onChange(event: ChangeEvent<HTMLInputElement>)` never matched; a
- *     minimal synthetic event carrying the string on `target.value` is built here so existing
- *     `event.target.value` call sites keep working.
+ *   - `onChange` is now a straight, same-shape pass-through: it only ever fires with a time
+ *     STRING (confirmed against @mantine/dates' own TimePickerProps — `onChange?: (value:
+ *     string) => void`), and Forge's own type was corrected (2026-08) to match exactly,
+ *     rather than declaring a `ChangeEvent`-based shape this path never actually delivered.
  *   - `state` was never wired to anything real. The real TimePicker DOES have a genuine
  *     `disabled` prop (confirmed: it's not in RecursicaTimePickerProps's Omit list, unlike
  *     `format`/`min`/`max`/the AM-PM props), so `state === 'disabled'` is translated straight
@@ -60,9 +59,7 @@ export default function TimePicker({
         <MantineTimePicker
             value={value}
             defaultValue={defaultValue}
-            onChange={(val) =>
-                onChange?.({ target: { value: val } } as unknown as React.ChangeEvent<HTMLInputElement>)
-            }
+            onChange={onChange}
             onClick={onClick}
             label={label}
             assistiveText={helpText}
@@ -85,8 +82,9 @@ export default function TimePicker({
 
 // Compile-time only — fails the build the moment TimePickerProps declares a prop with no
 // real, type-compatible home on the real TimePicker (directly, or via the renames below).
-// `onChange` is excluded: it's explicitly adapted above (string -> synthetic event). `state`
-// is excluded: it's explicitly translated into the real `disabled` prop above, not renamed
+// `onChange` now matches the real prop directly (no exclusion needed since the 2026-08 type
+// correction). `state` is excluded: it's explicitly translated into the real `disabled` prop
+// above, not renamed
 // (the other state values, e.g. `focus`/`error`, have no real destination beyond `error`
 // itself, which is already covered by `errorText`). `layout` is excluded like DatePicker's:
 // Forge types it as an open `string`, wider than the real `formLayout` union, and the ternary
@@ -104,7 +102,6 @@ type _Wiring = AssertWired<
     | 'carbon'
     | 'className'
     | 'style'
-    | 'onChange'
     | 'state'
     | 'layout'
     | 'onKeyDown'

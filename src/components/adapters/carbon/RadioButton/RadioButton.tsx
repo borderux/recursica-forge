@@ -12,7 +12,7 @@ import { useCssVar } from '../../../hooks/useCssVar'
 import './RadioButton.css'
 
 export default function RadioButton({
-    selected,
+    checked,
     onChange,
     disabled = false,
     label,
@@ -62,7 +62,7 @@ export default function RadioButton({
 
     const radioProps: any = {
         id: radioId,
-        checked: selected,
+        checked,
         onChange: (e: any) => onChange(e.target?.checked ?? true),
         disabled,
         value: value || radioId,

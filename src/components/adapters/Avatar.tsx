@@ -26,7 +26,6 @@ export function Avatar({
   sizeVariant = 'default',
   layer = 'layer-0',
   elevation,
-  shape = 'circle',
   className,
   style,
   mantine,
@@ -120,7 +119,6 @@ export function Avatar({
         sizeVariant={sizeVariant}
         layer={layer}
         elevation={componentElevation}
-        shape={shape}
         className={className}
         style={style}
         mantine={mantine}

@@ -1406,7 +1406,6 @@ export default function FontFamiliesTokens() {
           onPrimaryAction={handleDeleteFont}
           onSecondaryAction={() => setDeleteConfirmIndex(null)}
           layer="layer-1"
-          size="sm"
         >
           <div style={{ padding: '8px 0', display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
             <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-font-size)' }}>

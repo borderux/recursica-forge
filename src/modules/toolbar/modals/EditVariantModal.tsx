@@ -109,7 +109,6 @@ export function EditVariantModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Edit variant"
-      size="sm"
       layer="layer-1"
       primaryActionLabel="Save"
       primaryActionDisabled={!isValid}

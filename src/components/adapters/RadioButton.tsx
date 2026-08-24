@@ -14,7 +14,7 @@ import type { RadioButtonProps } from './common/RadioButton'
 export type { RadioButtonProps } from './common/RadioButton'
 
 export function RadioButton({
-    selected,
+    checked,
     onChange,
     disabled = false,
     label,
@@ -31,7 +31,7 @@ export function RadioButton({
     return (
         <Suspense fallback={<span />}>
             <Component
-                selected={selected}
+                checked={checked}
                 onChange={onChange}
                 disabled={disabled}
                 label={label}

@@ -13,6 +13,14 @@ export type LinkProps = {
   target?: string
   rel?: string
   layer?: ComponentLayer
+  /**
+   * Real and working on Material and Carbon (both hand-rolled, both drive real CSS
+   * text-decoration from this). Deliberately kept in the shared type even though it's a no-op
+   * on the Mantine kit — the real `@recursica/mantine-adapter` structurally blocks it
+   * (Link styling is meant to be consistent, not overridable per-instance), and any future
+   * adapter-package-based kit is expected to behave the same way. Not a bug to fix; this is
+   * the accepted asymmetry between hand-rolled kits and adapter-wrapped ones.
+   */
   underline?: 'hover' | 'always' | 'none'
   onClick?: (e: React.MouseEvent) => void
   className?: string

@@ -662,7 +662,6 @@ export default function MaterialShell({
                             }, 500); // Small delay to ensure CSS vars are ready
                           }
                         }}
-                        sizeVariant='small'
                       />
                     </div>
                   </Tooltip>
