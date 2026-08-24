@@ -21,33 +21,39 @@
  * (`mantine={{ overStyled: true, style: {...} }}`).
  */
 
+import React from 'react'
 import { HoverCard as MantineHoverCard } from '@recursica/mantine-adapter'
 import type { HoverCardProps } from '../../common/HoverCard'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function HoverCard({
+export default React.forwardRef<any, HoverCardProps>(function HoverCard({
   children,
   content,
   withBeak = false,
   position,
   zIndex,
   mantine,
-}: HoverCardProps) {
+}, ref) {
   const target = children !== undefined ? <MantineHoverCard.Target>{children}</MantineHoverCard.Target> : null
   const dropdown = content !== undefined ? <MantineHoverCard.Dropdown>{content}</MantineHoverCard.Dropdown> : null
 
+  // The real HoverCard is a plain function component (not wrapped in React.forwardRef
+  // upstream), so its exported prop type has no `ref` slot at all — spreading `{ ref }` from
+  // an `any`-typed object (rather than a literal `ref={ref}` attribute) avoids a spurious
+  // "not assignable" error from the excess-property check while still attaching the ref at
+  // runtime for whenever upstream adds forwardRef support.
   return position !== undefined || zIndex !== undefined ? (
-    <MantineHoverCard overStyled withBeak={withBeak} position={position} zIndex={zIndex} {...mantine}>
+    <MantineHoverCard overStyled withBeak={withBeak} position={position} zIndex={zIndex} {...mantine} {...({ ref } as any)}>
       {target}
       {dropdown}
     </MantineHoverCard>
   ) : (
-    <MantineHoverCard withBeak={withBeak} {...mantine}>
+    <MantineHoverCard withBeak={withBeak} {...mantine} {...({ ref } as any)}>
       {target}
       {dropdown}
     </MantineHoverCard>
   )
-}
+})
 
 // `children`/`content` are composed into `HoverCard.Target`/`HoverCard.Dropdown` above, not
 // forwarded raw. `isOpen` is dropped per the comment above (no upstream controlled-open hook).

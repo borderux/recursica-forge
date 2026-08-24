@@ -28,12 +28,12 @@ function formatTime(hours: number, minutes: number): string {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 }
 
-export default function TimePicker({
+export default React.forwardRef<any, AdapterTimePickerProps & { labelId?: string; helpId?: string; errorId?: string }>(function TimePicker({
     value, defaultValue, onChange, placeholder, label, helpText, errorText, leadingIcon,
     state = 'default', layout = 'stacked', layer = 'layer-0', required = false,
     id, labelId, helpId, errorId, name, className, style,
     period = 'AM', onPeriodChange, carbon, ...restProps
-}: AdapterTimePickerProps & { labelId?: string; helpId?: string; errorId?: string }) {
+}, ref) {
     const { mode } = useThemeMode()
     const { optional, labelAlign, labelSize, editIcon, editIconGap, ...domProps } = restProps
     const uniqueId = id || `time-picker-${Math.random().toString(36).substr(2, 9)}`
@@ -210,7 +210,7 @@ export default function TimePicker({
 
     if (layout === 'side-by-side' && labelElement) {
         const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
-        return (<div className={`recursica-time-picker recursica-time-picker-side-by-side ${className || ''}`} style={style}><div style={{ display: 'flex', alignItems: 'flex-start', gap: gapValue, width: '100%' }}><div style={{ flexShrink: 0 }}>{labelElement}</div><div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>{fieldsRow}{assistiveElement}</div></div></div>)
+        return (<div className={`recursica-time-picker recursica-time-picker-side-by-side ${className || ''}`} style={style} ref={ref}><div style={{ display: 'flex', alignItems: 'flex-start', gap: gapValue, width: '100%' }}><div style={{ flexShrink: 0 }}>{labelElement}</div><div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>{fieldsRow}{assistiveElement}</div></div></div>)
     }
-    return (<div className={`recursica-time-picker recursica-time-picker-stacked ${className || ''}`} style={style}><div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>{labelElement}{fieldsRow}{assistiveElement}</div></div>)
-}
+    return (<div className={`recursica-time-picker recursica-time-picker-stacked ${className || ''}`} style={style} ref={ref}><div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>{labelElement}{fieldsRow}{assistiveElement}</div></div>)
+})

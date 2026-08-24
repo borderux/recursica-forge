@@ -5,9 +5,9 @@
 import React from 'react'
 import type { HoverCardProps } from '../../common/HoverCard'
 
-export default function HoverCard({ children, content, isOpen }: HoverCardProps) {
+export default React.forwardRef<any, HoverCardProps>(function HoverCard({ children, content, isOpen }, ref) {
     return (
-        <div style={{ display: 'inline-block', position: 'relative' }}>
+        <div ref={ref} style={{ display: 'inline-block', position: 'relative' }}>
             {children}
             {isOpen && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, padding: 12, background: '#fff', border: '1px solid #ddd', borderRadius: 8, marginTop: 4, zIndex: 300 }}>
@@ -16,4 +16,4 @@ export default function HoverCard({ children, content, isOpen }: HoverCardProps)
             )}
         </div>
     )
-}
+})

@@ -26,18 +26,19 @@
  *     it — the Recursica type explicitly Omits "color").
  */
 
+import React from 'react'
 import { Menu } from '@recursica/mantine-adapter'
 import type { MenuItemProps } from '../../common/MenuItem'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function MenuItem({
+export default React.forwardRef<any, MenuItemProps>(function MenuItem({
     children,
     leadingIcon,
     trailingIcon,
     disabled,
     onClick,
     mantine,
-}: MenuItemProps) {
+}, ref) {
     return (
         <Menu.Item
             leftSection={leadingIcon}
@@ -45,11 +46,12 @@ export default function MenuItem({
             disabled={disabled}
             onClick={onClick}
             {...mantine}
+            ref={ref}
         >
             {children}
         </Menu.Item>
     )
-}
+})
 
 // Compile-time only — fails the build the moment MenuItemProps declares a prop with no real,
 // type-compatible home on the real Menu.Item (directly, or via the renames below).

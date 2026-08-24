@@ -4,7 +4,7 @@
  * Material UI-specific Chip component that uses CSS variables for theming.
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Chip as MaterialChip } from '@mui/material'
 import type { ChipProps as AdapterChipProps } from '../../common/Chip'
 import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
@@ -14,7 +14,7 @@ import { readCssVar } from '../../../../core/css/readCssVar'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Chip.css'
 
-export default function Chip({
+export default React.forwardRef<any, AdapterChipProps>(function Chip({
   children,
   variant = 'unselected',
   size = 'default',
@@ -28,7 +28,7 @@ export default function Chip({
   icon,
   material,
   ...props
-}: AdapterChipProps) {
+}, ref) {
   const { mode } = useThemeMode()
 
   // Force re-render when CSS vars change (needed for Material UI to pick up CSS var changes)
@@ -306,6 +306,6 @@ export default function Chip({
   }
 
   // Use variant as key to force Material UI to re-render when variant changes
-  return <MaterialChip key={`chip-${variant}-${layer}`} {...(materialProps as any)} label={children} />
-}
+  return <MaterialChip key={`chip-${variant}-${layer}`} {...(materialProps as any)} label={children} ref={ref} />
+})
 

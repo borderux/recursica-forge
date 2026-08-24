@@ -5,7 +5,7 @@
  * Note: Carbon uses Tag component for chip-like functionality.
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Tag, DismissibleTag } from '@carbon/react'
 import type { ChipProps as AdapterChipProps } from '../../common/Chip'
 import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
@@ -15,7 +15,7 @@ import { readCssVar } from '../../../../core/css/readCssVar'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Chip.css'
 
-export default function Chip({
+export default React.forwardRef<any, AdapterChipProps>(function Chip({
   children,
   variant = 'unselected',
   size = 'default',
@@ -29,7 +29,7 @@ export default function Chip({
   icon,
   carbon,
   ...props
-}: AdapterChipProps) {
+}, ref) {
   const { mode } = useThemeMode()
 
   // Force re-render when CSS vars change (needed for Carbon to pick up CSS var changes)
@@ -318,6 +318,6 @@ export default function Chip({
   // Use native children prop - CSS will handle icon styling
   // Use variant as key to force Carbon to re-render when variant changes
   // Explicitly pass children as a prop to ensure it's always defined
-  return <TagComponent key={`chip-${variant}-${layer}`} {...propsWithoutChildren} children={safeChildren} />
-}
+  return <TagComponent key={`chip-${variant}-${layer}`} {...propsWithoutChildren} children={safeChildren} ref={ref} />
+})
 

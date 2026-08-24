@@ -15,7 +15,7 @@ import { AssistiveElement } from '../../AssistiveElement'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './NumberInput.css'
 
-export default function NumberInput({
+export default React.forwardRef<any, AdapterNumberInputProps & { labelId?: string; helpId?: string; errorId?: string }>(function NumberInput({
     value,
     defaultValue,
     onChange,
@@ -42,7 +42,7 @@ export default function NumberInput({
     style,
     material,
     ...restProps
-}: AdapterNumberInputProps & { labelId?: string; helpId?: string; errorId?: string }) {
+}, ref) {
     const { mode } = useThemeMode()
 
     // Extract props that shouldn't be passed to DOM elements
@@ -329,7 +329,7 @@ export default function NumberInput({
         // For side-by-side, use Label's gutter property
         const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
         return (
-            <div className={`recursica-number-input recursica-number-input-side-by-side ${className || ''}`} style={style}>
+            <div ref={ref} className={`recursica-number-input recursica-number-input-side-by-side ${className || ''}`} style={style}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: gapValue, width: '100%' }}>
                     <div style={{ flexShrink: 0 }}>
                         {labelElement}
@@ -345,7 +345,7 @@ export default function NumberInput({
 
     // Stacked layout (default)
     return (
-        <div className={`recursica-number-input recursica-number-input-stacked ${className || ''}`} style={style}>
+        <div ref={ref} className={`recursica-number-input recursica-number-input-stacked ${className || ''}`} style={style}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', alignItems: labelAlign === 'right' && layout === 'stacked' ? 'flex-end' : 'stretch' }}>
                 {labelElement}
                 {inputWrapper}
@@ -353,4 +353,4 @@ export default function NumberInput({
             </div>
         </div>
     )
-}
+})

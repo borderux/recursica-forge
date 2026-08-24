@@ -17,28 +17,30 @@
  *     adapter has no upstream hook for. Dropped here; a real adapter gap, not an oversight.
  */
 
+import React from 'react'
 import { Chip as MantineChip } from '@recursica/mantine-adapter'
 import type { ChipProps } from '../../common/Chip'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Chip({
+export default React.forwardRef<any, ChipProps>(function Chip({
     children,
     onClick,
     onDelete,
     icon,
     mantine,
-}: ChipProps) {
+}, ref) {
     return (
         <MantineChip
             onClick={onClick}
             onRemove={onDelete}
             icon={icon}
             {...mantine}
+            ref={ref}
         >
             {children}
         </MantineChip>
     )
-}
+})
 
 // Compile-time only — fails the build the moment ChipProps declares a prop with no real,
 // type-compatible home on the real Chip. `onDelete` is excluded: it's explicitly translated

@@ -43,11 +43,12 @@
  * `size`/`radius`/`shadow` removed from ModalProps entirely (2026-08) — see common/Modal.ts.
  */
 
+import React from 'react'
 import { Modal as MantineModal } from '@recursica/mantine-adapter'
 import type { ModalProps } from '../../common/Modal'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Modal({
+export default React.forwardRef<any, ModalProps>(function Modal({
     children,
     content,
     isOpen,
@@ -63,7 +64,7 @@ export default function Modal({
     zIndex,
     showCloseButton,
     mantine,
-}: ModalProps) {
+}, ref) {
     return (
         <MantineModal
             overStyled
@@ -79,12 +80,13 @@ export default function Modal({
             className={className}
             style={style}
             {...mantine}
+            ref={ref}
         >
             {content}
             {children}
         </MantineModal>
     )
-}
+})
 
 // Compile-time only — fails the build the moment ModalProps declares a prop with no real,
 // type-compatible home on the real Modal — directly, or via the renames below.

@@ -44,7 +44,7 @@ function isButtonOrHasClick(node: React.ReactNode): boolean {
   return false
 }
 
-export default function Label({
+export default React.forwardRef<any, AdapterLabelProps>(function Label({
   children,
   htmlFor,
   variant = 'default',
@@ -60,7 +60,7 @@ export default function Label({
   editIconTitle,
   carbon,
   ...props
-}: AdapterLabelProps) {
+}, ref) {
   // Force re-render when CSS vars change (needed for Carbon to pick up CSS var changes)
   const [, setUpdateKey] = useState(0)
   const { mode } = useThemeMode()
@@ -234,6 +234,7 @@ export default function Label({
   
   return (
     <label
+      ref={ref}
       htmlFor={htmlFor}
       className={className}
       style={{
@@ -333,5 +334,5 @@ export default function Label({
       )}
     </label>
   )
-}
+})
 

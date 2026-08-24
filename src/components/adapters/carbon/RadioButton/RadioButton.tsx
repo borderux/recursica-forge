@@ -5,13 +5,13 @@
  */
 
 import { RadioButton as CarbonRadioButton } from '@carbon/react'
-import { useId } from 'react'
+import React, { useId } from 'react'
 import type { RadioButtonProps as AdapterRadioButtonProps } from '../../common/RadioButton'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './RadioButton.css'
 
-export default function RadioButton({
+export default React.forwardRef<any, AdapterRadioButtonProps>(function RadioButton({
     checked,
     onChange,
     disabled = false,
@@ -22,7 +22,7 @@ export default function RadioButton({
     style,
     carbon,
     ...props
-}: AdapterRadioButtonProps) {
+}, ref) {
     const radioId = useId()
 
     // RadioButton Colors
@@ -79,5 +79,5 @@ export default function RadioButton({
         radioProps.hideLabel = true
     }
 
-    return <CarbonRadioButton {...radioProps} />
-}
+    return <CarbonRadioButton {...radioProps} ref={ref} />
+})

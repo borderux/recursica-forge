@@ -18,20 +18,21 @@
  * hatch can still do (`mantine={{ overStyled: true, style: {...} }}`).
  */
 
+import React from 'react'
 import { Stepper as MantineStepper } from '@recursica/mantine-adapter'
 import type { StepperProps } from '../../common/Stepper'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Stepper({
+export default React.forwardRef<any, StepperProps>(function Stepper({
   active,
   onStepClick,
   orientation = 'horizontal',
   size = 'large',
   steps = [],
   mantine,
-}: StepperProps) {
+}, ref) {
   return (
-    <MantineStepper active={active} onStepClick={onStepClick} orientation={orientation} size={size} {...mantine}>
+    <MantineStepper active={active} onStepClick={onStepClick} orientation={orientation} size={size} {...mantine} ref={ref}>
       {steps.map((step, index) => (
         <MantineStepper.Step
           key={index}
@@ -44,7 +45,7 @@ export default function Stepper({
       ))}
     </MantineStepper>
   )
-}
+})
 
 // `steps` is composed into `Stepper.Step` children above, not forwarded raw. `children` is
 // dropped per the comment above (no call site relies on it, and `steps` now drives composition).

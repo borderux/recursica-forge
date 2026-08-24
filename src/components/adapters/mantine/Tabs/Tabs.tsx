@@ -12,11 +12,12 @@
  * which documented the same gap.
  */
 
+import React from 'react'
 import { Tabs as MantineTabs } from '@recursica/mantine-adapter'
 import type { TabsProps } from '../../common/Tabs'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Tabs({
+export default React.forwardRef<any, TabsProps>(function Tabs({
     value,
     defaultValue,
     onChange,
@@ -24,9 +25,10 @@ export default function Tabs({
     variant,
     children,
     mantine,
-}: TabsProps) {
+}, ref) {
     return (
         <MantineTabs
+            ref={ref}
             value={value}
             defaultValue={defaultValue}
             onChange={onChange}
@@ -37,7 +39,7 @@ export default function Tabs({
             {children}
         </MantineTabs>
     )
-}
+})
 
 // Compile-time only — fails the build the moment TabsProps declares a prop with no real,
 // type-compatible home on the real Tabs. `tabContentAlignment` is excluded with no rename and

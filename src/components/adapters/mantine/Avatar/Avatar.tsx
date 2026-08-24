@@ -24,6 +24,7 @@
  * `shape` removed from AvatarProps entirely (2026-08) — see common/Avatar.ts.
  */
 
+import React from 'react'
 import { Avatar as MantineAvatar } from '@recursica/mantine-adapter'
 import type { AvatarProps } from '../../common/Avatar'
 import type { AssertWired } from '../../common/wiringCheck'
@@ -38,14 +39,14 @@ function resolveAvatarVariant(
     return colorVariant.endsWith('-ghost') ? 'ghost' : 'solid'
 }
 
-export default function Avatar({
+export default React.forwardRef<any, AvatarProps>(function Avatar({
     src,
     alt,
     fallback,
     colorVariant,
     sizeVariant,
     mantine,
-}: AvatarProps) {
+}, ref) {
     const isIconContent = colorVariant?.startsWith('icon') ?? false
     return (
         <MantineAvatar
@@ -56,9 +57,10 @@ export default function Avatar({
             variant={resolveAvatarVariant(colorVariant)}
             size={sizeVariant}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment AvatarProps declares a prop with no real,
 // type-compatible home on the real Avatar (directly, or via the rename below). `fallback` and

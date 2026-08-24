@@ -9,18 +9,19 @@
  * here instead of leaving it to whoever calls this component to discover at runtime.
  */
 
+import React from 'react'
 import { Checkbox as MantineCheckbox } from '@recursica/mantine-adapter'
 import type { CheckboxProps } from '../../common/Checkbox'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Checkbox({
+export default React.forwardRef<any, CheckboxProps>(function Checkbox({
     checked,
     indeterminate,
     onChange,
     disabled,
     label,
     mantine,
-}: CheckboxProps) {
+}, ref) {
     return (
         <MantineCheckbox
             checked={checked}
@@ -29,9 +30,10 @@ export default function Checkbox({
             disabled={disabled}
             label={label}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment CheckboxProps declares a prop with no real,
 // type-compatible home on the real Checkbox. `onChange` is excluded: it's explicitly adapted

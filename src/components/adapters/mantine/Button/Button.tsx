@@ -21,11 +21,12 @@
  * not merged in through that generic-element mechanism.
  */
 
+import React from 'react'
 import { Button as MantineButton } from '@recursica/mantine-adapter'
 import type { ButtonProps } from '../../common/Button'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Button({
+export default React.forwardRef<any, ButtonProps>(function Button({
     children,
     variant,
     size,
@@ -35,7 +36,7 @@ export default function Button({
     icon,
     title,
     mantine,
-}: ButtonProps) {
+}, ref) {
     return (
         <MantineButton
             variant={variant}
@@ -46,11 +47,12 @@ export default function Button({
             icon={icon}
             title={title}
             {...mantine}
+            ref={ref}
         >
             {children}
         </MantineButton>
     )
-}
+})
 
 // Compile-time only — fails the build the moment ButtonProps declares a prop with no real,
 // type-compatible home on the real Button. `onClick` | `type` | `title` are excluded — see

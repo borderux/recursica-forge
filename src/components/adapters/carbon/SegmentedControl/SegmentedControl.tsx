@@ -10,12 +10,12 @@ import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPa
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useCssVar } from '../../../hooks/useCssVar'
 import { Tooltip } from '../../Tooltip'
 import './SegmentedControl.css'
 
-export default function SegmentedControl({
+export default React.forwardRef<any, AdapterSegmentedControlProps>(function SegmentedControl({
   items,
   value,
   defaultValue,
@@ -31,7 +31,7 @@ export default function SegmentedControl({
   style,
   carbon,
   ...props
-}: AdapterSegmentedControlProps) {
+}, ref) {
   const { mode } = useThemeMode()
   
   // Get CSS variables - container properties (always from SegmentedControl)
@@ -256,6 +256,7 @@ export default function SegmentedControl({
       } as React.CSSProperties}
       {...(carbon && typeof carbon === 'object' ? carbon : {})}
       {...props}
+      ref={ref}
     >
       {items.map((item, index) => {
         const isSelected = currentValue === item.value
@@ -374,4 +375,4 @@ export default function SegmentedControl({
       })}
     </div>
   )
-}
+})

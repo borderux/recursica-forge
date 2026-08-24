@@ -30,11 +30,12 @@
  *     attribute to forward it to. Dropped; a real (if minor) adapter gap.
  */
 
+import React from 'react'
 import { TimePicker as MantineTimePicker } from '@recursica/mantine-adapter'
 import type { TimePickerProps } from '../../common/TimePicker'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function TimePicker({
+export default React.forwardRef<any, TimePickerProps>(function TimePicker({
     value,
     defaultValue,
     onChange,
@@ -54,9 +55,10 @@ export default function TimePicker({
     autoFocus,
     readOnly,
     mantine,
-}: TimePickerProps) {
+}, ref) {
     return (
         <MantineTimePicker
+            ref={ref}
             value={value}
             defaultValue={defaultValue}
             onChange={onChange}
@@ -78,7 +80,7 @@ export default function TimePicker({
             {...mantine}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment TimePickerProps declares a prop with no
 // real, type-compatible home on the real TimePicker (directly, or via the renames below).

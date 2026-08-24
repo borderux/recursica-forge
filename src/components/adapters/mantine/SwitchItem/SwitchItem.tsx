@@ -13,17 +13,18 @@
  * `elevation` is token-driven, not a prop, same as every other component.
  */
 
+import React from 'react'
 import { Switch as MantineSwitch } from '@recursica/mantine-adapter'
 import type { SwitchItemProps } from '../../common/SwitchItem'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function SwitchItem({
+export default React.forwardRef<any, SwitchItemProps>(function SwitchItem({
     checked,
     onChange,
     disabled,
     label,
     mantine,
-}: SwitchItemProps) {
+}, ref) {
     return (
         <MantineSwitch
             checked={checked}
@@ -31,9 +32,10 @@ export default function SwitchItem({
             disabled={disabled}
             label={label}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment SwitchItemProps declares a prop with no
 // real, type-compatible home on the real Switch. `onChange` is excluded: it's explicitly

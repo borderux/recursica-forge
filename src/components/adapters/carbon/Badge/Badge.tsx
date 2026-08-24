@@ -5,7 +5,7 @@
  * Note: Carbon doesn't have a native Badge component, so we'll create a custom implementation.
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { BadgeProps as AdapterBadgeProps } from '../../common/Badge'
 import { getComponentLevelCssVar, getComponentTextCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
@@ -13,7 +13,7 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './Badge.css'
 
-export default function Badge({
+export default React.forwardRef<any, AdapterBadgeProps>(function Badge({
   children,
   variant = 'primary-color',
   size,
@@ -23,7 +23,7 @@ export default function Badge({
   style,
   carbon,
   ...props
-}: AdapterBadgeProps) {
+}, ref) {
   const { mode } = useThemeMode()
 
   // Get CSS variables
@@ -91,6 +91,7 @@ export default function Badge({
 
   return (
     <span
+      ref={ref}
       className={`cds--badge ${className || ''}`}
       style={{
         // Set component-level CSS custom properties for colors and text styles
@@ -144,5 +145,5 @@ export default function Badge({
       {children}
     </span>
   )
-}
+})
 

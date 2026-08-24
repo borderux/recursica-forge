@@ -4,7 +4,7 @@
  * Supports Label integration and stacked/side-by-side layout variants.
  */
 
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import type { CheckboxGroupProps as AdapterCheckboxGroupProps } from '../../common/CheckboxGroup'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { Label } from '../../Label'
@@ -12,7 +12,7 @@ import { AssistiveElement } from '../../AssistiveElement'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './CheckboxGroup.css'
 
-export default function CheckboxGroup({
+export default React.forwardRef<any, AdapterCheckboxGroupProps & { groupId?: string; labelId?: string; helpId?: string; errorId?: string }>(function CheckboxGroup({
     children,
     label,
     helpText,
@@ -33,7 +33,7 @@ export default function CheckboxGroup({
     className,
     style,
     ...props
-}: AdapterCheckboxGroupProps & { groupId?: string; labelId?: string; helpId?: string; errorId?: string }) {
+}, ref) {
     // Configurable Properties
     const itemGapVar = buildComponentCssVarPath('CheckboxGroup', 'properties', 'item-gap')
     const paddingVar = buildComponentCssVarPath('CheckboxGroup', 'properties', 'padding')
@@ -108,6 +108,7 @@ export default function CheckboxGroup({
                 aria-labelledby={label ? labelId : undefined}
                 className={`${className || ''} recursica-checkbox-group-mui recursica-checkbox-group-side-by-side`}
                 style={style}
+                ref={ref}
             >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: gapValue, width: '100%' }}>
                     <div style={{ flexShrink: 0 }}>
@@ -129,6 +130,7 @@ export default function CheckboxGroup({
             aria-labelledby={label ? labelId : undefined}
             className={`${className || ''} recursica-checkbox-group-mui recursica-checkbox-group-stacked`}
             style={style}
+            ref={ref}
         >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', alignItems: labelAlign === 'right' ? 'flex-end' : 'stretch' }}>
                 {labelElement}
@@ -137,4 +139,4 @@ export default function CheckboxGroup({
             </div>
         </div>
     )
-}
+})

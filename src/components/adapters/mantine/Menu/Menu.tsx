@@ -11,20 +11,25 @@
  * height for the dropdown panel — an adapter gap, not an oversight.
  */
 
+import React from 'react'
 import { Menu as MantineMenu } from '@recursica/mantine-adapter'
 import type { MenuProps } from '../../common/Menu'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Menu({
+export default React.forwardRef<any, MenuProps>(function Menu({
     children,
     mantine,
-}: MenuProps) {
+}, ref) {
+    // The real Menu is a plain function component (not wrapped in React.forwardRef upstream),
+    // so its exported prop type has no `ref` slot — spread `{ ref }` from an `any`-typed
+    // object rather than a literal `ref={ref}` attribute to avoid a spurious excess-property
+    // error while still attaching the ref at runtime for whenever upstream adds support.
     return (
-        <MantineMenu {...mantine}>
+        <MantineMenu {...mantine} {...({ ref } as any)}>
             {children}
         </MantineMenu>
     )
-}
+})
 
 // Compile-time only — fails the build the moment MenuProps declares a prop with no real,
 // type-compatible home on the real Menu. `maxHeight` is excluded with no rename: confirmed

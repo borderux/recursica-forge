@@ -6,7 +6,7 @@
  */
 
 import { Toggle } from '@carbon/react'
-import { useEffect, useRef, useState, useId } from 'react'
+import React, { useEffect, useRef, useState, useId } from 'react'
 import type { SwitchProps as AdapterSwitchProps } from '../../common/Switch'
 import { getComponentLevelCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
@@ -16,7 +16,7 @@ import { iconNameToReactComponent } from '../../../../modules/components/iconUti
 import './Switch.css'
 
 
-export default function Switch({
+export default React.forwardRef<any, AdapterSwitchProps>(function Switch({
   checked,
   onChange,
   disabled = false,
@@ -26,7 +26,7 @@ export default function Switch({
   style,
   carbon,
   ...props
-}: AdapterSwitchProps) {
+}, ref) {
   const { mode } = useThemeMode()
   const [updateKey, setUpdateKey] = useState(0)
   const toggleRef = useRef<HTMLDivElement>(null)
@@ -172,7 +172,11 @@ export default function Switch({
   return (
     <div
       key={`switch-${mode}-${updateKey}`}
-      ref={toggleRef}
+      ref={(node) => {
+        if (typeof ref === 'function') ref(node)
+        else if (ref) (ref as any).current = node
+        ;(toggleRef as any).current = node
+      }}
       className="recursica-carbon-toggle-wrapper"
       style={{
         // Short local custom properties — the CSS file targets these for Carbon Toggle overrides
@@ -226,5 +230,5 @@ export default function Switch({
       </div>
     </div>
   )
-}
+})
 

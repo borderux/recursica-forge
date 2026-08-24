@@ -21,11 +21,12 @@
  * `padding`/`itemGap` — no real equivalent anywhere on RecursicaSwitchGroupProps. Dropped.
  */
 
+import React from 'react'
 import { SwitchGroup as MantineSwitchGroup } from '@recursica/mantine-adapter'
 import type { SwitchGroupProps } from '../../common/SwitchGroup'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function SwitchGroup({
+export default React.forwardRef<any, SwitchGroupProps>(function SwitchGroup({
     children,
     label,
     helpText,
@@ -36,7 +37,7 @@ export default function SwitchGroup({
     labelAlign,
     labelSize,
     mantine,
-}: SwitchGroupProps) {
+}, ref) {
     return (
         <MantineSwitchGroup
             label={label}
@@ -48,11 +49,12 @@ export default function SwitchGroup({
             labelAlignment={labelAlign}
             labelSize={labelSize}
             {...mantine}
+            ref={ref}
         >
             {children}
         </MantineSwitchGroup>
     )
-}
+})
 
 // Compile-time only — fails the build the moment SwitchGroupProps declares a prop with no
 // real, type-compatible home on the real SwitchGroup (directly, or via the renames below).

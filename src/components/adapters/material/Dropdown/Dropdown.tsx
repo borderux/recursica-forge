@@ -18,7 +18,7 @@ import { MenuItem as MenuItemAdapter } from '../../MenuItem'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Dropdown.css'
 
-export default function Dropdown({
+export default React.forwardRef<any, DropdownAdapterProps>(function Dropdown({
     items,
     value,
     onChange,
@@ -47,7 +47,7 @@ export default function Dropdown({
 
     material,
 
-}: DropdownAdapterProps) {
+}, ref) {
     const { mode } = useThemeMode()
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
     const opened = Boolean(anchorEl)
@@ -232,7 +232,7 @@ export default function Dropdown({
     )
 
     return (
-        <div className={`recursica-dropdown-container ${className || ''}`} style={style}>
+        <div className={`recursica-dropdown-container ${className || ''}`} style={style} ref={ref}>
             <div style={{ display: 'flex', flexDirection: layout === 'side-by-side' ? 'row' : 'column', gap: layout === 'side-by-side' ? (buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter') ? `var(${buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')})` : '8px') : 0, width: '100%' }}>
                 {labelElement}
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
@@ -293,4 +293,4 @@ export default function Dropdown({
             </div>
         </div>
     )
-}
+})

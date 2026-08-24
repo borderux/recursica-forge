@@ -4,6 +4,7 @@
  * Carbon-specific MenuItem component that uses CSS variables for theming.
  */
 
+import React from 'react'
 import type { MenuItemProps as AdapterMenuItemProps } from '../../common/MenuItem'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar } from '../../../utils/brandCssVars'
@@ -11,7 +12,7 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './MenuItem.css'
 
-export default function MenuItem({
+export default React.forwardRef<any, AdapterMenuItemProps>(function MenuItem({
   children,
   variant = 'default',
   layer = 'layer-0',
@@ -29,7 +30,7 @@ export default function MenuItem({
   style,
   carbon,
   ...props
-}: AdapterMenuItemProps) {
+}, ref) {
   const { mode } = useThemeMode()
 
   // Determine effective variant
@@ -94,6 +95,7 @@ export default function MenuItem({
 
   return (
     <div
+      ref={ref}
       className={`cds-menu-item-wrapper ${className || ''} ${divider === 'bottom' ? 'has-divider' : ''}`}
       style={{
         // Set CSS custom properties for CSS file to use
@@ -179,5 +181,5 @@ export default function MenuItem({
       )}
     </div>
   )
-}
+})
 

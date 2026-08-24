@@ -25,11 +25,12 @@
  *     `undefined` by the time it reaches here, but the wrapper is ready for it regardless.
  */
 
+import React from 'react'
 import { Label as MantineLabel } from '@recursica/mantine-adapter'
 import type { LabelProps } from '../../common/Label'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Label({
+export default React.forwardRef<any, LabelProps>(function Label({
     children,
     htmlFor,
     variant,
@@ -39,7 +40,7 @@ export default function Label({
     id,
     onEditIconClick,
     mantine,
-}: LabelProps) {
+}, ref) {
     return (
         <MantineLabel
             htmlFor={htmlFor}
@@ -50,11 +51,12 @@ export default function Label({
             id={id}
             onLabelEditClick={onEditIconClick}
             {...mantine}
+            ref={ref}
         >
             {children}
         </MantineLabel>
     )
-}
+})
 
 // Compile-time only — fails the build the moment LabelProps declares a prop with no real,
 // type-compatible home on the real Label (directly, or via the renames below). `variant` is

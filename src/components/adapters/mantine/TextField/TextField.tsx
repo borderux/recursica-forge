@@ -20,11 +20,12 @@
  * affordance beside the label with no slot for a caller-supplied icon node or title.
  */
 
+import React from 'react'
 import { TextField as MantineTextField } from '@recursica/mantine-adapter'
 import type { TextFieldProps } from '../../common/TextField'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function TextField({
+export default React.forwardRef<any, TextFieldProps>(function TextField({
     value,
     defaultValue,
     onChange,
@@ -52,9 +53,10 @@ export default function TextField({
     readOnly,
     onEditIconClick,
     mantine,
-}: TextFieldProps) {
+}, ref) {
     return (
         <MantineTextField
+            ref={ref}
             value={value}
             defaultValue={defaultValue}
             onChange={onChange}
@@ -84,7 +86,7 @@ export default function TextField({
             {...mantine}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment TextFieldProps declares a prop with no real,
 // type-compatible home on the real TextField (directly, or via the renames below). `layout`

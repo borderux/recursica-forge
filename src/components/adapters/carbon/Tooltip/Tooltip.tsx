@@ -5,10 +5,10 @@
 import React from 'react'
 import type { TooltipProps } from '../../common/Tooltip'
 
-export default function Tooltip({ children, label, opened, zIndex }: TooltipProps) {
+export default React.forwardRef<any, TooltipProps>(function Tooltip({ children, label, opened, zIndex }, ref) {
     return (
-        <div title={label || (typeof children === 'string' ? children : undefined)}>
+        <div title={label || (typeof children === 'string' ? children : undefined)} ref={ref}>
             {children}
         </div>
     )
-}
+})

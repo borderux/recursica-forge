@@ -28,6 +28,7 @@
  * `'end'` map to `"<side>-start"`/`"<side>-end"`. A real fix rather than dropping `alignment`.
  */
 
+import React from 'react'
 import { Tooltip as MantineTooltip } from '@recursica/mantine-adapter'
 import type { TooltipProps } from '../../common/Tooltip'
 import type { AssertWired } from '../../common/wiringCheck'
@@ -41,7 +42,7 @@ function toFloatingPosition(
     return position
 }
 
-export default function Tooltip({
+export default React.forwardRef<any, TooltipProps>(function Tooltip({
     children,
     label,
     position = 'top',
@@ -52,9 +53,15 @@ export default function Tooltip({
     className,
     style,
     mantine,
-}: TooltipProps) {
+}, ref) {
+    // The real Tooltip's exported type is `RecursicaOverStyled`-wrapped, and (like Accordion/
+    // Popover/HoverCard/Menu/Panel) has no `ref` slot at all — spread `{ ref }` from an
+    // `any`-typed object rather than a literal `ref={ref}` attribute to avoid a spurious
+    // excess-property error while still attaching the ref at runtime for whenever upstream
+    // adds support.
     return (
         <MantineTooltip
+            {...({ ref } as any)}
             overStyled
             label={label}
             position={toFloatingPosition(position, alignment)}
@@ -68,7 +75,7 @@ export default function Tooltip({
             {children}
         </MantineTooltip>
     )
-}
+})
 
 // Compile-time only — fails the build the moment TooltipProps declares a prop with no real,
 // type-compatible home on the real Tooltip.

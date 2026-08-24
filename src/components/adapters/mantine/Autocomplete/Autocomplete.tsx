@@ -26,11 +26,12 @@
  * `defaultValue`, so nothing observable changes by dropping it here too.
  */
 
+import React from 'react'
 import { AutoComplete as MantineAutocomplete } from '@recursica/mantine-adapter'
 import type { AutocompleteProps } from '../../common/Autocomplete'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Autocomplete({
+export default React.forwardRef<any, AutocompleteProps>(function Autocomplete({
     items,
     value,
     onChange,
@@ -48,7 +49,7 @@ export default function Autocomplete({
     id,
     zIndex,
     mantine,
-}: AutocompleteProps) {
+}, ref) {
     return (
         <MantineAutocomplete
             data={items.map((item) => ({ value: item.value, disabled: item.disabled }))}
@@ -68,9 +69,10 @@ export default function Autocomplete({
             id={id}
             comboboxProps={zIndex !== undefined ? { zIndex } : undefined}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment AutocompleteProps declares a prop with no
 // real, type-compatible home on the real AutoComplete (directly, or via the renames below).

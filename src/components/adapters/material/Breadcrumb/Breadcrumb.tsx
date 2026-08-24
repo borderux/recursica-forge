@@ -4,6 +4,7 @@
  * Material UI-specific Breadcrumb component that uses CSS variables for theming.
  */
 
+import React from 'react'
 import { Breadcrumbs as MuiBreadcrumbs } from '@mui/material'
 import type { BreadcrumbProps as AdapterBreadcrumbProps, BreadcrumbItem } from '../../common/Breadcrumb'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
@@ -11,7 +12,7 @@ import { iconNameToReactComponent } from '../../../../modules/components/iconUti
 import { Link } from '../../Link'
 import './Breadcrumb.css'
 
-export default function Breadcrumb({
+export default React.forwardRef<any, AdapterBreadcrumbProps>(function Breadcrumb({
   items,
   separator = 'slash',
   separatorNode,
@@ -21,7 +22,7 @@ export default function Breadcrumb({
   style,
   material,
   ...props
-}: AdapterBreadcrumbProps) {
+}, ref) {
   // Get component-level CSS variables
   const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
   const itemGapVar = getComponentLevelCssVar('Breadcrumb', 'item-gap')
@@ -105,9 +106,9 @@ export default function Breadcrumb({
   }
 
   return (
-    <MuiBreadcrumbs {...muiProps}>
+    <MuiBreadcrumbs {...muiProps} ref={ref}>
       {breadcrumbItems}
     </MuiBreadcrumbs>
   )
-}
+})
 

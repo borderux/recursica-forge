@@ -4,7 +4,7 @@
  * Supports Label integration and stacked/side-by-side layout variants.
  */
 
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import type { CheckboxGroupProps as AdapterCheckboxGroupProps } from '../../common/CheckboxGroup'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { Label } from '../../Label'
@@ -12,7 +12,7 @@ import { AssistiveElement } from '../../AssistiveElement'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './CheckboxGroup.css'
 
-export default function CheckboxGroup({
+export default React.forwardRef<any, AdapterCheckboxGroupProps & { groupId?: string; labelId?: string; helpId?: string; errorId?: string }>(function CheckboxGroup({
     children,
     label,
     helpText,
@@ -33,7 +33,7 @@ export default function CheckboxGroup({
     className,
     style,
     ...props
-}: AdapterCheckboxGroupProps & { groupId?: string; labelId?: string; helpId?: string; errorId?: string }) {
+}, ref) {
     // Configurable Properties
     const itemGapVar = buildComponentCssVarPath('CheckboxGroup', 'properties', 'item-gap')
     const paddingVar = buildComponentCssVarPath('CheckboxGroup', 'properties', 'padding')
@@ -104,6 +104,7 @@ export default function CheckboxGroup({
         const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
         return (
             <div
+                ref={ref}
                 role="group"
                 aria-labelledby={label ? labelId : undefined}
                 className={`${className || ''} recursica-carbon-checkbox-group recursica-checkbox-group-side-by-side`}
@@ -125,6 +126,7 @@ export default function CheckboxGroup({
     // Stacked layout (default)
     return (
         <div
+            ref={ref}
             role="group"
             aria-labelledby={label ? labelId : undefined}
             className={`${className || ''} recursica-carbon-checkbox-group recursica-checkbox-group-stacked`}
@@ -137,4 +139,4 @@ export default function CheckboxGroup({
             </div>
         </div>
     )
-}
+})

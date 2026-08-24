@@ -8,11 +8,12 @@
  * checks that, backed by the `AssertWired` check below.
  */
 
+import React from 'react'
 import { Pagination as MantinePagination } from '@recursica/mantine-adapter'
 import type { PaginationProps } from '../../common/Pagination'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Pagination({
+export default React.forwardRef<any, PaginationProps>(function Pagination({
     total,
     value,
     defaultValue,
@@ -23,7 +24,7 @@ export default function Pagination({
     withPages,
     disabled,
     mantine,
-}: PaginationProps) {
+}, ref) {
     return (
         <MantinePagination
             total={total}
@@ -36,9 +37,10 @@ export default function Pagination({
             withPages={withPages}
             disabled={disabled}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment PaginationProps declares a prop with no
 // real, type-compatible home on the real Pagination.

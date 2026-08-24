@@ -6,14 +6,14 @@
  * brand layer props by default but can be overridden per layer via the toolbar.
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { CardProps as AdapterCardProps } from '../../common/Card'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readRawCssVar as readCssVar } from '../../../../core/css/readCssVar'
 import './Card.css'
 
-export default function Card({
+export default React.forwardRef<any, AdapterCardProps>(function Card({
     children,
     title,
     footer,
@@ -25,7 +25,7 @@ export default function Card({
     className,
     style,
     ...props
-}: AdapterCardProps) {
+}, ref) {
     const { mode } = useThemeMode()
 
     // UIKit per-layer CSS vars (reference brand layer props by default, overridable)
@@ -113,6 +113,7 @@ export default function Card({
 
     return (
         <div
+            ref={ref}
             className={`recursica-card ${className || ''}`}
             style={{
                 ...cardStyles,
@@ -185,4 +186,4 @@ export default function Card({
             )}
         </div>
     )
-}
+})

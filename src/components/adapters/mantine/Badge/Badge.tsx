@@ -17,24 +17,26 @@
  * four known members.
  */
 
+import React from 'react'
 import { Badge as MantineBadge } from '@recursica/mantine-adapter'
 import type { BadgeProps } from '../../common/Badge'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Badge({
+export default React.forwardRef<any, BadgeProps>(function Badge({
     children,
     variant,
     mantine,
-}: BadgeProps) {
+}, ref) {
     return (
         <MantineBadge
             variant={variant as 'alert' | 'primary-color' | 'success' | 'warning' | undefined}
             {...mantine}
+            ref={ref}
         >
             {children}
         </MantineBadge>
     )
-}
+})
 
 // Compile-time only — fails the build the moment BadgeProps declares a prop with no real,
 // type-compatible home on the real Badge. `variant` is excluded: Forge deliberately types it

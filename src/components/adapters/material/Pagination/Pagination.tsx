@@ -7,7 +7,7 @@
  * Uses a custom pagination range algorithm.
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { DotsThree, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight } from '@phosphor-icons/react'
 import { Button } from '../../Button'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
@@ -59,7 +59,7 @@ function generatePaginationRange(
     return range
 }
 
-export default function Pagination({
+export default React.forwardRef<any, AdapterPaginationProps>(function Pagination({
     total,
     value,
     defaultValue,
@@ -73,7 +73,7 @@ export default function Pagination({
     className,
     style,
     ...props
-}: AdapterPaginationProps) {
+}, ref) {
     const { mode } = useThemeMode()
     const { activeStyle, activeSize, inactiveStyle, inactiveSize, navStyle, navSize, navDisplay } = usePaginationConfig()
     const [internalPage, setInternalPage] = useState(value ?? defaultValue ?? 1)
@@ -116,6 +116,7 @@ export default function Pagination({
 
     return (
         <nav
+            ref={ref}
             className={`recursica-pagination-mui ${className || ''}`}
             style={{
                 gap: `var(${itemGapVar})`,
@@ -207,4 +208,4 @@ export default function Pagination({
             )}
         </nav>
     )
-}
+})

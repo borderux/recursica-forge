@@ -4,13 +4,14 @@
  * Material UI-specific RadioButton component that uses CSS variables for theming.
  */
 
+import React from 'react'
 import { Radio as MaterialRadio, FormControlLabel } from '@mui/material'
 import type { RadioButtonProps as AdapterRadioButtonProps } from '../../common/RadioButton'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './RadioButton.css'
 
-export default function RadioButton({
+export default React.forwardRef<any, AdapterRadioButtonProps>(function RadioButton({
     checked,
     onChange,
     disabled = false,
@@ -21,7 +22,7 @@ export default function RadioButton({
     style,
     material,
     ...props
-}: AdapterRadioButtonProps) {
+}, ref) {
     // RadioButton Colors - use the layer prop to get layer-specific colors
     const bgSelectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-selected')
     const bgUnselectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-unselected')
@@ -60,6 +61,7 @@ export default function RadioButton({
 
     const radio = (
         <MaterialRadio
+            ref={ref}
             checked={checked}
             onChange={(e) => onChange(e.target.checked)}
             disabled={disabled}
@@ -84,4 +86,4 @@ export default function RadioButton({
     }
 
     return radio
-}
+})

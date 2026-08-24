@@ -5,13 +5,13 @@
  */
 
 import { Checkbox as CarbonCheckbox } from '@carbon/react'
-import { useId } from 'react'
+import React, { useId } from 'react'
 import type { CheckboxProps as AdapterCheckboxProps } from '../../common/Checkbox'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './Checkbox.css'
 
-export default function Checkbox({
+export default React.forwardRef<any, AdapterCheckboxProps>(function Checkbox({
   checked,
   indeterminate = false,
   onChange,
@@ -22,7 +22,7 @@ export default function Checkbox({
   style,
   carbon,
   ...props
-}: AdapterCheckboxProps) {
+}, ref) {
   const checkboxId = useId()
 
   // Checkbox Colors
@@ -94,6 +94,7 @@ export default function Checkbox({
         style={{ ...cssVars, ...style }}
         {...carbon}
         {...props}
+        ref={ref}
       >
         {nonStringLabel}
       </CarbonCheckbox>
@@ -121,5 +122,5 @@ export default function Checkbox({
     checkboxProps.hideLabel = true
   }
 
-  return <CarbonCheckbox {...checkboxProps} />
-}
+  return <CarbonCheckbox {...checkboxProps} ref={ref} />
+})

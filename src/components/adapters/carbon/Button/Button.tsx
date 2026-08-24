@@ -6,7 +6,7 @@
 
 import { Button as CarbonButton } from '@carbon/react'
 import type { ButtonProps as AdapterButtonProps } from '../../common/Button'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -14,7 +14,7 @@ import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './Button.css'
 
-export default function Button({
+export default React.forwardRef<any, AdapterButtonProps>(function Button({
   children,
   variant = 'solid',
   size = 'default',
@@ -28,7 +28,7 @@ export default function Button({
   icon,
   carbon,
   ...props
-}: AdapterButtonProps) {
+}, ref) {
   const { mode } = useThemeMode()
 
   // Map unified variant to Carbon kind
@@ -254,9 +254,9 @@ export default function Button({
 
   // Use native children prop - CSS will handle icon placement and text truncation
   return (
-    <CarbonButton {...carbonProps}>
+    <CarbonButton {...carbonProps} ref={ref}>
       {isIconOnly ? icon : <span className="recursica-button-label">{children}</span>}
     </CarbonButton>
   )
-}
+})
 

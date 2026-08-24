@@ -6,7 +6,7 @@
 
 import { Button as MaterialButton } from '@mui/material'
 import type { ButtonProps as AdapterButtonProps } from '../../common/Button'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
@@ -14,7 +14,7 @@ import { useCssVar } from '../../../hooks/useCssVar'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import './Button.css'
 
-export default function Button({
+export default React.forwardRef<any, AdapterButtonProps>(function Button({
   children,
   variant = 'solid',
   size = 'default',
@@ -28,7 +28,7 @@ export default function Button({
   icon,
   material,
   ...props
-}: AdapterButtonProps) {
+}, ref) {
   const { mode } = useThemeMode()
 
   // Map unified variant to Material variant
@@ -272,6 +272,6 @@ export default function Button({
   }
 
   // Use native children prop - CSS will handle truncation
-  return <MaterialButton {...materialProps}>{isIconOnly ? icon : <span className="recursica-button-label">{children}</span>}</MaterialButton>
-}
+  return <MaterialButton {...materialProps} ref={ref}>{isIconOnly ? icon : <span className="recursica-button-label">{children}</span>}</MaterialButton>
+})
 

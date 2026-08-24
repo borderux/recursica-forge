@@ -21,11 +21,12 @@
  * `padding`/`itemGap` — no real equivalent anywhere on RecursicaRadioGroupProps. Dropped.
  */
 
+import React from 'react'
 import { RadioGroup as MantineRadioGroup } from '@recursica/mantine-adapter'
 import type { RadioButtonGroupProps } from '../../common/RadioButtonGroup'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function RadioButtonGroup({
+export default React.forwardRef<any, RadioButtonGroupProps>(function RadioButtonGroup({
     children,
     label,
     description,
@@ -37,7 +38,7 @@ export default function RadioButtonGroup({
     labelAlign,
     labelSize,
     mantine,
-}: RadioButtonGroupProps) {
+}, ref) {
     return (
         <MantineRadioGroup
             label={label}
@@ -50,11 +51,12 @@ export default function RadioButtonGroup({
             labelAlignment={labelAlign}
             labelSize={labelSize}
             {...mantine}
+            ref={ref}
         >
             {children}
         </MantineRadioGroup>
     )
-}
+})
 
 // Compile-time only — fails the build the moment RadioButtonGroupProps declares a prop with
 // no real, type-compatible home on the real RadioGroup (directly, or via the renames below).

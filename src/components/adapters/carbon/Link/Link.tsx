@@ -5,7 +5,7 @@
  */
 
 import { Link as CarbonLink } from '@carbon/react'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { LinkProps as AdapterLinkProps } from '../../common/Link'
 import { getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar } from '../../../utils/brandCssVars'
@@ -14,7 +14,7 @@ import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './Link.css'
 
-export default function Link({
+export default React.forwardRef<any, AdapterLinkProps>(function Link({
     children,
     href,
     target,
@@ -33,7 +33,7 @@ export default function Link({
     showIcon,
     iconPosition,
     ...props
-}: AdapterLinkProps) {
+}, ref) {
     const { mode } = useThemeMode()
 
     // Use recursica_ui-kit.json link colors - state-variant colors
@@ -211,6 +211,7 @@ export default function Link({
 
     return (
         <CarbonLink
+            ref={ref}
             {...carbonProps}
             {...(forceState && forceState !== 'default' ? { 'data-force-state': forceState } : {})}
         >
@@ -227,4 +228,4 @@ export default function Link({
             )}
         </CarbonLink>
     )
-}
+})

@@ -8,18 +8,19 @@
  * Adapted here the same way.
  */
 
+import React from 'react'
 import { Checkbox as MantineCheckbox } from '@recursica/mantine-adapter'
 import type { CheckboxItemProps } from '../../common/CheckboxItem'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function CheckboxItem({
+export default React.forwardRef<any, CheckboxItemProps>(function CheckboxItem({
     checked,
     indeterminate,
     onChange,
     disabled,
     label,
     mantine,
-}: CheckboxItemProps) {
+}, ref) {
     return (
         <MantineCheckbox
             checked={checked}
@@ -28,9 +29,10 @@ export default function CheckboxItem({
             disabled={disabled}
             label={label}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — see Checkbox's wrapper for the full explanation. `onChange` is
 // excluded: it's explicitly adapted above (event -> boolean), not passed through unchanged.

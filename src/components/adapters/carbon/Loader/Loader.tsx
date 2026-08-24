@@ -6,19 +6,19 @@
  * has limited type support. Uses CSS variables from recursica_ui-kit.json.
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { LoaderProps as AdapterLoaderProps } from '../../common/Loader'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { toCssVarName } from '../../../utils/cssVarNames'
 import './Loader.css'
 
-export default function Loader({
+export default React.forwardRef<any, AdapterLoaderProps>(function Loader({
     size = 'default',
     className,
     style,
     carbon,
     ...props
-}: AdapterLoaderProps) {
+}, ref) {
     // Get CSS variables for loader properties
     const indicatorColorVar = getComponentLevelCssVar('Loader', 'indicator-color')
     const trackColorVar = getComponentLevelCssVar('Loader', 'track-color')
@@ -74,7 +74,7 @@ export default function Loader({
     } as React.CSSProperties
 
     return (
-        <div className={`recursica-loader recursica-loader-carbon ${className || ''}`} style={containerStyle}>
+        <div ref={ref} className={`recursica-loader recursica-loader-carbon ${className || ''}`} style={containerStyle}>
             {/* Oval - CSS-based spinner */}
             <div className="recursica-loader-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                 <div
@@ -112,4 +112,4 @@ export default function Loader({
             </div>
         </div>
     )
-}
+})

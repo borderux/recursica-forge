@@ -20,11 +20,12 @@
  * token width.
  */
 
+import React from 'react'
 import { NumberInput as MantineNumberInput } from '@recursica/mantine-adapter'
 import type { NumberInputProps } from '../../common/NumberInput'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function NumberInput({
+export default React.forwardRef<any, NumberInputProps>(function NumberInput({
     value,
     defaultValue,
     onChange,
@@ -50,7 +51,7 @@ export default function NumberInput({
     autoFocus,
     readOnly,
     mantine,
-}: NumberInputProps) {
+}, ref) {
     return (
         <MantineNumberInput
             value={value}
@@ -78,9 +79,10 @@ export default function NumberInput({
             autoFocus={autoFocus}
             readOnly={readOnly}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment NumberInputProps declares a prop with no
 // real, type-compatible home on the real NumberInput (directly, or via the renames below).

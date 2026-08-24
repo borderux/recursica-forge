@@ -16,7 +16,7 @@ import { AssistiveElement } from '../../AssistiveElement'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Textarea.css'
 
-export default function Textarea({
+export default React.forwardRef<any, AdapterTextareaProps & { labelId?: string; helpId?: string; errorId?: string }>(function Textarea({
     value,
     defaultValue,
     onChange,
@@ -37,7 +37,7 @@ export default function Textarea({
     style,
     material,
     ...restProps
-}: AdapterTextareaProps & { labelId?: string; helpId?: string; errorId?: string }) {
+}: AdapterTextareaProps & { labelId?: string; helpId?: string; errorId?: string }, ref) {
     const { mode } = useThemeMode()
 
     // Extract props that shouldn't be passed to DOM elements
@@ -262,7 +262,7 @@ export default function Textarea({
     if (layout === 'side-by-side' && labelElement) {
         const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
         return (
-            <div className={`recursica-textarea recursica-textarea-side-by-side ${className || ''}`} style={style}>
+            <div ref={ref} className={`recursica-textarea recursica-textarea-side-by-side ${className || ''}`} style={style}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: gapValue, width: '100%' }}>
                     <div style={{ flexShrink: 0 }}>
                         {labelElement}
@@ -278,7 +278,7 @@ export default function Textarea({
 
     // Stacked layout (default)
     return (
-        <div className={`recursica-textarea recursica-textarea-stacked ${className || ''}`} style={style}>
+        <div ref={ref} className={`recursica-textarea recursica-textarea-stacked ${className || ''}`} style={style}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', alignItems: labelAlign === 'right' && layout === 'stacked' ? 'flex-end' : 'stretch' }}>
                 {labelElement}
                 {textareaWrapper}
@@ -286,4 +286,4 @@ export default function Textarea({
             </div>
         </div>
     )
-}
+})

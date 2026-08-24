@@ -5,7 +5,7 @@
  * Note: Carbon doesn't have a native Avatar component, so we'll create a custom implementation.
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { AvatarProps as AdapterAvatarProps } from '../../common/Avatar'
 import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
@@ -15,7 +15,7 @@ import { useCssVar } from '../../../hooks/useCssVar'
 import { readCssVarResolved } from '../../../../core/css/readCssVar'
 import './Avatar.css'
 
-export default function Avatar({
+export default React.forwardRef<any, AdapterAvatarProps>(function Avatar({
   src,
   alt,
   fallback,
@@ -27,7 +27,7 @@ export default function Avatar({
   style,
   carbon,
   ...props
-}: AdapterAvatarProps) {
+}, ref) {
   const { mode } = useThemeMode()
   const [imageError, setImageError] = useState(false)
   
@@ -123,6 +123,7 @@ export default function Avatar({
   
   return (
     <div
+      ref={ref}
       className={`cds--avatar ${className || ''}`}
       data-avatar-type={paddingStyleType}
       style={{
@@ -178,5 +179,5 @@ export default function Avatar({
       )}
     </div>
   )
-}
+})
 

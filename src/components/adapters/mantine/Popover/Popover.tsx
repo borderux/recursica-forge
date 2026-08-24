@@ -21,11 +21,12 @@
  * (`mantine={{ overStyled: true, style: {...} }}`) still reaches them.
  */
 
+import React from 'react'
 import { Popover as MantinePopover } from '@recursica/mantine-adapter'
 import type { PopoverProps } from '../../common/Popover'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Popover({
+export default React.forwardRef<any, PopoverProps>(function Popover({
   children,
   content,
   isOpen,
@@ -34,7 +35,12 @@ export default function Popover({
   position,
   zIndex,
   mantine,
-}: PopoverProps) {
+}, ref) {
+  // The real Popover is a plain function component (not wrapped in React.forwardRef
+  // upstream), so its exported prop type has no `ref` slot — spread `{ ref }` from an
+  // `any`-typed object rather than a literal `ref={ref}` attribute to avoid a spurious
+  // excess-property error while still attaching the ref at runtime for whenever upstream
+  // adds support.
   const target = children !== undefined ? <MantinePopover.Target>{children}</MantinePopover.Target> : null
   const dropdown = content !== undefined ? <MantinePopover.Dropdown>{content}</MantinePopover.Dropdown> : null
 
@@ -47,17 +53,18 @@ export default function Popover({
       position={position}
       zIndex={zIndex}
       {...mantine}
+      {...({ ref } as any)}
     >
       {target}
       {dropdown}
     </MantinePopover>
   ) : (
-    <MantinePopover opened={isOpen} onClose={onClose} withBeak={withBeak} position={position} {...mantine}>
+    <MantinePopover opened={isOpen} onClose={onClose} withBeak={withBeak} position={position} {...mantine} {...({ ref } as any)}>
       {target}
       {dropdown}
     </MantinePopover>
   )
-}
+})
 
 // `children`/`content` are composed into `Popover.Target`/`Popover.Dropdown` above, not
 // forwarded raw. `isOpen` renames onto the real `opened` field (see `Rename` below).

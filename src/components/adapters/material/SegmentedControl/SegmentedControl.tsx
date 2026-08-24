@@ -10,12 +10,12 @@ import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPa
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useCssVar } from '../../../hooks/useCssVar'
 import { Tooltip } from '../../Tooltip'
 import './SegmentedControl.css'
 
-export default function SegmentedControl({
+export default React.forwardRef<any, AdapterSegmentedControlProps>(function SegmentedControl({
   items,
   value,
   defaultValue,
@@ -31,7 +31,7 @@ export default function SegmentedControl({
   style,
   material,
   ...props
-}: AdapterSegmentedControlProps) {
+}: AdapterSegmentedControlProps, ref) {
   const { mode } = useThemeMode()
   
   // Map unified orientation to Material orientation
@@ -296,6 +296,7 @@ export default function SegmentedControl({
       style={style}
       {...material}
       {...props}
+      ref={ref}
     >
       {items.map((item, index) => {
         const hasIcon = !!item.icon
@@ -388,4 +389,4 @@ export default function SegmentedControl({
       })}
     </ToggleButtonGroup>
   )
-}
+})

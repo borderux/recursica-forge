@@ -12,13 +12,14 @@
  * RecursicaTableProps (empty) adds none. Dropped.
  */
 
+import React from 'react'
 import { Table } from '@recursica/mantine-adapter'
 import type { TableFooterProps } from '../../common/TableFooter'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function TableFooter({ children, mantine }: TableFooterProps) {
-    return <Table.Tfoot {...mantine}>{children}</Table.Tfoot>
-}
+export default React.forwardRef<any, TableFooterProps>(function TableFooter({ children, mantine }, ref) {
+    return <Table.Tfoot ref={ref} {...mantine}>{children}</Table.Tfoot>
+})
 
 // Compile-time only — fails the build the moment TableFooterProps declares a prop with no
 // real, type-compatible home on Table.Tfoot. `variant` is excluded: see the comment above —

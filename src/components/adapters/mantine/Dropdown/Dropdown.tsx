@@ -18,11 +18,12 @@
  *     can still do (`mantine={{ overStyled: true, style: {...} }}`).
  */
 
+import React from 'react'
 import { Dropdown as MantineDropdown } from '@recursica/mantine-adapter'
 import type { DropdownAdapterProps } from '../../common/Dropdown'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Dropdown({
+export default React.forwardRef<any, DropdownAdapterProps>(function Dropdown({
     items,
     value,
     onChange,
@@ -45,7 +46,7 @@ export default function Dropdown({
     disabled,
     onEditIconClick,
     mantine,
-}: DropdownAdapterProps) {
+}, ref) {
     const data = items.map((item) => ({
         value: item.value,
         label: item.label ?? item.value,
@@ -74,9 +75,10 @@ export default function Dropdown({
             disabled={disabled || state === 'disabled'}
             comboboxProps={zIndex !== undefined ? { zIndex } : undefined}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // `items`, `onChange`, `layout` and `disabled` are excluded: each is a real value
 // transformation (reshaped into `data`, wrapped, ternary-mapped onto the narrower

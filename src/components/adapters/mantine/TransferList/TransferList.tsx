@@ -36,7 +36,7 @@
  * this component) and deliberately never reach this wrapper at all.
  */
 
-import type { ChangeEvent } from 'react'
+import React, { type ChangeEvent } from 'react'
 import { TransferList as MantineTransferList } from '@recursica/mantine-adapter'
 import type { TransferListItem, TransferListProps } from '../../common/TransferList'
 import type { AssertWired } from '../../common/wiringCheck'
@@ -61,7 +61,7 @@ type TransferListWrapperProps = TransferListProps & {
     onTransferAllToSource?: () => void
 }
 
-export default function TransferList({
+export default React.forwardRef<any, TransferListWrapperProps>(function TransferList({
     data,
     defaultData,
     onChange,
@@ -71,9 +71,10 @@ export default function TransferList({
     searchPlaceholder,
     state,
     mantine,
-}: TransferListWrapperProps) {
+}, ref) {
     return (
         <MantineTransferList
+            ref={ref}
             data={data}
             defaultData={defaultData}
             onChange={onChange}
@@ -85,7 +86,7 @@ export default function TransferList({
             {...mantine}
         />
     )
-}
+})
 
 // `state` is excluded: translated into the literal `disabled` attribute above — the real
 // prop is a plain `boolean`, so Forge's open `string` variant name has to be narrowed, not

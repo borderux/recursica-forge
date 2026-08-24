@@ -23,6 +23,7 @@
  * (`mantine={{ overStyled: true, style: {...} }}`).
  */
 
+import React from 'react'
 import { Breadcrumb as MantineBreadcrumb } from '@recursica/mantine-adapter'
 import { Link } from '../../Link'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
@@ -35,14 +36,14 @@ const SEPARATOR_ICON_NAMES = {
   arrow: 'arrow-right',
 } as const satisfies Record<NonNullable<BreadcrumbProps['separator']>, string>
 
-export default function Breadcrumb({
+export default React.forwardRef<any, BreadcrumbProps>(function Breadcrumb({
   items,
   separator = 'slash',
   separatorNode,
   showHomeIcon = false,
   layer = 'layer-0',
   mantine,
-}: BreadcrumbProps) {
+}, ref) {
   const SeparatorIcon = iconNameToReactComponent(SEPARATOR_ICON_NAMES[separator])
   const separatorElement = separatorNode ?? (SeparatorIcon ? <SeparatorIcon size={14} /> : <span>/</span>)
 
@@ -53,7 +54,7 @@ export default function Breadcrumb({
   const limitedItems = items.slice(0, 5)
 
   return (
-    <MantineBreadcrumb separator={separatorElement} {...mantine}>
+    <MantineBreadcrumb separator={separatorElement} {...mantine} ref={ref}>
       {limitedItems.map((item, index) => {
         const isLast = index === limitedItems.length - 1
         const isInteractive = !isLast && !!item.href
@@ -71,7 +72,7 @@ export default function Breadcrumb({
       })}
     </MantineBreadcrumb>
   )
-}
+})
 
 // `items`/`separator`/`separatorNode`/`showHomeIcon` are all consumed above to build the real
 // `children` array and the translated separator glyph, not forwarded raw. `layer` only feeds

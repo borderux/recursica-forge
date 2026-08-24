@@ -21,11 +21,12 @@
  * via `onChange` doesn't match.
  */
 
+import React from 'react'
 import { DatePicker as MantineDatePicker } from '@recursica/mantine-adapter'
 import type { DatePickerProps } from '../../common/DatePicker'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function DatePicker({
+export default React.forwardRef<any, DatePickerProps>(function DatePicker({
     value,
     defaultValue,
     onChange,
@@ -43,7 +44,7 @@ export default function DatePicker({
     readOnly,
     dateFormat,
     mantine,
-}: DatePickerProps) {
+}, ref) {
     return (
         <MantineDatePicker
             value={value}
@@ -63,9 +64,10 @@ export default function DatePicker({
             readOnly={readOnly}
             valueFormat={dateFormat}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment DatePickerProps declares a prop that has
 // no real, type-compatible home on the real DatePicker (directly, or via the renames below).

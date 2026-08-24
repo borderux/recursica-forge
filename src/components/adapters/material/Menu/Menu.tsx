@@ -9,7 +9,7 @@ import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import type { MenuProps as AdapterMenuProps } from '../../common/Menu'
 import './Menu.css'
 
-export default function Menu({
+export default React.forwardRef<any, AdapterMenuProps>(function Menu({
   children,
   layer = 'layer-0',
   elevation,
@@ -18,7 +18,7 @@ export default function Menu({
   style,
   material,
   ...props
-}: AdapterMenuProps) {
+}, ref) {
   const { mode } = useThemeMode()
 
   // Get CSS variables for colors
@@ -65,7 +65,11 @@ export default function Menu({
 
   return (
     <div
-      ref={menuRef}
+      ref={(node) => {
+        (menuRef as any).current = node
+        if (typeof ref === 'function') ref(node)
+        else if (ref) (ref as any).current = node
+      }}
       className={`mui-menu ${className || ''}`}
       data-layer={layer}
       style={{
@@ -88,5 +92,5 @@ export default function Menu({
       {children}
     </div>
   )
-}
+})
 

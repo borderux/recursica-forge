@@ -33,12 +33,12 @@
  * table's own rule) it's been removed from FIELD_COMPONENTS there.
  */
 
-import { useRef } from 'react'
+import React, { useRef } from 'react'
 import { FileUpload as MantineFileUpload, type RecursicaFileUploadItem } from '@recursica/mantine-adapter'
 import type { FileUploadAdapterProps } from '../../common/FileUpload'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function FileUpload({
+export default React.forwardRef<any, FileUploadAdapterProps>(function FileUpload({
     files = [],
     onUpload,
     onRemove,
@@ -58,7 +58,7 @@ export default function FileUpload({
     helpId: _helpId,
     errorId: _errorId,
     mantine,
-}: FileUploadAdapterProps) {
+}, ref) {
     // Every real File object this wrapper has actually seen, keyed by name — Forge's own
     // `files` prop only ever carries metadata, never the File itself, so this cache is the
     // only source of real File objects available to feed the real, file-object-shaped
@@ -98,9 +98,10 @@ export default function FileUpload({
             accept={accept}
             disabled={state === 'disabled'}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // `files`/`onUpload`/`onRemove` are excluded: adapted above between Forge's metadata-only
 // list and the real File-object-holding one — see file header for why a straight rename

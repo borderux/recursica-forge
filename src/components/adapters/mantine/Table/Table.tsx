@@ -10,17 +10,18 @@
  * for whoever eventually uses it.
  */
 
+import React from 'react'
 import { Table as MantineTable } from '@recursica/mantine-adapter'
 import type { TableProps } from '../../common/Table'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Table({ children, variant, data, mantine }: TableProps) {
+export default React.forwardRef<any, TableProps>(function Table({ children, variant, data, mantine }, ref) {
     return (
-        <MantineTable variant={variant} data={data} {...mantine}>
+        <MantineTable variant={variant} data={data} {...mantine} ref={ref}>
             {children}
         </MantineTable>
     )
-}
+})
 
 // Compile-time only — fails the build the moment TableProps declares a prop with no real,
 // type-compatible home on the real Table.

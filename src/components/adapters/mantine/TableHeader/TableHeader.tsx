@@ -18,6 +18,7 @@
  * `onClick` matches directly — real, native `<th>` click handler.
  */
 
+import React from 'react'
 import { Table } from '@recursica/mantine-adapter'
 import type { TableHeaderProps } from '../../common/TableHeader'
 import type { AssertWired } from '../../common/wiringCheck'
@@ -29,13 +30,13 @@ function toAriaSort(sorted: TableHeaderProps['sorted']): 'ascending' | 'descendi
     return undefined
 }
 
-export default function TableHeader({ children, sorted, onClick, mantine }: TableHeaderProps) {
+export default React.forwardRef<any, TableHeaderProps>(function TableHeader({ children, sorted, onClick, mantine }, ref) {
     return (
-        <Table.Th aria-sort={toAriaSort(sorted)} onClick={onClick} {...mantine}>
+        <Table.Th ref={ref} aria-sort={toAriaSort(sorted)} onClick={onClick} {...mantine}>
             {children}
         </Table.Th>
     )
-}
+})
 
 // Compile-time only — fails the build the moment TableHeaderProps declares a prop with no
 // real, type-compatible home on Table.Th. `sorted` is excluded: it's adapted above into the

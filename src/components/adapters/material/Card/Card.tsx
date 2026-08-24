@@ -7,14 +7,14 @@
  */
 
 import { Card as MuiCard, CardHeader, CardContent, CardActions, Divider } from '@mui/material'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { CardProps as AdapterCardProps } from '../../common/Card'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readRawCssVar as readCssVar } from '../../../../core/css/readCssVar'
 import './Card.css'
 
-export default function Card({
+export default React.forwardRef<any, AdapterCardProps>(function Card({
     children,
     title,
     footer,
@@ -27,7 +27,7 @@ export default function Card({
     style,
     material,
     ...props
-}: AdapterCardProps) {
+}, ref) {
     const { mode } = useThemeMode()
 
     // UIKit per-layer CSS vars (reference brand layer props by default, overridable)
@@ -131,6 +131,7 @@ export default function Card({
             }}
             {...material}
             {...props}
+            ref={ref}
         >
             {title && (
                 <>
@@ -197,4 +198,4 @@ export default function Card({
             )}
         </MuiCard>
     )
-}
+})

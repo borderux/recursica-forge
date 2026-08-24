@@ -4,10 +4,11 @@
  * Material UI-specific Tabs component that uses CSS variables for theming.
  */
 
+import React from 'react'
 import { Tabs as MaterialTabs } from '@mui/material'
 import type { TabsProps as AdapterTabsProps } from '../../common/Tabs'
 
-export default function Tabs({
+export default React.forwardRef<any, AdapterTabsProps>(function Tabs({
   value,
   defaultValue,
   onChange,
@@ -18,7 +19,7 @@ export default function Tabs({
   style,
   material,
   ...props
-}: AdapterTabsProps) {
+}: AdapterTabsProps, ref) {
   const materialProps = {
     value: value || defaultValue,
     onChange: (_e: React.SyntheticEvent, newValue: string) => {
@@ -44,9 +45,9 @@ export default function Tabs({
   }
   
   return (
-    <MaterialTabs {...materialProps}>
+    <MaterialTabs {...materialProps} ref={ref}>
       {children}
     </MaterialTabs>
   )
-}
+})
 

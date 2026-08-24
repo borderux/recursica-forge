@@ -15,7 +15,7 @@ import { Button } from '../../Button'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Toast.css'
 
-export default function Toast({
+export default React.forwardRef<any, AdapterToastProps>(function Toast({
   children,
   variant = 'default',
   layer = 'layer-0',
@@ -27,7 +27,7 @@ export default function Toast({
   action,
   carbon,
   ...props
-}: AdapterToastProps) {
+}, ref) {
   const { mode } = useThemeMode()
   const CloseIcon = iconNameToReactComponent('x-mark')
   
@@ -189,7 +189,7 @@ export default function Toast({
   }
   
   return (
-    <div {...carbonProps}>
+    <div {...carbonProps} ref={ref}>
       <div className="recursica-toast-content">
         {icon && (
           <span className="recursica-toast-icon">
@@ -236,4 +236,4 @@ export default function Toast({
       </div>
     </div>
   )
-}
+})

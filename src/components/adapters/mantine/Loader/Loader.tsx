@@ -7,21 +7,23 @@
  * actually checks it (a spread of a pre-typed object wouldn't).
  */
 
+import React from 'react'
 import { Loader as MantineLoader } from '@recursica/mantine-adapter'
 import type { LoaderProps } from '../../common/Loader'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Loader({
+export default React.forwardRef<any, LoaderProps>(function Loader({
     size,
     mantine,
-}: LoaderProps) {
+}, ref) {
     return (
         <MantineLoader
             size={size}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment LoaderProps declares a prop with no real,
 // type-compatible home on the real Loader.

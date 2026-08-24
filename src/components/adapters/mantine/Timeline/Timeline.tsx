@@ -27,18 +27,19 @@
  * hatch can still do (`mantine={{ overStyled: true, style: {...} }}`).
  */
 
+import React from 'react'
 import { Timeline as MantineTimeline, TimelineItem as MantineTimelineItem } from '@recursica/mantine-adapter'
 import type { TimelineProps } from '../../common/Timeline'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Timeline({
+export default React.forwardRef<any, TimelineProps>(function Timeline({
   active,
   align = 'left',
   items = [],
   mantine,
-}: TimelineProps) {
+}, ref) {
   return (
-    <MantineTimeline active={active} align={align} {...mantine}>
+    <MantineTimeline ref={ref} active={active} align={align} {...mantine}>
       {items.map((item, index) => (
         <MantineTimelineItem key={index} title={item.title} bullet={item.bullet} timestamp={item.timestamp}>
           {item.description}
@@ -46,7 +47,7 @@ export default function Timeline({
       ))}
     </MantineTimeline>
   )
-}
+})
 
 // `items` is composed into `Timeline.Item` children above, not forwarded raw. `children` is
 // dropped per the comment above (no call site relies on it, and `items` now drives

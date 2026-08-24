@@ -24,7 +24,7 @@
  *   - `verticalPadding` / `iconSize` — dropped: no real sizing hook of either kind.
  */
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { FileInput as MantineFileInput, type RecursicaFileUploadItem } from '@recursica/mantine-adapter'
 import type { FileInputAdapterProps } from '../../common/FileInput'
 import type { AssertWired } from '../../common/wiringCheck'
@@ -39,7 +39,7 @@ function toValue(items: RecursicaFileUploadItem[], multiple: boolean): File | Fi
     return items[items.length - 1]?.file ?? null
 }
 
-export default function FileInput({
+export default React.forwardRef<any, FileInputAdapterProps>(function FileInput({
     value,
     defaultValue,
     onChange,
@@ -66,7 +66,7 @@ export default function FileInput({
     helpId: _helpId,
     errorId: _errorId,
     mantine,
-}: FileInputAdapterProps) {
+}, ref) {
     // Uncontrolled fallback — only used while the caller never supplies `value`. Once `value`
     // is provided it drives everything; this wrapper never mutates it.
     const [internalItems, setInternalItems] = useState<RecursicaFileUploadItem[]>(() => toItems(defaultValue))
@@ -104,9 +104,10 @@ export default function FileInput({
             accept={accept}
             disabled={state === 'disabled'}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // `value`/`defaultValue`/`onChange` are excluded: adapted above into the real controlled-list
 // model (`files`/`onFilesAdded`/`onFileRemove`), which has no shape in common with Forge's

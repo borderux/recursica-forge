@@ -12,7 +12,7 @@ import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brand
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import './Accordion.css'
 
-export default function Accordion({
+export default React.forwardRef<any, AccordionAdapterProps>(function Accordion({
   items,
   layer = 'layer-0',
   allowMultiple = false,
@@ -24,7 +24,7 @@ export default function Accordion({
   style: _style,
   carbon,
   ...props
-}: AccordionAdapterProps) {
+}, ref) {
   const { mode } = useThemeMode()
 
   // Container properties (Accordion)
@@ -301,6 +301,7 @@ export default function Accordion({
 
   return (
     <div
+      ref={ref}
       className={`recursica-accordion carbon-accordion ${className || ''}`}
       style={{
         // Container properties
@@ -394,5 +395,5 @@ export default function Accordion({
       </CarbonAccordion>
     </div>
   )
-}
+})
 

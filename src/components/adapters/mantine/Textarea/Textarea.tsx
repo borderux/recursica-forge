@@ -15,11 +15,12 @@
  * `editIconGap` to this component in the first place.
  */
 
+import React from 'react'
 import { TextArea as MantineTextarea } from '@recursica/mantine-adapter'
 import type { TextareaProps } from '../../common/Textarea'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Textarea({
+export default React.forwardRef<any, TextareaProps>(function Textarea({
     value,
     defaultValue,
     onChange,
@@ -42,9 +43,10 @@ export default function Textarea({
     leadingIcon,
     trailingIcon,
     mantine,
-}: TextareaProps) {
+}, ref) {
     return (
         <MantineTextarea
+            ref={ref}
             value={value}
             defaultValue={defaultValue}
             onChange={onChange}
@@ -69,7 +71,7 @@ export default function Textarea({
             {...mantine}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment TextareaProps declares a prop with no real,
 // type-compatible home on the real TextArea (directly, or via the renames below). `layout` is

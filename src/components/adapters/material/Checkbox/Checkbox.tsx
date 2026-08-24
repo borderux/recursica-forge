@@ -4,13 +4,14 @@
  * Material UI-specific Checkbox component that uses CSS variables for theming.
  */
 
+import React from 'react'
 import { Checkbox as MaterialCheckbox, FormControlLabel } from '@mui/material'
 import type { CheckboxProps as AdapterCheckboxProps } from '../../common/Checkbox'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './Checkbox.css'
 
-export default function Checkbox({
+export default React.forwardRef<any, AdapterCheckboxProps>(function Checkbox({
   checked,
   indeterminate = false,
   onChange,
@@ -21,7 +22,7 @@ export default function Checkbox({
   style,
   material,
   ...props
-}: AdapterCheckboxProps) {
+}, ref) {
   // Checkbox Colors - use the layer prop to get layer-specific colors
   const bgCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-checked')
   const bgUncheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-unchecked')
@@ -88,6 +89,7 @@ export default function Checkbox({
       style={{ ...cssVars, ...style }}
       {...material}
       {...props}
+      ref={ref}
     />
   )
 
@@ -104,4 +106,4 @@ export default function Checkbox({
   }
 
   return checkbox
-}
+})

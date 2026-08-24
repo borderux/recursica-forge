@@ -8,18 +8,19 @@
  * native input event, not the `(checked: boolean) => void` Forge declares.
  */
 
+import React from 'react'
 import { Radio as MantineRadio } from '@recursica/mantine-adapter'
 import type { RadioButtonItemProps } from '../../common/RadioButtonItem'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function RadioButtonItem({
+export default React.forwardRef<any, RadioButtonItemProps>(function RadioButtonItem({
     checked,
     onChange,
     disabled,
     label,
     value,
     mantine,
-}: RadioButtonItemProps) {
+}, ref) {
     return (
         <MantineRadio
             checked={checked}
@@ -28,9 +29,10 @@ export default function RadioButtonItem({
             label={label}
             value={value}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — see RadioButton's wrapper for the full explanation. `onChange` is
 // excluded: it's explicitly adapted above, not passed through unchanged. No `Rename` map

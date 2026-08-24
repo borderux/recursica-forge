@@ -7,20 +7,20 @@
  * border-radius, and stroke-thickness.
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import CircularProgress from '@mui/material/CircularProgress'
 import type { LoaderProps as AdapterLoaderProps } from '../../common/Loader'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { toCssVarName } from '../../../utils/cssVarNames'
 import './Loader.css'
 
-export default function Loader({
+export default React.forwardRef<any, AdapterLoaderProps>(function Loader({
     size = 'default',
     className,
     style,
     material,
     ...props
-}: AdapterLoaderProps) {
+}, ref) {
     // Get CSS variables for loader properties
     const indicatorColorVar = getComponentLevelCssVar('Loader', 'indicator-color')
     const trackColorVar = getComponentLevelCssVar('Loader', 'track-color')
@@ -76,7 +76,7 @@ export default function Loader({
     } as React.CSSProperties
 
     return (
-        <div className={`recursica-loader recursica-loader-material ${className || ''}`} style={containerStyle}>
+        <div ref={ref} className={`recursica-loader recursica-loader-material ${className || ''}`} style={containerStyle}>
             {/* Oval - use MUI CircularProgress */}
             <div className="recursica-loader-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                 <CircularProgress
@@ -119,4 +119,4 @@ export default function Loader({
             </div>
         </div>
     )
-}
+})

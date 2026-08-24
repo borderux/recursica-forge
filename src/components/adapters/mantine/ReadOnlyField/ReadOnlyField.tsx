@@ -13,11 +13,12 @@
  *     component in the first place, so it's dead on both sides.
  */
 
+import React from 'react'
 import { ReadOnlyField as MantineReadOnlyField } from '@recursica/mantine-adapter'
 import type { ReadOnlyFieldProps } from '../../common/ReadOnlyField'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function ReadOnlyField({
+export default React.forwardRef<any, ReadOnlyFieldProps>(function ReadOnlyField({
     value,
     label,
     layout,
@@ -27,7 +28,7 @@ export default function ReadOnlyField({
     labelSize,
     id,
     mantine,
-}: ReadOnlyFieldProps) {
+}, ref) {
     return (
         <MantineReadOnlyField
             value={value}
@@ -39,9 +40,10 @@ export default function ReadOnlyField({
             labelSize={labelSize}
             id={id}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment ReadOnlyFieldProps declares a prop with no
 // real, type-compatible home on the real ReadOnlyField (directly, or via the renames below).

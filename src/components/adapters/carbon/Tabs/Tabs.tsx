@@ -5,9 +5,10 @@
  * that matches Carbon's styling patterns.
  */
 
+import React from 'react'
 import type { TabsProps as AdapterTabsProps } from '../../common/Tabs'
 
-export default function Tabs({
+export default React.forwardRef<any, AdapterTabsProps>(function Tabs({
   value,
   defaultValue,
   onChange,
@@ -17,7 +18,7 @@ export default function Tabs({
   style,
   carbon,
   ...props
-}: AdapterTabsProps) {
+}, ref) {
   // Carbon doesn't have a Tabs component, so we'll render children directly
   // The actual tab functionality will be handled by the parent component
   return (
@@ -30,9 +31,10 @@ export default function Tabs({
         ...carbon?.style,
       }}
       {...props}
+      ref={ref}
     >
       {children}
     </div>
   )
-}
+})
 

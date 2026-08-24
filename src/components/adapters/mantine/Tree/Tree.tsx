@@ -32,20 +32,22 @@
  * already handled centrally — left alone, not touched by this wrapper.
  */
 
+import React from 'react'
 import { Tree as MantineTree } from '@recursica/mantine-adapter'
 import type { TreeProps } from '../../common/Tree'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Tree({ data, selected, onSelect, mantine }: TreeProps) {
+export default React.forwardRef<any, TreeProps>(function Tree({ data, selected, onSelect, mantine }, ref) {
     return (
         <MantineTree
+            ref={ref}
             data={data ?? []}
             initialSelectedValues={selected}
             onSelectedChange={onSelect}
             {...mantine}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment TreeProps declares a prop with no real,
 // type-compatible home on the real Tree — directly, or via the renames below.

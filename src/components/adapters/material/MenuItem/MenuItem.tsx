@@ -11,7 +11,7 @@ import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssV
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './MenuItem.css'
 
-export default function MenuItem({
+export default React.forwardRef<any, AdapterMenuItemProps>(function MenuItem({
   children,
   variant = 'default',
   layer = 'layer-0',
@@ -29,7 +29,7 @@ export default function MenuItem({
   style,
   material,
   ...props
-}: AdapterMenuItemProps) {
+}, ref) {
   const [, forceUpdate] = useState(0)
 
   useEffect(() => {
@@ -116,6 +116,7 @@ export default function MenuItem({
 
   return (
     <div
+      ref={ref}
       className={`mui-menu-item-wrapper ${className || ''} ${divider === 'bottom' ? 'has-divider' : ''}`}
       style={{
         // Set CSS custom properties for CSS file to use
@@ -235,6 +236,6 @@ export default function MenuItem({
       )}
     </div>
   )
-}
+})
 
 

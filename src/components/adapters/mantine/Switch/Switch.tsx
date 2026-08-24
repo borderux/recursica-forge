@@ -24,11 +24,12 @@
  * (`mantine={{ overStyled: true, style: {...} }}`). Not forwarded here.
  */
 
+import React from 'react'
 import { Switch as MantineSwitch } from '@recursica/mantine-adapter'
 import type { SwitchProps } from '../../common/Switch'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Switch({ checked, onChange, disabled, mantine }: SwitchProps) {
+export default React.forwardRef<any, SwitchProps>(function Switch({ checked, onChange, disabled, mantine }, ref) {
     return (
         <MantineSwitch
             label={undefined}
@@ -36,9 +37,10 @@ export default function Switch({ checked, onChange, disabled, mantine }: SwitchP
             onChange={(event) => onChange(event.currentTarget.checked)}
             disabled={disabled}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment SwitchProps declares a prop with no real,
 // type-compatible home on the real Switch. `onChange` is excluded: adapted above (event ->

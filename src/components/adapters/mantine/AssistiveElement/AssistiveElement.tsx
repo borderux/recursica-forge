@@ -12,26 +12,28 @@
  * documented here rather than forwarded to nowhere.
  */
 
+import React from 'react'
 import { AssistiveElement as MantineAssistiveElement } from '@recursica/mantine-adapter'
 import type { AssistiveElementProps } from '../../common/AssistiveElement'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function AssistiveElement({
+export default React.forwardRef<any, AssistiveElementProps>(function AssistiveElement({
     text,
     variant,
     id,
     mantine,
-}: AssistiveElementProps) {
+}, ref) {
     return (
         <MantineAssistiveElement
             id={id}
             assistiveVariant={variant}
             {...mantine}
+            ref={ref}
         >
             {text}
         </MantineAssistiveElement>
     )
-}
+})
 
 // Compile-time only — fails the build the moment AssistiveElementProps declares a prop with
 // no real, type-compatible home on the real AssistiveElement. `text` and `variant` are

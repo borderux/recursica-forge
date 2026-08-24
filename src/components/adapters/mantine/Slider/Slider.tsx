@@ -31,11 +31,12 @@
  *     entirely at the dispatcher level to derive `showInput`/`showValueLabel`.
  */
 
+import React from 'react'
 import { Slider as MantineSlider } from '@recursica/mantine-adapter'
 import type { SliderProps } from '../../common/Slider'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Slider({
+export default React.forwardRef<any, SliderProps>(function Slider({
     value,
     onChange,
     onChangeCommitted,
@@ -52,7 +53,7 @@ export default function Slider({
     minIcon,
     readOnly,
     mantine,
-}: SliderProps) {
+}, ref) {
     return (
         <MantineSlider
             value={Array.isArray(value) ? undefined : value}
@@ -71,9 +72,10 @@ export default function Slider({
             icon={minIcon}
             readOnly={readOnly}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment SliderProps declares a prop with no real,
 // type-compatible home on the real Slider (directly, or via the renames below). `value` is

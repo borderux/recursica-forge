@@ -2,17 +2,18 @@
  * Carbon RadioButtonItem Implementation
  */
 
+import React from 'react'
 import RadioButton from '../RadioButton/RadioButton'
 import type { RadioButtonItemProps as AdapterRadioButtonItemProps } from '../../common/RadioButtonItem'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import './RadioButtonItem.css'
 
-export default function RadioButtonItem({
+export default React.forwardRef<any, AdapterRadioButtonItemProps>(function RadioButtonItem({
     label,
     className,
     style,
     ...props
-}: AdapterRadioButtonItemProps) {
+}, ref) {
     // Label gap
     const labelGapVar = buildComponentCssVarPath('RadioButtonItem', 'properties', 'label-gap')
 
@@ -44,10 +45,11 @@ export default function RadioButtonItem({
 
     return (
         <RadioButton
+            ref={ref}
             label={label}
             className={`${className || ''} recursica-carbon-radio-item`}
             style={{ ...style, ...cssVars }}
             {...props}
         />
     )
-}
+})

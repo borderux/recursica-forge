@@ -4,7 +4,7 @@
  * Material UI-specific Slider component that uses CSS variables for theming.
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Slider as MaterialSlider } from '@mui/material'
 import type { SliderProps as AdapterSliderProps } from '../../common/Slider'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
@@ -18,7 +18,7 @@ import { AssistiveElement } from '../../AssistiveElement'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Slider.css'
 
-export default function Slider({
+export default React.forwardRef<any, AdapterSliderProps>(function Slider({
   value,
   onChange,
   onChangeCommitted,
@@ -47,7 +47,7 @@ export default function Slider({
   style,
   material,
   ...props
-}: AdapterSliderProps) {
+}: AdapterSliderProps, ref) {
   const { mode } = useThemeMode()
 
   // Determine effective state
@@ -673,7 +673,7 @@ export default function Slider({
     // For side-by-side, use Label's gutter property
     const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: gapValue, width: '100%', ...style }}>
+      <div ref={ref} style={{ display: 'flex', alignItems: 'center', gap: gapValue, width: '100%', ...style }}>
         <div style={{ flexShrink: 0 }}>
           {label}
         </div>
@@ -697,7 +697,7 @@ export default function Slider({
 
   // For stacked layout, Label's bottom-padding handles the spacing, so no gap needed
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', ...style }}>
+    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', width: '100%', ...style }}>
       {label && <div>{label}</div>}
       {sliderElement}
       {errorText && state === 'error' && (() => {
@@ -706,4 +706,4 @@ export default function Slider({
       })()}
     </div>
   )
-}
+})

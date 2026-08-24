@@ -10,6 +10,7 @@
  * escape hatch can still do (`mantine={{ overStyled: true, style: {...} }}`).
  */
 
+import React from 'react'
 import {
   Accordion as MantineAccordion,
   AccordionItem as MantineAccordionItem,
@@ -19,13 +20,18 @@ import {
 import type { AccordionAdapterProps } from '../../common/Accordion'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Accordion({
+export default React.forwardRef<any, AccordionAdapterProps>(function Accordion({
   items,
   allowMultiple,
   openItems,
   onOpenItemsChange,
   mantine,
-}: AccordionAdapterProps) {
+}, ref) {
+  // The real Accordion is a plain function component (not wrapped in React.forwardRef
+  // upstream), so its exported prop type has no `ref` slot — spread `{ ref }` from an
+  // `any`-typed object rather than a literal `ref={ref}` attribute to avoid a spurious
+  // excess-property error while still attaching the ref at runtime for whenever upstream
+  // adds support.
   return (
     <MantineAccordion
       multiple={allowMultiple}
@@ -34,6 +40,7 @@ export default function Accordion({
         onOpenItemsChange(value == null ? [] : Array.isArray(value) ? value : [value])
       }
       {...mantine}
+      {...({ ref } as any)}
     >
       {items.map((item) => {
         const ItemIcon = item.icon
@@ -48,7 +55,7 @@ export default function Accordion({
       })}
     </MantineAccordion>
   )
-}
+})
 
 // `items`/`allowMultiple`/`openItems`/`onOpenItemsChange` are all consumed above to build the
 // composed children and the reshaped `multiple`/`value`/`onChange`, not forwarded raw.

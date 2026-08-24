@@ -11,7 +11,7 @@ import { iconNameToReactComponent } from '../../../../modules/components/iconUti
 import { Link } from '../../Link'
 import './Breadcrumb.css'
 
-export default function Breadcrumb({
+export default React.forwardRef<any, AdapterBreadcrumbProps>(function Breadcrumb({
   items,
   separator = 'slash',
   separatorNode,
@@ -21,7 +21,7 @@ export default function Breadcrumb({
   style,
   carbon,
   ...props
-}: AdapterBreadcrumbProps) {
+}, ref) {
   // Get component-level CSS variables
   const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
   const itemGapVar = getComponentLevelCssVar('Breadcrumb', 'item-gap')
@@ -43,7 +43,7 @@ export default function Breadcrumb({
   } as React.CSSProperties;
 
   return (
-    <nav aria-label="Breadcrumb" className={className} style={navStyle}>
+    <nav ref={ref} aria-label="Breadcrumb" className={className} style={navStyle}>
       <ol style={{ display: 'flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0 }}>
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
@@ -89,5 +89,5 @@ export default function Breadcrumb({
       </ol>
     </nav>
   );
-}
+})
 

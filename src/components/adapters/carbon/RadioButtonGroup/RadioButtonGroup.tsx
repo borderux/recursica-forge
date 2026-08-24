@@ -4,7 +4,7 @@
  * Supports Label integration and stacked/side-by-side layout variants.
  */
 
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import type { RadioButtonGroupProps as AdapterRadioButtonGroupProps } from '../../common/RadioButtonGroup'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { Label } from '../../Label'
@@ -12,7 +12,7 @@ import { AssistiveElement } from '../../AssistiveElement'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './RadioButtonGroup.css'
 
-export default function RadioButtonGroup({
+export default React.forwardRef<any, AdapterRadioButtonGroupProps & { groupId?: string; labelId?: string; helpId?: string; errorId?: string }>(function RadioButtonGroup({
     children,
     label,
     helpText,
@@ -33,7 +33,7 @@ export default function RadioButtonGroup({
     className,
     style,
     ...props
-}: AdapterRadioButtonGroupProps & { groupId?: string; labelId?: string; helpId?: string; errorId?: string }) {
+}, ref) {
     // Configurable Properties
     const itemGapVar = buildComponentCssVarPath('RadioButtonGroup', 'properties', 'item-gap')
     const paddingVar = buildComponentCssVarPath('RadioButtonGroup', 'properties', 'padding')
@@ -104,6 +104,7 @@ export default function RadioButtonGroup({
         const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
         return (
             <div
+                ref={ref}
                 role="radiogroup"
                 aria-labelledby={label ? labelId : undefined}
                 className={`${className || ''} recursica-carbon-radio-group recursica-radio-group-side-by-side`}
@@ -125,6 +126,7 @@ export default function RadioButtonGroup({
     // Stacked layout (default)
     return (
         <div
+            ref={ref}
             role="radiogroup"
             aria-labelledby={label ? labelId : undefined}
             className={`${className || ''} recursica-carbon-radio-group recursica-radio-group-stacked`}
@@ -137,4 +139,4 @@ export default function RadioButtonGroup({
             </div>
         </div>
     )
-}
+})

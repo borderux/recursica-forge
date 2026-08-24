@@ -11,10 +11,10 @@ import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { useCssVar } from '../../../hooks/useCssVar'
 import { readCssVarResolved } from '../../../../core/css/readCssVar'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import './Avatar.css'
 
-export default function Avatar({
+export default React.forwardRef<any, AdapterAvatarProps>(function Avatar({
   src,
   alt,
   fallback,
@@ -26,7 +26,7 @@ export default function Avatar({
   style,
   material,
   ...props
-}: AdapterAvatarProps) {
+}, ref) {
   const { mode } = useThemeMode()
   
   // Derive style type and secondary type from colorVariant (e.g., 'text-ghost' → style='text', type='ghost')
@@ -167,9 +167,10 @@ export default function Avatar({
       } as React.CSSProperties}
       {...material}
       {...props}
+      ref={ref}
     >
       {fallback}
     </MaterialAvatar>
   )
-}
+})
 

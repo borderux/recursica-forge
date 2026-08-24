@@ -11,18 +11,19 @@
  * => void` Forge declares. Same class of adaptation as Checkbox.
  */
 
+import React from 'react'
 import { Radio as MantineRadio } from '@recursica/mantine-adapter'
 import type { RadioButtonProps } from '../../common/RadioButton'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function RadioButton({
+export default React.forwardRef<any, RadioButtonProps>(function RadioButton({
     checked,
     onChange,
     disabled,
     label,
     value,
     mantine,
-}: RadioButtonProps) {
+}, ref) {
     return (
         <MantineRadio
             checked={checked}
@@ -31,9 +32,10 @@ export default function RadioButton({
             label={label}
             value={value}
             {...mantine}
+            ref={ref}
         />
     )
-}
+})
 
 // Compile-time only — fails the build the moment RadioButtonProps declares a prop with no
 // real, type-compatible home on the real Radio. `onChange` is excluded: it's explicitly

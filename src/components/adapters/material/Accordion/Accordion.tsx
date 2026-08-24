@@ -2,7 +2,7 @@
  * Material UI Accordion Implementation
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Accordion as MaterialAccordion,
   AccordionSummary,
@@ -21,7 +21,7 @@ const ExpandIcon = (
   </svg>
 )
 
-export default function Accordion({
+export default React.forwardRef<any, AccordionAdapterProps>(function Accordion({
   items,
   layer = 'layer-0',
   allowMultiple = false,
@@ -33,7 +33,7 @@ export default function Accordion({
   style,
   material,
   ...props
-}: AccordionAdapterProps) {
+}, ref) {
   const { mode } = useThemeMode()
 
   // Container properties (Accordion)
@@ -372,6 +372,7 @@ export default function Accordion({
       } as React.CSSProperties}
       {...material}
       {...props}
+      ref={ref}
     >
       {items.map((item, index) => {
         const isOpen = openItems.includes(item.id)
@@ -402,5 +403,5 @@ export default function Accordion({
       })}
     </div>
   )
-}
+})
 

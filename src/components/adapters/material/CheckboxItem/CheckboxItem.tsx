@@ -2,18 +2,19 @@
  * Material CheckboxItem Implementation
  */
 
+import React from 'react'
 import Checkbox from '../Checkbox/Checkbox'
 import type { CheckboxItemProps as AdapterCheckboxItemProps } from '../../common/CheckboxItem'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import './CheckboxItem.css'
 
-export default function CheckboxItem({
+export default React.forwardRef<any, AdapterCheckboxItemProps>(function CheckboxItem({
     label,
     className,
     style,
     layer = 'layer-0',
     ...props
-}: AdapterCheckboxItemProps) {
+}, ref) {
     // Label gap
     const labelGapVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'label-gap')
 
@@ -72,6 +73,7 @@ export default function CheckboxItem({
             className={`${className || ''} recursica-checkbox-item-mui`}
             style={{ ...style, ...cssVars }}
             {...props}
+            ref={ref}
         />
     )
-}
+})

@@ -11,19 +11,21 @@
  * beyond its own optional close button) — an adapter gap, not an oversight.
  */
 
+import React from 'react'
 import { Toast as MantineToast } from '@recursica/mantine-adapter'
 import type { ToastProps } from '../../common/Toast'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Toast({
+export default React.forwardRef<any, ToastProps>(function Toast({
     children,
     variant,
     icon,
     onClose,
     mantine,
-}: ToastProps) {
+}, ref) {
     return (
         <MantineToast
+            ref={ref}
             variant={variant}
             icon={icon}
             onClose={onClose}
@@ -32,7 +34,7 @@ export default function Toast({
             {children}
         </MantineToast>
     )
-}
+})
 
 // Compile-time only — fails the build the moment ToastProps declares a prop with no real,
 // type-compatible home on the real Toast. `action` is excluded with no rename: confirmed no

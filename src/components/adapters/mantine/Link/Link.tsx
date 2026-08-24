@@ -36,11 +36,12 @@
  * which a plain Forge `string` is assignable to.
  */
 
+import React from 'react'
 import { Link as MantineLink } from '@recursica/mantine-adapter'
 import type { LinkProps } from '../../common/Link'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Link({
+export default React.forwardRef<any, LinkProps>(function Link({
     children,
     href,
     target,
@@ -51,7 +52,7 @@ export default function Link({
     variant,
     size,
     mantine,
-}: LinkProps) {
+}, ref) {
     return (
         <MantineLink
             href={href}
@@ -63,11 +64,12 @@ export default function Link({
             variant={variant}
             size={size}
             {...mantine}
+            ref={ref}
         >
             {children}
         </MantineLink>
     )
-}
+})
 
 // Compile-time only — fails the build the moment LinkProps declares a prop with no real,
 // type-compatible home on the real Link — directly, or via the rename below.

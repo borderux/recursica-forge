@@ -20,11 +20,12 @@
  * `padding`/`itemGap` — no real equivalent anywhere on RecursicaCheckboxGroupProps. Dropped.
  */
 
+import React from 'react'
 import { CheckboxGroup as MantineCheckboxGroup } from '@recursica/mantine-adapter'
 import type { CheckboxGroupProps } from '../../common/CheckboxGroup'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function CheckboxGroup({
+export default React.forwardRef<any, CheckboxGroupProps>(function CheckboxGroup({
     children,
     label,
     description,
@@ -37,7 +38,7 @@ export default function CheckboxGroup({
     labelAlign,
     labelSize,
     mantine,
-}: CheckboxGroupProps) {
+}, ref) {
     return (
         <MantineCheckboxGroup
             label={label}
@@ -51,11 +52,12 @@ export default function CheckboxGroup({
             labelAlignment={labelAlign}
             labelSize={labelSize}
             {...mantine}
+            ref={ref}
         >
             {children}
         </MantineCheckboxGroup>
     )
-}
+})
 
 // Compile-time only — fails the build the moment CheckboxGroupProps declares a prop with no
 // real, type-compatible home on the real CheckboxGroup (directly, or via the renames below).

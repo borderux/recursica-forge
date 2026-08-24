@@ -6,7 +6,7 @@
  * We use a Chip component instead for standalone badges, or a custom span.
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Chip } from '@mui/material'
 import type { BadgeProps as AdapterBadgeProps } from '../../common/Badge'
 import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
@@ -15,7 +15,7 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './Badge.css'
 
-export default function Badge({
+export default React.forwardRef<any, AdapterBadgeProps>(function Badge({
   children,
   variant = 'primary-color',
   size,
@@ -25,7 +25,7 @@ export default function Badge({
   style,
   material,
   ...props
-}: AdapterBadgeProps) {
+}, ref) {
   const { mode } = useThemeMode()
 
   // Get CSS variables — use buildVariantColorCssVar so any variant name (including
@@ -145,7 +145,8 @@ export default function Badge({
       } as React.CSSProperties}
       {...material}
       {...props}
+      ref={ref}
     />
   )
-}
+})
 

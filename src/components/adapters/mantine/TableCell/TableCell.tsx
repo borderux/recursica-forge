@@ -18,17 +18,18 @@
  * attribute and neither Recursica sub-component adds one. Dropped.
  */
 
+import React from 'react'
 import { Table } from '@recursica/mantine-adapter'
 import type { TableCellProps } from '../../common/TableCell'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function TableCell({ children, isHeader, mantine }: TableCellProps) {
+export default React.forwardRef<any, TableCellProps>(function TableCell({ children, isHeader, mantine }, ref) {
     return isHeader ? (
-        <Table.Th {...mantine}>{children}</Table.Th>
+        <Table.Th ref={ref} {...mantine}>{children}</Table.Th>
     ) : (
-        <Table.Td {...mantine}>{children}</Table.Td>
+        <Table.Td ref={ref} {...mantine}>{children}</Table.Td>
     )
-}
+})
 
 // Compile-time only — fails the build the moment TableCellProps declares a prop with no real,
 // type-compatible home on Table.Td. (Table.Th and Table.Td share the same relevant shape, so

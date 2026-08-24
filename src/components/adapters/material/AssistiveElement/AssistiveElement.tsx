@@ -12,7 +12,7 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './AssistiveElement.css'
 
-export default function AssistiveElement({
+export default React.forwardRef<any, AdapterAssistiveElementProps>(function AssistiveElement({
   text,
   variant = 'help',
   icon,
@@ -21,7 +21,7 @@ export default function AssistiveElement({
   style,
   material,
   ...props
-}: AdapterAssistiveElementProps) {
+}, ref) {
   const { mode } = useThemeMode()
   
   // Get CSS variables for colors (variant-specific)
@@ -58,6 +58,7 @@ export default function AssistiveElement({
       }}
       {...material}
       {...props}
+      ref={ref}
     >
       {icon && (
         <span
@@ -100,4 +101,4 @@ export default function AssistiveElement({
       </span>
     </div>
   )
-}
+})

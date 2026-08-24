@@ -4,7 +4,7 @@
  * Material UI-specific Switch component that uses CSS variables for theming.
  */
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Switch as MaterialSwitch } from '@mui/material'
 import type { SwitchProps as AdapterSwitchProps } from '../../common/Switch'
 import { getComponentLevelCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
@@ -15,7 +15,7 @@ import { iconNameToReactComponent } from '../../../../modules/components/iconUti
 import './Switch.css'
 
 
-export default function Switch({
+export default React.forwardRef<any, AdapterSwitchProps>(function Switch({
   checked,
   onChange,
   disabled = false,
@@ -25,7 +25,7 @@ export default function Switch({
   style,
   material,
   ...props
-}: AdapterSwitchProps) {
+}: AdapterSwitchProps, ref) {
   const { mode } = useThemeMode()
   const [updateKey, setUpdateKey] = useState(0)
   
@@ -186,7 +186,8 @@ export default function Switch({
       }}
       {...material}
       {...props}
+      ref={ref}
     />
   )
-}
+})
 

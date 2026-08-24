@@ -19,11 +19,12 @@
  * escape hatch can still do (`mantine={{ overStyled: true, style: {...} }}`).
  */
 
+import React from 'react'
 import { SegmentedControl as MantineSegmentedControl } from '@recursica/mantine-adapter'
 import type { SegmentedControlAdapterProps } from '../../common/SegmentedControl'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function SegmentedControl({
+export default React.forwardRef<any, SegmentedControlAdapterProps>(function SegmentedControl({
   items,
   value,
   defaultValue,
@@ -33,7 +34,7 @@ export default function SegmentedControl({
   disabled,
   showLabel = true,
   mantine,
-}: SegmentedControlAdapterProps) {
+}, ref) {
   const data = items.map((item) => ({
     value: item.value,
     label: (showLabel === false ? item.icon : (item.label ?? item.icon)) ?? item.value,
@@ -49,9 +50,10 @@ export default function SegmentedControl({
       orientation={orientation}
       fullWidth={fullWidth}
       {...mantine}
+      ref={ref}
     />
   )
-}
+})
 
 // `items` is reshaped into `data` above, not forwarded raw. `showLabel` never arrives
 // (stripped by FORGE_ONLY_PROPS before this wrapper runs) — its icon-only branch above only

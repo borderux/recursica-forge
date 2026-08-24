@@ -22,25 +22,26 @@
  * escape hatch can still do (`mantine={{ overStyled: true, style: {...} }}`).
  */
 
+import React from 'react'
 import { Card as MantineCard } from '@recursica/mantine-adapter'
 import type { CardProps } from '../../common/Card'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Card({
+export default React.forwardRef<any, CardProps>(function Card({
   children,
   title,
   footer,
   withBorder = true,
   mantine,
-}: CardProps) {
+}, ref) {
   return (
-    <MantineCard withBorder={withBorder} {...mantine}>
+    <MantineCard withBorder={withBorder} {...mantine} ref={ref}>
       {title !== undefined && <MantineCard.Header>{title}</MantineCard.Header>}
       {children}
       {footer !== undefined && <MantineCard.Footer>{footer}</MantineCard.Footer>}
     </MantineCard>
   )
-}
+})
 
 // `title`/`footer` are composed into `Card.Header`/`Card.Footer` above, not forwarded raw.
 // `cardLayer`/`elevationBoxShadow`/`withDividers` are dropped per the comments above.

@@ -24,11 +24,12 @@
  * to, so the flag is silently unread rather than half-honored.
  */
 
+import React from 'react'
 import { Panel as MantinePanel, PanelFooter } from '@recursica/mantine-adapter'
 import type { PanelAdapterProps } from '../../common/Panel'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Panel({
+export default React.forwardRef<any, PanelAdapterProps>(function Panel({
   children,
   title,
   footer,
@@ -36,7 +37,11 @@ export default function Panel({
   isOpen,
   onClose,
   mantine,
-}: PanelAdapterProps) {
+}, ref) {
+  // The real Panel is a plain function component (not wrapped in React.forwardRef upstream),
+  // so its exported prop type has no `ref` slot — spread `{ ref }` from an `any`-typed object
+  // rather than a literal `ref={ref}` attribute to avoid a spurious excess-property error
+  // while still attaching the ref at runtime for whenever upstream adds support.
   return (
     <MantinePanel
       title={title}
@@ -44,12 +49,13 @@ export default function Panel({
       opened={isOpen ?? true}
       onClose={onClose ?? (() => {})}
       {...mantine}
+      {...({ ref } as any)}
     >
       {children}
       {footer && <PanelFooter>{footer}</PanelFooter>}
     </MantinePanel>
   )
-}
+})
 
 // `footer` is composed into `Panel.Footer` above, not forwarded raw. `isOpen`/`onClose` are
 // excluded: each carries a real value transformation (a default fallback), not a straight
