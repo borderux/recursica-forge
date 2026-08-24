@@ -2,3 +2,17 @@
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body { margin: 0; line-height: 1.5; }
+
+/* Used by GitHubExportModal's spinner. Kept here (loaded unconditionally, regardless of UI
+   kit) rather than in a per-kit shell stylesheet — the export modal isn't kit-specific, and
+   it previously lived in MantineShell.css, so the spinner silently didn't animate at all when
+   Material or Carbon kit was active. */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

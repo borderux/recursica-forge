@@ -15,25 +15,3 @@
 body {
   background-color: var(--recursica_brand_layer_0_properties_surface);
 }
-
-/* Ensure active tab styles have high specificity to override Mantine defaults */
-/* Target the custom class we added plus the data-active attribute */
-.header-nav-tab[data-active],
-.mantine-Tabs-list .mantine-Tabs-tab[data-active],
-.mantine-Tabs-tab[data-active="true"],
-.mantine-Tabs-tab[data-active] {
-  color: var(--header-tab-active-text) !important;
-  background-color: var(--header-tab-active-bg) !important;
-  opacity: 1 !important;
-  font-weight: 600 !important;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
