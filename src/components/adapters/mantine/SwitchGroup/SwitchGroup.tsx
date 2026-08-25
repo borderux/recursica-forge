@@ -17,8 +17,7 @@
  *
  * `orientation` — unlike RadioButtonGroup, RecursicaSwitchGroupProps_2 declares only
  * value/defaultValue/onChange, no `row` and nothing orientation-like (unlike
- * CheckboxGroup, which does have `row`). Dropped.
- * `padding`/`itemGap` — no real equivalent anywhere on RecursicaSwitchGroupProps. Dropped.
+ * CheckboxGroup, which does have `row`). Dropped.* own theme/token system, same as every other component. Never wired here in the first place.
  */
 
 import React from 'react'
@@ -62,7 +61,7 @@ export default React.forwardRef<any, SwitchGroupProps>(function SwitchGroup({
 // declares it optional — passed through as JSX children above rather than a literal
 // attribute. `layout` is excluded: Forge deliberately types it as an open `string`, wider
 // than the real `formLayout` union — the ternary above is the actual translation.
-// `orientation`/`padding`/`itemGap` are genuine adapter gaps — see file header.
+// `orientation` is a genuine adapter gap — see file header.
 type _Wiring = AssertWired<
     SwitchGroupProps,
     typeof MantineSwitchGroup,
@@ -74,9 +73,7 @@ type _Wiring = AssertWired<
     | 'style'
     | 'children'
     | 'layout'
-    | 'orientation'
-    | 'padding'
-    | 'itemGap',
+    | 'orientation',
     {
         helpText: 'assistiveText'
         errorText: 'error'

@@ -12,11 +12,7 @@
  * who does control `isOpen` drive it explicitly.
  *
  * `width` has no upstream equivalent — RecursicaPanelProps omits `size`/`styles`/`classNames`/
- * `style` from Mantine's Drawer props, so panel width is token-only — and is deliberately not
- * forwarded, the same way any other adapter gap is dropped. `className` and `zIndex` aren't
- * forwarded either: both are on the adapter's blocked-styling-keys list, ignored unless the
- * caller opts in with `overStyled: true` — which the `mantine` escape hatch can still do
- * (`mantine={{ overStyled: true, zIndex, style: {...} }}`).
+ * `style` from Mantine's Drawer props, so panel width is token-only — and is deliberately not forwarded
  *
  * `overlay` (Forge's "fixed, full-viewport-height panel" toggle) also has no upstream
  * equivalent: the real Panel is always a Mantine Drawer, which is inherently a fixed-position
@@ -36,6 +32,7 @@ export default React.forwardRef<any, PanelAdapterProps>(function Panel({
   position = 'right',
   isOpen,
   onClose,
+  zIndex,
   mantine,
 }, ref) {
   // The real Panel is a plain function component (not wrapped in React.forwardRef upstream),
@@ -48,6 +45,7 @@ export default React.forwardRef<any, PanelAdapterProps>(function Panel({
       placement={position}
       opened={isOpen ?? true}
       onClose={onClose ?? (() => {})}
+      zIndex={zIndex}
       {...mantine}
       {...({ ref } as any)}
     >
@@ -63,8 +61,8 @@ export default React.forwardRef<any, PanelAdapterProps>(function Panel({
 // `overlay` are excluded with no rename: real Panel is always a Mantine Drawer (inherently a
 // fixed-position overlay with backdrop), so there's no non-overlay/always-visible mode to
 // toggle, and width stays token-only. `layer`/`elevation` never arrive (stripped by
-// FORGE_ONLY_PROPS before this wrapper runs). `className`/`zIndex`/`style` aren't forwarded —
-// see the header comment.
+// FORGE_ONLY_PROPS before this wrapper runs). `className`/`style` aren't forwarded — see the
+// header comment. `zIndex` is no longer excluded — it's a direct, same-name, always-live prop.
 type _Wiring = AssertWired<
   PanelAdapterProps,
   typeof MantinePanel,
@@ -76,7 +74,6 @@ type _Wiring = AssertWired<
   | 'layer'
   | 'elevation'
   | 'className'
-  | 'zIndex'
   | 'style'
   | 'mantine'
   | 'material'

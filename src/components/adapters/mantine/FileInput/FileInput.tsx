@@ -15,9 +15,13 @@
  *     — those don't exist on this component at all. FIELD_CONTRACT's generic leading/
  *     trailing-icon renames (built for TextField-shaped fields) are wrong here, which is why
  *     this component no longer goes through that central table (see adapterPropContract.ts).
- *   - `trailingIcon` — dropped: confirmed no second icon slot exists on the real component. An
- *     upstream ask to add one was declined (2026-08, permanent — see
- *     `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md` #6); this is not pending a future fix.
+ *   - `trailingIcon` -> `clearIcon` (2026-08, corrected — previously dropped on the claim "no
+ *     second icon slot exists"; that was true of raw Mantine's `leftSection`/`rightSection`
+ *     pair the upstream ask #6 was about, but missed that the real 0.47.0 component grew its
+ *     own bespoke `clearIcon` prop for exactly this purpose — its own doc comment: "giving
+ *     Forge's `leading-icon`/`trailing-icon` token pair a matching pair of override props."
+ *     Rendered on the trailing clear-all button once a file is selected, defaulting to the
+ *     adapter's own X icon when not overridden.
  *   - `state` — unlike DatePicker (whose Recursica-specific additions are a genuinely empty
  *     interface), this component's real props DO include a real `disabled?: boolean`, so
  *     `state === 'disabled'` is wired to it for real rather than dropped.
@@ -50,7 +54,7 @@ export default React.forwardRef<any, FileInputAdapterProps>(function FileInput({
     helpText,
     errorText,
     leadingIcon,
-    trailingIcon: _trailingIcon,
+    trailingIcon,
     state,
     layout,
     required,
@@ -95,6 +99,7 @@ export default React.forwardRef<any, FileInputAdapterProps>(function FileInput({
             assistiveText={helpText}
             error={errorText}
             icon={leadingIcon}
+            clearIcon={trailingIcon}
             formLayout={layout === 'side-by-side' ? 'side-by-side' : 'stacked'}
             required={required}
             labelOptionalText={optional}
@@ -116,17 +121,17 @@ export default React.forwardRef<any, FileInputAdapterProps>(function FileInput({
 // single-value model, so checking it here would be a false positive. `state` is excluded:
 // translated into the literal `disabled` attribute above. `layout` is excluded: Forge types
 // it as an open `string` for custom variant names, wider than the real `formLayout` union —
-// the ternary above is the real translation. `trailingIcon`/`name`/`verticalPadding`/
-// `iconSize` are excluded: confirmed above to have no real destination at all.
-// `labelId`/`helpId`/`errorId` are excluded: the real component wires its own aria
-// relationships, same as every other field component.
+// the ternary above is the real translation. `name`/`verticalPadding`/`iconSize` are excluded:
+// confirmed above to have no real destination at all. `labelId`/`helpId`/`errorId` are
+// excluded: the real component wires its own aria relationships, same as every other field
+// component.
 type _Wiring = AssertWired<
     FileInputAdapterProps,
     typeof MantineFileInput,
     | 'layer' | 'disableTopBottomMargin' | 'mantine' | 'material' | 'carbon' | 'className' | 'style'
     | 'value' | 'defaultValue' | 'onChange' | 'state' | 'layout'
-    | 'trailingIcon' | 'name' | 'verticalPadding' | 'iconSize'
+    | 'name' | 'verticalPadding' | 'iconSize'
     | 'labelId' | 'helpId' | 'errorId',
-    { helpText: 'assistiveText'; errorText: 'error'; leadingIcon: 'icon'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment' }
+    { helpText: 'assistiveText'; errorText: 'error'; leadingIcon: 'icon'; trailingIcon: 'clearIcon'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment' }
 >
 const _wiringCheck: _Wiring = true

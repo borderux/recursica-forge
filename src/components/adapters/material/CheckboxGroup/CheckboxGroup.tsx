@@ -23,8 +23,6 @@ export default React.forwardRef<any, AdapterCheckboxGroupProps & { groupId?: str
     layer = 'layer-0',
     labelAlign = 'left',
     labelSize,
-    itemGap,
-    padding,
     orientation,
     groupId,
     labelId,

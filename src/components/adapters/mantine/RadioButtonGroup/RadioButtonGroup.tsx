@@ -18,7 +18,6 @@
  * RadioGroup-specific additions, beyond what Mantine's own RadioGroupProps already covers)
  * declares only value/defaultValue/onChange — no `row` and nothing orientation-like, unlike
  * CheckboxGroup/SwitchGroup. Dropped.
- * `padding`/`itemGap` — no real equivalent anywhere on RecursicaRadioGroupProps. Dropped.
  */
 
 import React from 'react'
@@ -65,8 +64,8 @@ export default React.forwardRef<any, RadioButtonGroupProps>(function RadioButton
 // attribute, so there's nothing for the same-name comparison to check meaningfully.
 // `layout` is excluded: Forge deliberately types it as an open `string` (to accept custom
 // layout variant names elsewhere in the app), wider than the real `formLayout` union — the
-// ternary above is the actual translation, and it's what gets type-checked.
-// `orientation`/`padding`/`itemGap` are genuine adapter gaps — see file header.
+// ternary above is the actual translation, and it's what gets type-checked. `orientation` is a
+// genuine adapter gap — see file header.
 type _Wiring = AssertWired<
     RadioButtonGroupProps,
     typeof MantineRadioGroup,
@@ -78,9 +77,7 @@ type _Wiring = AssertWired<
     | 'style'
     | 'children'
     | 'layout'
-    | 'orientation'
-    | 'padding'
-    | 'itemGap',
+    | 'orientation',
     {
         helpText: 'assistiveText'
         errorText: 'error'

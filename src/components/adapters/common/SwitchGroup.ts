@@ -15,8 +15,6 @@ export type SwitchGroupProps = {
     errorText?: string
     required?: boolean
     optional?: boolean
-    padding?: string // CSS var or token
-    itemGap?: string // CSS var or token
     orientation?: 'horizontal' | 'vertical'
     /**
      * Narrowed (2026-08) to document the two values the real adapter actually

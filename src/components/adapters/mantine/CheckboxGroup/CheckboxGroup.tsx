@@ -18,9 +18,7 @@
  * #3): used to reshape onto a `row?: boolean` field that was confirmed dead (declared but
  * never read by the real implementation, just silently spread onto a Mantine primitive with
  * no `row` prop of its own). Rather than wiring it up, the field was removed from the real
- * type entirely — so `orientation` now has no real destination at all and is dropped.
- * `padding`/`itemGap` — no real equivalent anywhere on RecursicaCheckboxGroupProps. Dropped.
- */
+ * type entirely — so `orientation` now has no real destination at all and is dropped. */
 
 import React from 'react'
 import { CheckboxGroup as MantineCheckboxGroup } from '@recursica/mantine-adapter'
@@ -64,8 +62,8 @@ export default React.forwardRef<any, CheckboxGroupProps>(function CheckboxGroup(
 // `children` is excluded because the real CheckboxGroup requires it non-optional while Forge
 // declares it optional — passed through as JSX children above rather than a literal
 // attribute. `layout` is excluded: Forge deliberately types it as an open `string`, wider than
-// the real `formLayout` union — the ternary above is the actual translation.
-// `orientation`/`padding`/`itemGap` are genuine adapter gaps — see file header.
+// the real `formLayout` union — the ternary above is the actual translation. `orientation` is a
+// genuine adapter gap — see file header.
 type _Wiring = AssertWired<
     CheckboxGroupProps,
     typeof MantineCheckboxGroup,
@@ -77,9 +75,7 @@ type _Wiring = AssertWired<
     | 'style'
     | 'children'
     | 'layout'
-    | 'orientation'
-    | 'padding'
-    | 'itemGap',
+    | 'orientation',
     {
         helpText: 'assistiveText'
         errorText: 'error'

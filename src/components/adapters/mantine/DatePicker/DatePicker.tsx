@@ -15,7 +15,6 @@
  *     instead of being dropped. The token *dialect* differs from Forge's; callers passing a
  *     dayjs-style format (e.g. 'MM/DD/YYYY') now get real formatting, but Forge's own spaced
  *     convention isn't translated — worth a follow-up if that convention matters here.
- *
  * `value`/`defaultValue` are fine as-is: the real prop's type is a union that includes `Date`
  * alongside the string form, so passing a `Date` in works even though what comes back out
  * via `onChange` doesn't match.
@@ -34,6 +33,7 @@ export default React.forwardRef<any, DatePickerProps>(function DatePicker({
     label,
     helpText,
     errorText,
+    state,
     layout,
     required,
     optional,
@@ -54,6 +54,7 @@ export default React.forwardRef<any, DatePickerProps>(function DatePicker({
             label={label}
             assistiveText={helpText}
             error={errorText}
+            disabled={state === 'disabled'}
             formLayout={layout === 'side-by-side' ? 'side-by-side' : 'stacked'}
             required={required}
             labelOptionalText={optional}
@@ -75,10 +76,10 @@ export default React.forwardRef<any, DatePickerProps>(function DatePicker({
 // through unchanged), so checking their untranslated shape here would be a false positive.
 // `layout` is also excluded: Forge deliberately types it as an open `string` (to accept
 // custom layout variant names elsewhere in the app), wider than the real `formLayout` union
-// — the ternary above is the actual translation, and it's what gets type-checked.
-// `state` is excluded with no rename and no adaptation: confirmed no real equivalent exists
-// at all (RecursicaDatePickerProps_2 — the adapter's own DatePicker-specific additions — is
-// a literally empty interface).
+// — the ternary above is the actual translation, and it's what gets type-checked. `state` is
+// excluded: it's translated into the real `disabled` prop above (a reshape, not a rename —
+// Forge's `state` is a wider string than a boolean), so the literal `disabled={...}` attribute
+// is what actually gets checked.
 type _Wiring = AssertWired<
     DatePickerProps,
     typeof MantineDatePicker,

@@ -23,8 +23,6 @@ export default React.forwardRef<any, AdapterRadioButtonGroupProps & { groupId?: 
     layer = 'layer-0',
     labelAlign = 'left',
     labelSize,
-    itemGap,
-    padding,
     orientation,
     groupId,
     labelId,

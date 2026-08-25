@@ -15,8 +15,6 @@ export type CheckboxGroupProps = {
     errorText?: string
     required?: boolean
     optional?: boolean
-    padding?: string // CSS var or token
-    itemGap?: string // CSS var or token
     /**
      * The real `@recursica/mantine-adapter`'s own `RecursicaCheckboxGroupProps.row` field
      * (the intended destination for this) is confirmed dead code — declared but never

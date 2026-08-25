@@ -15,8 +15,6 @@ export type RadioButtonGroupProps = {
     errorText?: string
     required?: boolean
     optional?: boolean
-    padding?: string // CSS var or token
-    itemGap?: string // CSS var or token
     /**
      * No `row` equivalent exists on the real adapter's Radio group type at all (unlike
      * Checkbox's group, which declares one, if dead — see common/CheckboxGroup.ts). Raw
