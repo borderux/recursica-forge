@@ -10,16 +10,26 @@
  *   - `state` — upstream drives error/disabled from real props and hover/focus natively;
  *     there's no slot for an arbitrary named variant.
  *   - `minWidth` — no upstream sizing hook (see TextField's identical `controlMinWidth` gap).
- *   - `editIcon` / `editIconTitle` / `labelId` / `helpId` / `errorId` — the adapter renders its
- *     own edit affordance and wires its own aria relationships; there's no slot for a
- *     caller-supplied icon node or id.
+ *   - `labelId` / `helpId` / `errorId` — the adapter wires its own aria relationships; no slot
+ *     for a caller-supplied id.
+ *   - Per-item `icon` / `leadingIconType` / `supportingText` / `divider` (on `DropdownItem`) —
+ *     `data.map` below only carries `value`/`label`/`disabled` through; the real `data` has no
+ *     slot for any of the four. An upstream ask to add real per-item icon/supporting-text/
+ *     divider rendering was declined (2026-08, permanent — see
+ *     `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md` #7); confirmed final, not pending.
  *   - `className`/`style` — the adapter styles itself purely from tokens and ignores both
  *     unless the caller opts in with `overStyled: true` — which the `mantine` escape hatch
  *     can still do (`mantine={{ overStyled: true, style: {...} }}`).
+ *
+ * `editIcon`/`editIconTitle`/`onEditIconClick` (2026-08, corrected — previously dropped on the
+ * incorrect claim "no real slot"): translated via the shared `resolveLabelActionArea` helper
+ * (`../labelActionArea.tsx`) into the real `labelActionArea`/`labelWithEditIcon`/
+ * `onLabelEditClick` — see that file. Same root cause and fix as `mantine/Label/Label.tsx`.
  */
 
 import React from 'react'
 import { Dropdown as MantineDropdown } from '@recursica/mantine-adapter'
+import { resolveLabelActionArea } from '../labelActionArea'
 import type { DropdownAdapterProps } from '../../common/Dropdown'
 import type { AssertWired } from '../../common/wiringCheck'
 
@@ -35,6 +45,7 @@ export default React.forwardRef<any, DropdownAdapterProps>(function Dropdown({
     trailingIcon,
     state,
     layout,
+    layer,
     minWidth: _minWidth,
     required,
     optional,
@@ -44,6 +55,8 @@ export default React.forwardRef<any, DropdownAdapterProps>(function Dropdown({
     id,
     zIndex,
     disabled,
+    editIcon,
+    editIconTitle,
     onEditIconClick,
     mantine,
 }, ref) {
@@ -52,6 +65,9 @@ export default React.forwardRef<any, DropdownAdapterProps>(function Dropdown({
         label: item.label ?? item.value,
         disabled: item.disabled,
     }))
+
+    const { labelActionArea, labelWithEditIcon, onLabelEditClick } =
+        resolveLabelActionArea(editIcon, editIconTitle, onEditIconClick, layer)
 
     return (
         <MantineDropdown
@@ -68,7 +84,9 @@ export default React.forwardRef<any, DropdownAdapterProps>(function Dropdown({
             labelAlignment={labelAlign}
             labelSize={labelSize}
             labelOptionalText={optional}
-            onLabelEditClick={onEditIconClick}
+            labelActionArea={labelActionArea}
+            labelWithEditIcon={labelWithEditIcon}
+            onLabelEditClick={onLabelEditClick}
             maxDropdownHeight={maxHeight}
             id={id}
             required={required}
@@ -84,9 +102,11 @@ export default React.forwardRef<any, DropdownAdapterProps>(function Dropdown({
 // transformation (reshaped into `data`, wrapped, ternary-mapped onto the narrower
 // `formLayout` union, OR'd with `state`) rather than a straight rename, so the literal JSX
 // attributes above are what actually get checked — re-checking their untranslated shape here
-// would be a false positive. `zIndex` is excluded the same way (reshaped into
-// `comboboxProps`). `state`, `minWidth`, `editIcon`, `editIconTitle`, `labelId`, `helpId`,
-// `errorId` are excluded with no rename: documented adapter gaps, see header comment.
+// would be a false positive. `zIndex` is excluded the same way (reshaped into `comboboxProps`).
+// `editIcon`/`editIconTitle`/`onEditIconClick` are excluded: a real reshape via
+// `resolveLabelActionArea` above, not a straight rename (see header). `state`, `minWidth`,
+// `labelId`, `helpId`, `errorId` are excluded with no rename: documented adapter gaps, see
+// header comment.
 type _Wiring = AssertWired<
     DropdownAdapterProps,
     typeof MantineDropdown,
@@ -99,6 +119,7 @@ type _Wiring = AssertWired<
     | 'minWidth'
     | 'editIcon'
     | 'editIconTitle'
+    | 'onEditIconClick'
     | 'labelId'
     | 'helpId'
     | 'errorId'
@@ -109,6 +130,6 @@ type _Wiring = AssertWired<
     | 'mantine'
     | 'material'
     | 'carbon',
-    { helpText: 'assistiveText'; errorText: 'error'; leadingIcon: 'leftSection'; trailingIcon: 'rightSection'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment'; maxHeight: 'maxDropdownHeight'; onEditIconClick: 'onLabelEditClick' }
+    { helpText: 'assistiveText'; errorText: 'error'; leadingIcon: 'leftSection'; trailingIcon: 'rightSection'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment'; maxHeight: 'maxDropdownHeight' }
 >
 const _wiringCheck: _Wiring = true

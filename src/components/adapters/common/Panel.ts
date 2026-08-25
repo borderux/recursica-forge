@@ -12,8 +12,9 @@ export type PanelPosition = 'left' | 'right'
 /**
  * `position` matches raw `@mantine/core`'s own `Drawer` prop name exactly (`Panel` wraps
  * `Drawer`) — it's `@recursica/mantine-adapter` that renamed it to `placement` internally, not
- * Forge that diverged. Tracked as an upstream ask, see
- * `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md`; Forge's own name stays `position`.
+ * Forge that diverged. An upstream ask to accept `position` too was declined (2026-08,
+ * permanent — see `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md` #1); Forge's own name stays
+ * `position` regardless, translated to `placement` in the Mantine wrapper.
  */
 
 /** Public prop interface. What consumer/demo code uses — identical across every UI kit. */

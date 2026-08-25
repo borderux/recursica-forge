@@ -26,25 +26,39 @@
  * (`MantineSpacing` — a size key, CSS value, or number). Reshaped: `false` maps to `0` (no
  * padding); `true`/`undefined` pass `undefined` through so the real default (`'md'`) applies.
  *
- * Dropped, no real destination — the adapter's Modal is a shell (`opened` / `withCloseButton`
- * / `title` / `children`); header, footer and the action-button row are composed by the caller
- * via `Modal.Header`/`.Body`/`.Footer`, so none of Forge's convenience props for them have an
- * upstream counterpart (this used to be documented in adapterPropContract.ts's
- * `PROP_CONTRACT['Modal']`, moved here now that this wrapper does its own translation):
- *   - `showHeader`, `showFooter`, `scrollable`, `showSecondaryButton`, `primaryActionLabel`,
- *     `onPrimaryAction`, `primaryActionDisabled`, `secondaryActionLabel`, `onSecondaryAction`,
- *     `secondaryActionDisabled`
- *   - `position` / `draggable` / `onPositionChange` — GAP: the adapter's Modal is a centred
- *     Mantine Modal with no anchored positioning and no dragging, which Forge's colour/opacity
- *     pickers need (they open beside the control they edit and can be dragged aside). Still an
- *     adapter gap (2.1 in docs/ADAPTER_CAPABILITY_GAPS.md); the pickers route around it via
- *     Forge's own FloatingPalette instead of a Modal, so these props don't reach here in
- *     practice.
+ * `showFooter`/`primaryActionLabel`/`onPrimaryAction`/`primaryActionDisabled`/
+ * `secondaryActionLabel`/`onSecondaryAction`/`secondaryActionDisabled`/`showSecondaryButton`
+ * (2026-08, corrected — previously ALL dropped on the claim "no upstream counterpart," which was
+ * wrong: the real adapter's `Modal.Footer` is exactly this, a real exported sub-component
+ * (`Modal.Footer` on the same `Modal` export) with its own documented convention — "aligns its
+ * children to the right... primary action button MUST be the right-most element, with the
+ * secondary action placed immediately to the left of it." The catch, and why this was missed:
+ * it's not a prop on the top-level `<Modal>` — it only works if a `<Modal.Footer>` ELEMENT is
+ * included among `<Modal>`'s own `children`. The real `ModalBody` internally scans its children
+ * for one (matching on `child.type === ModalFooter`) and pulls it out of the scrolling area to
+ * pin it at the bottom; without one present, nothing renders there, no matter what other props
+ * are set — exactly the bug this fixes. Built here as a `<MantineModal.Footer>` containing
+ * Forge's own `Button` adapter (`variant="text"` for secondary, `variant="solid"` for primary,
+ * matching the static preview's established look), appended after `content`/`children` so
+ * `ModalBody`'s own children-scan finds it regardless of where in the list it sits.
+ *
+ * `showHeader`/`scrollable` still have no real destination: `showHeader` because the real
+ * Modal already conditionally renders its header on `title || withCloseButton` with no
+ * independent toggle, and `scrollable` because the real `ModalBody` always scrolls its content
+ * area — there's no non-scrolling mode to opt out of.
+ *
+ * `position`/`draggable`/`onPositionChange` — GAP: the adapter's Modal is a centred Mantine
+ * Modal with no anchored positioning and no dragging, which Forge's colour/opacity pickers need
+ * (they open beside the control they edit and can be dragged aside). Still an adapter gap (2.1
+ * in docs/ADAPTER_CAPABILITY_GAPS.md); the pickers route around it via Forge's own
+ * FloatingPalette instead of a Modal, so these props don't reach here in practice.
+ *
  * `size`/`radius`/`shadow` removed from ModalProps entirely (2026-08) — see common/Modal.ts.
  */
 
 import React from 'react'
 import { Modal as MantineModal } from '@recursica/mantine-adapter'
+import { Button } from '../../Button'
 import type { ModalProps } from '../../common/Modal'
 import type { AssertWired } from '../../common/wiringCheck'
 
@@ -63,8 +77,42 @@ export default React.forwardRef<any, ModalProps>(function Modal({
     trapFocus,
     zIndex,
     showCloseButton,
+    showFooter,
+    showSecondaryButton,
+    primaryActionLabel,
+    onPrimaryAction,
+    primaryActionDisabled,
+    secondaryActionLabel,
+    onSecondaryAction,
+    secondaryActionDisabled,
     mantine,
 }, ref) {
+    const hasFooterContent = showFooter !== false && (primaryActionLabel || secondaryActionLabel)
+    const footer = hasFooterContent ? (
+        <MantineModal.Footer>
+            {showSecondaryButton !== false && secondaryActionLabel && (
+                <Button
+                    variant="text"
+                    layer={layer}
+                    onClick={onSecondaryAction}
+                    disabled={secondaryActionDisabled}
+                >
+                    {secondaryActionLabel}
+                </Button>
+            )}
+            {primaryActionLabel && (
+                <Button
+                    variant="solid"
+                    layer={layer}
+                    onClick={onPrimaryAction}
+                    disabled={primaryActionDisabled}
+                >
+                    {primaryActionLabel}
+                </Button>
+            )}
+        </MantineModal.Footer>
+    ) : null
+
     return (
         <MantineModal
             overStyled
@@ -84,6 +132,7 @@ export default React.forwardRef<any, ModalProps>(function Modal({
         >
             {content}
             {children}
+            {footer}
         </MantineModal>
     )
 })
@@ -100,9 +149,14 @@ export default React.forwardRef<any, ModalProps>(function Modal({
 // (present in one union branch, absent in the other), so this generic check would flag them as
 // having "no real field under this name" even though the literal JSX attribute above already
 // type-checks them correctly. `layer` is Forge-only bookkeeping (see FORGE_ONLY_PROPS), not
-// used by this wrapper.
+// used for CSS var lookups here — only forwarded into the footer's `Button`s.
+// `showFooter`/`showSecondaryButton`/`primaryActionLabel`/`onPrimaryAction`/
+// `primaryActionDisabled`/`secondaryActionLabel`/`onSecondaryAction`/`secondaryActionDisabled`
+// are excluded: composed into the `<MantineModal.Footer>` element above (a real reshape, not a
+// rename), so the literal JSX above is what actually gets checked.
 //
-// Everything else in this list has no real destination at all (see header comment for why).
+// `showHeader`/`scrollable`/`position`/`draggable`/`onPositionChange` have no real destination
+// at all (see header comment for why).
 type _Wiring = AssertWired<
     ModalProps,
     typeof MantineModal,

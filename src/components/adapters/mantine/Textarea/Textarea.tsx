@@ -9,14 +9,18 @@
  * `__InputProps` half, not on `RecursicaTextAreaProps_2` (which only adds `withAsterisk`/
  * `maxRows`/`minRows`/`autosize`).
  *
- * `editIcon`/`editIconGap` have no real destination: same systemic gap as TextField's — the
- * adapter renders its own edit affordance beside the label with no slot for a caller-supplied
- * icon node, and the Textarea dispatcher (`adapters/Textarea.tsx`) doesn't even forward
- * `editIconGap` to this component in the first place.
+ * `editIcon` (2026-08, corrected — previously dropped on the incorrect claim "no real slot"):
+ * translated via the shared `resolveLabelActionArea` helper (`../labelActionArea.tsx`) into the
+ * real `labelActionArea`/`labelWithEditIcon` — see that file. Note `TextareaProps` (unlike
+ * TextField's/Label's) has no `editIconTitle`/`onEditIconClick` of its own — a narrower, but
+ * genuine, gap in Forge's own common type for this component, not addressed here — so those two
+ * are passed as `undefined` to the helper; only the plain-icon and boolean-shorthand cases are
+ * reachable through Textarea today. `editIconGap` still has no real equivalent.
  */
 
 import React from 'react'
 import { TextArea as MantineTextarea } from '@recursica/mantine-adapter'
+import { resolveLabelActionArea } from '../labelActionArea'
 import type { TextareaProps } from '../../common/Textarea'
 import type { AssertWired } from '../../common/wiringCheck'
 
@@ -32,6 +36,7 @@ export default React.forwardRef<any, TextareaProps>(function Textarea({
     helpText,
     errorText,
     layout,
+    layer,
     required,
     optional,
     labelAlign,
@@ -42,8 +47,12 @@ export default React.forwardRef<any, TextareaProps>(function Textarea({
     readOnly,
     leadingIcon,
     trailingIcon,
+    editIcon,
     mantine,
 }, ref) {
+    const { labelActionArea, labelWithEditIcon, onLabelEditClick } =
+        resolveLabelActionArea(editIcon, undefined, undefined, layer)
+
     return (
         <MantineTextarea
             ref={ref}
@@ -68,6 +77,9 @@ export default React.forwardRef<any, TextareaProps>(function Textarea({
             readOnly={readOnly}
             leftSection={leadingIcon}
             rightSection={trailingIcon}
+            labelActionArea={labelActionArea}
+            labelWithEditIcon={labelWithEditIcon}
+            onLabelEditClick={onLabelEditClick}
             {...mantine}
         />
     )
@@ -76,9 +88,10 @@ export default React.forwardRef<any, TextareaProps>(function Textarea({
 // Compile-time only — fails the build the moment TextareaProps declares a prop with no real,
 // type-compatible home on the real TextArea (directly, or via the renames below). `layout` is
 // excluded like DatePicker's: Forge types it as an open `string`, wider than the real
-// `formLayout` union, and the ternary above is the real translation. `state`, `editIcon` and
-// `editIconGap` are excluded with no rename and no adaptation: confirmed no real equivalent
-// exists for any of them (see header).
+// `formLayout` union, and the ternary above is the real translation. `editIcon` is excluded:
+// it's a real reshape via `resolveLabelActionArea` above (see header), not a straight rename.
+// `state`/`editIconGap` are excluded with no rename and no adaptation: confirmed no real
+// equivalent exists for either.
 type _Wiring = AssertWired<
     TextareaProps,
     typeof MantineTextarea,

@@ -460,7 +460,6 @@ function ElevationSliderInline({
   }
 
   const safeSelectedIndex = Math.max(0, Math.min(selectedIndex, tokens.length - 1))
-  const currentToken = tokens[safeSelectedIndex]
 
   const minToken = tokens[0]
   const maxToken = tokens[tokens.length - 1]
@@ -503,12 +502,6 @@ function ElevationSliderInline({
       showValueLabel={true}
       showMinMaxLabels={false}
       valueLabel={getValueLabel}
-      tooltipText={(() => {
-        if (!currentToken) return 'None'
-        const match = currentToken.name.match(/elevation-(\d+)/)
-        const elevationNum = match ? parseInt(match[1], 10) : 0
-        return elevationNum === 0 ? 'None' : String(elevationNum)
-      })()}
       label={<Label layer={layer} layout="stacked">{label}</Label>}
     />
   )

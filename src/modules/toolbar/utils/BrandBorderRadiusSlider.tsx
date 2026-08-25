@@ -274,7 +274,6 @@ export default function BrandBorderRadiusSlider({
         showInput={false}
         showValueLabel={true}
         valueLabel={displayLabel}
-        tooltipText={displayLabel}
         minLabel={minLabel}
         maxLabel={maxLabel}
         showMinMaxLabels={false}

@@ -15,13 +15,16 @@
  *   - `editIconGap`: no real destination, and the TextField dispatcher
  *     (`adapters/TextField.tsx`) never forwards it to this component either.
  *
- * `editIcon`/`editIconTitle` are dropped for the same reason as the rest of the field
- * vocabulary (see FIELD_CONTRACT in adapterPropContract.ts): the adapter renders its own edit
- * affordance beside the label with no slot for a caller-supplied icon node or title.
+ * `editIcon`/`editIconTitle`/`onEditIconClick` (2026-08, corrected — previously dropped on the
+ * incorrect claim "no real slot"): translated via the shared `resolveLabelActionArea` helper
+ * (`../labelActionArea.tsx`) into the real `labelActionArea`/`labelWithEditIcon`/
+ * `onLabelEditClick` — see that file for the full explanation. Same root cause and fix as
+ * `mantine/Label/Label.tsx`.
  */
 
 import React from 'react'
 import { TextField as MantineTextField } from '@recursica/mantine-adapter'
+import { resolveLabelActionArea } from '../labelActionArea'
 import type { TextFieldProps } from '../../common/TextField'
 import type { AssertWired } from '../../common/wiringCheck'
 
@@ -39,6 +42,7 @@ export default React.forwardRef<any, TextFieldProps>(function TextField({
     leadingIcon,
     trailingIcon,
     layout,
+    layer,
     required,
     optional,
     labelAlign,
@@ -51,9 +55,14 @@ export default React.forwardRef<any, TextFieldProps>(function TextField({
     step,
     autoFocus,
     readOnly,
+    editIcon,
+    editIconTitle,
     onEditIconClick,
     mantine,
 }, ref) {
+    const { labelActionArea, labelWithEditIcon, onLabelEditClick } =
+        resolveLabelActionArea(editIcon, editIconTitle, onEditIconClick, layer)
+
     return (
         <MantineTextField
             ref={ref}
@@ -82,7 +91,9 @@ export default React.forwardRef<any, TextFieldProps>(function TextField({
             step={step}
             autoFocus={autoFocus}
             readOnly={readOnly}
-            onLabelEditClick={onEditIconClick}
+            labelActionArea={labelActionArea}
+            labelWithEditIcon={labelWithEditIcon}
+            onLabelEditClick={onLabelEditClick}
             {...mantine}
         />
     )
@@ -91,9 +102,10 @@ export default React.forwardRef<any, TextFieldProps>(function TextField({
 // Compile-time only — fails the build the moment TextFieldProps declares a prop with no real,
 // type-compatible home on the real TextField (directly, or via the renames below). `layout`
 // is excluded like DatePicker's: Forge types it as an open `string`, wider than the real
-// `formLayout` union, and the ternary above is the real translation. `state`, `minWidth`,
-// `editIcon`, `editIconGap` and `editIconTitle` are excluded with no rename and no adaptation:
-// confirmed no real equivalent exists for any of them (see header).
+// `formLayout` union, and the ternary above is the real translation. `editIcon`/`editIconTitle`/
+// `onEditIconClick` are excluded: they're a real reshape via `resolveLabelActionArea` above (see
+// header), not a straight rename. `state`/`minWidth`/`editIconGap` are excluded with no rename
+// and no adaptation: confirmed no real equivalent exists for any of them.
 type _Wiring = AssertWired<
     TextFieldProps,
     typeof MantineTextField,
@@ -109,7 +121,8 @@ type _Wiring = AssertWired<
     | 'minWidth'
     | 'editIcon'
     | 'editIconGap'
-    | 'editIconTitle',
-    { helpText: 'assistiveText'; errorText: 'error'; leadingIcon: 'leftSection'; trailingIcon: 'rightSection'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment'; onEditIconClick: 'onLabelEditClick' }
+    | 'editIconTitle'
+    | 'onEditIconClick',
+    { helpText: 'assistiveText'; errorText: 'error'; leadingIcon: 'leftSection'; trailingIcon: 'rightSection'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment' }
 >
 const _wiringCheck: _Wiring = true

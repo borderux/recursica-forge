@@ -14,9 +14,11 @@
  *   - labelAlign -> labelAlignment (RecursicaLabelProps.labelAlignment)
  *   - labelSize matches by name already (RecursicaLabelProps.labelSize)
  *
- * `orientation` — unlike RadioButtonGroup, the real adapter DOES have an equivalent here:
- * RecursicaCheckboxGroupProps_2 declares `row?: boolean`. Reshaped rather than renamed
- * (Forge's union doesn't match a boolean 1:1).
+ * `orientation` (2026-08, upstream resolution — see `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md`
+ * #3): used to reshape onto a `row?: boolean` field that was confirmed dead (declared but
+ * never read by the real implementation, just silently spread onto a Mantine primitive with
+ * no `row` prop of its own). Rather than wiring it up, the field was removed from the real
+ * type entirely — so `orientation` now has no real destination at all and is dropped.
  * `padding`/`itemGap` — no real equivalent anywhere on RecursicaCheckboxGroupProps. Dropped.
  */
 
@@ -33,7 +35,6 @@ export default React.forwardRef<any, CheckboxGroupProps>(function CheckboxGroup(
     errorText,
     required,
     optional,
-    orientation,
     layout,
     labelAlign,
     labelSize,
@@ -47,7 +48,6 @@ export default React.forwardRef<any, CheckboxGroupProps>(function CheckboxGroup(
             error={errorText}
             required={required}
             labelOptionalText={optional}
-            row={orientation === 'horizontal'}
             formLayout={layout === 'side-by-side' ? 'side-by-side' : 'stacked'}
             labelAlignment={labelAlign}
             labelSize={labelSize}
@@ -63,11 +63,9 @@ export default React.forwardRef<any, CheckboxGroupProps>(function CheckboxGroup(
 // real, type-compatible home on the real CheckboxGroup (directly, or via the renames below).
 // `children` is excluded because the real CheckboxGroup requires it non-optional while Forge
 // declares it optional — passed through as JSX children above rather than a literal
-// attribute. `orientation` is excluded: it's reshaped into `row` above (a boolean, not a
-// rename), so checking its untranslated shape here would be a false positive. `layout` is
-// excluded: Forge deliberately types it as an open `string`, wider than the real
-// `formLayout` union — the ternary above is the actual translation.
-// `padding`/`itemGap` are genuine adapter gaps — see file header.
+// attribute. `layout` is excluded: Forge deliberately types it as an open `string`, wider than
+// the real `formLayout` union — the ternary above is the actual translation.
+// `orientation`/`padding`/`itemGap` are genuine adapter gaps — see file header.
 type _Wiring = AssertWired<
     CheckboxGroupProps,
     typeof MantineCheckboxGroup,

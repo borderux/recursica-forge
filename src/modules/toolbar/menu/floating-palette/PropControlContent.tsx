@@ -521,7 +521,6 @@ function TypographySliderInline({
   }
 
   const safeSelectedIndex = Math.max(0, Math.min(selectedIndex, tokens.length - 1))
-  const currentToken = tokens[safeSelectedIndex]
 
   const minToken = tokens[0]
   const maxToken = tokens[tokens.length - 1]
@@ -551,7 +550,6 @@ function TypographySliderInline({
       showInput={false}
       showValueLabel={true}
       valueLabel={getValueLabel}
-      tooltipText={currentToken?.label || String(safeSelectedIndex)}
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}

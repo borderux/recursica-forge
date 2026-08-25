@@ -6,8 +6,11 @@
  * runtime the underlying Mantine `AutoComplete` treats as `ComboboxStringData` — plain
  * strings or `{ value, disabled }` pairs with no separate display label, icon, or divider
  * slot (confirmed against @mantine/core's `ComboboxStringItem`). Reshaped here to `{ value,
- * disabled }` rather than just renamed; everything else on `AutocompleteItem` (label as a
- * distinct node, icons, supportingText, divider) has no upstream destination and is dropped.
+ * disabled }` rather than just renamed; everything else on `AutocompleteItem` — `label` as a
+ * distinct node, `icon`, `leadingIconType`, `supportingText`, `divider` — has no upstream
+ * destination and is dropped. An upstream ask to add real per-item icon/supporting-text/
+ * divider rendering was declined (2026-08, permanent — see
+ * `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md` #7); this is confirmed final, not pending.
  *
  * `zIndex` has a real destination too, just nested: the real type doesn't expose a top-level
  * `zIndex`, but does forward `comboboxProps` straight to Mantine's `Combobox`, whose popover

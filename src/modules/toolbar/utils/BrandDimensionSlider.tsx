@@ -281,15 +281,11 @@ export default function BrandDimensionSlider({
   
   const currentToken = tokens[selectedIndex]
   const displayLabel = currentToken ? currentToken.label : ''
-  const tokenName = currentToken ? currentToken.key : ''
   const minToken = tokens[0]
   const maxToken = tokens[tokens.length > 0 ? tokens.length - 1 : 0]
   const minLabel = minToken ? minToken.label : '0'
   const maxLabel = maxToken ? maxToken.label : '0'
-  
-  // Get tooltip text - show token name (key) in tooltip
-  const tooltipText = tokenName || displayLabel
-  
+
   return (
     <div className="control-group">
       <Slider
@@ -304,7 +300,6 @@ export default function BrandDimensionSlider({
         showInput={false}
         showValueLabel={true}
         valueLabel={displayLabel}
-        tooltipText={tooltipText}
         minLabel={minLabel}
         maxLabel={maxLabel}
         showMinMaxLabels={false}

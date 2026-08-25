@@ -15,7 +15,9 @@
  *     — those don't exist on this component at all. FIELD_CONTRACT's generic leading/
  *     trailing-icon renames (built for TextField-shaped fields) are wrong here, which is why
  *     this component no longer goes through that central table (see adapterPropContract.ts).
- *   - `trailingIcon` — dropped: confirmed no second icon slot exists on the real component.
+ *   - `trailingIcon` — dropped: confirmed no second icon slot exists on the real component. An
+ *     upstream ask to add one was declined (2026-08, permanent — see
+ *     `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md` #6); this is not pending a future fix.
  *   - `state` — unlike DatePicker (whose Recursica-specific additions are a genuinely empty
  *     interface), this component's real props DO include a real `disabled?: boolean`, so
  *     `state === 'disabled'` is wired to it for real rather than dropped.

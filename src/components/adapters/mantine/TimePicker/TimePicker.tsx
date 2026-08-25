@@ -28,10 +28,19 @@
  *     `<div>` (not a native `<input>`), and neither `@mantine/dates`' own `TimePickerProps`
  *     nor `__BaseInputProps` re-adds a `placeholder` field for it — divs have no such HTML
  *     attribute to forward it to. Dropped; a real (if minor) adapter gap.
+ *   - `editIcon` (2026-08, corrected — previously dropped on the incorrect claim "no real
+ *     slot"): translated via the shared `resolveLabelActionArea` helper
+ *     (`../labelActionArea.tsx`) into the real `labelActionArea`/`labelWithEditIcon` — see that
+ *     file. Note `TimePickerProps` (unlike TextField's/Label's) has no `editIconTitle`/
+ *     `onEditIconClick` of its own — a narrower, but genuine, gap in Forge's own common type
+ *     for this component, not addressed here — so those two are passed as `undefined` to the
+ *     helper; only the plain-icon and boolean-shorthand cases are reachable through TimePicker
+ *     today.
  */
 
 import React from 'react'
 import { TimePicker as MantineTimePicker } from '@recursica/mantine-adapter'
+import { resolveLabelActionArea } from '../labelActionArea'
 import type { TimePickerProps } from '../../common/TimePicker'
 import type { AssertWired } from '../../common/wiringCheck'
 
@@ -46,6 +55,7 @@ export default React.forwardRef<any, TimePickerProps>(function TimePicker({
     leadingIcon,
     state,
     layout,
+    layer,
     required,
     optional,
     labelAlign,
@@ -54,8 +64,12 @@ export default React.forwardRef<any, TimePickerProps>(function TimePicker({
     name,
     autoFocus,
     readOnly,
+    editIcon,
     mantine,
 }, ref) {
+    const { labelActionArea, labelWithEditIcon, onLabelEditClick } =
+        resolveLabelActionArea(editIcon, undefined, undefined, layer)
+
     return (
         <MantineTimePicker
             ref={ref}
@@ -77,6 +91,9 @@ export default React.forwardRef<any, TimePickerProps>(function TimePicker({
             name={name}
             autoFocus={autoFocus}
             readOnly={readOnly}
+            labelActionArea={labelActionArea}
+            labelWithEditIcon={labelWithEditIcon}
+            onLabelEditClick={onLabelEditClick}
             {...mantine}
         />
     )
@@ -90,10 +107,10 @@ export default React.forwardRef<any, TimePickerProps>(function TimePicker({
 // (the other state values, e.g. `focus`/`error`, have no real destination beyond `error`
 // itself, which is already covered by `errorText`). `layout` is excluded like DatePicker's:
 // Forge types it as an open `string`, wider than the real `formLayout` union, and the ternary
-// above is the real translation. `onKeyDown`, `onBlur`, `period`, `onPeriodChange` and
-// `editIconGap` are excluded with no rename and no adaptation: confirmed no real equivalent
-// exists for any of them (see header); `editIcon` similarly has no real slot (same rationale
-// as TextField's).
+// above is the real translation. `editIcon` is excluded: a real reshape via
+// `resolveLabelActionArea` above (see header), not a straight rename. `onKeyDown`, `onBlur`,
+// `period`, `onPeriodChange` and `editIconGap` are excluded with no rename and no adaptation:
+// confirmed no real equivalent exists for any of them (see header).
 type _Wiring = AssertWired<
     TimePickerProps,
     typeof MantineTimePicker,

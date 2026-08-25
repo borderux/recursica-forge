@@ -17,8 +17,17 @@
  *   - `layout` has no real destination: Label is not a form control (no FormControlWrapper),
  *     so it has nothing to do with `formLayout`. Moved in here from
  *     adapterPropContract.ts's `PROP_CONTRACT['Label']` entry.
- *   - `editIcon`/`editIconTitle` have no real slot, same rationale as TextField's. `editIconGap`
- *     has no real slot either.
+ *   - `editIcon`/`editIconTitle`/`onEditIconClick` (2026-08, corrected — this wrapper
+ *     previously dropped `editIcon`/`editIconTitle` entirely on the claim "no real slot, same
+ *     rationale as TextField's," which turned out to be wrong: the real Label (and every real
+ *     field component built on the same `RecursicaFormControlWrapperProps`) has a slot for
+ *     exactly this, `labelActionArea`. Translated via the shared `resolveLabelActionArea`
+ *     helper (`../labelActionArea.tsx`) — see that file for the full two-case explanation
+ *     (boolean shorthand vs. a real icon node) and why it's centralized there. This was the
+ *     root cause of a real, user-visible bug: `BrandDimensionSliderInline`'s globe-icon-to-
+ *     detach-a-global-token control (rendered via a `<Label editIcon={...}>` passed as a
+ *     Slider's `label`) silently had no visible icon at all on the Mantine kit, despite being
+ *     correctly computed and forwarded from `useGlobalRefControl`.
  *   - `id` IS a real prop (via `ElementProps<'label'>`) — passed through here even though the
  *     Label dispatcher (`adapters/Label.tsx`) doesn't currently destructure/forward it at all.
  *     That's a dispatcher-level bug (not this wrapper's to fix): today `id` is always
@@ -27,6 +36,7 @@
 
 import React from 'react'
 import { Label as MantineLabel } from '@recursica/mantine-adapter'
+import { resolveLabelActionArea } from '../labelActionArea'
 import type { LabelProps } from '../../common/Label'
 import type { AssertWired } from '../../common/wiringCheck'
 
@@ -36,11 +46,17 @@ export default React.forwardRef<any, LabelProps>(function Label({
     variant,
     size,
     align,
+    layer,
     required,
     id,
+    editIcon,
+    editIconTitle,
     onEditIconClick,
     mantine,
 }, ref) {
+    const { labelActionArea, labelWithEditIcon, onLabelEditClick } =
+        resolveLabelActionArea(editIcon, editIconTitle, onEditIconClick, layer)
+
     return (
         <MantineLabel
             htmlFor={htmlFor}
@@ -49,7 +65,9 @@ export default React.forwardRef<any, LabelProps>(function Label({
             required={required || variant === 'required'}
             labelOptionalText={variant === 'optional' ? true : undefined}
             id={id}
-            onLabelEditClick={onEditIconClick}
+            labelActionArea={labelActionArea}
+            labelWithEditIcon={labelWithEditIcon}
+            onLabelEditClick={onLabelEditClick}
             {...mantine}
             ref={ref}
         >
@@ -61,9 +79,13 @@ export default React.forwardRef<any, LabelProps>(function Label({
 // Compile-time only — fails the build the moment LabelProps declares a prop with no real,
 // type-compatible home on the real Label (directly, or via the renames below). `variant` is
 // excluded: it's explicitly folded into `required`/`labelOptionalText` above, not renamed, so
-// checking its untranslated shape here would be a false positive. `layout`, `editIcon`,
-// `editIconGap` and `editIconTitle` are excluded with no rename and no adaptation: confirmed
-// no real equivalent exists for any of them (see header).
+// checking its untranslated shape here would be a false positive. `layout` is excluded: Label
+// isn't a form control, no real `formLayout`-equivalent concept applies to it (see header).
+// `editIcon`/`editIconTitle`/`onEditIconClick` are excluded: they're a real reshape into
+// `labelActionArea`/`labelWithEditIcon`/`onLabelEditClick` above (a genuine translation, not a
+// straight rename), so the literal attributes above are what actually get checked.
+// `editIconGap` has no real equivalent — the real `labelActionArea` slot has no configurable
+// gap of its own — dropped.
 type _Wiring = AssertWired<
     LabelProps,
     typeof MantineLabel,
@@ -77,7 +99,8 @@ type _Wiring = AssertWired<
     | 'layout'
     | 'editIcon'
     | 'editIconGap'
-    | 'editIconTitle',
-    { size: 'labelSize'; align: 'labelAlignment'; onEditIconClick: 'onLabelEditClick' }
+    | 'editIconTitle'
+    | 'onEditIconClick',
+    { size: 'labelSize'; align: 'labelAlignment' }
 >
 const _wiringCheck: _Wiring = true

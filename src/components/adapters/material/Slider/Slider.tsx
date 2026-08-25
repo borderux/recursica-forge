@@ -1,15 +1,29 @@
 /**
  * Material UI Slider Implementation
- * 
- * Material UI-specific Slider component that uses CSS variables for theming.
+ *
+ * Material UI-specific Slider component that uses CSS variables for theming. Unlike Mantine,
+ * MUI's real `Slider` has no dedicated real-adapter package to delegate layout to, so this
+ * wrapper still hand-renders min/max labels, the optional numeric input(s), and forwards the
+ * formatted value display to MUI's own native mechanism (see below) — same pattern as every
+ * other Material field wrapper.
+ *
+ * `valueLabel`/`showValueLabel` (2026-08, corrected): raw `@mui/material`'s Slider already has
+ * this exact "format the value for display" concept natively — `valueLabelFormat?: string |
+ * ((value, index) => ReactNode)` plus `valueLabelDisplay?: 'on' | 'auto' | 'off'`. Previously
+ * this wrapper hand-rolled its own duplicate value-label `<span>` (rendered under the same
+ * `showValueLabel && !showInput && label` condition MUI's own floating label used), causing the
+ * formatted value to render twice on screen. Now there's exactly one renderer: MUI's own,
+ * driven by `valueLabelFormat={valueLabel}` and `valueLabelDisplay` computed from
+ * `showValueLabel` (permanently visible) vs. just `valueLabel` being set (shows during
+ * drag/hover only) vs. neither (off).
  */
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { Slider as MaterialSlider } from '@mui/material'
 import type { SliderProps as AdapterSliderProps } from '../../common/Slider'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { useCssVar } from '../../../hooks/useCssVar'
 import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
 import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { genericLayerText } from '../../../../core/css/cssVarBuilder'
@@ -32,7 +46,6 @@ export default React.forwardRef<any, AdapterSliderProps>(function Slider({
   showInput = false,
   showValueLabel = false,
   valueLabel,
-  tooltipText,
   minLabel,
   maxLabel,
   showMinMaxLabels = true,
@@ -102,44 +115,10 @@ export default React.forwardRef<any, AdapterSliderProps>(function Slider({
   // Get disabled opacity CSS variable
   const disabledOpacityVar = getBrandStateCssVar(mode, 'disabled')
 
-  // Reactively read thumb elevation from CSS variable
-  const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
-    if (!thumbElevationVar) return undefined
-    const value = readCssVar(thumbElevationVar)
-    return value ? parseElevationValue(value) : undefined
-  })
-
-  // Listen for CSS variable updates from the toolbar
-  useEffect(() => {
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      if (!detail?.cssVars || detail.cssVars.includes(thumbElevationVar)) {
-        if (thumbElevationVar) {
-          const value = readCssVar(thumbElevationVar)
-          setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
-        }
-      }
-    }
-
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-
-    // Also watch for direct style changes using MutationObserver
-    const observer = new MutationObserver(() => {
-      if (thumbElevationVar) {
-        const value = readCssVar(thumbElevationVar)
-        setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
-      }
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-
-    return () => {
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-      observer.disconnect()
-    }
-  }, [thumbElevationVar])
+  // Reactively read thumb elevation from CSS variable (useCssVar already handles the
+  // MutationObserver + cssVarsUpdated reactivity generically — no need to hand-roll it here).
+  const thumbElevationRaw = useCssVar(thumbElevationVar)
+  const thumbElevationFromVar = thumbElevationRaw ? parseElevationValue(thumbElevationRaw) : undefined
 
   // Determine thumb elevation from recursica_ui-kit.json
   const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
@@ -169,25 +148,6 @@ export default React.forwardRef<any, AdapterSliderProps>(function Slider({
   const trackActiveColor = `var(${trackActiveVar})`
   const thumbColor = `var(${thumbVar})`
 
-  // Calculate display value for readonly label
-  let displayValue: string | number | undefined
-  try {
-    if (valueLabel) {
-      if (typeof valueLabel === 'function') {
-        displayValue = valueLabel(singleValue)
-      } else {
-        displayValue = valueLabel
-      }
-    } else {
-      displayValue = singleValue
-    }
-  } catch (error) {
-    displayValue = singleValue
-  }
-  const displayValueStr = (displayValue !== undefined && displayValue !== null && String(displayValue).trim() !== '')
-    ? String(displayValue).trim()
-    : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '—')
-
   // Get min-max label text styling CSS variables using getComponentTextCssVar (for text style toolbar)
   const minMaxLabelFontFamilyVar = getComponentTextCssVar('Slider', 'min-max-label', 'font-family')
   const minMaxLabelFontSizeVar = getComponentTextCssVar('Slider', 'min-max-label', 'font-size')
@@ -198,66 +158,16 @@ export default React.forwardRef<any, AdapterSliderProps>(function Slider({
   const minMaxLabelTextTransformVar = getComponentTextCssVar('Slider', 'min-max-label', 'text-transform')
   const minMaxLabelFontStyleVar = getComponentTextCssVar('Slider', 'min-max-label', 'font-style')
 
-  // Get read-only value text styling CSS variables using getComponentTextCssVar (for text style toolbar)
-  const readOnlyValueFontFamilyVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-family')
-  const readOnlyValueFontSizeVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-size')
-  const readOnlyValueFontWeightVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-weight')
-  const readOnlyValueLetterSpacingVar = getComponentTextCssVar('Slider', 'read-only-value', 'letter-spacing')
-  const readOnlyValueLineHeightVar = getComponentTextCssVar('Slider', 'read-only-value', 'line-height')
-  const readOnlyValueTextDecorationVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-decoration')
-  const readOnlyValueTextTransformVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-transform')
-  const readOnlyValueFontStyleVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-style')
-
   // Use layer text color directly for labels and values
   const layerNum = parseInt(layer.replace('layer-', ''), 10) || 0
   const layerTextColorVar = genericLayerText(layerNum, 'color')
   const layerTextEmphasisVar = genericLayerText(layerNum, 'high-emphasis')
 
-  // State to force re-render when text CSS variables change
-  const [textVarsUpdate, setTextVarsUpdate] = useState(0)
-
-  // Listen for CSS variable updates from the toolbar
-  useEffect(() => {
-    const textCssVars = [
-      minMaxLabelFontFamilyVar, minMaxLabelFontSizeVar, minMaxLabelFontWeightVar, minMaxLabelLetterSpacingVar,
-      minMaxLabelLineHeightVar, minMaxLabelTextDecorationVar, minMaxLabelTextTransformVar, minMaxLabelFontStyleVar,
-      readOnlyValueFontFamilyVar, readOnlyValueFontSizeVar, readOnlyValueFontWeightVar, readOnlyValueLetterSpacingVar,
-      readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
-    ]
-
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      const updatedVars = detail?.cssVars || []
-      // Update if any text CSS var was updated, or if no specific vars were mentioned (global update)
-      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
-      if (shouldUpdate) {
-        // Force re-render by updating state
-        setTextVarsUpdate(prev => prev + 1)
-      }
-    }
-
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-
-    // Also watch for direct style changes using MutationObserver
-    const observer = new MutationObserver(() => {
-      // Force re-render for text vars
-      setTextVarsUpdate(prev => prev + 1)
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-
-    return () => {
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-      observer.disconnect()
-    }
-  }, [
-    minMaxLabelFontFamilyVar, minMaxLabelFontSizeVar, minMaxLabelFontWeightVar, minMaxLabelLetterSpacingVar,
-    minMaxLabelLineHeightVar, minMaxLabelTextDecorationVar, minMaxLabelTextTransformVar, minMaxLabelFontStyleVar,
-    readOnlyValueFontFamilyVar, readOnlyValueFontSizeVar, readOnlyValueFontWeightVar, readOnlyValueLetterSpacingVar,
-    readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
-  ])
+  // Note: the min-max label spans below reference these CSS vars via live `var(...)` inline
+  // styles, which the browser's own cascade keeps in sync automatically — no MutationObserver/
+  // event-listener re-render plumbing needed (that hand-rolled reactivity used to live here,
+  // duplicated across every field wrapper; see useCssVar for the one place it's still needed —
+  // reading a var's *computed value* into JS, e.g. thumbElevationFromVar above).
 
     const labelsBelow = layout === 'labels-below'
 
@@ -444,8 +354,8 @@ export default React.forwardRef<any, AdapterSliderProps>(function Slider({
           step={step}
           marks={type === 'discrete'}
           disabled={disabled}
-          valueLabelDisplay="auto"
-          valueLabelFormat={tooltipText ? (val: number) => typeof tooltipText === 'function' ? tooltipText(val) : tooltipText : undefined}
+          valueLabelDisplay={showValueLabel ? 'on' : (valueLabel ? 'auto' : 'off')}
+          valueLabelFormat={valueLabel}
           className={className}
           sx={{
             color: trackActiveColor,
@@ -644,27 +554,6 @@ export default React.forwardRef<any, AdapterSliderProps>(function Slider({
             } as any}
           />
         </>
-      )}
-      {showValueLabel && !showInput && label && (
-        <span
-          style={{
-            minWidth: `var(${inputWidthVar}, 60px)`,
-            fontFamily: readOnlyValueFontFamilyVar ? `var(${readOnlyValueFontFamilyVar})` : undefined,
-            fontSize: readOnlyValueFontSizeVar ? `var(${readOnlyValueFontSizeVar})` : undefined,
-            fontWeight: readOnlyValueFontWeightVar ? `var(${readOnlyValueFontWeightVar})` : undefined,
-            letterSpacing: readOnlyValueLetterSpacingVar ? `var(${readOnlyValueLetterSpacingVar})` : undefined,
-            lineHeight: readOnlyValueLineHeightVar ? `var(${readOnlyValueLineHeightVar})` : undefined,
-            textDecoration: readOnlyValueTextDecorationVar ? `var(${readOnlyValueTextDecorationVar})` : 'none',
-            textTransform: readOnlyValueTextTransformVar ? `var(${readOnlyValueTextTransformVar})` : 'none',
-            fontStyle: readOnlyValueFontStyleVar ? `var(${readOnlyValueFontStyleVar})` : 'normal',
-            color: `var(${layerTextColorVar})`,
-            opacity: disabled ? 0.5 : `var(${layerTextEmphasisVar})`,
-            whiteSpace: 'nowrap',
-            textAlign: 'right',
-          } as React.CSSProperties}
-        >
-          {displayValueStr}
-        </span>
       )}
     </div>
   )

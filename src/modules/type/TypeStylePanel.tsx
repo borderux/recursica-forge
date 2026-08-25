@@ -853,7 +853,6 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 showValueLabel={true}
                 showMinMaxLabels={false}
                 valueLabel={getSizeValueLabel}
-                tooltipText={getSizeValueLabel}
                 label={<Label layer="layer-3" layout="stacked">Font Size</Label>}
               />
             ) : (
@@ -883,7 +882,6 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 showValueLabel={true}
                 showMinMaxLabels={false}
                 valueLabel={getWeightValueLabel}
-                tooltipText={getWeightValueLabel}
                 label={<Label layer="layer-3" layout="stacked">Font Weight</Label>}
               />
             ) : (
@@ -913,7 +911,6 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 showValueLabel={true}
                 showMinMaxLabels={false}
                 valueLabel={getSpacingValueLabel}
-                tooltipText={getSpacingValueLabel}
                 label={<Label layer="layer-3" layout="stacked">Letter Spacing</Label>}
               />
             ) : (
@@ -943,7 +940,6 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 showValueLabel={true}
                 showMinMaxLabels={false}
                 valueLabel={getLineHeightValueLabel}
-                tooltipText={getLineHeightValueLabel}
                 label={<Label layer="layer-3" layout="stacked">Line Height</Label>}
               />
             ) : (
