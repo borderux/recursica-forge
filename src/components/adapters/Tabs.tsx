@@ -27,6 +27,8 @@ export function Tabs({
   orientation = 'horizontal',
   variant = 'default',
   tabContentAlignment = 'left',
+  inverted,
+  placement,
   layer = 'layer-0',
   children,
   className,
@@ -46,6 +48,8 @@ export function Tabs({
         orientation={orientation}
         variant={variant}
         tabContentAlignment={tabContentAlignment}
+        inverted={inverted}
+        placement={placement}
         layer={layer}
         className={className}
         style={style}

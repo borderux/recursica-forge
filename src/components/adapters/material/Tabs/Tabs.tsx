@@ -6,6 +6,13 @@
  * custom properties and relies on ordinary inheritance to reach descendant `Tabs.Tab`s — the
  * real interactive MUI `<Tabs>` itself is rendered one level down, by `Tabs.List` (see
  * `TabsList.tsx`), since that's the component that actually owns MUI's `value`/`onChange`.
+ *
+ * `inverted`/`placement` — deliberately not read here. On Mantine they're real, native raw-
+ * `@mantine/core` props that correct which corners get rounded on a "hanging"/side-mounted tab
+ * bar; Material's `Tabs.Tab` applies `border-radius` uniformly to every corner unconditionally
+ * regardless of orientation, with no directional concept at all, so there's nothing for either
+ * to flip. Caller-side DOM order (`Tabs.Panel` before `Tabs.List`) still produces the actual
+ * bottom/right layout in every kit, independent of these two props.
  */
 
 import React from 'react'
