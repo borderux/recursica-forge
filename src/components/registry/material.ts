@@ -16,6 +16,9 @@ registerComponent('material', 'RadioButtonGroup', () => import('../adapters/mate
 
 // Tabs
 registerComponent('material', 'Tabs', () => import('../adapters/material/Tabs/Tabs'))
+registerComponent('material', 'TabsList', () => import('../adapters/material/Tabs/TabsList'))
+registerComponent('material', 'TabsTab', () => import('../adapters/material/Tabs/TabsTab'))
+registerComponent('material', 'TabsPanel', () => import('../adapters/material/Tabs/TabsPanel'))
 
 // Switch
 registerComponent('material', 'Switch', () => import('../adapters/material/Switch/Switch'))

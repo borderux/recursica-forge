@@ -16,6 +16,9 @@ registerComponent('carbon', 'RadioButtonGroup', () => import('../adapters/carbon
 
 // Tabs
 registerComponent('carbon', 'Tabs', () => import('../adapters/carbon/Tabs/Tabs'))
+registerComponent('carbon', 'TabsList', () => import('../adapters/carbon/Tabs/TabsList'))
+registerComponent('carbon', 'TabsTab', () => import('../adapters/carbon/Tabs/TabsTab'))
+registerComponent('carbon', 'TabsPanel', () => import('../adapters/carbon/Tabs/TabsPanel'))
 
 // Switch
 registerComponent('carbon', 'Switch', () => import('../adapters/carbon/Switch/Switch'))
