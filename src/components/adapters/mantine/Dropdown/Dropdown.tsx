@@ -12,11 +12,14 @@
  *   - `minWidth` — no upstream sizing hook (see TextField's identical `controlMinWidth` gap).
  *   - `labelId` / `helpId` / `errorId` — the adapter wires its own aria relationships; no slot
  *     for a caller-supplied id.
- *   - Per-item `icon` / `leadingIconType` / `supportingText` / `divider` (on `DropdownItem`) —
- *     `data.map` below only carries `value`/`label`/`disabled` through; the real `data` has no
- *     slot for any of the four. An upstream ask to add real per-item icon/supporting-text/
- *     divider rendering was declined (2026-08, permanent — see
- *     `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md` #7); confirmed final, not pending.
+ *   - Per-item `icon`/`leadingIcon`/`supportingText`: false, there's a real slot (2026-08,
+ *     `@recursica/mantine-adapter@0.49.0`) — `data` items now accept `leadingIcon`/
+ *     `supportingText` directly (`RecursicaComboboxItem`), rendered inside the option row by
+ *     the adapter itself. Previously this wrapper worked around the gap with a `renderOption`
+ *     callback; removed now that the real fields exist.
+ *   - `divider`/`leadingIconType`'s radio/checkbox modes remain real, narrower gaps: the
+ *     adapter's `data` still has no divider slot, and `leadingIcon` is always rendered as a
+ *     plain icon regardless of `leadingIconType`.
  *   - `className`/`style` — the adapter styles itself purely from tokens and ignores both
  *     unless the caller opts in with `overStyled: true` — which the `mantine` escape hatch
  *     can still do (`mantine={{ overStyled: true, style: {...} }}`).
@@ -60,14 +63,16 @@ export default React.forwardRef<any, DropdownAdapterProps>(function Dropdown({
     onEditIconClick,
     mantine,
 }, ref) {
-    const data = items.map((item) => ({
-        value: item.value,
-        label: item.label ?? item.value,
-        disabled: item.disabled,
-    }))
-
     const { labelActionArea, labelWithEditIcon, onLabelEditClick } =
         resolveLabelActionArea(editIcon, editIconTitle, onEditIconClick, layer)
+
+    const data = items.map((item) => ({
+        value: item.value,
+        label: typeof item.label === 'string' ? item.label : undefined,
+        disabled: item.disabled,
+        leadingIcon: item.leadingIconType === 'none' ? undefined : (item.icon ?? item.leadingIcon),
+        supportingText: item.supportingText,
+    }))
 
     return (
         <MantineDropdown

@@ -1,32 +1,29 @@
 /**
  * Mantine Autocomplete Adapter
  *
- * Not a 1:1 pass-through: Forge's `items` is an array of rich objects (label, icons,
- * supporting text, dividers, ...) but the real adapter's `data` is `unknown[]`, which at
- * runtime the underlying Mantine `AutoComplete` treats as `ComboboxStringData` — plain
- * strings or `{ value, disabled }` pairs with no separate display label, icon, or divider
- * slot (confirmed against @mantine/core's `ComboboxStringItem`). Reshaped here to `{ value,
- * disabled }` rather than just renamed; everything else on `AutocompleteItem` — `label` as a
- * distinct node, `icon`, `leadingIconType`, `supportingText`, `divider` — has no upstream
- * destination and is dropped. An upstream ask to add real per-item icon/supporting-text/
- * divider rendering was declined (2026-08, permanent — see
- * `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md` #7); this is confirmed final, not pending.
+ * Not a 1:1 pass-through: Forge's `items` is an array of rich objects (label, icons, supporting
+ * text, dividers, ...) but the real adapter's `data` takes `RecursicaComboboxItem`s
+ * (`{ value, label?, disabled?, leadingIcon?, supportingText? }`) — a real, native slot for
+ * icon + supporting text now (2026-08, `@recursica/mantine-adapter@0.49.0` — previously the
+ * adapter's own `data` had no icon/supporting-text slot at all, and this wrapper worked around
+ * it with a `renderOption` callback; removed now that the adapter renders these fields itself).
+ * `label` stays a real string (falls back to `value` when omitted) since it's what gets
+ * matched against typed text and written into the input as the selected display text — a whole
+ * subtree can't be matched/written, so Forge's richer `AutocompleteItem.label` (typed as
+ * `ReactNode`, for other kits) still needs coercing down to a string here when it isn't one.
  *
- * `zIndex` has a real destination too, just nested: the real type doesn't expose a top-level
- * `zIndex`, but does forward `comboboxProps` straight to Mantine's `Combobox`, whose popover
- * accepts `zIndex`. Reshaped into `comboboxProps={{ zIndex }}` instead of being dropped.
+ * `divider`/`leadingIconType`'s radio/checkbox modes remain real, narrower gaps: the adapter's
+ * `data` has no divider slot, and `leadingIcon` is always rendered as a plain icon — both left
+ * as-is rather than half-implemented.
  *
- * `state` has no real equivalent anywhere (RecursicaAutocompleteProps carries no state-like
- * field) — dropped, same systemic gap as TextField/NumberInput/Slider.
+ * `zIndex` has a real destination too, just nested: reshaped into `comboboxProps={{ zIndex }}`,
+ * which the real type forwards straight to Mantine's `Combobox` popover.
  *
- * `minWidth` is the same documented gap as TextField's: the real type Omits
- * `controlMinWidth`/`controlMaxWidth` entirely, so there is no way to shrink the control
- * below its token width.
+ * `state` and `minWidth` have no real equivalent (same systemic gap as TextField/NumberInput).
  *
- * `defaultValue` has no real destination either — the real type Omits Mantine's own
- * `defaultValue` from AutocompleteProps and doesn't re-add it (only `value` is re-declared).
- * The Autocomplete dispatcher already only ever forwards the resolved `value`, never
- * `defaultValue`, so nothing observable changes by dropping it here too.
+ * `defaultValue` is real (re-added via the base `@recursica/adapter-common` type) but never
+ * actually reaches this wrapper at runtime — the Autocomplete dispatcher resolves it into its
+ * own uncontrolled state first and only ever forwards a resolved `value` down.
  */
 
 import React from 'react'
@@ -53,9 +50,17 @@ export default React.forwardRef<any, AutocompleteProps>(function Autocomplete({
     zIndex,
     mantine,
 }, ref) {
+    const data = items.map((item) => ({
+        value: item.value,
+        label: typeof item.label === 'string' ? item.label : undefined,
+        disabled: item.disabled,
+        leadingIcon: item.leadingIconType === 'none' ? undefined : (item.icon ?? item.leadingIcon),
+        supportingText: item.supportingText,
+    }))
+
     return (
         <MantineAutocomplete
-            data={items.map((item) => ({ value: item.value, disabled: item.disabled }))}
+            data={data}
             value={value}
             onChange={onChange}
             placeholder={placeholder}
@@ -79,16 +84,16 @@ export default React.forwardRef<any, AutocompleteProps>(function Autocomplete({
 
 // Compile-time only — fails the build the moment AutocompleteProps declares a prop with no
 // real, type-compatible home on the real AutoComplete (directly, or via the renames below).
-// `items`, `zIndex` and `defaultValue` are excluded: `items` is explicitly reshaped into
-// `data` above (a different shape, not a rename), `zIndex` is explicitly reshaped into
-// `comboboxProps`, and `defaultValue` is dropped with no adaptation (see file header) — all
+// `items`, `zIndex` and `defaultValue` are excluded: `items` is explicitly reshaped into `data`
+// above (a different shape, not a rename), `zIndex` is explicitly reshaped into
+// `comboboxProps`, and `defaultValue` never reaches this wrapper at runtime (see header) — all
 // three are already type-checked by the literal attributes above, so re-checking their
-// untranslated shape here would be a false positive. `layout` is excluded for the same reason
-// DatePicker excludes it: Forge types it as an open `string`, wider than the real `formLayout`
-// union, and the ternary above is the actual translation that gets type-checked.
-// `state` and `minWidth` are excluded with no rename and no adaptation: confirmed no real
-// equivalent exists (no state-like field on RecursicaAutocompleteProps; controlMinWidth /
-// controlMaxWidth are Omitted from the real type, same gap as TextField's).
+// untranslated shape here would be a false positive. `layout` is excluded
+// for the same reason DatePicker excludes it: Forge types it as an open `string`, wider than
+// the real `formLayout` union, and the ternary above is the actual translation that gets
+// type-checked. `state` and `minWidth` are excluded with no rename and no adaptation:
+// confirmed no real equivalent exists (no state-like field on RecursicaAutocompleteProps;
+// controlMinWidth/controlMaxWidth are Omitted from the real type, same gap as TextField's).
 type _Wiring = AssertWired<
     AutocompleteProps,
     typeof MantineAutocomplete,
