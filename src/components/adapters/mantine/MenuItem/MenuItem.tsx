@@ -18,8 +18,12 @@
  *   - leadingIconType — Forge's own affordance for choosing which glyph renders in
  *     leftSection (radio/checkbox/icon); the real component just takes a rendered node.
  *   - supportingText — no secondary text slot; only leftSection/rightSection/children exist.
- *   - selected / selectionState — no selected-state prop at all; upstream relies on the
- *     browser's own :hover/:focus and closeMenuOnClick, not a controlled visual state.
+ *   - selectionState — Forge's own custom-named-selection-variant string (beyond plain
+ *     selected/unselected); confirmed dead on every kit today, not just Mantine — the
+ *     dispatcher (`adapters/MenuItem.tsx`) forwards it, but neither the Material nor Carbon
+ *     per-kit wrapper reads it either. Not specifically a Mantine gap, so not given special
+ *     Mantine-only support here; the real adapter's own `[data-selected]` CSS is boolean-only
+ *     regardless (see `selected` below), with no per-name hook to route a custom variant to.
  *   - divider / dividerColor / dividerOpacity — modeled upstream as a separate `Menu.Divider`
  *     sibling element, not a prop on the item itself.
  *   - variant — no visual-variant prop; only `color` exists upstream (and Forge doesn't use
@@ -35,6 +39,7 @@ export default React.forwardRef<any, MenuItemProps>(function MenuItem({
     children,
     leadingIcon,
     trailingIcon,
+    selected,
     disabled,
     onClick,
     mantine,
@@ -43,6 +48,7 @@ export default React.forwardRef<any, MenuItemProps>(function MenuItem({
         <Menu.Item
             leftSection={leadingIcon}
             rightSection={trailingIcon}
+            mod={{ selected }}
             disabled={disabled}
             onClick={onClick}
             {...mantine}
@@ -59,6 +65,8 @@ export default React.forwardRef<any, MenuItemProps>(function MenuItem({
 // button props as effectively `any` (it accepts whatever the rendered element accepts), so
 // there's nothing meaningful for the same-name structural check to compare against — the
 // literal `onClick={onClick}` attribute above is what actually type-checks the handler.
+// `selected` is excluded: composed into the literal `mod={{ selected }}` attribute above (a
+// real reshape into a differently-shaped real prop, not a same-name rename).
 type _Wiring = AssertWired<
     MenuItemProps,
     typeof Menu.Item,
@@ -69,10 +77,10 @@ type _Wiring = AssertWired<
     | 'className'
     | 'style'
     | 'onClick'
+    | 'selected'
     | 'variant'
     | 'leadingIconType'
     | 'supportingText'
-    | 'selected'
     | 'selectionState'
     | 'divider'
     | 'dividerColor'
