@@ -18,7 +18,9 @@ export type { ChipProps } from './common/Chip'
 
 export function Chip({
   children,
-  variant = 'unselected',
+  checked,
+  error,
+  variant,
   size = 'default',
   layer = 'layer-0',
   elevation,
@@ -33,6 +35,12 @@ export function Chip({
   carbon,
 }: ChipProps) {
   const Component = useComponent('Chip')
+
+  // Resolve the built-in selection-states variant name from checked/error when the caller
+  // hasn't supplied an explicit custom variant (see ChipProps.variant). This is what
+  // Material/Carbon key their CSS-var lookups off; Mantine ignores it and consumes
+  // checked/error directly via its own native props.
+  const resolvedVariant = variant ?? (error ? (checked ? 'error-selected' : 'error') : (checked ? 'selected' : 'unselected'))
 
   // Get elevation from CSS vars if not provided as props
   const elevationVar = getComponentLevelCssVar('Chip', 'elevation')
@@ -61,9 +69,9 @@ export function Chip({
     const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar]
 
     // Get color CSS variables for reactive updates
-    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
-    const chipTextForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
-    const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
+    const chipBgForListener = buildVariantColorCssVar('Chip', resolvedVariant, 'background-color', layer)
+    const chipTextForListener = buildVariantColorCssVar('Chip', resolvedVariant, 'text', layer)
+    const chipBorderForListener = buildVariantColorCssVar('Chip', resolvedVariant, 'border-color', layer)
 
     const colorCssVars = [chipBgForListener, chipTextForListener, chipBorderForListener]
 
@@ -103,13 +111,15 @@ export function Chip({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [elevationVar, variant, layer])
+  }, [elevationVar, resolvedVariant, layer])
 
   const componentElevation = elevation ?? elevationFromVar ?? undefined
 
   // Map unified props to library-specific props
   const libraryProps = mapChipProps({
-    variant,
+    variant: resolvedVariant,
+    checked,
+    error,
     size,
     layer,
     elevation: componentElevation,

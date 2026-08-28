@@ -38,14 +38,13 @@ export default function ChipPreview({
     setSelected((prev) => ({ ...prev, [key]: !prev[key] }))
 
   // For built-in states, keep the rich demo: unselected + selected shown together, with the
-  // Error tab overlaying the error colours. For a custom state, every chip renders that state
-  // so its property edits are reflected in the preview.
-  const variantFor = (isSelected: boolean): string => {
-    if (!isBuiltInState) return selectedState
-    return isError
-      ? isSelected ? 'error-selected' : 'error'
-      : isSelected ? 'selected' : 'unselected'
-  }
+  // Error tab overlaying the error colours, driven by the real checked/error props. For a
+  // custom state, every chip renders that state via the `variant` escape hatch so its property
+  // edits are reflected in the preview.
+  const chipStateProps = (isSelected: boolean) =>
+    isBuiltInState
+      ? { checked: isSelected, error: isError }
+      : { variant: selectedState }
 
   // Determine the actual layer to use
   const actualLayer = useMemo(() => {
@@ -63,14 +62,14 @@ export default function ChipPreview({
       {/* Default (non-selectable) chips — not interactive, no selection toggle */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <Chip
-          variant={variantFor(false)}
+          {...chipStateProps(false)}
           layer={actualLayer}
           elevation={componentElevation}
         >
           Obsidian
         </Chip>
         <Chip
-          variant={variantFor(false)}
+          {...chipStateProps(false)}
           layer={actualLayer}
           elevation={componentElevation}
           icon={ShieldIcon ? <ShieldIcon /> : undefined}
@@ -82,7 +81,7 @@ export default function ChipPreview({
       {/* Selectable chips — click to toggle the selection on/off */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <Chip
-          variant={variantFor(selected.moonstone)}
+          {...chipStateProps(selected.moonstone)}
           layer={actualLayer}
           elevation={componentElevation}
           onClick={() => toggle('moonstone')}
@@ -90,7 +89,7 @@ export default function ChipPreview({
           Moonstone
         </Chip>
         <Chip
-          variant={variantFor(selected.mithril)}
+          {...chipStateProps(selected.mithril)}
           layer={actualLayer}
           elevation={componentElevation}
           icon={LightningIcon ? <LightningIcon /> : undefined}

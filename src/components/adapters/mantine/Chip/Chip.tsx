@@ -12,10 +12,16 @@
  *   - `deletable` has no real equivalent: the real Chip shows its remove icon automatically
  *     whenever an `onDelete` handler is supplied, rather than gating on a separate boolean —
  *     so passing `onDelete` already gets the same effect, and `deletable` itself is dropped.
- *   - `variant`/`size` are explicitly omitted from the real type with no replacement. Forge
- *     drives Chip's selected/error styling purely from CSS vars keyed by `variant` (see
- *     adapters/Chip.tsx's `buildVariantColorCssVar` calls) — a token-driven concept the real
- *     adapter has no upstream hook for. Dropped here; a real adapter gap, not an oversight.
+ *   - `checked`/`error` (2026-08, fixed — see the Forge Chip bug thread): the real
+ *     `RecursicaChipProps` has both (`checked` "acts as a checkbox", `error` "enables the
+ *     error state styling") and its own `FileUpload` exercises `checked` internally, so these
+ *     are live, working native props — a direct same-name pass-through.
+ *   - `variant`/`size` are still explicitly omitted with no replacement. `adapters/Chip.tsx`
+ *     resolves `checked`/`error` into a `variant` string for Material/Carbon's CSS-var-keyed
+ *     styling (no native selected/error concept there to match), but the real Mantine Chip has
+ *     no upstream hook for arbitrary *custom* variant names from the token editor — only the
+ *     built-in checked/error pair. Dropped here; a real adapter gap for the custom-name case,
+ *     not an oversight.
  */
 
 import React from 'react'
@@ -25,6 +31,8 @@ import type { AssertWired } from '../../common/wiringCheck'
 
 export default React.forwardRef<any, ChipProps>(function Chip({
     children,
+    checked,
+    error,
     onClick,
     onDelete,
     icon,
@@ -32,6 +40,8 @@ export default React.forwardRef<any, ChipProps>(function Chip({
 }, ref) {
     return (
         <MantineChip
+            checked={checked}
+            error={error}
             onClick={onClick}
             onDelete={onDelete}
             icon={icon}
@@ -46,7 +56,7 @@ export default React.forwardRef<any, ChipProps>(function Chip({
 // Compile-time only — fails the build the moment ChipProps declares a prop with no real,
 // type-compatible home on the real Chip. `variant`/`size`/`deletable` are excluded with no
 // rename: confirmed no real equivalent exists for any of the three (see header comment).
-// `onDelete` is no longer excluded — it's a direct same-name pass-through now (see header).
+// `onDelete`/`checked`/`error` are no longer excluded — they're direct same-name pass-throughs now.
 type _Wiring = AssertWired<
     ChipProps,
     typeof MantineChip,
