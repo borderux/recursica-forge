@@ -463,6 +463,51 @@ function injectElevationComposites(brand: Record<string, unknown>, out: FlatEntr
 }
 
 /**
+ * A token with `$value: null` has no value to emit: `null` means "no declaration", not "some
+ * empty value". Colours keep a type fallback (`transparent`) because a layer-specific ui-kit var
+ * must exist for every layer, but a null **string** token has no such requirement and no sensible
+ * stand-in — `""` is not a valid value for any CSS property.
+ *
+ * `tokens.font.cases.original` is the one in practice: CSS has no keyword for "render the text as
+ * authored", so the token holds null and emits nothing, which leaves `text-transform` at its
+ * initial value — exactly what it means. Note this is about the *value*, not the property:
+ * `tokens.font.decorations.none` holds the real keyword `none` (`text-decoration: none` is a
+ * meaningful declaration) and is emitted like any other value.
+ */
+function isOmittedNullToken(value: unknown, tokenType: string | undefined): boolean {
+  return value == null && tokenType === 'string'
+}
+
+/** A value that is nothing but a single `var(--x)` reference, with no fallback. */
+const SOLE_VAR_REF = /^var\(\s*(--[\w-]+)\s*\)$/
+
+/**
+ * Drops declarations that alias an omitted token. Omitting the primitive alone would leave every
+ * declaration that aliases it pointing at an undefined var — the declaration is then invalid at
+ * computed-value time, which yields the property's initial value, i.e. exactly what the null
+ * meant. Emitting it buys nothing and reads as a broken reference to anyone auditing the export.
+ *
+ * Transitive, because aliases chain: a declaration whose whole value is `var(--dropped)` carries
+ * no value either. Values that merely *mention* an omitted var among other content are left
+ * alone — those still express something.
+ */
+function pruneAliasesOfOmitted(
+  vars: Array<{ name: string; value: string }>,
+  omitted: Set<string>
+): Array<{ name: string; value: string; comment?: string }> {
+  let kept = vars as Array<{ name: string; value: string; comment?: string }>
+  for (;;) {
+    const next = kept.filter((v) => {
+      const m = SOLE_VAR_REF.exec(v.value.trim())
+      return !(m && omitted.has(m[1]))
+    })
+    if (next.length === kept.length) return kept
+    for (const v of kept) if (!next.includes(v)) omitted.add(v.name)
+    kept = next
+  }
+}
+
+/**
  * Transforms tokens, brand, and uikit JSON into specific CSS variables.
  * All vars emitted on :root. Throws if validation fails (invalid refs, bad values).
  */
@@ -471,6 +516,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   const allVarNames = new Set(entries.map((e) => pathToVarName(e.path)))
   const errors: TransformError[] = []
   const varMap: Array<{ name: string; value: string; comment?: string }> = []
+  const omitted = new Set<string>()
 
   for (const entry of entries) {
     const { path, value, type: tokenType, comment } = entry
@@ -485,6 +531,10 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
         continue
       }
     }
+    if (isOmittedNullToken(value, tokenType)) {
+      omitted.add(pathToVarName(path))
+      continue
+    }
     let formatted = formatValue(value, path, allVarNames, errors)
     if (formatted == null) formatted = fallbackForNullByType(tokenType)
     if (formatted != null) {
@@ -497,7 +547,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
     throw new Error(msg)
   }
 
-  const sorted = varMap.sort((a, b) => a.name.localeCompare(b.name))
+  const sorted = pruneAliasesOfOmitted(varMap, omitted).sort((a, b) => a.name.localeCompare(b.name))
   const css = formatCss(sorted)
   return [{ filename: FILENAME, contents: css }]
 }

@@ -70,6 +70,33 @@ function fireBatchedEvent() {
   }, 50) // Small delay to batch multiple rapid updates
 }
 
+
+/**
+ * Layer geometry is mode-independent, but is stored per theme.
+ *
+ * `brand.themes.<mode>.layers.layer-N.properties.{padding,border-radius,border-size}` holds the
+ * same value in light and dark by design — the shipped brand has them identical on all four
+ * layers, and the Layers page offers one control per layer, targeting whichever mode is being
+ * viewed (see LayersPage's useThemeMode). So an edit made in light mode wrote light only and left
+ * dark on the old value, and the exported brand JSON came out with the two modes disagreeing on a
+ * property that cannot legitimately differ.
+ *
+ * Surface and border-color are excluded because they are colours and genuinely mode-dependent;
+ * elevation is excluded because it references mode-specific elevation tokens.
+ *
+ * Returns the opposite-mode var name to keep in step, or null when the var is not one of these.
+ */
+const MODE_INDEPENDENT_LAYER_PROPS = new Set(['padding', 'border-radius', 'border-size'])
+
+export function modeIndependentLayerCounterpart(cssVarName: string): string | null {
+  const m = /^--recursica_brand_themes_(light|dark)_layers_layer-\d+_properties_(.+)$/.exec(cssVarName)
+  if (!m) return null
+  if (!MODE_INDEPENDENT_LAYER_PROPS.has(m[2])) return null
+  return m[1] === 'light'
+    ? cssVarName.replace('_themes_light_', '_themes_dark_')
+    : cssVarName.replace('_themes_dark_', '_themes_light_')
+}
+
 /**
  * Updates a single CSS variable with validation
  * 
@@ -132,6 +159,12 @@ export function updateCssVar(
   // IMMEDIATELY apply the CSS variable to the DOM to ensure 60fps live previews
   root.style.setProperty(cssVarName, trimmedValue)
 
+  // Keep mode-independent layer geometry in step across light/dark (see the helper above).
+  const layerCounterpart = modeIndependentLayerCounterpart(cssVarName)
+  if (layerCounterpart) {
+    root.style.setProperty(layerCounterpart, trimmedValue)
+  }
+
 
   // For mode-independent UIKit vars (dimensions, border-radius, padding, etc.), also
   // mirror the change to the opposite-mode themed var immediately.
@@ -157,6 +190,11 @@ export function updateCssVar(
   // updateBrandValue also clears any stale delta entries for the updated key.
   if (isBrandVar(cssVarName)) {
     updateBrandValue(cssVarName, trimmedValue)
+    // The DOM mirror above is not enough: the export reads state.theme, so the opposite mode has
+    // to be written into the JSON too or it ships the stale value.
+    if (layerCounterpart) {
+      updateBrandValue(layerCounterpart, trimmedValue)
+    }
   } else if (isUIKitVar) {
     // Capture the current DTCG ref BEFORE the write for the on-tone interceptor.
     // updateUIKitValue overwrites the value, so we must read it first.

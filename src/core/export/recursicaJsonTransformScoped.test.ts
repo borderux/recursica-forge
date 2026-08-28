@@ -154,4 +154,57 @@ describe('recursicaJsonTransform (Scoped)', () => {
     expect(css).not.toMatch(/--recursica_brand_themes_light_states_link_decoration:\s*"underline";/)
     expect(css).not.toMatch(/--recursica_brand_themes_light_states_link_weight:\s*"400";/)
   })
+
+  // `$value: null` means "emit no declaration", not "emit an empty value" — `""` is not valid for
+  // any property. Keeping the aliases while dropping the primitive would leave the typography
+  // declarations pointing at an undefined var.
+  //
+  // This is about the value, not the property: cases.original is null because CSS has no keyword
+  // for "as authored", while decorations.none carries the real keyword `none` and must be emitted.
+  describe('null string tokens', () => {
+    const css = () => recursicaJsonTransform(json)[0].contents
+    const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, '')
+    const decls = (s: string) => new Set([...strip(s).matchAll(/(--recursica_[\w-]+)\s*:/g)].map(m => m[1]))
+    const refs = (s: string) => new Set([...strip(s).matchAll(/var\(\s*(--recursica_[\w-]+)/g)].map(m => m[1]))
+
+    it('does not declare a null-valued string primitive', () => {
+      const d = decls(css())
+      expect(d.has('--recursica_tokens_font_cases_original')).toBe(false)
+      expect(css()).not.toContain(': "";')
+    })
+
+    it('declares decorations.none as the CSS keyword — it is a real value, not an absence', () => {
+      expect(strip(css())).toMatch(/--recursica_tokens_font_decorations_none:\s*none;/)
+    })
+
+    it('still declares the sibling primitives that have values', () => {
+      const d = decls(css())
+      expect(d.has('--recursica_tokens_font_cases_uppercase')).toBe(true)
+      expect(d.has('--recursica_tokens_font_decorations_underline')).toBe(true)
+    })
+
+    it('prunes the declarations that alias an omitted primitive', () => {
+      expect(strip(css())).not.toMatch(/var\(\s*--recursica_tokens_font_cases_original/)
+    })
+
+    it('keeps the text-decoration declarations that alias decorations.none', () => {
+      expect(strip(css())).toMatch(/var\(\s*--recursica_tokens_font_decorations_none\s*\)/)
+    })
+
+    it('keeps declarations aliasing a primitive that does have a value', () => {
+      expect(css()).toMatch(/var\(--recursica_tokens_font_cases_uppercase\)/)
+    })
+
+    it('leaves no reference without a declaration', () => {
+      const c = css()
+      const d = decls(c)
+      const dangling = [...refs(c)].filter(r => !d.has(r))
+      expect(dangling).toEqual([])
+    })
+
+    it('keeps the type fallback for null colours (a layer var must exist per layer)', () => {
+      expect(css()).toContain('transparent')
+    })
+  })
+
 })

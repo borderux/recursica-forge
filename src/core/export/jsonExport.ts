@@ -507,7 +507,11 @@ export function exportTokensJson(): object {
     }
 
     // Font cases: $type: "string" with string value
-    // Must always include "original" with null value
+    // Must always include "original", whose value is null: CSS has no keyword for "render the
+    // text as authored", so the token has nothing to emit. null means "emit no declaration" —
+    // the CSS transforms drop the var and every declaration aliasing it, leaving text-transform
+    // at its initial value, which is precisely what "original" means. Contrast decorations.none
+    // below, which does have a real CSS keyword.
     const fontCases = storeTokens.font.cases || {}
     const caseEntries: Array<[string, string | null]> = []
 
@@ -543,12 +547,15 @@ export function exportTokensJson(): object {
     })
 
     // Font decorations: $type: "string" with string value
-    // Must always include "none" with null value
+    // Must always include "none", whose value is the CSS keyword `none` — `text-decoration: none`
+    // is a real, meaningful declaration, so unlike cases.original this token does have a value
+    // and must be emitted. It was previously written as null, which the CSS transforms read as
+    // "emit nothing", leaving ~69 text-decoration declarations aliasing an undeclared var.
     const fontDecorations = storeTokens.font.decorations || {}
     const decorationEntries: Array<[string, string | null]> = []
 
-    // Always include "none" with null
-    decorationEntries.push(['none', null])
+    // Always include "none"
+    decorationEntries.push(['none', 'none'])
 
     Object.keys(fontDecorations).forEach((key) => {
       if (key === 'none') return // Already added

@@ -269,201 +269,132 @@ export default function MantineShell({
         style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
       >
         {!isDevRoute && (
-        <header
-          ref={headerRef}
-          style={{
-            backgroundColor: `var(${layer0Surface})`,
-            paddingTop: "var(--recursica_brand_dimensions_general_lg)",
-            paddingBottom: "var(--recursica_brand_dimensions_general_lg)",
-            paddingLeft: "var(--recursica_brand_dimensions_general_xl)",
-            paddingRight: "var(--recursica_brand_dimensions_general_xl)",
-            height: "auto",
-            flexShrink: 0,
-          }}
-        >
-          <Group
-            gap='var(--recursica_brand_dimensions_general_xl)'
-            wrap='nowrap'
-            style={{ width: "100%" }}
+          <header
+            ref={headerRef}
+            style={{
+              backgroundColor: `var(${layer0Surface})`,
+              paddingTop: "var(--recursica_brand_dimensions_general_lg)",
+              paddingBottom: "var(--recursica_brand_dimensions_general_lg)",
+              paddingLeft: "var(--recursica_brand_dimensions_general_xl)",
+              paddingRight: "var(--recursica_brand_dimensions_general_xl)",
+              height: "auto",
+              flexShrink: 0,
+            }}
           >
-            {/* Chunk 1: Logo and Brand */}
-            <div
-              style={{
-                minWidth: "220px",
-                display: "flex",
-                alignItems: "center",
-              }}
+            <Group
+              gap='var(--recursica_brand_dimensions_general_xl)'
+              wrap='nowrap'
+              style={{ width: "100%" }}
             >
-              <Link
-                to='/'
+              {/* Chunk 1: Logo and Brand */}
+              <div
                 style={{
+                  minWidth: "220px",
                   display: "flex",
                   alignItems: "center",
-                  gap: "var(--recursica_brand_dimensions_general_default)",
-                  textDecoration: "none",
                 }}
               >
-                <LogoIcon />
-                <div
+                <Link
+                  to='/'
                   style={{
                     display: "flex",
-                    flexDirection: "column",
-                    lineHeight: 1.2,
+                    alignItems: "center",
+                    gap: "var(--recursica_brand_dimensions_general_default)",
+                    textDecoration: "none",
                   }}
                 >
-                  <span
+                  <LogoIcon />
+                  <div
                     style={{
-                      color: `var(${layer0TextColor})`,
-                      opacity: `var(${layer0TextHigh})`,
-                      fontWeight: 600,
-                      fontSize:
-                        "var(--recursica_brand_typography_body-font-size)",
+                      display: "flex",
+                      flexDirection: "column",
+                      lineHeight: 1.2,
                     }}
                   >
-                    Recursica
-                  </span>
-                  <span
-                    style={{
-                      fontSize:
-                        "var(--recursica_brand_typography_body-small-font-size)",
-                      color: `var(${layer0TextColor})`,
-                      opacity: `var(${layer0TextLow})`,
-                    }}
-                  >
-                    Theme Forge
-                  </span>
-                </div>
-              </Link>
-            </div>
+                    <span
+                      style={{
+                        color: `var(${layer0TextColor})`,
+                        opacity: `var(${layer0TextHigh})`,
+                        fontWeight: 600,
+                        fontSize:
+                          "var(--recursica_brand_typography_body-font-size)",
+                      }}
+                    >
+                      Recursica
+                    </span>
+                    <span
+                      style={{
+                        fontSize:
+                          "var(--recursica_brand_typography_body-small-font-size)",
+                        color: `var(${layer0TextColor})`,
+                        opacity: `var(${layer0TextLow})`,
+                      }}
+                    >
+                      Theme Forge
+                    </span>
+                  </div>
+                </Link>
+              </div>
 
-            {/* Chunk 2: Navigation Tabs */}
-            <Tabs
-              value={currentRoute}
-              variant='pills'
-              layer='layer-0'
-              tabContentAlignment={headerTabContentAlignment}
-              style={{ flex: 1 }}
-              onChange={(value) => {
-                if (value === "tokens") navigate("/tokens");
-                else if (value === "theme") navigate("/theme");
-                else if (value === "components") navigate("/components");
-              }}
-            >
-              <Tabs.List>
-                <Tabs.Tab value='tokens'>Tokens</Tabs.Tab>
-                <Tabs.Tab value='theme'>
-                  {issueCount > 0 ? (
-                    <Tooltip label={`${issueCount} compliance ${issueCount === 1 ? 'issue' : 'issues'}`} withinPortal={true} position="bottom" mantine={{ offset: 14 }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        {(() => {
-                          const WarningIcon = iconNameToReactComponent("warning");
-                          return WarningIcon ? (
-                            <WarningIcon
-                              style={{
-                                width: 14,
-                                height: 14,
-                                color: `var(--recursica_brand_themes_${mode}_palettes_core-colors_alert_tone)`,
-                              }}
-                            />
-                          ) : null;
-                        })()}
-                        Theme
-                      </span>
-                    </Tooltip>
-                  ) : (
-                    <span>Theme</span>
-                  )}
-                </Tabs.Tab>
-                <Tabs.Tab value='components'>Components</Tabs.Tab>
-              </Tabs.List>
-            </Tabs>
+              {/* Chunk 2: Navigation Tabs */}
+              <Tabs
+                value={currentRoute}
+                variant='pills'
+                layer='layer-0'
+                tabContentAlignment={headerTabContentAlignment}
+                style={{ flex: 1 }}
+                onChange={(value) => {
+                  if (value === "tokens") navigate("/tokens");
+                  else if (value === "theme") navigate("/theme");
+                  else if (value === "components") navigate("/components");
+                }}
+              >
+                <Tabs.List>
+                  <Tabs.Tab value='tokens'>Tokens</Tabs.Tab>
+                  <Tabs.Tab value='theme'>
+                    {issueCount > 0 ? (
+                      <Tooltip label={`${issueCount} compliance ${issueCount === 1 ? 'issue' : 'issues'}`} withinPortal={true} position="bottom" mantine={{ offset: 14 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {(() => {
+                            const WarningIcon = iconNameToReactComponent("warning");
+                            return WarningIcon ? (
+                              <WarningIcon
+                                style={{
+                                  width: 14,
+                                  height: 14,
+                                  color: `var(--recursica_brand_themes_${mode}_palettes_core-colors_alert_tone)`,
+                                }}
+                              />
+                            ) : null;
+                          })()}
+                          Theme
+                        </span>
+                      </Tooltip>
+                    ) : (
+                      <span>Theme</span>
+                    )}
+                  </Tabs.Tab>
+                  <Tabs.Tab value='components'>Components</Tabs.Tab>
+                </Tabs.List>
+              </Tabs>
 
-            {/* Chunk 3: Action Buttons and Framework Dropdown */}
-            <div
-              style={{
-                display: "flex",
-                gap: "var(--recursica_brand_dimensions_general_default)",
-                alignItems: "center",
-                marginLeft: "auto",
-              }}
-            >
-              <Tooltip label='Reset all changes'>
-                <Button
-                  variant='outline'
-                  size='small'
-                  icon={(() => {
-                    const RefreshIcon = iconNameToReactComponent("arrow-uturn-left");
-                    return RefreshIcon ? (
-                      <RefreshIcon
-                        style={{
-                          width:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                          height:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  onClick={() => {
-                    const hasImported = getVarsStore().hasUserImportedFiles();
-                    setHasImportedFiles(hasImported);
-                    setResetTarget(hasImported ? 'imported' : 'original');
-                    setShowResetConfirm(true);
-                  }}
-                />
-              </Tooltip>
-              <Tooltip label='Import theme'>
-                <Button
-                  variant='outline'
-                  size='small'
-                  icon={(() => {
-                    const UploadIcon =
-                      iconNameToReactComponent("arrow-down-tray");
-                    return UploadIcon ? (
-                      <UploadIcon
-                        style={{
-                          width:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                          height:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  onClick={() => setIsModalOpen(true)}
-                />
-              </Tooltip>
-              <Tooltip label='Export theme'>
-                <Button
-                  variant='outline'
-                  size='small'
-                  icon={(() => {
-                    const DownloadIcon =
-                      iconNameToReactComponent("arrow-up-tray");
-                    return DownloadIcon ? (
-                      <DownloadIcon
-                        style={{
-                          width:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                          height:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  onClick={() => handleExport(issueCount)}
-                />
-              </Tooltip>
-
-              {!import.meta.env.DEV && (
-                <Tooltip label='Report a bug'>
+              {/* Chunk 3: Action Buttons and Framework Dropdown */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "var(--recursica_brand_dimensions_general_default)",
+                  alignItems: "center",
+                  marginLeft: "auto",
+                }}
+              >
+                <Tooltip label='Reset all changes'>
                   <Button
                     variant='outline'
                     size='small'
                     icon={(() => {
-                      const BugIcon = iconNameToReactComponent("bug");
-                      return BugIcon ? (
-                        <BugIcon
+                      const RefreshIcon = iconNameToReactComponent("arrow-uturn-left");
+                      return RefreshIcon ? (
+                        <RefreshIcon
                           style={{
                             width:
                               "var(--recursica_brand_dimensions_icons_default)",
@@ -473,20 +404,66 @@ export default function MantineShell({
                         />
                       ) : null;
                     })()}
-                    onClick={() => createBugReport()}
+                    onClick={() => {
+                      const hasImported = getVarsStore().hasUserImportedFiles();
+                      setHasImportedFiles(hasImported);
+                      setResetTarget(hasImported ? 'imported' : 'original');
+                      setShowResetConfirm(true);
+                    }}
                   />
                 </Tooltip>
-              )}
-              {import.meta.env.DEV && (
-                <>
-                  <Tooltip label='Randomize all variables (dev only)'>
+                <Tooltip label='Import theme'>
+                  <Button
+                    variant='outline'
+                    size='small'
+                    icon={(() => {
+                      const UploadIcon =
+                        iconNameToReactComponent("arrow-down-tray");
+                      return UploadIcon ? (
+                        <UploadIcon
+                          style={{
+                            width:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                            height:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                          }}
+                        />
+                      ) : null;
+                    })()}
+                    onClick={() => setIsModalOpen(true)}
+                  />
+                </Tooltip>
+                <Tooltip label='Export theme'>
+                  <Button
+                    variant='outline'
+                    size='small'
+                    icon={(() => {
+                      const DownloadIcon =
+                        iconNameToReactComponent("arrow-up-tray");
+                      return DownloadIcon ? (
+                        <DownloadIcon
+                          style={{
+                            width:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                            height:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                          }}
+                        />
+                      ) : null;
+                    })()}
+                    onClick={() => handleExport(issueCount)}
+                  />
+                </Tooltip>
+
+                {!import.meta.env.DEV && (
+                  <Tooltip label='Report a bug'>
                     <Button
                       variant='outline'
                       size='small'
                       icon={(() => {
-                        const ShuffleIcon = iconNameToReactComponent("shuffle");
-                        return ShuffleIcon ? (
-                          <ShuffleIcon
+                        const BugIcon = iconNameToReactComponent("bug");
+                        return BugIcon ? (
+                          <BugIcon
                             style={{
                               width:
                                 "var(--recursica_brand_dimensions_icons_default)",
@@ -496,178 +473,201 @@ export default function MantineShell({
                           />
                         ) : null;
                       })()}
-                      onClick={() => setShowRandomizeModal(true)}
+                      onClick={() => createBugReport()}
                     />
                   </Tooltip>
-
-                  <Tooltip label='Simulate version update (dev only)'>
-                    <Button
-                      variant='outline'
-                      size='small'
-                      icon={(() => {
-                        const VersionIcon = iconNameToReactComponent('trend-up')
-                        return VersionIcon ? (
-                          <VersionIcon
-                            style={{
-                              width: 'var(--recursica_brand_dimensions_icons_default)',
-                              height: 'var(--recursica_brand_dimensions_icons_default)',
-                            }}
-                          />
-                        ) : null
-                      })()}
-                      onClick={simulateUpdate}
-                    />
-                  </Tooltip>
-                  <Tooltip label='Auto-run CSS audit (dev only)'>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "var(--recursica_brand_dimensions_general_sm)",
-                      }}
-                    >
-                      <Switch
-                        checked={cssAuditAutoRun}
-                        onChange={(checked) => {
-                          setCssAuditAutoRunState(checked);
-                          setCssAuditAutoRun(checked);
-                          // Trigger audit immediately when enabled
-                          if (checked) {
-                            setTimeout(() => {
-                              import("../../../core/utils/runCssVarAudit").then(
-                                ({ runCssVarAudit }) => {
-                                  runCssVarAudit(false);
-                                },
-                              );
-                            }, 500); // Small delay to ensure CSS vars are ready
-                          }
-                        }}
-                        sizeVariant='small'
+                )}
+                {import.meta.env.DEV && (
+                  <>
+                    <Tooltip label='Randomize all variables (dev only)'>
+                      <Button
+                        variant='outline'
+                        size='small'
+                        icon={(() => {
+                          const ShuffleIcon = iconNameToReactComponent("shuffle");
+                          return ShuffleIcon ? (
+                            <ShuffleIcon
+                              style={{
+                                width:
+                                  "var(--recursica_brand_dimensions_icons_default)",
+                                height:
+                                  "var(--recursica_brand_dimensions_icons_default)",
+                              }}
+                            />
+                          ) : null;
+                        })()}
+                        onClick={() => setShowRandomizeModal(true)}
                       />
-                    </div>
-                  </Tooltip>
-                </>
-              )}
-              {/* Library switcher temporarily disabled — kit locked to mantine */}
-            </div>
+                    </Tooltip>
 
-            {/* Chunk 4: Theme Mode Segmented Control */}
-            {(() => {
-              const buttonBorderRadius = getComponentCssVar(
-                "Button",
-                "size",
-                "border-radius",
-                undefined,
-              );
-              const buttonSmallHeight = getComponentCssVar(
-                "Button",
-                "size",
-                "small-height",
-                undefined,
-              );
-              const buttonSmallMinWidth = getComponentCssVar(
-                "Button",
-                "size",
-                "small-min-width",
-                undefined,
-              );
-              const buttonSmallIcon = getComponentCssVar(
-                "Button",
-                "size",
-                "small-icon",
-                undefined,
-              );
-              const buttonSmallIconPadding = getComponentCssVar(
-                "Button",
-                "size",
-                "small-icon-padding",
-                undefined,
-              );
-              const buttonSolidBg = getComponentCssVar(
-                "Button",
-                "colors",
-                "solid-background-color",
-                "layer-0",
-              );
-              const buttonSolidText = getComponentCssVar(
-                "Button",
-                "colors",
-                "solid-text",
-                "layer-0",
-              );
-              const buttonTextBg = getComponentCssVar(
-                "Button",
-                "colors",
-                "text-background",
-                "layer-0",
-              );
-              const buttonTextText = getComponentCssVar(
-                "Button",
-                "colors",
-                "text-text",
-                "layer-0",
-              );
+                    <Tooltip label='Simulate version update (dev only)'>
+                      <Button
+                        variant='outline'
+                        size='small'
+                        icon={(() => {
+                          const VersionIcon = iconNameToReactComponent('trend-up')
+                          return VersionIcon ? (
+                            <VersionIcon
+                              style={{
+                                width: 'var(--recursica_brand_dimensions_icons_default)',
+                                height: 'var(--recursica_brand_dimensions_icons_default)',
+                              }}
+                            />
+                          ) : null
+                        })()}
+                        onClick={simulateUpdate}
+                      />
+                    </Tooltip>
+                    <Tooltip label='Auto-run CSS audit (dev only)'>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "var(--recursica_brand_dimensions_general_sm)",
+                        }}
+                      >
+                        <Switch
+                          checked={cssAuditAutoRun}
+                          onChange={(checked) => {
+                            setCssAuditAutoRunState(checked);
+                            setCssAuditAutoRun(checked);
+                            // Trigger audit immediately when enabled
+                            if (checked) {
+                              setTimeout(() => {
+                                import("../../../core/utils/runCssVarAudit").then(
+                                  ({ runCssVarAudit }) => {
+                                    runCssVarAudit(false);
+                                  },
+                                );
+                              }, 500); // Small delay to ensure CSS vars are ready
+                            }
+                          }}
+                          sizeVariant='small'
+                        />
+                      </div>
+                    </Tooltip>
+                  </>
+                )}
+                {/* Library switcher temporarily disabled — kit locked to mantine */}
+              </div>
 
-              const SunIcon = iconNameToReactComponent("sun");
-              const MoonIcon = iconNameToReactComponent("moon");
-              const modeItems: SegmentedControlItem[] = [
-                {
-                  value: "light",
-                  icon: SunIcon ? (
-                    <SunIcon
-                      style={{
-                        width: `var(${buttonSmallIcon})`,
-                        height: `var(${buttonSmallIcon})`,
-                      }}
-                    />
-                  ) : undefined,
-                  tooltip: "Light theme",
-                },
-                {
-                  value: "dark",
-                  icon: MoonIcon ? (
-                    <MoonIcon
-                      style={{
-                        width: `var(${buttonSmallIcon})`,
-                        height: `var(${buttonSmallIcon})`,
-                      }}
-                    />
-                  ) : undefined,
-                  tooltip: "Dark theme",
-                },
-              ];
-              return (
-                <SegmentedControl
-                  items={modeItems}
-                  value={mode}
-                  onChange={(value) => setMode(value as "light" | "dark")}
-                  orientation='horizontal'
-                  fullWidth={false}
-                  layer='layer-0'
-                  componentNameForCssVars='SegmentedControl'
-                />
-              );
-            })()}
-          </Group>
-        </header>
+              {/* Chunk 4: Theme Mode Segmented Control */}
+              {(() => {
+                const buttonBorderRadius = getComponentCssVar(
+                  "Button",
+                  "size",
+                  "border-radius",
+                  undefined,
+                );
+                const buttonSmallHeight = getComponentCssVar(
+                  "Button",
+                  "size",
+                  "small-height",
+                  undefined,
+                );
+                const buttonSmallMinWidth = getComponentCssVar(
+                  "Button",
+                  "size",
+                  "small-min-width",
+                  undefined,
+                );
+                const buttonSmallIcon = getComponentCssVar(
+                  "Button",
+                  "size",
+                  "small-icon",
+                  undefined,
+                );
+                const buttonSmallIconPadding = getComponentCssVar(
+                  "Button",
+                  "size",
+                  "small-icon-padding",
+                  undefined,
+                );
+                const buttonSolidBg = getComponentCssVar(
+                  "Button",
+                  "colors",
+                  "solid-background-color",
+                  "layer-0",
+                );
+                const buttonSolidText = getComponentCssVar(
+                  "Button",
+                  "colors",
+                  "solid-text",
+                  "layer-0",
+                );
+                const buttonTextBg = getComponentCssVar(
+                  "Button",
+                  "colors",
+                  "text-background",
+                  "layer-0",
+                );
+                const buttonTextText = getComponentCssVar(
+                  "Button",
+                  "colors",
+                  "text-text",
+                  "layer-0",
+                );
+
+                const SunIcon = iconNameToReactComponent("sun");
+                const MoonIcon = iconNameToReactComponent("moon");
+                const modeItems: SegmentedControlItem[] = [
+                  {
+                    value: "light",
+                    icon: SunIcon ? (
+                      <SunIcon
+                        style={{
+                          width: `var(${buttonSmallIcon})`,
+                          height: `var(${buttonSmallIcon})`,
+                        }}
+                      />
+                    ) : undefined,
+                    tooltip: "Light theme",
+                  },
+                  {
+                    value: "dark",
+                    icon: MoonIcon ? (
+                      <MoonIcon
+                        style={{
+                          width: `var(${buttonSmallIcon})`,
+                          height: `var(${buttonSmallIcon})`,
+                        }}
+                      />
+                    ) : undefined,
+                    tooltip: "Dark theme",
+                  },
+                ];
+                return (
+                  <SegmentedControl
+                    items={modeItems}
+                    value={mode}
+                    onChange={(value) => setMode(value as "light" | "dark")}
+                    orientation='horizontal'
+                    fullWidth={false}
+                    layer='layer-0'
+                    componentNameForCssVars='SegmentedControl'
+                  />
+                );
+              })()}
+            </Group>
+          </header>
         )}
         {isDevRoute ? (
           <>{children}</>
         ) : (
-        <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-          {showSidebar && <Sidebar />}
-          {showThemeSidebar && <ThemeSidebar />}
-          <main
-            style={{
-              flex: 1,
-              minHeight: 0,
-              backgroundColor: `var(${layer0Surface})`,
-              color: `var(${layer0TextColor})`,
-            }}
-          >
-            {children}
-          </main>
-        </div>
+          <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+            {showSidebar && <Sidebar />}
+            {showThemeSidebar && <ThemeSidebar />}
+            <main
+              style={{
+                flex: 1,
+                minHeight: 0,
+                backgroundColor: `var(${layer0Surface})`,
+                color: `var(${layer0TextColor})`,
+              }}
+            >
+              {children}
+            </main>
+          </div>
         )}
         <ImportModal
           show={isModalOpen}
@@ -768,15 +768,15 @@ export default function MantineShell({
                   label="Reset destination"
                   required
                 >
-                  <RadioButtonItem 
-                    selected={resetTarget === 'imported'} 
-                    onChange={() => setResetTarget('imported')} 
-                    label="Reset to last imported version" 
+                  <RadioButtonItem
+                    selected={resetTarget === 'imported'}
+                    onChange={() => setResetTarget('imported')}
+                    label="Reset to last imported version"
                   />
-                  <RadioButtonItem 
-                    selected={resetTarget === 'original'} 
-                    onChange={() => setResetTarget('original')} 
-                    label="Reset to app defaults" 
+                  <RadioButtonItem
+                    selected={resetTarget === 'original'}
+                    onChange={() => setResetTarget('original')}
+                    label="Reset to Recursica defaults"
                   />
                 </RadioButtonGroup>
               )}
@@ -803,7 +803,7 @@ export default function MantineShell({
         {/* Save Reminder Toast */}
         {reminderVisible && (
           <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 40000 }}>
-            <Toast 
+            <Toast
               layer="layer-0"
               onClose={dismissReminder}
               action={

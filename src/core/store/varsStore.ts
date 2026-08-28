@@ -3,7 +3,8 @@ import { tokenColors, tokenColor, tokenColorFamilyName, tokenOpacity, tokenFont,
 import { buildTokenIndex } from '../resolvers/tokens'
 import { buildPaletteVars } from '../resolvers/palettes'
 import { buildLayerVars } from '../resolvers/layers'
-import { buildTypographyVars, type TypographyChoices } from '../resolvers/typography'
+import { buildTypographyVars, valuelessTokenVars, type TypographyChoices } from '../resolvers/typography'
+import { reconcileUikitFontRefs } from '../import/migrateImportedJson'
 import { buildUIKitVars } from '../resolvers/uikit'
 import { buildDimensionVars } from '../resolvers/dimensions'
 import { applyCssVars, type CssVarMap, clearAllCssVars } from '../css/apply'
@@ -264,6 +265,33 @@ function cloneJSON<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
 }
 
+/**
+ * Drop vars whose entire value is a reference to a token that has nothing to emit.
+ *
+ * `tokens.font.cases.original` has no CSS keyword ("render the text as authored"), so neither the
+ * token nor anything aliasing it is declared. This mirrors pruneAliasesOfOmitted in the CSS
+ * transforms so the running app's DOM matches what it exports: without it, ~112 ui-kit
+ * text-transform vars point at a var nothing declares. Every resolver funnels through
+ * applyCssVars, so pruning here covers all of them rather than each emit site.
+ *
+ * Transitive, because ui-kit vars alias theme/layer vars which alias the token. Values that merely
+ * mention such a var among other content are left alone — those still express something.
+ */
+function pruneValuelessAliases(vars: Record<string, string>, valueless: Set<string>): number {
+  const SOLE_VAR_REF = /^var\(\s*(--[\w-]+)\s*\)$/
+  const omitted = new Set(valueless)
+  let removed = 0
+  for (;;) {
+    const dropped: string[] = []
+    for (const [name, value] of Object.entries(vars)) {
+      const m = SOLE_VAR_REF.exec(String(value).trim())
+      if (m && omitted.has(m[1])) dropped.push(name)
+    }
+    if (dropped.length === 0) return removed
+    for (const name of dropped) { delete vars[name]; omitted.add(name); removed++ }
+  }
+}
+
 class VarsStore {
   private state: VarsState
   private listeners: Set<Listener> = new Set()
@@ -375,6 +403,16 @@ class VarsStore {
     // initElevationState will create elevation tokens and add them to the tokens object
     const elevation = this.initElevationState(theme as any, tokens || {})
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
+
+    // The three stores are loaded independently (edited → imported → bundled), so they can end up
+    // from different sources: most notably the bundle-version check below drops only the ui-kit
+    // keys, leaving an imported brand beside the bundled ui-kit on the next load. The bundled
+    // ui-kit references brand.fonts.secondary, which a single-typeface brand does not define, so
+    // that combination is a dangling cross-file reference that blocks export with nothing the user
+    // can fix in the UI. Reconcile here rather than only in importJsonFiles, so every load path
+    // (import, reset, post-release wipe, fresh boot) ends up referentially consistent. Idempotent
+    // and a no-op when the brand defines the roles the ui-kit asks for.
+    reconcileUikitFontRefs(this.state.uikit, this.state.theme)
 
     // Bundle version check: clear uikit cache when source JSON changes so new
     // schema additions (e.g. new variant keys) are picked up after HMR reload.
@@ -2272,10 +2310,10 @@ class VarsStore {
             const caseObj = casesRoot[caseKey]
             if (!caseObj || typeof caseObj !== 'object') return
             const val = caseObj.$value
-            // Font cases can be null (for "original") or a string value
-            if (val === null || val === undefined) {
-              vars[tokenFont('cases', caseKey)] = 'none'
-            } else if (typeof val === 'string') {
+            // A null $value has no CSS representation — `cases.original` means "render the text
+            // as authored", for which CSS has no keyword. Emit nothing, matching the CSS export;
+            // consumers then fall back to text-transform's initial value, which is that meaning.
+            if (typeof val === 'string') {
               vars[tokenFont('cases', caseKey)] = val
             }
           })
@@ -2291,10 +2329,10 @@ class VarsStore {
             const decorationObj = decorationsRoot[decorationKey]
             if (!decorationObj || typeof decorationObj !== 'object') return
             const val = decorationObj.$value
-            // Font decorations can be null (for "none") or a string value
-            if (val === null || val === undefined) {
-              vars[tokenFont('decorations', decorationKey)] = 'none'
-            } else if (typeof val === 'string') {
+            // `decorations.none` carries the real keyword `none` (text-decoration: none is a
+            // meaningful declaration), so it is emitted like any other value. A null here would
+            // mean "nothing to emit" — see the cases block above.
+            if (typeof val === 'string') {
               vars[tokenFont('decorations', decorationKey)] = val
             }
           })
@@ -2911,6 +2949,8 @@ class VarsStore {
         this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
         this.aaWatcher.fixLayerElementColorsInMap(allVars)
       }
+
+      pruneValuelessAliases(allVars, valuelessTokenVars(this.state.tokens))
 
       applyCssVars(allVars, this.state.tokens)
       
