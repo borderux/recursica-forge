@@ -561,7 +561,7 @@
       "decorations": {
         "none": {
           "$type": "string",
-          "$value": null
+          "$value": "none"
         },
         "underline": {
           "$type": "string",

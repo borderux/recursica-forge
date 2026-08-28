@@ -4,6 +4,7 @@ import {
   mapOldUikitPath,
   migrateInteractiveElementTo2_1,
   repointInteractiveRefsTo2_1,
+  reconcileUikitFontRefs,
 } from './migrateImportedJson'
 import { validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
 import brandJson from '../../../recursica_brand.json'
@@ -717,5 +718,222 @@ describe('2.0.x → 2.1.0: interactive fill vs readable interactive colour', () 
       expect(c['text-color'].$value).toBe('{brand.layers.layer-2.elements.interactive.color}')
       expect(c['background-color'].$value).toBe('{brand.palettes.core-colors.interactive.tone}')
     })
+  })
+})
+
+// A 1.x tree: flat selected-*/unselected-* colours and selected-text/unselected-text
+// typography. In 2.x both live under variants/selection-states/{selected,unselected}.
+// Without the mapping the overlay keeps the template's own defaults, silently discarding the
+// user's tree styling — and the template's `{brand.fonts.secondary}` default then dangles on a
+// single-typeface brand, blocking export.
+describe('migrateImportedJson — tree selection-states', () => {
+  const tree1x = () => ({
+    'ui-kit': {
+      components: {
+        // sentinel: forces the 1.x overlay path
+        checkbox: { properties: { colors: { 'layer-0': { background: { $type: 'color', $value: '{brand.palettes.neutral.100.color.tone}' } } } } },
+        tree: {
+          properties: {
+            indent: { $type: 'dimension', $value: '{brand.dimensions.general.default}' },
+            colors: {
+              'layer-0': {
+                'selected-background': { $type: 'color', $value: '{brand.palettes.palette-2.100.color.tone}' },
+                'selected-border-color': { $type: 'color', $value: '{brand.palettes.palette-2.default.color.tone}' },
+                'selected-text': { $type: 'color', $value: '{brand.palettes.palette-2.800.color.tone}' },
+                'unselected-text': { $type: 'color', $value: '{brand.palettes.core-colors.high-contrast.tone}' },
+                'hover-background': { $type: 'color', $value: '{brand.palettes.palette-2.050.color.tone}' },
+              },
+            },
+            'selected-text': {
+              'font-family': { $type: 'fontFamily', $value: '{brand.fonts.primary}' },
+              'font-weight': { $type: 'fontWeight', $value: '{tokens.font.weights.bold}' },
+            },
+            'unselected-text': {
+              'font-family': { $type: 'fontFamily', $value: '{brand.fonts.primary}' },
+              'font-weight': { $type: 'fontWeight', $value: '{tokens.font.weights.regular}' },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  const ss = (out: any) => out['ui-kit'].components.tree.variants['selection-states']
+
+  it('maps the flat colour keys onto the selection-state axis', () => {
+    expect(mapOldUikitPath('components.tree.properties.colors.layer-0.selected-background'))
+      .toEqual(['components.tree.variants.selection-states.selected.properties.colors.layer-0.background-color'])
+    expect(mapOldUikitPath('components.tree.properties.colors.layer-2.unselected-text'))
+      .toEqual(['components.tree.variants.selection-states.unselected.properties.colors.layer-2.text-color'])
+    expect(mapOldUikitPath('components.tree.properties.selected-text.font-family'))
+      .toEqual(['components.tree.variants.selection-states.selected.properties.text.font-family'])
+    // hover became global in 2.x — intentionally dropped
+    expect(mapOldUikitPath('components.tree.properties.colors.layer-0.hover-background')).toEqual([])
+  })
+
+  it('carries the tree colours and typography across the overlay', () => {
+    const out = migrateImportedJson(tree1x(), 'uikit')
+    expect(ss(out).selected.properties.colors['layer-0']['background-color'].$value)
+      .toBe('{brand.palettes.palette-2.100.color.tone}')
+    expect(ss(out).selected.properties.colors['layer-0']['border-color'].$value)
+      .toBe('{brand.palettes.palette-2.default.color.tone}')
+    expect(ss(out).selected.properties.colors['layer-0']['text-color'].$value)
+      .toBe('{brand.palettes.palette-2.800.color.tone}')
+    expect(ss(out).unselected.properties.colors['layer-0']['text-color'].$value)
+      .toBe('{brand.palettes.core-colors.high-contrast.tone}')
+    expect(ss(out).selected.properties.text['font-weight'].$value).toBe('{tokens.font.weights.bold}')
+    expect(ss(out).unselected.properties.text['font-weight'].$value).toBe('{tokens.font.weights.regular}')
+    // the template default that used to survive here
+    expect(ss(out).selected.properties.text['font-family'].$value).toBe('{brand.fonts.primary}')
+    expect(ss(out).unselected.properties.text['font-family'].$value).toBe('{brand.fonts.primary}')
+    expect(out['ui-kit'].components.tree.properties['selected-text']).toBeUndefined()
+  })
+
+  it('is detected as 1.x on the tree shape alone', () => {
+    const onlyTree: any = tree1x()
+    delete onlyTree['ui-kit'].components.checkbox
+    const out = migrateImportedJson(onlyTree, 'uikit')
+    expect(ss(out).selected.properties.text['font-weight'].$value).toBe('{tokens.font.weights.bold}')
+  })
+
+  it('is idempotent', () => {
+    const once = migrateImportedJson(tree1x(), 'uikit')
+    const twice = migrateImportedJson(JSON.parse(JSON.stringify(once)), 'uikit')
+    expect(twice).toEqual(once)
+  })
+})
+
+// brand.fonts is an ordinal list sized by the brand's typeface count, so a ui-kit reference to
+// a role the brand never defined is a dangling cross-file reference: import accepts it and
+// export refuses it, with nothing the user can fix in the UI.
+describe('reconcileUikitFontRefs', () => {
+  const leaf = (v: string) => ({ $type: 'fontFamily', $value: v })
+  const uikit = () => ({
+    'ui-kit': {
+      components: {
+        tree: { variants: { 'selection-states': { selected: { properties: { text: { 'font-family': leaf('{brand.fonts.secondary}') } } } } } },
+        label: { properties: { 'label-text': { 'font-family': leaf('{brand.fonts.primary}') } } },
+        badge: { properties: { text: { 'font-family': leaf('{brand.fonts.quaternary}') } } },
+      },
+    },
+  })
+  const ff = (out: any, comp: string) => comp === 'tree'
+    ? out['ui-kit'].components.tree.variants['selection-states'].selected.properties.text['font-family'].$value
+    : comp === 'label'
+      ? out['ui-kit'].components.label.properties['label-text']['font-family'].$value
+      : out['ui-kit'].components.badge.properties.text['font-family'].$value
+
+  it('degrades missing roles to primary on a single-typeface brand', () => {
+    const out = reconcileUikitFontRefs(uikit(), { brand: { fonts: { $type: 'fontFamily', primary: leaf('{tokens.font.typefaces.lexend}') } } })
+    expect(ff(out, 'tree')).toBe('{brand.fonts.primary}')
+    expect(ff(out, 'badge')).toBe('{brand.fonts.primary}')
+    expect(ff(out, 'label')).toBe('{brand.fonts.primary}')
+  })
+
+  it('leaves roles the brand defines untouched', () => {
+    const out = reconcileUikitFontRefs(uikit(), {
+      brand: { fonts: { primary: leaf('{tokens.font.typefaces.lexend}'), secondary: leaf('{tokens.font.typefaces.bellota-text}') },
+      },
+    })
+    expect(ff(out, 'tree')).toBe('{brand.fonts.secondary}')
+    expect(ff(out, 'badge')).toBe('{brand.fonts.primary}')
+  })
+
+  it('accepts an unwrapped brand and a brand with no fonts group', () => {
+    expect(ff(reconcileUikitFontRefs(uikit(), { fonts: { primary: leaf('x') } }), 'tree')).toBe('{brand.fonts.primary}')
+    expect(ff(reconcileUikitFontRefs(uikit(), { brand: {} }), 'tree')).toBe('{brand.fonts.secondary}')
+  })
+
+  it('is idempotent', () => {
+    const brand = { brand: { fonts: { primary: leaf('x') } } }
+    const once = reconcileUikitFontRefs(uikit(), brand)
+    const twice = reconcileUikitFontRefs(JSON.parse(JSON.stringify(once)), brand)
+    expect(twice).toEqual(once)
+  })
+})
+
+// 1.x kept the enabled and disabled table colours side by side as `<prop>-color-enabled` /
+// `-disabled`. 2.x keeps enabled on the component and moves disabled onto the states axis, so
+// without a mapping neither has a 2.x home and the user's table colours are dropped.
+describe('migrateImportedJson — table enabled/disabled colours', () => {
+  const PARTS = ['table-cell', 'table-header', 'table-footer'] as const
+  const color = (v: string) => ({ $type: 'color', $value: v })
+  const table1x = () => ({
+    'ui-kit': {
+      components: {
+        // sentinel: forces the 1.x overlay path
+        checkbox: { properties: { colors: { 'layer-0': { background: color('{brand.palettes.neutral.100.color.tone}') } } } },
+        ...Object.fromEntries(PARTS.map(part => [part, {
+          properties: {
+            colors: {
+              'layer-0': {
+                'text-color-enabled': color('{brand.layers.layer-0.elements.text.color}'),
+                'text-color-disabled': color('{brand.palettes.neutral.400.color.tone}'),
+                'cell-color-enabled': color('{brand.palettes.palette-2.050.color.tone}'),
+                'cell-color-disabled': color('{brand.palettes.neutral.050.color.tone}'),
+              },
+            },
+          },
+        }])),
+        table: {
+          properties: {
+            colors: { 'layer-0': { 'highlight-on-hover-color': color('{brand.palettes.neutral.100.color.tone}') } },
+            opacities: { 'layer-0': { 'highlight-on-hover-opacity': { $type: 'number', $value: 0.5 } } },
+          },
+        },
+      },
+    },
+  })
+
+  it('splits the suffixed keys across properties and states.disabled', () => {
+    for (const part of PARTS) {
+      expect(mapOldUikitPath(`components.${part}.properties.colors.layer-0.text-color-enabled`))
+        .toEqual([`components.${part}.properties.colors.layer-0.text-color`])
+      expect(mapOldUikitPath(`components.${part}.properties.colors.layer-2.cell-color-enabled`))
+        .toEqual([`components.${part}.properties.colors.layer-2.cell-color`])
+      expect(mapOldUikitPath(`components.${part}.properties.colors.layer-0.text-color-disabled`))
+        .toEqual([`components.${part}.variants.states.disabled.properties.colors.layer-0.text-color`])
+      expect(mapOldUikitPath(`components.${part}.properties.colors.layer-3.cell-color-disabled`))
+        .toEqual([`components.${part}.variants.states.disabled.properties.colors.layer-3.cell-color`])
+    }
+  })
+
+  it('leaves the keys that already map 1:1 alone', () => {
+    expect(mapOldUikitPath('components.table-header.properties.colors.layer-0.sorted-text-color'))
+      .toEqual(['components.table-header.properties.colors.layer-0.sorted-text-color'])
+    expect(mapOldUikitPath('components.table-footer.properties.colors.layer-0.horizontal-divider-color'))
+      .toEqual(['components.table-footer.properties.colors.layer-0.horizontal-divider-color'])
+  })
+
+  it('drops table highlight-on-hover (hover is global in 2.x)', () => {
+    expect(mapOldUikitPath('components.table.properties.colors.layer-0.highlight-on-hover-color')).toEqual([])
+    expect(mapOldUikitPath('components.table.properties.opacities.layer-0.highlight-on-hover-opacity')).toEqual([])
+  })
+
+  it('carries the values across the overlay', () => {
+    const out = migrateImportedJson(table1x(), 'uikit')
+    for (const part of PARTS) {
+      const c = out['ui-kit'].components[part]
+      expect(c.properties.colors['layer-0']['text-color'].$value).toBe('{brand.layers.layer-0.elements.text.color}')
+      expect(c.properties.colors['layer-0']['cell-color'].$value).toBe('{brand.palettes.palette-2.050.color.tone}')
+      const d = c.variants.states.disabled.properties.colors['layer-0']
+      expect(d['text-color'].$value).toBe('{brand.palettes.neutral.400.color.tone}')
+      expect(d['cell-color'].$value).toBe('{brand.palettes.neutral.050.color.tone}')
+      expect(c.properties.colors['layer-0']['text-color-enabled']).toBeUndefined()
+    }
+  })
+
+  it('is detected as 1.x on the table shape alone', () => {
+    const onlyTable: any = table1x()
+    delete onlyTable['ui-kit'].components.checkbox
+    const out = migrateImportedJson(onlyTable, 'uikit')
+    expect(out['ui-kit'].components['table-cell'].variants.states.disabled.properties.colors['layer-0']['text-color'].$value)
+      .toBe('{brand.palettes.neutral.400.color.tone}')
+  })
+
+  it('is idempotent', () => {
+    const once = migrateImportedJson(table1x(), 'uikit')
+    const twice = migrateImportedJson(JSON.parse(JSON.stringify(once)), 'uikit')
+    expect(twice).toEqual(once)
   })
 })
