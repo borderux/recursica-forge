@@ -8,7 +8,7 @@ import { Dropdown } from '../../components/adapters/Dropdown'
 import { Button } from '../../components/adapters/Button'
 import { Panel } from '../../components/adapters/Panel'
 import { readCssVar } from '../../core/css/readCssVar'
-import { updateCssVar as updateCssVarFn } from '../../core/css/updateCssVar'
+import { updateCssVar as updateCssVarFn, modeIndependentLayerCounterpart } from '../../core/css/updateCssVar'
 import brandDefault from '../../../recursica_brand.json'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
@@ -230,6 +230,13 @@ function BrandDimensionSliderInline({
     if (selectedToken) {
       const tokenValue = `var(${selectedToken.name})`
       document.documentElement.style.setProperty(targetCssVar, tokenValue)
+      // Live preview writes the DOM directly (bypassing updateCssVar for 60fps), so mirror the
+      // mode-independent geometry here too — otherwise the opposite mode's var stays on the old
+      // value mid-drag and recomputeAndApplyAll's preservation loop can read it back as an edit.
+      const counterpart = modeIndependentLayerCounterpart(targetCssVar)
+      if (counterpart) {
+        document.documentElement.style.setProperty(counterpart, tokenValue)
+      }
       if (scopedVar) {
         document.documentElement.style.setProperty(scopedVar, tokenValue)
       }
