@@ -4,7 +4,7 @@
  * Carbon-specific MenuItem component that uses CSS variables for theming.
  */
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import type { MenuItemProps as AdapterMenuItemProps } from '../../common/MenuItem'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar } from '../../../utils/brandCssVars'
@@ -32,6 +32,17 @@ export default React.forwardRef<any, AdapterMenuItemProps>(function MenuItem({
   ...props
 }, ref) {
   const { mode } = useThemeMode()
+
+  // Unlike Material's MenuItem, this reads CSS vars once via readCssVar() below rather than
+  // via a reactive listener — without this, edits from the toolbar never show up here except
+  // via a full remount from a parent (see MenuPreview.tsx). Mirrors Material MenuItem's pattern.
+  const [, forceUpdate] = useState(0)
+
+  useEffect(() => {
+    const handleUpdate = () => forceUpdate(prev => prev + 1)
+    window.addEventListener('cssVarsUpdated', handleUpdate)
+    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+  }, [])
 
   // Determine effective variant
   let effectiveVariant = variant

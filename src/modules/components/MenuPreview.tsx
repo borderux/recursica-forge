@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { Menu } from '../../components/adapters/Menu'
 import { MenuItem } from '../../components/adapters/MenuItem'
 
@@ -13,31 +12,9 @@ export default function MenuPreview({
   selectedLayer,
   componentElevation,
 }: MenuPreviewProps) {
-  const [updateKey, setUpdateKey] = useState(0)
-
-  // Listen for CSS variable updates to force re-render
-  useEffect(() => {
-    const handleCssVarUpdate = () => {
-      setUpdateKey(prev => prev + 1)
-    }
-
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    window.addEventListener('cssVarsReset', handleCssVarUpdate)
-
-    // Also listen for style changes on documentElement
-    const observer = new MutationObserver(handleCssVarUpdate)
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-
-    return () => {
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-      window.removeEventListener('cssVarsReset', handleCssVarUpdate)
-      observer.disconnect()
-    }
-  }, [])
-
+  // No outer cssVarsUpdated listener/force-remount needed here — Menu, and every shell's
+  // MenuItem (Material/Carbon listen internally, Mantine reacts via native CSS), already
+  // pick up toolbar edits on their own. See the Menu bug thread for how this was confirmed.
   return (
     <div style={{
       display: 'flex',
@@ -45,7 +22,6 @@ export default function MenuPreview({
       width: '100%',
     }}>
       <Menu
-        key={`menu-${updateKey}`}
         layer={selectedLayer as any}
         elevation={componentElevation}
       >
