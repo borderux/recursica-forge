@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.26.2
+
+### Patch Changes
+
+- 68e037c: Better css transform handling of null values
+
 ## 0.26.1
 
 ### Patch Changes
