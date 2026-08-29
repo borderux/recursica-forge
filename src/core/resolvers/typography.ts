@@ -3,42 +3,6 @@ import { buildTokenIndex, resolveBraceRef } from './tokens'
 import { extractBraceContent, parseTokenReference, resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../utils/tokenReferenceParser'
 import { brandTypography, tokenFont } from '../css/cssVarBuilder'
 
-/**
- * Token vars that have nothing to emit, so nothing may alias them.
- *
- * A `$type: "string"` font token whose `$value` is null has no CSS representation — the case in
- * practice is `tokens.font.cases.original`, since CSS has no keyword for "render the text as
- * authored". The CSS export omits both the token's own declaration and every declaration that
- * aliases it (see pruneAliasesOfOmitted in the transforms); the running app must match, or the
- * DOM carries `text-transform: var(--…_cases_original)` pointing at a var nothing declares.
- *
- * Omitting the declaration leaves the property at its initial value, which is exactly what the
- * null means. Note this is about the value, not the property: `tokens.font.decorations.none`
- * holds the real keyword `none`, so it is emitted and may be aliased freely.
- */
-export function valuelessTokenVars(tokens: any): Set<string> {
-  const out = new Set<string>()
-  const font = tokens?.tokens?.font ?? tokens?.font ?? {}
-  for (const category of ['cases', 'decorations', 'styles']) {
-    const group = font[category]
-    if (!group || typeof group !== 'object') continue
-    for (const [key, token] of Object.entries<any>(group)) {
-      if (key.startsWith('$')) continue
-      if (token?.$value == null && token?.$type === 'string') {
-        out.add(`--recursica_tokens_font_${category}_${key}`)
-      }
-    }
-  }
-  return out
-}
-
-/** True when `value` is nothing but a reference to a var that will never be declared. */
-function aliasesValuelessToken(value: string | null, valueless: Set<string>): boolean {
-  if (!value) return false
-  const m = /^var\(\s*(--[\w-]+)\s*\)$/.exec(value.trim())
-  return m != null && valueless.has(m[1])
-}
-
 // Dynamically import fontUtils to avoid circular dependencies
 let getCachedFontFamilyName: ((name: string) => string) | null = null
 let fontUtilsImportPromise: Promise<void> | null = null
@@ -329,8 +293,6 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     } catch { }
     return resolveBraceRef(ref, tokenIndex)
   }
-
-  const valueless = valuelessTokenVars(tokens)
 
   const findTokenByCategoryAndValue = (value: any, category: string): string | null => {
     if (value == null) return null
@@ -658,12 +620,12 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
           } catch { }
         }
       }
-      if (brandVal && !aliasesValuelessToken(brandVal, valueless)) {
+      if (brandVal) {
+        // `cases.original` resolves to `unset` in the export (no CSS keyword for "render the
+        // text as authored"), so aliasing it here is safe — it defers to text-transform's
+        // inherited/initial value, same as `cases.original` itself.
         vars[`${brandPrefix}text-transform`] = brandVal
       }
-      // else: nothing to emit. `cases.original` has no CSS keyword, so no declaration is the
-      // correct output — text-transform stays at its initial value. Emitting an alias to it
-      // would only point at a var this build never declares.
     }
 
     if (decoration != null) {
@@ -683,9 +645,9 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
           } catch { }
         }
       }
-      if (brandVal && !aliasesValuelessToken(brandVal, valueless)) {
+      if (brandVal) {
         vars[`${brandPrefix}text-decoration`] = brandVal
-      } else if (!brandVal) {
+      } else {
         // `decorations.none` carries the real keyword `none`, so this alias resolves and is the
         // right default for "no decoration".
         vars[`${brandPrefix}text-decoration`] = 'var(--recursica_tokens_font_decorations_none)'
