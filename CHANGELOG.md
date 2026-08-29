@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.26.1
+
+### Patch Changes
+
+- aba1798: Fixed CSS transform quoted string output
+
 ## 0.26.0
 
 ### Minor Changes
