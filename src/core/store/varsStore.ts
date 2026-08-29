@@ -3,7 +3,7 @@ import { tokenColors, tokenColor, tokenColorFamilyName, tokenOpacity, tokenFont,
 import { buildTokenIndex } from '../resolvers/tokens'
 import { buildPaletteVars } from '../resolvers/palettes'
 import { buildLayerVars } from '../resolvers/layers'
-import { buildTypographyVars, valuelessTokenVars, type TypographyChoices } from '../resolvers/typography'
+import { buildTypographyVars, type TypographyChoices } from '../resolvers/typography'
 import { reconcileUikitFontRefs } from '../import/migrateImportedJson'
 import { buildUIKitVars } from '../resolvers/uikit'
 import { buildDimensionVars } from '../resolvers/dimensions'
@@ -263,33 +263,6 @@ function hasCustomVariants(uikit: any): boolean {
 // Utility to deep copy
 function cloneJSON<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
-}
-
-/**
- * Drop vars whose entire value is a reference to a token that has nothing to emit.
- *
- * `tokens.font.cases.original` has no CSS keyword ("render the text as authored"), so neither the
- * token nor anything aliasing it is declared. This mirrors pruneAliasesOfOmitted in the CSS
- * transforms so the running app's DOM matches what it exports: without it, ~112 ui-kit
- * text-transform vars point at a var nothing declares. Every resolver funnels through
- * applyCssVars, so pruning here covers all of them rather than each emit site.
- *
- * Transitive, because ui-kit vars alias theme/layer vars which alias the token. Values that merely
- * mention such a var among other content are left alone — those still express something.
- */
-function pruneValuelessAliases(vars: Record<string, string>, valueless: Set<string>): number {
-  const SOLE_VAR_REF = /^var\(\s*(--[\w-]+)\s*\)$/
-  const omitted = new Set(valueless)
-  let removed = 0
-  for (;;) {
-    const dropped: string[] = []
-    for (const [name, value] of Object.entries(vars)) {
-      const m = SOLE_VAR_REF.exec(String(value).trim())
-      if (m && omitted.has(m[1])) dropped.push(name)
-    }
-    if (dropped.length === 0) return removed
-    for (const name of dropped) { delete vars[name]; omitted.add(name); removed++ }
-  }
 }
 
 class VarsStore {
@@ -2310,11 +2283,14 @@ class VarsStore {
             const caseObj = casesRoot[caseKey]
             if (!caseObj || typeof caseObj !== 'object') return
             const val = caseObj.$value
-            // A null $value has no CSS representation — `cases.original` means "render the text
-            // as authored", for which CSS has no keyword. Emit nothing, matching the CSS export;
-            // consumers then fall back to text-transform's initial value, which is that meaning.
             if (typeof val === 'string') {
               vars[tokenFont('cases', caseKey)] = val
+            } else if (val == null) {
+              // `cases.original` has no CSS representation — CSS has no keyword for "render the
+              // text as authored". Emit `unset`, matching the CSS export: it resolves to the
+              // guaranteed-invalid value, which defers text-transform to its inherited/initial
+              // value (that meaning), while keeping the var itself declared and wireable.
+              vars[tokenFont('cases', caseKey)] = 'unset'
             }
           })
           Object.assign(allVars, vars)
@@ -2949,8 +2925,6 @@ class VarsStore {
         this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
         this.aaWatcher.fixLayerElementColorsInMap(allVars)
       }
-
-      pruneValuelessAliases(allVars, valuelessTokenVars(this.state.tokens))
 
       applyCssVars(allVars, this.state.tokens)
       

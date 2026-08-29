@@ -129,9 +129,8 @@ describe('recursicaJsonTransform (Specific)', () => {
     const decls = (s: string) => new Set([...strip(s).matchAll(/(--recursica_[\w-]+)\s*:/g)].map(m => m[1]))
     const refs = (s: string) => new Set([...strip(s).matchAll(/var\(\s*(--recursica_[\w-]+)/g)].map(m => m[1]))
 
-    it('does not declare a null-valued string primitive', () => {
-      const d = decls(css())
-      expect(d.has('--recursica_tokens_font_cases_original')).toBe(false)
+    it('declares a null-valued string primitive as `unset`, not omitted or empty', () => {
+      expect(strip(css())).toMatch(/--recursica_tokens_font_cases_original:\s*unset;/)
       expect(css()).not.toContain(': "";')
     })
 
@@ -145,8 +144,8 @@ describe('recursicaJsonTransform (Specific)', () => {
       expect(d.has('--recursica_tokens_font_decorations_underline')).toBe(true)
     })
 
-    it('prunes the declarations that alias an omitted primitive', () => {
-      expect(strip(css())).not.toMatch(/var\(\s*--recursica_tokens_font_cases_original/)
+    it('keeps the declarations that alias the null-valued primitive, instead of pruning them', () => {
+      expect(strip(css())).toMatch(/var\(\s*--recursica_tokens_font_cases_original\s*\)/)
     })
 
     it('keeps the text-decoration declarations that alias decorations.none', () => {

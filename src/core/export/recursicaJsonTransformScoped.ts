@@ -13,7 +13,7 @@
 
 const FILENAME = 'recursica_variables_scoped.css'
 const PREFIX = '--recursica_'
-const TRANSFORM_VERSION = '1.3.2'
+const TRANSFORM_VERSION = '1.3.3'
 
 /** Maps brand.typography $value keys (camelCase) to CSS property names. */
 const TYPOGRAPHY_JSON_TO_CSS_PROP: Record<string, string> = {
@@ -693,38 +693,20 @@ function fallbackForMissingLayerVar(exampleValue: string): string {
 /**
  * A token with `$value: null` has no value to emit: `null` means "no declaration", not "some
  * empty value". Layer-specific ui-kit vars still take a type fallback (`transparent`, `0`) because
- * one must exist for every layer; everything else is simply skipped, which is already this
- * transform's behaviour. What was missing is pruning the declarations that *alias* a skipped
- * token — see pruneAliasesOfOmitted.
+ * one must exist for every layer. A null **string** token (the only other case in practice —
+ * `tokens.font.cases.original`) has no such requirement and no sensible literal stand-in — `""` is
+ * not a valid value for any CSS property. Rather than skip the declaration, emit the CSS-wide
+ * keyword `unset`: a custom property declared `unset` at `:root` resolves to the guaranteed-invalid
+ * value (nothing to inherit from at the root), and any `var()` reference to a guaranteed-invalid
+ * value makes the *consuming* declaration invalid at computed-value time — falling back to inherit
+ * (inherited properties, e.g. text-transform) or initial (non-inherited). That's the same end
+ * result as omitting the declaration, but every var in the alias chain (~67 text-transform
+ * declarations alias this one) stays declared and wireable instead of vanishing along with it —
+ * see docs/UPDATING_THEME_FILES.md. Note this is about the *value*, not the property:
+ * `tokens.font.decorations.none` holds the real keyword `none` and is emitted like any other value.
  */
-
-/** A value that is nothing but a single `var(--x)` reference, with no fallback. */
-const SOLE_VAR_REF = /^var\(\s*(--[\w-]+)\s*\)$/
-
-/**
- * Drops root declarations that alias an omitted token, and returns the full omitted set so the
- * theme/layer alias lists can be filtered too.
- *
- * Omitting a token but keeping the declarations that alias it leaves those pointing at an
- * undefined var. Such a declaration is invalid at computed-value time, so the property falls back
- * to its initial value — exactly what the null meant — but the reference is dead weight and reads
- * as a bug to anyone auditing the export. `tokens.font.cases.original` is the one in practice,
- * aliased by ~67 text-transform declarations. (`tokens.font.decorations.none` is *not* null: it
- * carries the real CSS keyword `none` and is emitted normally.)
- *
- * Transitive, because aliases chain. Values that merely *mention* an omitted var among other
- * content are left alone — those still express something.
- */
-function pruneAliasesOfOmitted(rootVarsMap: Map<string, string>, omitted: Set<string>): void {
-  for (;;) {
-    const dropped: string[] = []
-    for (const [name, value] of rootVarsMap) {
-      const m = SOLE_VAR_REF.exec(value.trim())
-      if (m && omitted.has(m[1])) dropped.push(name)
-    }
-    if (dropped.length === 0) return
-    for (const name of dropped) { rootVarsMap.delete(name); omitted.add(name) }
-  }
+function isNullStringToken(value: unknown, tokenType: string | undefined): boolean {
+  return value == null && tokenType === 'string'
 }
 
 export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
@@ -747,7 +729,6 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   // 2. Build root vars: every entry with specific name, values use pathToVarName for refs
   const rootVarsMap = new Map<string, string>()
   const rootVarsComments = new Map<string, string>()
-  const omitted = new Set<string>()
 
   for (const entry of entries) {
     const { path, value, type: tokenType, comment } = entry
@@ -781,15 +762,17 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
       continue
     }
 
+    if (isNullStringToken(value, tokenType)) {
+      const rootName = pathToVarName(path)
+      rootVarsMap.set(rootName, 'unset')
+      if (comment) rootVarsComments.set(rootName, comment)
+      continue
+    }
+
     let formatted = formatValue(value, path, allRootNames, errors, {
       refNamer: (p: string) => isLayerSpecificUIKitPath(p) ? pathToRootVarNameLayerSpecificUIKit(p, 'light') : pathToVarName(p)
     })
-    if (formatted == null) {
-      // Nothing to emit — record it so declarations aliasing it are pruned rather than left
-      // pointing at a var this export never declares.
-      if (value == null) omitted.add(pathToVarName(path))
-      continue
-    }
+    if (formatted == null) continue // nothing to emit (non-string null with no type fallback)
     const rootName = pathToVarName(path)
     rootVarsMap.set(rootName, formatted)
     if (comment) rootVarsComments.set(rootName, comment)
@@ -804,7 +787,6 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   }
 
   fillMissingLayerSpecificUIKitRootVars(rootVarsMap)
-  pruneAliasesOfOmitted(rootVarsMap, omitted)
 
   // 3. Build theme and theme+layer alias lists: genericName -> rootName (only aliases in blocks)
   const themeAliases = new Map<string, Array<{ genericName: string; rootName: string }>>()
@@ -831,7 +813,6 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
     const genericName = pathToScopedVarName(path, scope)
 
     if (scopeKey === 'root') continue
-    if (omitted.has(rootName)) continue   // target was never declared — see pruneAliasesOfOmitted
     if (scope !== 'root' && 'layer' in scope) {
       if (!themeLayerAliases.has(scopeKey)) themeLayerAliases.set(scopeKey, [])
       themeLayerAliases.get(scopeKey)!.push({ genericName, rootName })
