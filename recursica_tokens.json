@@ -43,6 +43,9 @@
           "$value": "#131313"
         },
         "alias": "gray",
+        "$extensions": {
+          "com.recursica.friendlyName": "Gray"
+        },
         "000": {
           "$type": "color",
           "$value": "#fcfcfc"
@@ -94,6 +97,9 @@
           "$value": "#00090b"
         },
         "alias": "cornflower",
+        "$extensions": {
+          "com.recursica.friendlyName": "Cornflower"
+        },
         "000": {
           "$type": "color",
           "$value": "#eaf7fb"
@@ -145,6 +151,9 @@
           "$value": "#00130d"
         },
         "alias": "greensheen",
+        "$extensions": {
+          "com.recursica.friendlyName": "Greensheen"
+        },
         "000": {
           "$type": "color",
           "$value": "#e9fbf1"
@@ -196,6 +205,9 @@
           "$value": "#2a1004"
         },
         "alias": "mandarin",
+        "$extensions": {
+          "com.recursica.friendlyName": "Mandarin"
+        },
         "000": {
           "$type": "color",
           "$value": "#fff4ea"
@@ -247,6 +259,9 @@
           "$value": "#120000"
         },
         "alias": "mandy",
+        "$extensions": {
+          "com.recursica.friendlyName": "Mandy"
+        },
         "000": {
           "$type": "color",
           "$value": "#faf5f5"
@@ -298,6 +313,9 @@
           "$value": "#24060b"
         },
         "alias": "salmon",
+        "$extensions": {
+          "com.recursica.friendlyName": "Salmon"
+        },
         "000": {
           "$type": "color",
           "$value": "#fbeff1"
@@ -341,49 +359,49 @@
         "lg": {
           "$type": "dimension",
           "$value": {
-            "value": 18,
+            "value": 20,
             "unit": "px"
           }
         },
         "xl": {
           "$type": "dimension",
           "$value": {
-            "value": 20,
+            "value": 24,
             "unit": "px"
           }
         },
         "2xl": {
           "$type": "dimension",
           "$value": {
-            "value": 24,
+            "value": 32,
             "unit": "px"
           }
         },
         "3xl": {
           "$type": "dimension",
           "$value": {
-            "value": 28,
+            "value": 40,
             "unit": "px"
           }
         },
         "4xl": {
           "$type": "dimension",
           "$value": {
-            "value": 32,
+            "value": 48,
             "unit": "px"
           }
         },
         "5xl": {
           "$type": "dimension",
           "$value": {
-            "value": 36,
+            "value": 56,
             "unit": "px"
           }
         },
         "6xl": {
           "$type": "dimension",
           "$value": {
-            "value": 40,
+            "value": 64,
             "unit": "px"
           }
         }
@@ -496,6 +514,78 @@
               },
               {
                 "weight": "{tokens.font.weights.bold}",
+                "style": "{tokens.font.styles.normal}"
+              }
+            ]
+          }
+        },
+        "dongle": {
+          "$type": "fontFamily",
+          "$value": [
+            "Dongle",
+            "sans-serif"
+          ],
+          "$extensions": {
+            "com.google.fonts": {
+              "url": "https://fonts.googleapis.com/css2?family=Dongle:wght@300;400;700&display=swap')%3B"
+            },
+            "variants": [
+              {
+                "weight": "{tokens.font.weights.light}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.regular}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.bold}",
+                "style": "{tokens.font.styles.normal}"
+              }
+            ]
+          }
+        },
+        "nunito-sans": {
+          "$type": "fontFamily",
+          "$value": [
+            "Nunito Sans",
+            "sans-serif"
+          ],
+          "$extensions": {
+            "com.google.fonts": {
+              "url": "https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200;300;400;500;600;700;800;900&display=swap')%3B"
+            },
+            "variants": [
+              {
+                "weight": "{tokens.font.weights.extra-light}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.light}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.regular}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.medium}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.semi-bold}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.bold}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.extra-bold}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.black}",
                 "style": "{tokens.font.styles.normal}"
               }
             ]
@@ -627,49 +717,49 @@
         "shortest": {
           "$type": "dimension",
           "$value": {
-            "value": 0.9,
+            "value": 0.7,
             "unit": "em"
           }
         },
         "shorter": {
           "$type": "dimension",
           "$value": {
-            "value": 0.95,
+            "value": 0.8,
             "unit": "em"
           }
         },
         "short": {
           "$type": "dimension",
           "$value": {
-            "value": 1,
+            "value": 0.9,
             "unit": "em"
           }
         },
         "default": {
           "$type": "dimension",
           "$value": {
-            "value": 1.05,
+            "value": 1,
             "unit": "em"
           }
         },
         "tall": {
           "$type": "dimension",
           "$value": {
-            "value": 1.175,
+            "value": 1.2,
             "unit": "em"
           }
         },
         "taller": {
           "$type": "dimension",
           "$value": {
-            "value": 1.3,
+            "value": 1.4,
             "unit": "em"
           }
         },
         "tallest": {
           "$type": "dimension",
           "$value": {
-            "value": 1.4,
+            "value": 1.6,
             "unit": "em"
           }
         }
@@ -783,8 +873,8 @@
   },
   "$extensions": {
     "recursica.metadata": {
-      "exportedAt": "2026-05-06T17:14:27.178Z",
-      "version": "2.1.0"
+      "exportedAt": "2026-08-31T17:40:40.300Z",
+      "version": "0.26.2"
     }
   }
 }
