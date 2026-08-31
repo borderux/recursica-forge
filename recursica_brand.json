@@ -2461,7 +2461,7 @@
           "fontWeight": "{tokens.font.weights.bold}",
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.default}",
-          "lineHeight": "{tokens.font.line-heights.default}",
+          "lineHeight": "{tokens.font.line-heights.shortest}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }
@@ -2474,7 +2474,7 @@
           "fontWeight": "{tokens.font.weights.semi-bold}",
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.default}",
-          "lineHeight": "{tokens.font.line-heights.default}",
+          "lineHeight": "{tokens.font.line-heights.shortest}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }
@@ -2487,7 +2487,7 @@
           "fontWeight": "{tokens.font.weights.regular}",
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.default}",
-          "lineHeight": "{tokens.font.line-heights.default}",
+          "lineHeight": "{tokens.font.line-heights.shortest}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }
@@ -2500,7 +2500,7 @@
           "fontWeight": "{tokens.font.weights.bold}",
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.default}",
-          "lineHeight": "{tokens.font.line-heights.default}",
+          "lineHeight": "{tokens.font.line-heights.shorter}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }
@@ -2513,7 +2513,7 @@
           "fontWeight": "{tokens.font.weights.medium}",
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.default}",
-          "lineHeight": "{tokens.font.line-heights.default}",
+          "lineHeight": "{tokens.font.line-heights.shorter}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }
@@ -2526,7 +2526,7 @@
           "fontWeight": "{tokens.font.weights.regular}",
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.default}",
-          "lineHeight": "{tokens.font.line-heights.default}",
+          "lineHeight": "{tokens.font.line-heights.short}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }
@@ -2539,7 +2539,7 @@
           "fontWeight": "{tokens.font.weights.light}",
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.default}",
-          "lineHeight": "{tokens.font.line-heights.default}",
+          "lineHeight": "{tokens.font.line-heights.tall}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }
@@ -2552,7 +2552,7 @@
           "fontWeight": "{tokens.font.weights.bold}",
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.default}",
-          "lineHeight": "{tokens.font.line-heights.default}",
+          "lineHeight": "{tokens.font.line-heights.tall}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }
@@ -2565,7 +2565,7 @@
           "fontWeight": "{tokens.font.weights.regular}",
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.default}",
-          "lineHeight": "{tokens.font.line-heights.default}",
+          "lineHeight": "{tokens.font.line-heights.tallest}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }
@@ -2578,7 +2578,7 @@
           "fontWeight": "{tokens.font.weights.regular}",
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.wide}",
-          "lineHeight": "{tokens.font.line-heights.default}",
+          "lineHeight": "{tokens.font.line-heights.taller}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }
@@ -2586,7 +2586,7 @@
       "caption": {
         "$type": "typography",
         "$value": {
-          "fontFamily": "{brand.fonts.primary}",
+          "fontFamily": "{brand.fonts.secondary}",
           "fontSize": "{tokens.font.sizes.xs}",
           "fontWeight": "{tokens.font.weights.regular}",
           "fontStyle": "{tokens.font.styles.normal}",
@@ -2599,7 +2599,7 @@
       "overline": {
         "$type": "typography",
         "$value": {
-          "fontFamily": "{brand.fonts.primary}",
+          "fontFamily": "{brand.fonts.secondary}",
           "fontSize": "{tokens.font.sizes.2xs}",
           "fontWeight": "{tokens.font.weights.medium}",
           "fontStyle": "{tokens.font.styles.normal}",
@@ -2614,15 +2614,11 @@
       "$type": "fontFamily",
       "primary": {
         "$type": "fontFamily",
-        "$value": "{tokens.font.typefaces.lexend}"
+        "$value": "{tokens.font.typefaces.dongle}"
       },
       "secondary": {
         "$type": "fontFamily",
-        "$value": "{tokens.font.typefaces.bellota-text}"
-      },
-      "tertiary": {
-        "$type": "fontFamily",
-        "$value": "{tokens.font.typefaces.quattrocento}"
+        "$value": "{tokens.font.typefaces.nunito-sans}"
       }
     },
     "layer": {
@@ -2670,8 +2666,8 @@
   },
   "$extensions": {
     "recursica.metadata": {
-      "exportedAt": "2026-05-06T17:14:27.179Z",
-      "version": "2.1.0"
+      "exportedAt": "2026-08-31T17:40:40.302Z",
+      "version": "0.26.2"
     }
   }
 }
