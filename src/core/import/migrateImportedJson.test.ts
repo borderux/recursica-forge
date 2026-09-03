@@ -5,6 +5,7 @@ import {
   migrateInteractiveElementTo2_1,
   repointInteractiveRefsTo2_1,
   reconcileUikitFontRefs,
+  repairCorruptedGoogleFontsUrls,
 } from './migrateImportedJson'
 import { validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
 import brandJson from '../../../recursica_brand.json'
@@ -148,7 +149,7 @@ describe('migrateImportedJson — brand 1.x → 2.x states', () => {
 
   it('stamps the current structure version', () => {
     const out = migrateImportedJson(brand1x(), 'brand')
-    expect(out.$extensions['recursica.metadata'].version).toBe('2.1.0')
+    expect(out.$extensions['recursica.metadata'].version).toBe('2.1.1')
   })
 
   it('is idempotent — a 2.x brand is left unchanged', () => {
@@ -718,6 +719,51 @@ describe('2.0.x → 2.1.0: interactive fill vs readable interactive colour', () 
       expect(c['text-color'].$value).toBe('{brand.layers.layer-2.elements.interactive.color}')
       expect(c['background-color'].$value).toBe('{brand.palettes.core-colors.interactive.tone}')
     })
+  })
+})
+
+describe('2.1.0 → 2.1.1: repair Google Fonts URLs corrupted by pasted @import snippets', () => {
+  const CORRUPTED = "https://fonts.googleapis.com/css2?family=Dongle:wght@300;400;700&display=swap')%3B"
+  const CLEAN = 'https://fonts.googleapis.com/css2?family=Dongle:wght@300;400;700&display=swap'
+  const tokensWith = (url: string) => ({
+    tokens: { font: { families: { dongle: {
+      $type: 'fontFamily',
+      $value: ['Dongle', 'sans-serif'],
+      $extensions: { 'com.google.fonts': { url } },
+    } } } },
+  })
+  const urlOf = (out: any) => out.tokens.font.families.dongle.$extensions['com.google.fonts'].url
+
+  it('repairs a corrupted url', () => {
+    const out = repairCorruptedGoogleFontsUrls(tokensWith(CORRUPTED))
+    expect(urlOf(out)).toBe(CLEAN)
+  })
+
+  it('leaves an already-clean url unchanged', () => {
+    const out = repairCorruptedGoogleFontsUrls(tokensWith(CLEAN))
+    expect(urlOf(out)).toBe(CLEAN)
+  })
+
+  it('leaves non-Google-Fonts extensions and other tokens alone', () => {
+    const input = { tokens: { color: { primary: { $type: 'color', $value: '#fff' } } } }
+    const out = repairCorruptedGoogleFontsUrls(JSON.parse(JSON.stringify(input)))
+    expect(out.tokens).toEqual(input.tokens)
+  })
+
+  it('is idempotent', () => {
+    const once = repairCorruptedGoogleFontsUrls(tokensWith(CORRUPTED))
+    const twice = repairCorruptedGoogleFontsUrls(JSON.parse(JSON.stringify(once)))
+    expect(urlOf(twice)).toBe(CLEAN)
+  })
+
+  it('stamps the current structure version', () => {
+    const out = repairCorruptedGoogleFontsUrls(tokensWith(CLEAN))
+    expect(out.$extensions['recursica.metadata'].version).toBe('2.1.1')
+  })
+
+  it('runs as part of the tokens import path', () => {
+    const out: any = migrateImportedJson(tokensWith(CORRUPTED), 'tokens')
+    expect(urlOf(out)).toBe(CLEAN)
   })
 })
 

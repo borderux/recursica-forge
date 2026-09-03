@@ -32,8 +32,9 @@
  */
 
 import uikitTemplate from '../../../recursica_ui-kit.json'
+import { sanitizeGoogleFontsUrl } from '../../modules/type/fontUtils'
 
-const TARGET_STRUCTURE_VERSION = '2.1.0'
+const TARGET_STRUCTURE_VERSION = '2.1.1'
 
 export interface MigrationRule {
   description: string
@@ -859,6 +860,37 @@ export function repointInteractiveRefsTo2_1(root: any): any {
   return root
 }
 
+// ── 2.1.0 → 2.1.1: repair Google Fonts URLs corrupted by pasted @import snippets ────────────
+//
+// Forge's Google Fonts URL field stored whatever was pasted into it without validating it was a
+// bare URL. Copying Google Fonts' "Embed" panel `@import url('...');` snippet — or just
+// selecting from `https:` through the trailing `');` — left `'`, `)`, and `;` on the end; all
+// three are legal URL characters, so `new URL()` never rejected them. Rebuilding the URL then
+// re-encoded that debris with `encodeURIComponent`, which escapes `;` but not `'` or `)`,
+// producing `...&display=swap')%3B` instead of `...&display=swap`. The source bug is fixed (see
+// `sanitizeGoogleFontsUrl` and its call sites in GoogleFontsModal.tsx / EditFontVariantsModal.tsx),
+// but tokens files exported before the fix still carry the corrupted value — this repairs them
+// on import.
+
+/**
+ * tokens: sanitize every `$extensions['com.google.fonts'].url` value in place. Idempotent — an
+ * already-clean URL is returned unchanged by `sanitizeGoogleFontsUrl`.
+ */
+export function repairCorruptedGoogleFontsUrls(root: any): any {
+  const visit = (node: any): void => {
+    if (!node || typeof node !== 'object') return
+    if (Array.isArray(node)) { node.forEach(visit); return }
+    const googleFonts = node.$extensions?.['com.google.fonts']
+    if (googleFonts && typeof googleFonts.url === 'string') {
+      googleFonts.url = sanitizeGoogleFontsUrl(googleFonts.url)
+    }
+    for (const key of Object.keys(node)) { if (!key.startsWith('$')) visit(node[key]) }
+  }
+  visit(root)
+  stampVersion(root)
+  return root
+}
+
 /**
  * Deep clones and migrates an imported JSON file to the current (2.x) structure.
  * Applies string rules to every file; applies file-type-specific structural
@@ -868,7 +900,7 @@ export function migrateImportedJson(data: any, fileType?: 'tokens' | 'brand' | '
   const migrated = applyStringRules(data)
   if (fileType === 'brand') return migrateInteractiveElementTo2_1(migrateBrandTo2x(migrated))
   if (fileType === 'uikit') return repointInteractiveRefsTo2_1(migrateUikitTo2x(migrated))
-  if (fileType === 'tokens') { stampVersion(migrated); return migrated }
+  if (fileType === 'tokens') return repairCorruptedGoogleFontsUrls(migrated)
   return migrated
 }
 
