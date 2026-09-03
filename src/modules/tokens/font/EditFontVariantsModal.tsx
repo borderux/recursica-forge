@@ -8,6 +8,7 @@ import { Dropdown } from '../../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { Modal } from '../../../components/adapters/Modal'
 import { genericLayerProperty, genericLayerText } from '../../../core/css/cssVarBuilder'
+import { sanitizeGoogleFontsUrl } from '../../type/fontUtils'
 
 export type EditFontVariantsModalProps = {
   open: boolean
@@ -114,7 +115,7 @@ const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles:
 // Or for weight only: family=Font+Name:wght@100;200;...
 const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styles: string[]): string => {
   try {
-    const urlObj = new URL(baseUrl)
+    const urlObj = new URL(sanitizeGoogleFontsUrl(baseUrl))
 
     // Replace spaces with + for the font name (Google Fonts format)
     const fontNameWithPlus = fontName.replace(/\s+/g, '+')
