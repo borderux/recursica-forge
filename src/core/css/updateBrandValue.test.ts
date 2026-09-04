@@ -17,6 +17,16 @@ const mockTheme = {
     },
     themes: {
       light: {
+        layers: {
+          'layer-2': {
+            properties: {
+              elevation: {
+                $type: 'shadow',
+                $value: '{brand.themes.light.elevations.elevation-2}'
+              }
+            }
+          }
+        },
         palettes: {
           'core-colors': {
             alert: {
@@ -113,4 +123,33 @@ describe('updateBrandValue', () => {
     })
     expect(mockThemeCopy.brand.themes.light.elevations['elevation-1'].blur).toBeUndefined()
   })
+
+  // Elevation CSS vars carry a bare name (`elevation-3`) rather than a var() reference — that form
+  // is explicitly allowed by validateCssVarValue and read back by the Layers panel. The JSON must
+  // still hold a resolvable DTCG reference, not the bare name.
+  describe('bare elevation names', () => {
+    const VAR = '--recursica_brand_themes_light_layers_layer-2_properties_elevation'
+    const at = () => mockThemeCopy.brand.themes.light.layers['layer-2'].properties.elevation.$value
+
+    it('stores a bare elevation name as a mode-qualified DTCG reference', () => {
+      expect(updateBrandValue(VAR, 'elevation-3')).toBe(true)
+      expect(at()).toBe('{brand.themes.light.elevations.elevation-3}')
+    })
+
+    it('never persists the bare name itself', () => {
+      updateBrandValue(VAR, 'elevation-0')
+      expect(at()).not.toBe('elevation-0')
+      expect(at()).toBe('{brand.themes.light.elevations.elevation-0}')
+    })
+
+    it('still accepts an explicit reference unchanged', () => {
+      expect(updateBrandValue(VAR, '{brand.themes.light.elevations.elevation-1}')).toBe(true)
+      expect(at()).toBe('{brand.themes.light.elevations.elevation-1}')
+    })
+
+    it('refuses a bare name on a var with no mode segment rather than guessing', () => {
+      expect(updateBrandValue('--recursica_brand_layer_2_properties_elevation', 'elevation-3')).toBe(false)
+    })
+  })
+
 })

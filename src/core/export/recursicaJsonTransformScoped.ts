@@ -13,7 +13,7 @@
 
 const FILENAME = 'recursica_variables_scoped.css'
 const PREFIX = '--recursica_'
-const TRANSFORM_VERSION = '1.3.1'
+const TRANSFORM_VERSION = '1.3.3'
 
 /** Maps brand.typography $value keys (camelCase) to CSS property names. */
 const TYPOGRAPHY_JSON_TO_CSS_PROP: Record<string, string> = {
@@ -35,6 +35,19 @@ export interface RecursicaJsonInput {
   tokens: Record<string, unknown>
   brand: Record<string, unknown>
   uikit: Record<string, unknown>
+}
+
+/**
+ * Reads the source JSON version from $extensions["recursica.metadata"].version, checked in
+ * tokens/uikit/brand order (all three are expected to be kept in sync). Falls back to
+ * "unknown" so a missing/older JSON file doesn't crash the export.
+ */
+function getSourceJsonVersion(json: RecursicaJsonInput): string {
+  for (const doc of [json.tokens, json.uikit, json.brand]) {
+    const version = (doc as Record<string, any> | undefined)?.['$extensions']?.['recursica.metadata']?.version
+    if (typeof version === 'string' && version.length > 0) return version
+  }
+  return 'unknown'
 }
 
 /** Validation error: JSON path where the problem was found and description. */
@@ -233,28 +246,6 @@ type FormatValueRootOptions = {
 }
 
 /**
- * CSS keywords that must be emitted bare (unquoted) when a token's literal value is one of
- * these words — e.g. `text-decoration: underline`, `font-weight: bold`. Any other string
- * (that isn't a numeric string, hex color, or var() reference) is wrapped in quotes, since
- * DTCG token values are otherwise free-form strings that aren't necessarily valid bare CSS.
- *
- * Keep this in sync with the identical list in recursicaJsonTransformSpecific.ts — both
- * transforms are intentionally self-contained (no cross-file imports), so the list is
- * duplicated rather than shared.
- */
-const BARE_CSS_KEYWORDS = new Set([
-  'none', 'normal', 'inherit', 'initial', 'unset', 'revert', 'currentcolor', 'transparent',
-  // font-style
-  'italic', 'oblique',
-  // text-transform / text-case
-  'uppercase', 'lowercase', 'capitalize',
-  // text-decoration-line
-  'underline', 'overline', 'line-through', 'blink',
-  // font-weight keywords
-  'bold', 'bolder', 'lighter'
-])
-
-/**
  * Formats a value for CSS output. Validates refs and values; pushes errors to the errors array.
  * When options.refNamer is provided (for root output), refs use that namer and options.themeForExpand
  * controls which theme expandRefPath uses for theme-relative refs.
@@ -295,11 +286,15 @@ function formatValue(
   }
 
   if (typeof val === 'string') {
-    if (/^#[0-9a-fA-F]{3,8}$/.test(val)) return val
-    if (BARE_CSS_KEYWORDS.has(val)) return val
-    if (/^\d+(\.\d+)?$/.test(val)) return val // numeric string (e.g. font-weight "400") — emit bare, not quoted
-    if (val.includes('var(')) return val
-    return `"${val.replace(/"/g, '\\"')}"`
+    // DTCG string tokens (hex colors, numeric strings, enum/keyword identifiers like
+    // `center`/`dashed`, color aliases, `var(...)` refs) are all emitted bare: consumers
+    // read them either as bare CSS keywords (`justify-content: center`) or as plain JS
+    // strings via readCssVar() (e.g. familyNames.ts), and quoting breaks both.
+    // Font-family stacks are a separate, legitimately-quoted case handled by the array branch below.
+    if (val === '') return '""' // empty value would otherwise vanish from the declaration entirely
+    if (val.includes('var(')) return val // nested var() ref — bare parens here are expected, not a stray structural char
+    if (/[{}[\]();!]/.test(val)) return `"${val.replace(/"/g, '\\"')}"` // structural chars would break CSS var parsing if left bare
+    return val
   }
 
   if (typeof val === 'number') {
@@ -695,6 +690,25 @@ function fallbackForMissingLayerVar(exampleValue: string): string {
  * Architecture: root has all specific (full-path) names; theme/layer blocks have only generic aliases.
  * See docs/SCOPED_CSS_ARCHITECTURE.md.
  */
+/**
+ * A token with `$value: null` has no value to emit: `null` means "no declaration", not "some
+ * empty value". Layer-specific ui-kit vars still take a type fallback (`transparent`, `0`) because
+ * one must exist for every layer. A null **string** token (the only other case in practice —
+ * `tokens.font.cases.original`) has no such requirement and no sensible literal stand-in — `""` is
+ * not a valid value for any CSS property. Rather than skip the declaration, emit the CSS-wide
+ * keyword `unset`: a custom property declared `unset` at `:root` resolves to the guaranteed-invalid
+ * value (nothing to inherit from at the root), and any `var()` reference to a guaranteed-invalid
+ * value makes the *consuming* declaration invalid at computed-value time — falling back to inherit
+ * (inherited properties, e.g. text-transform) or initial (non-inherited). That's the same end
+ * result as omitting the declaration, but every var in the alias chain (~67 text-transform
+ * declarations alias this one) stays declared and wireable instead of vanishing along with it —
+ * see docs/UPDATING_THEME_FILES.md. Note this is about the *value*, not the property:
+ * `tokens.font.decorations.none` holds the real keyword `none` and is emitted like any other value.
+ */
+function isNullStringToken(value: unknown, tokenType: string | undefined): boolean {
+  return value == null && tokenType === 'string'
+}
+
 export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   const entries = flattenInput(json)
   const errors: TransformError[] = []
@@ -748,10 +762,17 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
       continue
     }
 
+    if (isNullStringToken(value, tokenType)) {
+      const rootName = pathToVarName(path)
+      rootVarsMap.set(rootName, 'unset')
+      if (comment) rootVarsComments.set(rootName, comment)
+      continue
+    }
+
     let formatted = formatValue(value, path, allRootNames, errors, {
       refNamer: (p: string) => isLayerSpecificUIKitPath(p) ? pathToRootVarNameLayerSpecificUIKit(p, 'light') : pathToVarName(p)
     })
-    if (formatted == null) continue
+    if (formatted == null) continue // nothing to emit (non-string null with no type fallback)
     const rootName = pathToVarName(path)
     rootVarsMap.set(rootName, formatted)
     if (comment) rootVarsComments.set(rootName, comment)
@@ -809,7 +830,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
     themeAliases.set(theme, merged)
   }
 
-  const css = formatScopedCss(rootVarsMap, themeAliases, themeLayerAliases, rootVarsComments)
+  const css = formatScopedCss(rootVarsMap, themeAliases, themeLayerAliases, rootVarsComments, getSourceJsonVersion(json))
   return [{ filename: FILENAME, contents: css }]
 }
 
@@ -846,13 +867,15 @@ function formatScopedCss(
   rootVarsMap: Map<string, string>,
   themeAliases: Map<string, Array<{ genericName: string; rootName: string }>>,
   themeLayerAliases: Map<string, Array<{ genericName: string; rootName: string }>>,
-  rootVarsComments: Map<string, string>
+  rootVarsComments: Map<string, string>,
+  jsonVersion: string
 ): string {
   const buildDate = new Date().toUTCString()
 
   let css = `/*\n`
   css += ` * Recursica CSS Variables - Scoped\n`
   css += ` * Transform version: ${TRANSFORM_VERSION}\n`
+  css += ` * Source JSON version: ${jsonVersion}\n`
   css += ` * Generated: ${buildDate}\n`
   css += ` *\n`
   css += ` * --- How to integrate this file ---\n`

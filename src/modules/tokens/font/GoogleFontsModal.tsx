@@ -5,7 +5,7 @@ import { Checkbox } from '../../../components/adapters/Checkbox'
 import { TextField } from '../../../components/adapters/TextField'
 import { Dropdown } from '../../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../../components/iconUtils'
-import { ensureFontLoaded, getActualFontFamilyName, getCachedFontFamilyName } from '../../type/fontUtils'
+import { ensureFontLoaded, getActualFontFamilyName, getCachedFontFamilyName, sanitizeGoogleFontsUrl } from '../../type/fontUtils'
 import { Modal } from '../../../components/adapters/Modal'
 import { genericLayerProperty, genericLayerText } from '../../../core/css/cssVarBuilder'
 
@@ -157,7 +157,7 @@ export function GoogleFontsModal({
   // Or for weight only: family=Font+Name:wght@100;200;...
   const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styles: string[]): string => {
     try {
-      const urlObj = new URL(baseUrl)
+      const urlObj = new URL(sanitizeGoogleFontsUrl(baseUrl))
 
       // Replace spaces with + for the font name (Google Fonts format)
       const fontNameWithPlus = fontName.replace(/\s+/g, '+')
@@ -355,10 +355,11 @@ export function GoogleFontsModal({
         // For variable fonts that use the axis range syntax (e.g. wght@100..900) we keep the
         // original URL verbatim — rebuilding it with discrete weights changes the font from a
         // single variable font file to many static files, which changes how the browser handles it.
-        const hasRangeAxis = /[?&]family=[^&]*\d+\.\.\d+/.test(googleFontsUrl.trim())
+        const cleanedGoogleFontsUrl = sanitizeGoogleFontsUrl(googleFontsUrl)
+        const hasRangeAxis = /[?&]family=[^&]*\d+\.\.\d+/.test(cleanedGoogleFontsUrl)
         const finalUrl = hasRangeAxis
-          ? googleFontsUrl.trim()
-          : buildFontUrl(googleFontsUrl.trim(), fontToLoad, weightsArray, stylesArray)
+          ? cleanedGoogleFontsUrl
+          : buildFontUrl(cleanedGoogleFontsUrl, fontToLoad, weightsArray, stylesArray)
 
         // Don't load the font here - let onAccept handle it via ensureFontLoaded
         // This avoids conflicts and ensures the URL is properly stored in token extensions first

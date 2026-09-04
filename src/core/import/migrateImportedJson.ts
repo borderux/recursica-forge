@@ -32,8 +32,9 @@
  */
 
 import uikitTemplate from '../../../recursica_ui-kit.json'
+import { sanitizeGoogleFontsUrl } from '../../modules/type/fontUtils'
 
-const TARGET_STRUCTURE_VERSION = '2.1.0'
+const TARGET_STRUCTURE_VERSION = '2.1.1'
 
 export interface MigrationRule {
   description: string
@@ -312,6 +313,65 @@ function mapAccordionItem(segs: string[]): string[] | null {
 }
 
 /**
+ * tree gained a selection-state axis: the flat `selected-*` / `unselected-*` colour keys and
+ * the `selected-text` / `unselected-text` typography groups moved under
+ * `variants/selection-states/{selected,unselected}/properties/{colors,text}`.
+ * Without this mapping every tree colour and type value would be dropped and the template's
+ * own defaults kept — including a `{brand.fonts.secondary}` font that a single-font brand has
+ * no target for, which then blocks export.
+ */
+function mapTree(segs: string[]): string[] | null {
+  if (segs[2] !== 'properties') return null
+  const SS = (state: string, rest: string) => `components.tree.variants.selection-states.${state}.properties.${rest}`
+
+  // properties.{selected,unselected}-text.<k> → …/<state>/properties/text/<k>
+  const textMatch = /^(selected|unselected)-text$/.exec(segs[3] ?? '')
+  if (textMatch && segs.length > 4) return [SS(textMatch[1], `text.${segs.slice(4).join('.')}`)]
+
+  if (segs[3] === 'colors' && segs.length === 6) {
+    const layer = segs[4]
+    const key = segs[5]
+    // hover-* has no per-component home in 2.x (hover is global) — intentionally dropped.
+    if (key.startsWith('hover-')) return []
+    const colorMatch = /^(selected|unselected)-(background|border-color|text)$/.exec(key)
+    if (colorMatch) {
+      const [, state, prop] = colorMatch
+      const newKey = prop === 'border-color' ? 'border-color' : `${prop}-color`
+      return [SS(state, `colors.${layer}.${newKey}`)]
+    }
+  }
+  return null
+}
+
+/** The table parts that carried per-state cell/text colours in 1.x. */
+const TABLE_PARTS = new Set(['table-cell', 'table-header', 'table-footer'])
+
+/**
+ * table-cell / table-header / table-footer carried the enabled and disabled colours side by
+ * side as `<prop>-color-enabled` / `<prop>-color-disabled`. In 2.x the enabled pair is the
+ * component's own `properties.colors`, and disabled moved onto the `states` variant axis:
+ *
+ *   properties.colors.<layer>.text-color-enabled  → properties.colors.<layer>.text-color
+ *   properties.colors.<layer>.text-color-disabled → variants.states.disabled.properties
+ *                                                     .colors.<layer>.text-color
+ *
+ * Without this mapping neither value has a 2.x home, so the overlay keeps the template's own
+ * table colours and the user's are silently dropped. Every other key on these three components
+ * (sorted/unsorted, dividers, text styles) already maps 1:1.
+ */
+function mapTable(comp: string, segs: string[]): string[] | null {
+  if (segs[2] !== 'properties' || segs[3] !== 'colors' || segs.length !== 6) return null
+  const layer = segs[4]
+  const m = /^(text|cell)-color-(enabled|disabled)$/.exec(segs[5])
+  if (!m) return null
+  const [, prop, state] = m
+  const key = `colors.${layer}.${prop}-color`
+  return state === 'enabled'
+    ? [`components.${comp}.properties.${key}`]
+    : [`components.${comp}.variants.states.disabled.properties.${key}`]
+}
+
+/**
  * Maps a 1.x uikit leaf path (relative to `ui-kit`, e.g. `components.button.…`)
  * to its 2.x path(s). Returns an empty array for values with no 2.x home (they
  * are intentionally dropped). One old value can map to several 2.x paths (e.g. a
@@ -328,6 +388,15 @@ export function mapOldUikitPath(path: string): string[] {
   if (comp === 'accordion-item' && segs[2] === 'properties') {
     const r = mapAccordionItem(segs); if (r) return r
   }
+  if (comp === 'tree') {
+    const r = mapTree(segs); if (r) return r
+  }
+  if (comp && TABLE_PARTS.has(comp)) {
+    const r = mapTable(comp, segs); if (r) return r
+  }
+  // `table` lost highlight-on-hover entirely in 2.x (hover is global) — drop it explicitly
+  // rather than letting it fall through to a 2.x path that does not exist.
+  if (comp === 'table' && /^highlight-on-hover-(color|opacity)$/.test(last0)) return []
   if (comp === 'modal' && segs[2] === 'properties' && segs[3] === 'colors' && segs[5] === 'background') {
     const layer = segs[4]; return ['header', 'content', 'footer'].map(x => `components.modal.properties.colors.${layer}.${x}-background-color`)
   }
@@ -412,6 +481,9 @@ function isOldUikitStructure(uikit: any): boolean {
   if (c.chip?.variants?.styles) return true                    // chip axis was `styles`, now `selection-states`
   if (c['text-field']?.variants?.states?.default) return true  // form-input `default` state was promoted
   if (c.checkbox?.properties?.colors) return true              // checkbox colours were flat, now per selection-state
+  if (c.tree?.properties?.['selected-text']) return true       // tree text/colours were flat, now per selection-state
+  if (c['table-cell']?.properties?.colors?.['layer-0']?.['text-color-enabled']) return true
+  // ^ table colours were per-state suffixes, now split across properties / states.disabled
   return false
 }
 
@@ -788,6 +860,37 @@ export function repointInteractiveRefsTo2_1(root: any): any {
   return root
 }
 
+// ── 2.1.0 → 2.1.1: repair Google Fonts URLs corrupted by pasted @import snippets ────────────
+//
+// Forge's Google Fonts URL field stored whatever was pasted into it without validating it was a
+// bare URL. Copying Google Fonts' "Embed" panel `@import url('...');` snippet — or just
+// selecting from `https:` through the trailing `');` — left `'`, `)`, and `;` on the end; all
+// three are legal URL characters, so `new URL()` never rejected them. Rebuilding the URL then
+// re-encoded that debris with `encodeURIComponent`, which escapes `;` but not `'` or `)`,
+// producing `...&display=swap')%3B` instead of `...&display=swap`. The source bug is fixed (see
+// `sanitizeGoogleFontsUrl` and its call sites in GoogleFontsModal.tsx / EditFontVariantsModal.tsx),
+// but tokens files exported before the fix still carry the corrupted value — this repairs them
+// on import.
+
+/**
+ * tokens: sanitize every `$extensions['com.google.fonts'].url` value in place. Idempotent — an
+ * already-clean URL is returned unchanged by `sanitizeGoogleFontsUrl`.
+ */
+export function repairCorruptedGoogleFontsUrls(root: any): any {
+  const visit = (node: any): void => {
+    if (!node || typeof node !== 'object') return
+    if (Array.isArray(node)) { node.forEach(visit); return }
+    const googleFonts = node.$extensions?.['com.google.fonts']
+    if (googleFonts && typeof googleFonts.url === 'string') {
+      googleFonts.url = sanitizeGoogleFontsUrl(googleFonts.url)
+    }
+    for (const key of Object.keys(node)) { if (!key.startsWith('$')) visit(node[key]) }
+  }
+  visit(root)
+  stampVersion(root)
+  return root
+}
+
 /**
  * Deep clones and migrates an imported JSON file to the current (2.x) structure.
  * Applies string rules to every file; applies file-type-specific structural
@@ -797,6 +900,42 @@ export function migrateImportedJson(data: any, fileType?: 'tokens' | 'brand' | '
   const migrated = applyStringRules(data)
   if (fileType === 'brand') return migrateInteractiveElementTo2_1(migrateBrandTo2x(migrated))
   if (fileType === 'uikit') return repointInteractiveRefsTo2_1(migrateUikitTo2x(migrated))
-  if (fileType === 'tokens') { stampVersion(migrated); return migrated }
+  if (fileType === 'tokens') return repairCorruptedGoogleFontsUrls(migrated)
   return migrated
+}
+
+/**
+ * Repoint ui-kit `{brand.fonts.<role>}` references onto a role the brand actually defines.
+ *
+ * `brand.fonts` is an open, ordinal list (primary, secondary, tertiary, …) sized by how many
+ * typefaces the brand uses — a single-typeface brand legitimately has only `primary`. The
+ * ui-kit template, authored against the multi-font default brand, references `secondary` in
+ * places; whenever a template default survives (a value with no 1.x source path, see
+ * `overlayOldUikit`) that reference can point at a role the imported brand does not have.
+ * The result is a dangling cross-file reference that import silently accepts and export then
+ * refuses, with no way for the user to fix it in the UI.
+ *
+ * Missing roles degrade to the first role the brand does define (`primary` in practice), which
+ * is the only font guaranteed to exist.
+ */
+export function reconcileUikitFontRefs(uikitRoot: any, brandRoot: any): any {
+  const fonts = (brandRoot?.brand ?? brandRoot)?.fonts
+  if (!fonts || typeof fonts !== 'object') return uikitRoot
+
+  const roles = Object.keys(fonts).filter(k => !k.startsWith('$'))
+  if (roles.length === 0) return uikitRoot
+  const fallback = roles.includes('primary') ? 'primary' : roles[0]
+
+  const FONT_REF = /^\{brand\.fonts\.([^.}]+)\}$/
+  const visit = (node: any): void => {
+    if (!node || typeof node !== 'object') return
+    if (Array.isArray(node)) { node.forEach(visit); return }
+    if (typeof node.$value === 'string') {
+      const m = FONT_REF.exec(node.$value.trim())
+      if (m && !roles.includes(m[1])) node.$value = `{brand.fonts.${fallback}}`
+    }
+    for (const [k, v] of Object.entries(node)) { if (!k.startsWith('$')) visit(v) }
+  }
+  visit(uikitRoot?.['ui-kit'] ?? uikitRoot)
+  return uikitRoot
 }

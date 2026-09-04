@@ -73,6 +73,21 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
         jsonValue = jsonValue.replace('{brand.', `{brand.themes.${mode}.`)
       }
     }
+  } else if (/^elevation-\d+$/.test(value.trim())) {
+    // Elevation CSS vars legitimately carry a bare elevation name rather than a var() reference
+    // (validateCssVarValue allows that form, and the Layers panel reads both back). The JSON,
+    // though, must hold a DTCG reference — storing the bare name leaves `$value: "elevation-2"`,
+    // which points at nothing and is not a resolvable reference.
+    //
+    // This was previously masked: the Layers panel writes the JSON a second time via its own
+    // onUpdate handler, with the correct `{brand.themes.<mode>.elevations.<name>}`, and that
+    // happened to land after this one. Any caller without that second write — or a change in
+    // ordering — would persist the malformed value.
+    const mode = (path[0] === 'brand' && path[1] === 'themes' && (path[2] === 'light' || path[2] === 'dark'))
+      ? path[2]
+      : null
+    if (!mode) return false
+    jsonValue = `{brand.themes.${mode}.elevations.${value.trim()}}`
   } else if (value.includes('var(')) {
     // A var() reference that cssVarToRef couldn't convert — cannot persist safely.
     return false

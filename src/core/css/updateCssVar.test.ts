@@ -21,7 +21,7 @@ vi.mock('./updateUIKitValue', () => ({
   removeUIKitValue: vi.fn(() => true),
 }))
 
-import { updateCssVar, updateCssVars, removeCssVar } from './updateCssVar'
+import { updateCssVar, updateCssVars, removeCssVar, modeIndependentLayerCounterpart } from './updateCssVar'
 import { readCssVar } from './readCssVar'
 
 describe('updateCssVar', { timeout: 60000 }, () => {
@@ -168,3 +168,39 @@ describe('removeCssVar', () => {
   })
 })
 
+// brand.themes.<mode>.layers.layer-N.properties.{padding,border-radius,border-size} holds the same
+// value in light and dark by design, but the Layers page writes only the mode being viewed, so an
+// edit used to leave the other mode stale in the exported brand JSON.
+describe('modeIndependentLayerCounterpart', () => {
+  const V = (mode: string, layer: number, prop: string) =>
+    `--recursica_brand_themes_${mode}_layers_layer-${layer}_properties_${prop}`
+
+  it('pairs layer geometry across the two modes, both directions', () => {
+    for (const prop of ['padding', 'border-radius', 'border-size']) {
+      expect(modeIndependentLayerCounterpart(V('light', 0, prop))).toBe(V('dark', 0, prop))
+      expect(modeIndependentLayerCounterpart(V('dark', 3, prop))).toBe(V('light', 3, prop))
+    }
+  })
+
+  it('leaves genuinely mode-dependent layer properties alone', () => {
+    // colours differ per mode; elevation references mode-specific elevation tokens
+    for (const prop of ['surface', 'border-color', 'elevation']) {
+      expect(modeIndependentLayerCounterpart(V('light', 1, prop))).toBeNull()
+    }
+  })
+
+  it('ignores vars that are not brand layer properties', () => {
+    expect(modeIndependentLayerCounterpart('--recursica_brand_dimensions_border-radii_default')).toBeNull()
+    expect(modeIndependentLayerCounterpart('--recursica_tokens_sizes_3x')).toBeNull()
+    expect(modeIndependentLayerCounterpart(
+      '--recursica_ui-kit_components_button_properties_border-radius')).toBeNull()
+    expect(modeIndependentLayerCounterpart(
+      '--recursica_brand_themes_light_layers_layer-0_elements_text-color')).toBeNull()
+  })
+
+  it('is symmetric — applying it twice returns the original', () => {
+    const v = V('light', 2, 'border-radius')
+    const once = modeIndependentLayerCounterpart(v)!
+    expect(modeIndependentLayerCounterpart(once)).toBe(v)
+  })
+})

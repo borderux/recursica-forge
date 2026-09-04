@@ -4,6 +4,7 @@ import { buildTokenIndex } from '../resolvers/tokens'
 import { buildPaletteVars } from '../resolvers/palettes'
 import { buildLayerVars } from '../resolvers/layers'
 import { buildTypographyVars, type TypographyChoices } from '../resolvers/typography'
+import { reconcileUikitFontRefs } from '../import/migrateImportedJson'
 import { buildUIKitVars } from '../resolvers/uikit'
 import { buildDimensionVars } from '../resolvers/dimensions'
 import { applyCssVars, type CssVarMap, clearAllCssVars } from '../css/apply'
@@ -375,6 +376,16 @@ class VarsStore {
     // initElevationState will create elevation tokens and add them to the tokens object
     const elevation = this.initElevationState(theme as any, tokens || {})
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
+
+    // The three stores are loaded independently (edited → imported → bundled), so they can end up
+    // from different sources: most notably the bundle-version check below drops only the ui-kit
+    // keys, leaving an imported brand beside the bundled ui-kit on the next load. The bundled
+    // ui-kit references brand.fonts.secondary, which a single-typeface brand does not define, so
+    // that combination is a dangling cross-file reference that blocks export with nothing the user
+    // can fix in the UI. Reconcile here rather than only in importJsonFiles, so every load path
+    // (import, reset, post-release wipe, fresh boot) ends up referentially consistent. Idempotent
+    // and a no-op when the brand defines the roles the ui-kit asks for.
+    reconcileUikitFontRefs(this.state.uikit, this.state.theme)
 
     // Bundle version check: clear uikit cache when source JSON changes so new
     // schema additions (e.g. new variant keys) are picked up after HMR reload.
@@ -2272,11 +2283,14 @@ class VarsStore {
             const caseObj = casesRoot[caseKey]
             if (!caseObj || typeof caseObj !== 'object') return
             const val = caseObj.$value
-            // Font cases can be null (for "original") or a string value
-            if (val === null || val === undefined) {
-              vars[tokenFont('cases', caseKey)] = 'none'
-            } else if (typeof val === 'string') {
+            if (typeof val === 'string') {
               vars[tokenFont('cases', caseKey)] = val
+            } else if (val == null) {
+              // `cases.original` has no CSS representation — CSS has no keyword for "render the
+              // text as authored". Emit `unset`, matching the CSS export: it resolves to the
+              // guaranteed-invalid value, which defers text-transform to its inherited/initial
+              // value (that meaning), while keeping the var itself declared and wireable.
+              vars[tokenFont('cases', caseKey)] = 'unset'
             }
           })
           Object.assign(allVars, vars)
@@ -2291,10 +2305,10 @@ class VarsStore {
             const decorationObj = decorationsRoot[decorationKey]
             if (!decorationObj || typeof decorationObj !== 'object') return
             const val = decorationObj.$value
-            // Font decorations can be null (for "none") or a string value
-            if (val === null || val === undefined) {
-              vars[tokenFont('decorations', decorationKey)] = 'none'
-            } else if (typeof val === 'string') {
+            // `decorations.none` carries the real keyword `none` (text-decoration: none is a
+            // meaningful declaration), so it is emitted like any other value. A null here would
+            // mean "nothing to emit" — see the cases block above.
+            if (typeof val === 'string') {
               vars[tokenFont('decorations', decorationKey)] = val
             }
           })

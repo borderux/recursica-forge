@@ -621,10 +621,10 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         }
       }
       if (brandVal) {
+        // `cases.original` resolves to `unset` in the export (no CSS keyword for "render the
+        // text as authored"), so aliasing it here is safe — it defers to text-transform's
+        // inherited/initial value, same as `cases.original` itself.
         vars[`${brandPrefix}text-transform`] = brandVal
-      } else {
-        // Last resort: try to use default token reference
-        vars[`${brandPrefix}text-transform`] = 'var(--recursica_tokens_font_cases_original)'
       }
     }
 
@@ -648,7 +648,8 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       if (brandVal) {
         vars[`${brandPrefix}text-decoration`] = brandVal
       } else {
-        // Last resort: try to use default token reference (none exists in decorations)
+        // `decorations.none` carries the real keyword `none`, so this alias resolves and is the
+        // right default for "no decoration".
         vars[`${brandPrefix}text-decoration`] = 'var(--recursica_tokens_font_decorations_none)'
       }
     }

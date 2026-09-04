@@ -39,6 +39,26 @@ function getFontFallback(fontName: string): 'serif' | 'sans-serif' {
 }
 
 /**
+ * Cleans up a Google Fonts URL pasted by a user who copied more than the bare URL — most
+ * commonly the whole `@import url('...');` declaration from Google Fonts' "Embed" panel, or
+ * just the trailing `');` left over after selecting from `https:` to the end of that line.
+ * `new URL()` happily accepts that trailing punctuation (', ), ; are all legal URL characters),
+ * so without this it survives into the parsed query string and comes back out corrupted —
+ * `encodeURIComponent` re-escapes the `;` to `%3B` but leaves `'` and `)` bare, producing
+ * `...&display=swap')%3B`. Handles both that already-corrupted (percent-encoded) form and the
+ * raw pasted form, so this one function covers both preventing new corruption and repairing
+ * data corrupted before the fix (see `repairCorruptedGoogleFontsUrls`).
+ * @param input - Raw text pasted into a Google Fonts URL field, or a previously-stored URL
+ * @returns The bare URL with any CSS `@import url(...)` wrapper and trailing quote/paren/semicolon debris removed
+ */
+export function sanitizeGoogleFontsUrl(input: string): string {
+  let url = input.trim()
+  url = url.replace(/^@import\s+/i, '').replace(/^url\(\s*/i, '')
+  url = url.replace(/^['"]/, '').replace(/(?:['")\s;]|%27|%29|%3[Bb])+$/, '')
+  return url
+}
+
+/**
  * Ensures preconnect links for Google Fonts are in the document
  * Should be called before loading any Google Fonts
  */

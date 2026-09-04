@@ -12,7 +12,7 @@ import uikitJson from "../../../recursica_ui-kit.json";
 import type { JsonLike } from "../resolvers/tokens";
 import { validateBrandJson, validateTokensJson, validateUIKitJson } from "../utils/validateJsonSchemas";
 import { validateImportedReferences } from "./importHydration";
-import { migrateImportedJson } from "./migrateImportedJson";
+import { migrateImportedJson, reconcileUikitFontRefs } from "./migrateImportedJson";
 
 /**
  * Clears CSS variables based on what's being imported
@@ -162,6 +162,16 @@ export function importJsonFiles(files: {
   const migratedBrand = normalizedBrand ? migrateImportedJson(normalizedBrand as JsonLike, 'brand') : undefined;
   const migratedUikit = normalizedUikit ? migrateImportedJson(normalizedUikit as JsonLike, 'uikit') : undefined;
 
+  // Cross-file reconciliation. Per-file migration cannot see the brand, so a ui-kit font
+  // reference left pointing at a role the brand does not define (e.g. a template default of
+  // {brand.fonts.secondary} against a single-typeface brand) survives migration. Repoint those
+  // onto a role the brand has, or the state would be valid file-by-file yet fail the
+  // cross-reference check at export with nothing the user could fix in the UI.
+  const currentState = store.getState();
+  if (migratedUikit) {
+    reconcileUikitFontRefs(migratedUikit, migratedBrand ?? currentState.theme);
+  }
+
   // Validate all files before importing
   if (migratedTokens) {
     validateTokensJson(migratedTokens);
@@ -174,7 +184,6 @@ export function importJsonFiles(files: {
   }
 
   // Validate cross-references before importing
-  const currentState = store.getState();
   const tempTokens = migratedTokens || currentState.tokens;
   const tempBrand = migratedBrand || currentState.theme;
   const tempUikit = migratedUikit || currentState.uikit;

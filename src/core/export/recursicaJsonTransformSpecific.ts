@@ -16,7 +16,7 @@
 
 const FILENAME = 'recursica_variables_specific.css'
 const PREFIX = '--recursica_'
-const TRANSFORM_VERSION = '1.3.1'
+const TRANSFORM_VERSION = '1.3.3'
 
 /** Output file from the transform. */
 export type ExportFile = { filename: string; contents: string }
@@ -26,6 +26,19 @@ export interface RecursicaJsonInput {
   tokens: Record<string, unknown>
   brand: Record<string, unknown>
   uikit: Record<string, unknown>
+}
+
+/**
+ * Reads the source JSON version from $extensions["recursica.metadata"].version, checked in
+ * tokens/uikit/brand order (all three are expected to be kept in sync). Falls back to
+ * "unknown" so a missing/older JSON file doesn't crash the export.
+ */
+function getSourceJsonVersion(json: RecursicaJsonInput): string {
+  for (const doc of [json.tokens, json.uikit, json.brand]) {
+    const version = (doc as Record<string, any> | undefined)?.['$extensions']?.['recursica.metadata']?.version
+    if (typeof version === 'string' && version.length > 0) return version
+  }
+  return 'unknown'
 }
 
 /** Validation error: JSON path where the problem was found and description. */
@@ -177,28 +190,6 @@ function fallbackForNullByType(type: string | undefined): string {
   return 'transparent'
 }
 
-/**
- * CSS keywords that must be emitted bare (unquoted) when a token's literal value is one of
- * these words — e.g. `text-decoration: underline`, `font-weight: bold`. Any other string
- * (that isn't a numeric string, hex color, or var() reference) is wrapped in quotes, since
- * DTCG token values are otherwise free-form strings that aren't necessarily valid bare CSS.
- *
- * Keep this in sync with the identical list in recursicaJsonTransformScoped.ts — both
- * transforms are intentionally self-contained (no cross-file imports), so the list is
- * duplicated rather than shared.
- */
-const BARE_CSS_KEYWORDS = new Set([
-  'none', 'normal', 'inherit', 'initial', 'unset', 'revert', 'currentcolor', 'transparent',
-  // font-style
-  'italic', 'oblique',
-  // text-transform / text-case
-  'uppercase', 'lowercase', 'capitalize',
-  // text-decoration-line
-  'underline', 'overline', 'line-through', 'blink',
-  // font-weight keywords
-  'bold', 'bolder', 'lighter'
-])
-
 function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>, errors: TransformError[]): string | null {
   if (val == null) return null
 
@@ -209,12 +200,12 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
     const resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
     if (!resolved) {
       const varName = pathToVarName(expanded)
-      const isTypographyGroup = expanded.startsWith('brand.typography.') && 
-        (allVarNames.has(pathToVarName(`${expanded}.font-family`)) || 
+      const isTypographyGroup = expanded.startsWith('brand.typography.') &&
+        (allVarNames.has(pathToVarName(`${expanded}.font-family`)) ||
          allVarNames.has(pathToVarName(`${expanded}.fontFamily`)) ||
          allVarNames.has(pathToVarName(`${expanded}.font-size`)) ||
          allVarNames.has(pathToVarName(`${expanded}.fontSize`)))
-         
+
       if (!isTypographyGroup) {
         errors.push({
           path: currentPath,
@@ -227,11 +218,15 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
   }
 
   if (typeof val === 'string') {
-    if (/^#[0-9a-fA-F]{3,8}$/.test(val)) return val
-    if (BARE_CSS_KEYWORDS.has(val)) return val
-    if (/^\d+(\.\d+)?$/.test(val)) return val // numeric string (e.g. font-weight "400") — emit bare, not quoted
-    if (val.includes('var(')) return val
-    return `"${val.replace(/"/g, '\\"')}"`
+    // DTCG string tokens (hex colors, numeric strings, enum/keyword identifiers like
+    // `center`/`dashed`, color aliases, `var(...)` refs) are all emitted bare: consumers
+    // read them either as bare CSS keywords (`justify-content: center`) or as plain JS
+    // strings via readCssVar() (e.g. familyNames.ts), and quoting breaks both.
+    // Font-family stacks are a separate, legitimately-quoted case handled by the array branch below.
+    if (val === '') return '""' // empty value would otherwise vanish from the declaration entirely
+    if (val.includes('var(')) return val // nested var() ref — bare parens here are expected, not a stray structural char
+    if (/[{}[\]();!]/.test(val)) return `"${val.replace(/"/g, '\\"')}"` // structural chars would break CSS var parsing if left bare
+    return val
   }
 
   if (typeof val === 'number') {
@@ -463,6 +458,27 @@ function injectElevationComposites(brand: Record<string, unknown>, out: FlatEntr
 }
 
 /**
+ * A token with `$value: null` has no value to emit: `null` means "no declaration", not "some
+ * empty value". Colours keep a type fallback (`transparent`) because a layer-specific ui-kit var
+ * must exist for every layer, but a null **string** token has no such requirement and no sensible
+ * literal stand-in — `""` is not a valid value for any CSS property.
+ *
+ * `tokens.font.cases.original` is the one in practice: CSS has no keyword for "render the text as
+ * authored". Rather than omit the declaration, emit the CSS-wide keyword `unset`: a custom
+ * property declared `unset` at `:root` resolves to the guaranteed-invalid value (nothing to
+ * inherit from at the root), and any `var()` reference to a guaranteed-invalid value makes the
+ * *consuming* declaration invalid at computed-value time — falling back to inherit (inherited
+ * properties, e.g. text-transform) or initial (non-inherited). That's the same end result as
+ * omitting the declaration, but every var in the alias chain stays declared and wireable instead
+ * of vanishing along with it (see docs/UPDATING_THEME_FILES.md). Note this is about the *value*,
+ * not the property: `tokens.font.decorations.none` holds the real keyword `none`
+ * (`text-decoration: none` is a meaningful declaration) and is emitted like any other value.
+ */
+function isNullStringToken(value: unknown, tokenType: string | undefined): boolean {
+  return value == null && tokenType === 'string'
+}
+
+/**
  * Transforms tokens, brand, and uikit JSON into specific CSS variables.
  * All vars emitted on :root. Throws if validation fails (invalid refs, bad values).
  */
@@ -485,6 +501,10 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
         continue
       }
     }
+    if (isNullStringToken(value, tokenType)) {
+      varMap.push({ name: pathToVarName(path), value: 'unset', comment })
+      continue
+    }
     let formatted = formatValue(value, path, allVarNames, errors)
     if (formatted == null) formatted = fallbackForNullByType(tokenType)
     if (formatted != null) {
@@ -498,18 +518,19 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   }
 
   const sorted = varMap.sort((a, b) => a.name.localeCompare(b.name))
-  const css = formatCss(sorted)
+  const css = formatCss(sorted, getSourceJsonVersion(json))
   return [{ filename: FILENAME, contents: css }]
 }
 
 /**
  * Builds the final CSS string with header and :root block.
  */
-function formatCss(vars: Array<{ name: string; value: string; comment?: string }>): string {
+function formatCss(vars: Array<{ name: string; value: string; comment?: string }>, jsonVersion: string): string {
   const buildDate = new Date().toUTCString()
   let css = `/*\n`
   css += ` * Recursica CSS Variables - Specific\n`
   css += ` * Transform version: ${TRANSFORM_VERSION}\n`
+  css += ` * Source JSON version: ${jsonVersion}\n`
   css += ` * Generated: ${buildDate}\n`
   css += ` *\n`
   css += ` * About Recursica:\n`
