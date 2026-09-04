@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.27.1
+
+### Patch Changes
+
+- 576b91f: Fixed corrupted Google Fonts URLs when pasting a CSS `@import` snippet, and repair existing corrupted URLs on tokens import (structure v2.1.1)
+
 ## 0.27.0
 
 ### Minor Changes
