@@ -1,22 +1,57 @@
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar } from '../../core/css/updateCssVar'
-import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
+import { readCssVar as readCssVarRaw, readCssVarResolved as readCssVarResolvedRaw } from '../../core/css/readCssVar'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import { ResetButton } from '../../components/shared/ResetButton'
 import { SegmentedControl } from '../../components/adapters/SegmentedControl'
+import { Tooltip } from '../../components/adapters/Tooltip'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Panel } from '../../components/adapters/Panel'
+import { Modal } from '../../components/adapters/Modal'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { tokenFont, parseTokenCssVar, unwrapVar } from '../../core/css/cssVarBuilder'
+import { tokenFont, paletteCore, parseTokenCssVar, unwrapVar } from '../../core/css/cssVarBuilder'
 import { buildTypographyVars } from '../../core/resolvers/typography'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
+import { getVarsStore } from '../../core/store/varsStore'
+import {
+  CSS_PROP_TO_TYPE_PROP,
+  TYPE_PROPS,
+  inheritedRef,
+  keyOfRef,
+  overrideRef,
+  parseTypographyVar,
+  refToVar,
+  typeOfToken,
+  writeTypeOverride,
+} from '../breakpoints/breakpointTypography'
 
 function toTitleCase(label: string): string {
   return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim()
+}
+
+/** Control headings inside the core style panel. */
+const CSS_PROP_LABEL: Record<string, string> = {
+  'font-family': 'Font Family',
+  'font-size': 'Font Size',
+  'font-weight': 'Font Weight',
+  'font-letter-spacing': 'Letter Spacing',
+  'line-height': 'Line Height',
+  'font-style': 'Style',
+  'text-decoration': 'Decoration',
+  'text-transform': 'Case',
+}
+
+/**
+ * A segmented control always shows one selected segment, so a value the token graph cannot express
+ * as a segment — `tokens.font.cases.original` resolves to the CSS keyword `unset` — falls back to
+ * the first option rather than leaving nothing selected.
+ */
+function oneOf(value: string, items: Array<{ value: string }>): string {
+  return items.some((i) => i.value === value) ? value : (items[0]?.value ?? value)
 }
 
 function brandKeyFromPrefix(prefix: string): string {
@@ -37,8 +72,30 @@ function extractTokenFromCssVar(cssValue: string): string | null {
   return null
 }
 
-export default function TypeStylePanel({ open, selectedPrefixes, title, onClose }: { open: boolean; selectedPrefixes: string[]; title: string; onClose: () => void }) {
-  const { tokens, theme } = useVars()
+export default function TypeStylePanel({ open, selectedPrefixes, title, onClose, breakpoint }: { open: boolean; selectedPrefixes: string[]; title: string; onClose: () => void; breakpoint?: string }) {
+  const { tokens, theme, setTheme } = useVars()
+  // With a breakpoint selected the panel edits that breakpoint's delta instead of the base style:
+  // reads fall back to the base value (so the controls show what is inherited) and writes go to
+  // brand.breakpoints.<bp>.typography. Without one, nothing about the panel changes.
+  const editingBreakpoint = !!breakpoint
+
+  /** The breakpoint's value for a typography var, as a var() reference, or null when it inherits. */
+  const overrideFor = useCallback((cssVar: string): string | null => {
+    if (!editingBreakpoint) return null
+    const parsed = parseTypographyVar(cssVar)
+    const prop = parsed && CSS_PROP_TO_TYPE_PROP[parsed.cssProp]
+    if (!parsed || !prop) return null
+    const ref = overrideRef(theme, breakpoint!, parsed.style, prop.key)
+    return ref ? refToVar(ref) : null
+  }, [editingBreakpoint, breakpoint, theme])
+
+  const readVar = useCallback((cssVar: string) => overrideFor(cssVar) ?? readCssVarRaw(cssVar), [overrideFor])
+  const readVarResolved = useCallback((cssVar: string) => {
+    const override = overrideFor(cssVar)
+    if (!override) return readCssVarResolvedRaw(cssVar)
+    const inner = override.match(/var\((--[^),]+)/)
+    return inner ? (readCssVarResolvedRaw(inner[1]) || readCssVarRaw(inner[1]) || '') : override
+  }, [overrideFor])
   const [updateKey, setUpdateKey] = useState(0)
 
   // Local slider state to prevent snap-back during drag.
@@ -47,6 +104,11 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const [localWeightIdx, setLocalWeightIdx] = useState<number | null>(null)
   const [localSpacingIdx, setLocalSpacingIdx] = useState<number | null>(null)
   const [localLineHeightIdx, setLocalLineHeightIdx] = useState<number | null>(null)
+  // Which property's link the user is looking at, if any.
+  const [linkModal, setLinkModal] = useState<{ cssProp: string; label: string } | null>(null)
+  // Which property's core style is open for editing, if any.
+  const [corePanel, setCorePanel] = useState<{ cssProp: string; label: string } | null>(null)
+  const lockedForRef = useRef<(cssProp: string) => boolean>(() => false)
 
   // Listen for reset events to refresh font options
   // Clear local slider overrides so they re-derive from CSS vars
@@ -114,11 +176,11 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       const fontVariants = fontRoot.fontVariants || {}
 
       // Fully resolve the CSS variable value to a font-family string
-      let cssValue = readCssVarResolved(cssVar) || readCssVar(cssVar) || ''
+      let cssValue = readVarResolved(cssVar) || readVar(cssVar) || ''
       let depth = 0
       while (cssValue.startsWith('var(') && depth < 5) {
         const m = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
-        if (m) cssValue = readCssVarResolved(m[1]) || readCssVar(m[1]) || ''
+        if (m) cssValue = readVarResolved(m[1]) || readVar(m[1]) || ''
         else break
         depth++
       }
@@ -322,7 +384,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
         // Resolve the actual CSS font-family string via the live CSS var
         const cssVar = `--recursica_brand_fonts_${key}`
-        const resolvedValue = readCssVarResolved(cssVar) || readCssVar(cssVar) || ''
+        const resolvedValue = readVarResolved(cssVar) || readVar(cssVar) || ''
         const cleanFontName = resolvedValue.split(',')[0].trim().replace(/^['"]|['"]$/g, '')
 
         const displayLabel = cleanFontName
@@ -341,10 +403,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     if (options.length === 0 || !cssVar) return undefined
     try {
       // First try reading the direct CSS variable value
-      let cssValue = readCssVar(cssVar)
+      let cssValue = readVar(cssVar)
       if (!cssValue) {
         // Try reading resolved value as fallback
-        cssValue = readCssVarResolved(cssVar)
+        cssValue = readVarResolved(cssVar)
         if (!cssValue) {
           // CSS variable doesn't exist yet - return undefined
           return undefined
@@ -371,7 +433,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           const varMatch: RegExpMatchArray | null = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
           if (varMatch) {
             const innerVar: string = varMatch[1].trim()
-            const nextValue: string | undefined = readCssVar(innerVar) || readCssVarResolved(innerVar)
+            const nextValue: string | undefined = readVar(innerVar) || readVarResolved(innerVar)
             if (!nextValue || nextValue === cssValue) break // No progress or circular reference
             cssValue = nextValue
             depth++
@@ -394,10 +456,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     if (!cssVar) return ''
     try {
       // Follow the chain to find the actual token reference
-      let cssValue = readCssVar(cssVar)
+      let cssValue = readVar(cssVar)
       if (!cssValue) {
         // Try reading resolved value as fallback
-        cssValue = readCssVarResolved(cssVar)
+        cssValue = readVarResolved(cssVar)
         if (!cssValue) return ''
       }
 
@@ -420,7 +482,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           const varMatch: RegExpMatchArray | null = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
           if (varMatch) {
             const innerVar: string = varMatch[1].trim()
-            cssValue = readCssVar(innerVar) || readCssVarResolved(innerVar) || cssValue
+            cssValue = readVar(innerVar) || readVarResolved(innerVar) || cssValue
             depth++
           } else {
             break
@@ -437,7 +499,12 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }
 
   // Directly update CSS variables like component toolbar does
-  const updateCssVarValue = useCallback((property: 'font-family' | 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height' | 'font-style' | 'text-decoration' | 'text-transform', tokenShort: string) => {
+  const updateCssVarValue = useCallback((property: 'font-family' | 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height' | 'font-style' | 'text-decoration' | 'text-transform', tokenShort: string, opts?: { toCore?: boolean }) => {
+    // Some adapters only grey a disabled control out and still fire onChange, so the lock is
+    // enforced here too: a property following the core style cannot be written from this panel.
+    // A write aimed at the core style is exempt — that is the point of the core panel.
+    const toCore = opts?.toCore === true
+    if (!toCore && lockedForRef.current(property)) return
     const cssVars: string[] = []
 
     selectedPrefixes.forEach((prefix) => {
@@ -475,8 +542,23 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       }
 
       if (cssVar && tokenValue) {
-        // Set CSS variable synchronously to ensure it's in DOM before any recomputes
-        updateCssVar(cssVar, tokenValue, tokens, true) // silent=true to prevent immediate events
+        if (editingBreakpoint && !toCore) {
+          // The base style is left alone; the breakpoint stores the difference.
+          const entry = CSS_PROP_TO_TYPE_PROP[property]
+          const next = getVarsStore().getLatestThemeCopy()
+          writeTypeOverride(
+            next.brand ?? next,
+            breakpoint!,
+            prefixToCssVarName(prefix),
+            entry.key,
+            `{${entry.group}.${tokenShort}}`,
+            typeOfToken(entry.group, tokenShort, tokens, theme),
+          )
+          setTheme(next)
+        } else {
+          // Set CSS variable synchronously to ensure it's in DOM before any recomputes
+          updateCssVar(cssVar, tokenValue, tokens, true) // silent=true to prevent immediate events
+        }
         cssVars.push(cssVar)
       }
     })
@@ -504,9 +586,127 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         }, 200) // Delay to ensure CSS variable is set and preserved
       }
     }
-  }, [selectedPrefixes, tokens, familyOptions])
+  }, [selectedPrefixes, tokens, theme, familyOptions, editingBreakpoint, breakpoint, setTheme])
+
+  /**
+   * Whether a property still follows the core style at this breakpoint. Same idea as the global
+   * ref link on component properties: linked by default, broken the moment you set a value here,
+   * and relinkable from the icon.
+   */
+  const isLinked = useCallback((cssProp: string) => {
+    if (!editingBreakpoint) return false
+    const entry = CSS_PROP_TO_TYPE_PROP[cssProp]
+    if (!entry) return false
+    return !selectedPrefixes.some((prefix) =>
+      overrideRef(theme, breakpoint!, prefixToCssVarName(prefix), entry.key))
+  }, [editingBreakpoint, breakpoint, theme, selectedPrefixes])
+
+  const relink = useCallback((cssProp: string) => {
+    const entry = CSS_PROP_TO_TYPE_PROP[cssProp]
+    if (!entry) return
+    const next = getVarsStore().getLatestThemeCopy()
+    selectedPrefixes.forEach((prefix) => {
+      writeTypeOverride(next.brand ?? next, breakpoint!, prefixToCssVarName(prefix), entry.key, '', undefined)
+    })
+    setTheme(next)
+    // The sliders hold their own position while dragging; drop it so they re-read the inherited value.
+    setLocalSizeIdx(null)
+    setLocalWeightIdx(null)
+    setLocalSpacingIdx(null)
+    setLocalLineHeightIdx(null)
+    setUpdateKey((k) => k + 1)
+  }, [breakpoint, selectedPrefixes, setTheme])
+
+  /**
+   * A control's label with its link state beside it, following the global-ref control: a globe
+   * button while the property still comes from the core style — the control itself stays disabled
+   * until the link is broken from there. Plain label when not editing a breakpoint.
+   */
+  const propLabel = (text: string, cssProp: string) => {
+    if (!editingBreakpoint) return <Label layer="layer-3" layout="stacked">{text}</Label>
+    const linked = isLinked(cssProp)
+    const GlobeIcon = iconNameToReactComponent('globe-simple')
+    const UndoIcon = iconNameToReactComponent('arrow-clockwise')
+    const title = linked ? 'Edit the core type style' : 'Reattach to the core type style'
+    const onClick = () =>
+      linked ? setCorePanel({ cssProp, label: text }) : setLinkModal({ cssProp, label: text })
+
+    // Same shape the global-ref control uses on component properties: a bare globe while attached,
+    // a Reattach button once overridden, both sitting in the Label's own edit-icon slot.
+    const icon = linked
+      ? (GlobeIcon
+          ? <Tooltip label={title} withinPortal zIndex={10000} position="top">
+              <GlobeIcon style={{ width: 16, height: 16, color: `var(${paletteCore(mode, 'primary', 'tone')})` }} />
+            </Tooltip>
+          : null)
+      : (
+        <Button
+          variant="text"
+          size="small"
+          icon={UndoIcon ? <UndoIcon style={{ width: 13, height: 13 }} /> : null}
+          onClick={onClick}
+        >
+          Reattach
+        </Button>
+      )
+
+    return (
+      // layer-0 so the edit-icon button renders bare, the way it does on component properties.
+      <Label
+        layer="layer-0"
+        layout="stacked"
+        editIcon={icon}
+        onEditIconClick={onClick}
+      >
+        {text}
+      </Label>
+    )
+  }
+
+  /** True while this property still follows the core style, so its control stays read-only. */
+  const lockedFor = (cssProp: string) => editingBreakpoint && isLinked(cssProp)
+  lockedForRef.current = lockedFor
+
+  /** Greys out and stops clicks on a control whose own disabled state is cosmetic only. */
+  const lockedStyle = (cssProp: string): React.CSSProperties =>
+    lockedFor(cssProp) ? { opacity: 0.5, pointerEvents: 'none' } : {}
+
+  /**
+   * Breaks the link by writing the value the property inherits today. The control then edits that
+   * copy, so detaching never changes how anything looks.
+   */
+  const detach = useCallback((cssProp: string) => {
+    const entry = CSS_PROP_TO_TYPE_PROP[cssProp]
+    if (!entry) return
+    const next = getVarsStore().getLatestThemeCopy()
+    const brand = next.brand ?? next
+    selectedPrefixes.forEach((prefix) => {
+      const style = prefixToCssVarName(prefix)
+      const ref = inheritedRef(theme, style, entry.key)
+      if (!ref) return
+      writeTypeOverride(brand, breakpoint!, style, entry.key, ref, typeOfToken(entry.group, keyOfRef(ref), tokens, theme))
+    })
+    setTheme(next)
+    setUpdateKey((k) => k + 1)
+  }, [breakpoint, selectedPrefixes, theme, tokens, setTheme])
 
   const revert = useCallback(() => {
+    if (editingBreakpoint) {
+      // Drop this breakpoint's overrides for the selected styles; the base style is untouched.
+      const next = getVarsStore().getLatestThemeCopy()
+      selectedPrefixes.forEach((prefix) => {
+        TYPE_PROPS.forEach((prop) => {
+          writeTypeOverride(next.brand ?? next, breakpoint!, prefixToCssVarName(prefix), prop.key, '', undefined)
+        })
+      })
+      setTheme(next)
+      setLocalSizeIdx(null)
+      setLocalWeightIdx(null)
+      setLocalSpacingIdx(null)
+      setLocalLineHeightIdx(null)
+      setUpdateKey((k) => k + 1)
+      return
+    }
     // Rebuild typography vars from recursica_brand.json defaults (no choices = use defaults)
     const { vars: defaultTypeVars } = buildTypographyVars(tokens, theme, undefined, undefined)
 
@@ -597,23 +797,24 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }, [transformCssVar, textCaseItems, updateKey, prefix, open])
 
   // Resolve current CSS values for SegmentedControl
-  const currentFontStyleValue = useMemo(() => {
+  const currentFontStyleValueRaw = useMemo(() => {
     if (!prefix || !open) return 'normal'
-    const resolved = readCssVarResolved(styleCssVar) || readCssVar(styleCssVar) || 'normal'
+    const resolved = readVarResolved(styleCssVar) || readVar(styleCssVar) || 'normal'
     return resolved.replace(/^["']|["']$/g, '').trim()
   }, [styleCssVar, updateKey, prefix, open])
+  const currentFontStyleValue = oneOf(currentFontStyleValueRaw, fontStyleItems)
 
   const currentDecorationValue = useMemo(() => {
     if (!prefix || !open) return 'none'
-    const resolved = readCssVarResolved(decorationCssVar) || readCssVar(decorationCssVar) || 'none'
-    return resolved.replace(/^["']|["']$/g, '').trim()
-  }, [decorationCssVar, updateKey, prefix, open])
+    const resolved = readVarResolved(decorationCssVar) || readVar(decorationCssVar) || 'none'
+    return oneOf(resolved.replace(/^["']|["']$/g, '').trim(), textDecorationItems)
+  }, [decorationCssVar, updateKey, prefix, open, textDecorationItems])
 
   const currentTransformValue = useMemo(() => {
     if (!prefix || !open) return 'none'
-    const resolved = readCssVarResolved(transformCssVar) || readCssVar(transformCssVar) || 'none'
-    return resolved.replace(/^["']|["']$/g, '').trim()
-  }, [transformCssVar, updateKey, prefix, open])
+    const resolved = readVarResolved(transformCssVar) || readVar(transformCssVar) || 'none'
+    return oneOf(resolved.replace(/^["']|["']$/g, '').trim(), textCaseItems)
+  }, [transformCssVar, updateKey, prefix, open, textCaseItems])
 
   // Handlers for SegmentedControl changes
   // Map CSS values back to token keys for updateCssVarValue
@@ -641,7 +842,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     const getTokenForCssVar = (cssVar: string): string => {
       try {
         // Read CSS variable and extract token name
-        const cssValue = readCssVar(cssVar) || readCssVarResolved(cssVar)
+        const cssValue = readVar(cssVar) || readVarResolved(cssVar)
         if (!cssValue) return ''
 
         // Typography font-family vars point to var(--recursica_brand_fonts_X).
@@ -655,14 +856,14 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
             }
 
             // Follow further for other var() chains
-            const innerValue = readCssVar(innerVarName) || readCssVarResolved(innerVarName)
+            const innerValue = readVar(innerVarName) || readVarResolved(innerVarName)
             if (innerValue) {
               const innerParsed = parseTokenCssVar(innerValue)
               if (innerParsed && innerParsed.type === 'font') {
                 // innerParsed.key is a typeface slug — map back to a sequence key
                 const matchBySlug = familyOptions.find((o) => {
                   const tokenCssVar = tokenFont('typefaces', o.short)
-                  const tokenValue = readCssVarResolved(tokenCssVar) || readCssVar(tokenCssVar)
+                  const tokenValue = readVarResolved(tokenCssVar) || readVar(tokenCssVar)
                   return tokenValue && tokenValue.includes(innerParsed.key)
                 })
                 if (matchBySlug) return matchBySlug.short
@@ -672,7 +873,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         }
 
         // If no var() chain matched, try to match by resolved font-family string
-        const resolvedValue = readCssVarResolved(cssVar) || cssValue
+        const resolvedValue = readVarResolved(cssVar) || cssValue
         const fontNameMatch = resolvedValue.split(',')[0].trim().replace(/^['"]|['"]$/g, '')
         if (fontNameMatch) {
           const matchingOption = familyOptions.find((o) => {
@@ -799,7 +1000,156 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     />
   )
 
+  /**
+   * The core style's own control for one property, so it can be changed for every breakpoint that
+   * still follows it — without detaching anything. Writes go to the base typography.
+   */
+  const coreControl = (cssProp: string) => {
+    const slider = (
+      tokens: Array<{ short: string }>,
+      current: string | undefined,
+      valueLabel: (v: number) => string,
+      property: 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height',
+    ) => (
+      <Slider
+        value={Math.max(0, tokens.findIndex((t) => t.short === current))}
+        onChange={(val) => {
+          const idx = Math.round(typeof val === 'number' ? val : val[0])
+          const token = tokens[idx]
+          if (token) updateCssVarValue(property, token.short, { toCore: true })
+        }}
+        min={0}
+        max={Math.max(0, tokens.length - 1)}
+        type="discrete"
+        step={1}
+        layer="layer-1"
+        layout="stacked"
+        showInput={false}
+        showValueLabel
+        showMinMaxLabels={false}
+        valueLabel={valueLabel}
+        tooltipText={valueLabel}
+        label={<Label layer="layer-1" layout="stacked">{CSS_PROP_LABEL[cssProp]}</Label>}
+      />
+    )
+
+    switch (cssProp) {
+      case 'font-size':
+        return slider(sortedSizeTokens, sizeCurrentToken, getSizeValueLabel, 'font-size')
+      case 'font-weight':
+        return slider(sortedWeightTokens, weightCurrentToken, getWeightValueLabel, 'font-weight')
+      case 'font-letter-spacing':
+        return slider(sortedSpacingTokens, spacingCurrentToken, getSpacingValueLabel, 'font-letter-spacing')
+      case 'line-height':
+        return slider(sortedLineHeightTokens, lineHeightCurrentToken, getLineHeightValueLabel, 'line-height')
+      case 'font-family':
+        return (
+          <Dropdown
+            items={familyOptions.map((o) => ({ value: o.short, label: o.label }))}
+            value={currentFamilyToken || ''}
+            onChange={(v) => { if (v) updateCssVarValue('font-family', v, { toCore: true }) }}
+            label="Font Family"
+            layer="layer-1"
+            layout="stacked"
+            zIndex={10003}
+          />
+        )
+      case 'font-style':
+        return (
+          <div>
+            <Label layer="layer-1" layout="stacked">Style</Label>
+            <SegmentedControl
+              items={fontStyleItems}
+              value={currentFontStyleValue}
+              onChange={(v) => updateCssVarValue('font-style', v, { toCore: true })}
+              layer="layer-1"
+              showLabel={false}
+            />
+          </div>
+        )
+      case 'text-decoration':
+        return (
+          <div>
+            <Label layer="layer-1" layout="stacked">Decoration</Label>
+            <SegmentedControl
+              items={textDecorationItems}
+              value={currentDecorationValue}
+              onChange={(v) => updateCssVarValue('text-decoration', v, { toCore: true })}
+              layer="layer-1"
+              showLabel={false}
+            />
+          </div>
+        )
+      case 'text-transform':
+        return (
+          <div>
+            <Label layer="layer-1" layout="stacked">Case</Label>
+            <SegmentedControl
+              items={textCaseItems}
+              value={currentTransformValue}
+              onChange={(v) => {
+                const map: Record<string, string> = { none: 'original', uppercase: 'uppercase', lowercase: 'lowercase', capitalize: 'titlecase' }
+                updateCssVarValue('text-transform', map[v] || v, { toCore: true })
+              }}
+              layer="layer-1"
+              showLabel={false}
+            />
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
   return (
+    <>
+    {corePanel && (
+      <Panel
+        overlay
+        position="right"
+        title="Core type style"
+        onClose={() => setCorePanel(null)}
+        width="400px"
+        zIndex={10002}
+        layer="layer-1"
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+            <Button variant="outline" layer="layer-1" onClick={() => { detach(corePanel.cssProp); setCorePanel(null) }}>
+              Detach and override value
+            </Button>
+          </div>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <p style={{ margin: 0 }}>
+            {corePanel.label} follows the core type style. Changing it here affects every breakpoint
+            still attached to it.
+          </p>
+          {coreControl(corePanel.cssProp)}
+        </div>
+      </Panel>
+    )}
+
+    <Modal
+      isOpen={!!linkModal}
+      onClose={() => setLinkModal(null)}
+      title="Remove override?"
+      layer="layer-1"
+      zIndex={10002}
+      primaryActionLabel="Reattach to the core type style"
+      onPrimaryAction={() => {
+        if (linkModal) relink(linkModal.cssProp)
+        setLinkModal(null)
+      }}
+      showSecondaryButton
+      secondaryActionLabel="Cancel"
+      onSecondaryAction={() => setLinkModal(null)}
+    >
+      <p style={{ margin: 0 }}>
+        {`${linkModal?.label} is set for ${breakpoint} only. Reattach it to the core type style?`}
+      </p>
+    </Modal>
+
     <Panel
       overlay
       position="right"
@@ -813,24 +1163,30 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` }}>
         {prefix ? (
           <>
-            <Dropdown
-              items={familyOptions.length > 0
-                ? familyOptions.map((o) => ({ value: o.short, label: o.label }))
-                : [{ value: '', label: 'No font families available', disabled: true }]
-              }
-              value={currentFamilyToken || ''}
-              onChange={(v) => {
-                if (v) {
-                  updateCssVarValue('font-family', v)
+            <div>
+              {editingBreakpoint && propLabel('Font Family', 'font-family')}
+              <div style={lockedStyle('font-family')}>
+              <Dropdown
+                items={familyOptions.length > 0
+                  ? familyOptions.map((o) => ({ value: o.short, label: o.label }))
+                  : [{ value: '', label: 'No font families available', disabled: true }]
                 }
-              }}
-              placeholder="Select font family..."
-              label="Font Family"
-              layer="layer-3"
-              layout="stacked"
-              disableTopBottomMargin={false}
-              zIndex={10001}
-            />
+                value={currentFamilyToken || ''}
+                onChange={(v) => {
+                  if (v) {
+                    updateCssVarValue('font-family', v)
+                  }
+                }}
+                placeholder="Select font family..."
+                label={editingBreakpoint ? undefined : 'Font Family'}
+                disabled={lockedFor('font-family')}
+                layer="layer-3"
+                layout="stacked"
+                disableTopBottomMargin={false}
+                zIndex={10001}
+              />
+              </div>
+            </div>
 
             {sizeOptions.length > 0 ? (
               <Slider
@@ -854,7 +1210,8 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 showMinMaxLabels={false}
                 valueLabel={getSizeValueLabel}
                 tooltipText={getSizeValueLabel}
-                label={<Label layer="layer-3" layout="stacked">Font Size</Label>}
+                label={propLabel('Font Size', 'font-size')}
+                disabled={lockedFor('font-size')}
               />
             ) : (
               <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
@@ -884,7 +1241,8 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 showMinMaxLabels={false}
                 valueLabel={getWeightValueLabel}
                 tooltipText={getWeightValueLabel}
-                label={<Label layer="layer-3" layout="stacked">Font Weight</Label>}
+                label={propLabel('Font Weight', 'font-weight')}
+                disabled={lockedFor('font-weight')}
               />
             ) : (
               <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
@@ -914,7 +1272,8 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 showMinMaxLabels={false}
                 valueLabel={getSpacingValueLabel}
                 tooltipText={getSpacingValueLabel}
-                label={<Label layer="layer-3" layout="stacked">Letter Spacing</Label>}
+                label={propLabel('Letter Spacing', 'font-letter-spacing')}
+                disabled={lockedFor('font-letter-spacing')}
               />
             ) : (
               <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
@@ -944,7 +1303,8 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 showMinMaxLabels={false}
                 valueLabel={getLineHeightValueLabel}
                 tooltipText={getLineHeightValueLabel}
-                label={<Label layer="layer-3" layout="stacked">Line Height</Label>}
+                label={propLabel('Line Height', 'line-height')}
+                disabled={lockedFor('line-height')}
               />
             ) : (
               <div style={{ padding: 8, fontSize: 12, opacity: 0.6, fontStyle: 'italic' }}>
@@ -954,39 +1314,48 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
             {/* Font Style — only rendered when the font has more than one style variant */}
             {fontStyleItems.length > 1 && (
               <div>
-                <Label layer="layer-3" layout="stacked">Style</Label>
+                {propLabel('Style', 'font-style')}
+                <div style={lockedStyle('font-style')}>
                 <SegmentedControl
                   items={fontStyleItems}
+                  disabled={lockedFor('font-style')}
                   value={currentFontStyleValue}
                   onChange={(v) => handleFontStyleChange(v)}
                   layer="layer-3"
                   showLabel={false}
                 />
+                </div>
               </div>
             )}
 
             {/* Text Decoration */}
             <div>
-              <Label layer="layer-3" layout="stacked">Decoration</Label>
+              {propLabel('Decoration', 'text-decoration')}
+                <div style={lockedStyle('text-decoration')}>
               <SegmentedControl
                 items={textDecorationItems}
+                  disabled={lockedFor('text-decoration')}
                 value={currentDecorationValue}
                 onChange={(v) => handleDecorationChange(v)}
                 layer="layer-3"
                 showLabel={false}
               />
+                </div>
             </div>
 
             {/* Text Case */}
             <div>
-              <Label layer="layer-3" layout="stacked">Case</Label>
+              {propLabel('Case', 'text-transform')}
+                <div style={lockedStyle('text-transform')}>
               <SegmentedControl
                 items={textCaseItems}
+                  disabled={lockedFor('text-transform')}
                 value={currentTransformValue}
                 onChange={(v) => handleTransformChange(v)}
                 layer="layer-3"
                 showLabel={false}
               />
+                </div>
             </div>
           </>
         ) : (
@@ -996,5 +1365,6 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         )}
       </div>
     </Panel>
+    </>
   )
 }

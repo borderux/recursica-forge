@@ -415,11 +415,11 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
           {descriptiveLabel && (
             <div style={{
               margin: 0,
-              fontFamily: 'var(--recursica_brand_typography_subtitle-font-family)',
-              fontSize: 'var(--recursica_brand_typography_subtitle-font-size)',
-              fontWeight: 'var(--recursica_brand_typography_subtitle-font-weight)',
-              letterSpacing: 'var(--recursica_brand_typography_subtitle-font-letter-spacing)',
-              lineHeight: 'var(--recursica_brand_typography_subtitle-line-height)',
+              fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+              fontSize: 'var(--recursica_brand_typography_body-font-size)',
+              fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
+              letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
+              lineHeight: 'var(--recursica_brand_typography_body-line-height)',
               color: `var(${genericLayerText(0, 'color')})`,
               opacity: `var(${textEmphasis(themeMode, 'low')})`,
             }}>{descriptiveLabel}</div>

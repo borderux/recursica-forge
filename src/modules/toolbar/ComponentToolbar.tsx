@@ -805,7 +805,7 @@ export default function ComponentToolbar({
             style={{
               color: `var(${layerText(mode, 0, 'color')})`,
               opacity: `var(${layerText(mode, 0, 'low-emphasis')})`,
-              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+              fontSize: 'var(--recursica_brand_typography_caption-font-size)',
               cursor: 'pointer',
               flex: 1,
             }}>

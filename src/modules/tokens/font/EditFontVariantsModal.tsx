@@ -509,7 +509,7 @@ export function EditFontVariantsModal({
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_default)' }}>
           <span style={{
-            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+            fontSize: 'var(--recursica_brand_typography_caption-font-size)',
             color: `var(${genericLayerText(0, 'color')})`,
             opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
           }}>
@@ -538,7 +538,7 @@ export function EditFontVariantsModal({
           <table style={{
             width: '100%',
             borderCollapse: 'collapse',
-            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+            fontSize: 'var(--recursica_brand_typography_caption-font-size)',
           }}>
             <thead>
               <tr>
@@ -623,7 +623,7 @@ export function EditFontVariantsModal({
             borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
             background: `var(--recursica_brand_palettes_core_error-50_color_tone)`,
             border: `1px solid var(--recursica_brand_palettes_core_error-200_color_tone)`,
-            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+            fontSize: 'var(--recursica_brand_typography_caption-font-size)',
             color: `var(--recursica_brand_palettes_core_error-200_color_tone)`,
           }}>
             {error}

@@ -187,7 +187,7 @@ function traverseUIKit(
             }
           }
         } else if (typeof val === 'string') {
-          // Dimension type with string token reference (e.g., {brand.typography.body-small.letter-spacing})
+          // Dimension type with string token reference (e.g., {brand.typography.caption.letter-spacing})
           const trimmed = val.trim()
           if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
             // Try to resolve as a token reference

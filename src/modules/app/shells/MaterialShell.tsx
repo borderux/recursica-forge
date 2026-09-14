@@ -328,7 +328,7 @@ export default function MaterialShell({
                     component='span'
                     sx={{
                       fontSize:
-                        "var(--recursica_brand_typography_body-small-font-size)",
+                        "var(--recursica_brand_typography_caption-font-size)",
                       color: `var(${genericLayerText(0, 'color')})`,
                       opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
                     }}

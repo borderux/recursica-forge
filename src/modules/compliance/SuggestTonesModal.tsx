@@ -196,11 +196,11 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                     className="suggest-tones__subtitle"
                     style={{
                         color: `var(${genericLayerText(1, 'color')})`,
-                        fontFamily: 'var(--recursica_brand_typography_body-small-font-family)',
-                        fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
-                        fontWeight: 'var(--recursica_brand_typography_body-small-font-weight)',
-                        letterSpacing: 'var(--recursica_brand_typography_body-small-font-letter-spacing)',
-                        lineHeight: 'var(--recursica_brand_typography_body-small-line-height)',
+                        fontFamily: 'var(--recursica_brand_typography_caption-font-family)',
+                        fontSize: 'var(--recursica_brand_typography_caption-font-size)',
+                        fontWeight: 'var(--recursica_brand_typography_caption-font-weight)',
+                        letterSpacing: 'var(--recursica_brand_typography_caption-font-letter-spacing)',
+                        lineHeight: 'var(--recursica_brand_typography_caption-line-height)',
                     }}
                 >
                     {issue.location} · {familyLabel || 'Calculating...'} · {emphasisLabel}

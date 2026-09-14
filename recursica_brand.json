@@ -2273,46 +2273,22 @@
       }
     },
     "layout-grids": {
-      "tablet": {
-        "max-width": {
-          "$type": "number",
-          "$value": 810
-        },
+      "default": {
         "columns": {
           "$type": "number",
           "$value": 6
         },
-        "gutter": {
+        "row-gutter": {
           "$type": "number",
-          "$value": "{brand.dimensions.gutters.horizontal}"
-        }
-      },
-      "mobile": {
-        "max-width": {
-          "$type": "number",
-          "$value": 480
+          "$value": "{tokens.sizes.3x}"
         },
-        "gutter": {
+        "column-gutter": {
           "$type": "number",
-          "$value": "{brand.dimensions.gutters.horizontal}"
+          "$value": "{tokens.sizes.2x}"
         },
-        "columns": {
+        "margin": {
           "$type": "number",
-          "$value": 4
-        }
-      },
-      "desktop": {
-        "max-width": {
-          "$type": "number",
-          "$value": 1280
-        },
-        "gutter": {
-          "$type": "number",
-          "$value": "{brand.dimensions.gutters.horizontal}"
-        },
-        "columns": {
-          "$type": "number",
-          "$value": 6
+          "$value": "{tokens.sizes.3x}"
         }
       }
     },
@@ -2531,32 +2507,6 @@
           "textDecoration": "{tokens.font.decorations.none}"
         }
       },
-      "subtitle": {
-        "$type": "typography",
-        "$value": {
-          "fontFamily": "{brand.fonts.secondary}",
-          "fontSize": "{tokens.font.sizes.lg}",
-          "fontWeight": "{tokens.font.weights.light}",
-          "fontStyle": "{tokens.font.styles.normal}",
-          "letterSpacing": "{tokens.font.letter-spacings.default}",
-          "lineHeight": "{tokens.font.line-heights.tall}",
-          "textCase": "{tokens.font.cases.original}",
-          "textDecoration": "{tokens.font.decorations.none}"
-        }
-      },
-      "subtitle-small": {
-        "$type": "typography",
-        "$value": {
-          "fontFamily": "{brand.fonts.secondary}",
-          "fontSize": "{tokens.font.sizes.md}",
-          "fontWeight": "{tokens.font.weights.bold}",
-          "fontStyle": "{tokens.font.styles.normal}",
-          "letterSpacing": "{tokens.font.letter-spacings.default}",
-          "lineHeight": "{tokens.font.line-heights.tall}",
-          "textCase": "{tokens.font.cases.original}",
-          "textDecoration": "{tokens.font.decorations.none}"
-        }
-      },
       "body": {
         "$type": "typography",
         "$value": {
@@ -2566,19 +2516,6 @@
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.default}",
           "lineHeight": "{tokens.font.line-heights.tallest}",
-          "textCase": "{tokens.font.cases.original}",
-          "textDecoration": "{tokens.font.decorations.none}"
-        }
-      },
-      "body-small": {
-        "$type": "typography",
-        "$value": {
-          "fontFamily": "{brand.fonts.secondary}",
-          "fontSize": "{tokens.font.sizes.sm}",
-          "fontWeight": "{tokens.font.weights.regular}",
-          "fontStyle": "{tokens.font.styles.normal}",
-          "letterSpacing": "{tokens.font.letter-spacings.wide}",
-          "lineHeight": "{tokens.font.line-heights.taller}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }

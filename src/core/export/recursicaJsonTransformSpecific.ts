@@ -478,14 +478,159 @@ function isNullStringToken(value: unknown, tokenType: string | undefined): boole
   return value == null && tokenType === 'string'
 }
 
+/* ── Breakpoints ───────────────────────────────────────────────────────────────
+ *
+ * `tokens.breakpoints.<name>` and `brand.breakpoints.<name>` are OPTIONAL groups holding a sparse
+ * tree at the same paths as the base, carrying only the tokens that differ at that breakpoint.
+ * No group means no responsive layer at all — the common case, and the reason nothing here runs
+ * for a brand that does not use it.
+ *
+ * This works because every emitted value is a var() reference back to a single primitive
+ * declaration: re-declaring just the overridden vars inside a media block re-resolves everything
+ * downstream, so the delta in the JSON is the delta in the CSS. There is no second full export.
+ *
+ * The condition comes from `$extensions.com.recursica.breakpoint.condition`, or is derived from
+ * the matching `brand.layout-grids.<name>`: a `max-width` makes a breakpoint that applies below the
+ * base grid, a `min-width` one that applies above it. The base grid itself declares neither — it is
+ * the plain CSS every breakpoint narrows or widens from.
+ */
+const BREAKPOINTS_KEY = 'breakpoints'
+const BREAKPOINT_EXT = 'com.recursica.breakpoint'
+
+type BreakpointOverride = {
+  name: string
+  condition: string
+  width: number
+  /** 'down' narrows from the base grid (max-width), 'up' widens from it (min-width). */
+  direction: 'down' | 'up'
+  trees: Array<{ prefix: string; tree: unknown }>
+}
+
+/** Reads a width off brand.layout-grids.<name>, following a `$value` wrapper. */
+function layoutGridWidth(brandRoot: any, name: string, key: 'max-width' | 'min-width'): number | null {
+  const node = brandRoot?.['layout-grids']?.[name]?.[key]
+  const raw = node && typeof node === 'object' && '$value' in node ? node.$value : node
+  const num = typeof raw === 'number' ? raw : Number(raw)
+  return Number.isFinite(num) ? num : null
+}
+
+/**
+ * Splits the breakpoint groups off tokens/brand. Returns the input with those groups removed — so
+ * the base output is byte-identical to a file that never had them — plus one entry per breakpoint.
+ */
+function extractBreakpoints(
+  json: RecursicaJsonInput,
+  errors: TransformError[]
+): { base: RecursicaJsonInput; breakpoints: BreakpointOverride[] } {
+  const base: any = { ...json }
+  const collected = new Map<string, { trees: Array<{ prefix: string; tree: unknown }>; ext?: any }>()
+
+  for (const key of ['tokens', 'brand'] as const) {
+    const wrapper: any = (json as any)[key]
+    if (!wrapper || typeof wrapper !== 'object') continue
+    const wrapped = wrapper[key] && typeof wrapper[key] === 'object'
+    const root: any = wrapped ? wrapper[key] : wrapper
+    const group = root?.[BREAKPOINTS_KEY]
+    if (!group || typeof group !== 'object') continue
+
+    const strippedRoot: any = { ...root }
+    delete strippedRoot[BREAKPOINTS_KEY]
+    base[key] = wrapped ? { ...wrapper, [key]: strippedRoot } : strippedRoot
+
+    for (const [name, tree] of Object.entries<any>(group)) {
+      if (name.startsWith('$') || !tree || typeof tree !== 'object') continue
+      const { $extensions, ...overrides } = tree
+      const entry = collected.get(name) ?? { trees: [] }
+      entry.trees.push({ prefix: key, tree: overrides })
+      const ext = $extensions?.[BREAKPOINT_EXT]
+      if (ext) entry.ext = ext
+      collected.set(name, entry)
+    }
+  }
+
+  const brandRoot: any = (base.brand as any)?.brand ?? base.brand
+  const breakpoints: BreakpointOverride[] = []
+
+  for (const [name, { trees, ext }] of collected) {
+    const declared = typeof ext?.condition === 'string' ? ext.condition.trim() : ''
+    const maxWidth = layoutGridWidth(brandRoot, name, 'max-width')
+    const minWidth = layoutGridWidth(brandRoot, name, 'min-width')
+    // A breakpoint usually has both bounds, which makes one query with two conditions.
+    const parts: string[] = []
+    if (minWidth != null) parts.push(`(min-width: ${minWidth}px)`)
+    if (maxWidth != null) parts.push(`(max-width: ${maxWidth}px)`)
+    const derived = parts.join(' and ')
+    const condition = declared || derived
+    if (!condition) {
+      errors.push({
+        path: `breakpoints.${name}`,
+        message: `Breakpoint "${name}" has no condition: add $extensions["${BREAKPOINT_EXT}"].condition, or a brand.layout-grids.${name}.max-width (applies below the base grid) or .min-width (above it) to derive it from.`,
+      })
+      continue
+    }
+    // A bounded breakpoint is ordered by its ceiling, one that only has a floor by that floor.
+    const declaredMax = Number(/max-width:\s*(\d+(?:\.\d+)?)/.exec(condition)?.[1])
+    const declaredMin = Number(/min-width:\s*(\d+(?:\.\d+)?)/.exec(condition)?.[1])
+    const ceiling = maxWidth ?? (Number.isFinite(declaredMax) ? declaredMax : null)
+    const floor = minWidth ?? (Number.isFinite(declaredMin) ? declaredMin : null)
+    const direction: 'down' | 'up' = ceiling != null ? 'down' : 'up'
+    const width = ceiling ?? floor ?? Number.POSITIVE_INFINITY
+    breakpoints.push({ name, condition, width, direction, trees })
+  }
+
+  return { base, breakpoints }
+}
+/**
+ * Renders one media block per breakpoint, holding only the overridden declarations.
+ *
+ * Ordered so the closest matching breakpoint is last and therefore wins. The max-width blocks come
+ * first, widest to narrowest: at 400px both `(max-width: 810px)` and `(max-width: 480px)` match, and
+ * the later block applies. The min-width blocks follow, narrowest to widest, for the same reason in
+ * the other direction. Ordering off the declared widths rather than key order keeps output
+ * independent of how the JSON happens to be written.
+ */
+function renderBreakpointBlocks(
+  breakpoints: BreakpointOverride[],
+  allVarNames: Set<string>,
+  errors: TransformError[]
+): string {
+  if (breakpoints.length === 0) return ''
+  const blocks: string[] = []
+
+  const ordered = [...breakpoints].sort((a, b) => {
+    if (a.direction !== b.direction) return a.direction === 'down' ? -1 : 1
+    return a.direction === 'down' ? b.width - a.width : a.width - b.width
+  })
+  for (const bp of ordered) {
+    const decls: string[] = []
+    for (const { prefix, tree } of bp.trees) {
+      const entries: FlatEntry[] = []
+      collectVars(tree, prefix, entries)
+      for (const { path, value, type } of entries) {
+        let formatted = formatValue(value, path, allVarNames, errors)
+        if (formatted == null) formatted = fallbackForNullByType(type)
+        if (formatted == null) continue
+        decls.push(`    ${pathToVarName(path)}: ${formatted};`)
+      }
+    }
+    if (decls.length === 0) continue
+    blocks.push(`/* Breakpoint: ${bp.name} */\n@media ${bp.condition} {\n  :root {\n${decls.join('\n')}\n  }\n}`)
+  }
+
+  return blocks.length ? `\n${blocks.join('\n\n')}\n` : ''
+}
+
 /**
  * Transforms tokens, brand, and uikit JSON into specific CSS variables.
  * All vars emitted on :root. Throws if validation fails (invalid refs, bad values).
  */
 export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
-  const entries = flattenInput(json)
-  const allVarNames = new Set(entries.map((e) => pathToVarName(e.path)))
   const errors: TransformError[] = []
+  // Split the optional breakpoint groups off first so the base output is unchanged by their
+  // presence; they are rendered as media blocks after the base CSS is built.
+  const { base: baseJson, breakpoints } = extractBreakpoints(json, errors)
+  const entries = flattenInput(baseJson)
+  const allVarNames = new Set(entries.map((e) => pathToVarName(e.path)))
   const varMap: Array<{ name: string; value: string; comment?: string }> = []
 
   for (const entry of entries) {
@@ -519,6 +664,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
 
   const sorted = varMap.sort((a, b) => a.name.localeCompare(b.name))
   const css = formatCss(sorted, getSourceJsonVersion(json))
+    + renderBreakpointBlocks(breakpoints, allVarNames, errors)
   return [{ filename: FILENAME, contents: css }]
 }
 

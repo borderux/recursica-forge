@@ -115,7 +115,7 @@ describe('recursicaJsonTransform (Scoped)', () => {
     expect(css).toMatch(/typography helper classes/i)
     expect(css).toMatch(/\.recursica_brand_typography_h1\s*\{/)
     expect(css).toMatch(/\.recursica_brand_typography_body\s*\{/)
-    expect(css).toMatch(/recursica_brand_typography_body-small/)
+    expect(css).toMatch(/recursica_brand_typography_caption/)
   })
 
   it('throws an error if a typography group reference targets a non-existent typography set', () => {

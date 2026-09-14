@@ -132,7 +132,7 @@ export function ColorScale({
           layer="layer-1"
           minWidth={0}
           style={{
-            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+            fontSize: 'var(--recursica_brand_typography_caption-font-size)',
             width: '100%',
           }}
         />
@@ -221,11 +221,11 @@ export function ColorScale({
           gap: 2,
         }}>
           <span style={{
-            fontFamily: 'var(--recursica_brand_typography_subtitle-font-family)',
-            fontSize: 'var(--recursica_brand_typography_subtitle-font-size)',
-            fontWeight: 'var(--recursica_brand_typography_subtitle-font-weight)',
-            letterSpacing: 'var(--recursica_brand_typography_subtitle-font-letter-spacing)',
-            lineHeight: 'var(--recursica_brand_typography_subtitle-line-height)',
+            fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+            fontSize: 'var(--recursica_brand_typography_body-font-size)',
+            fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
+            letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
+            lineHeight: 'var(--recursica_brand_typography_body-line-height)',
             color: `var(${genericLayerText(0, 'color')})`,
             opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
           }}>Used in:</span>

@@ -70,6 +70,22 @@ function isFontWeightAvailable(fontFamily: string, weight: number): boolean {
 }
 
 // Export AddButton component for use in header
+
+/**
+ * Drops every inline typography font-family var from the root so they rebuild from the new font
+ * mapping. Scans what is set rather than naming the styles, since a brand defines its own.
+ */
+function clearTypographyFamilyVars() {
+  if (typeof document === 'undefined') return
+  const root = document.documentElement.style
+  const names: string[] = []
+  for (let i = 0; i < root.length; i++) {
+    const name = root.item(i)
+    if (name.startsWith('--recursica_brand_typography_') && name.endsWith('-font-family')) names.push(name)
+  }
+  names.forEach((name) => root.removeProperty(name))
+}
+
 export function AddButton({ onOpenModal }: { onOpenModal: () => void }) {
   return (
     <Button
@@ -756,11 +772,7 @@ export default function FontFamiliesTokens() {
     saveStoredFonts(updatedFonts)
 
     // Clear typography font-family CSS vars so they are regenerated with the new mapping
-    const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
-    typographyPrefixes.forEach((prefix) => {
-      const cssVar = `--recursica_brand_typography_${prefix}-font-family`
-      if (typeof document !== 'undefined') document.documentElement.style.removeProperty(cssVar)
-    })
+    clearTypographyFamilyVars()
 
     // Update rows immediately so the UI reflects the new order without waiting for store round-trip
     setRows(buildRows())
@@ -805,10 +817,7 @@ export default function FontFamiliesTokens() {
     removeCssVar(tokenFont('families', deletedSlug))
 
     // Clear typography font-family vars so they are regenerated with the new mapping
-    const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
-    typographyPrefixes.forEach((prefix) => {
-      if (typeof document !== 'undefined') document.documentElement.style.removeProperty(`--recursica_brand_typography_${prefix}-font-family`)
-    })
+    clearTypographyFamilyVars()
 
     // Delegate ref-replacement, localStorage renumbering, and syncFontsToTokens to store
     store.deleteFont(fontIdToDelete, fallbackFontId)

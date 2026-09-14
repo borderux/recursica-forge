@@ -387,7 +387,7 @@ export default function Slider({
           disableTopBottomMargin={true}
           style={{
             width: `var(${inputWidthVar}, 60px)`,
-            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+            fontSize: 'var(--recursica_brand_typography_caption-font-size)',
             [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'background-color')]: `var(${inputBackgroundVar})`,
             [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'text-color')]: `var(${inputTextVar})`,
             [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'border-color')]: `var(${inputBorderColorVar})`,
@@ -613,7 +613,7 @@ export default function Slider({
           disableTopBottomMargin={true}
           style={{
             width: `var(${inputWidthVar}, 60px)`,
-            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+            fontSize: 'var(--recursica_brand_typography_caption-font-size)',
             [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'background-color')]: `var(${inputBackgroundVar})`,
             [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'text-color')]: `var(${inputTextVar})`,
             [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'border-color')]: `var(${inputBorderColorVar})`,

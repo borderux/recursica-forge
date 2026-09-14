@@ -677,6 +677,13 @@ export function exportTokensJson(): object {
   if (Object.keys(result.tokens.sizes).length === 0) delete result.tokens.sizes
   if (Object.keys(result.tokens.opacities).length === 0) delete result.tokens.opacities
 
+  // Per-breakpoint overrides pass through untouched. This export rebuilds the file group by
+  // group, so anything it does not know about is dropped — without this the breakpoints group
+  // never reached the CSS transform and no media block was emitted.
+  if (storeTokens.breakpoints && Object.keys(storeTokens.breakpoints).length > 0) {
+    result.tokens.breakpoints = JSON.parse(JSON.stringify(storeTokens.breakpoints))
+  }
+
   // Add metadata with export timestamp (DTCG-compliant: $metadata → $extensions.recursica.metadata)
   result.$extensions = {
     'recursica.metadata': {

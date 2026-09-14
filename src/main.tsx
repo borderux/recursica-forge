@@ -20,7 +20,8 @@ initFocusModality()
 // Lazy load pages to split code chunks
 const PalettesPage = React.lazy(() => import('./modules/palettes/PalettesPage'))
 const CorePropertiesPage = React.lazy(() => import('./modules/core/CorePropertiesPage'))
-const TypePage = React.lazy(() => import('./modules/type/TypePage'))
+const TypeAndBreakpointsPage = React.lazy(() => import('./modules/breakpoints/TypeAndBreakpointsPage'))
+const BreakpointWindowPage = React.lazy(() => import('./modules/breakpoints/BreakpointWindowPage'))
 const PreviewPage = React.lazy(() => import('./modules/preview/PreviewPage'))
 const ComponentDetailPage = React.lazy(() => import('./modules/preview/ComponentDetailPage'))
 const TokensPage = React.lazy(() => import('./modules/tokens/TokensPage'))
@@ -78,6 +79,10 @@ bootstrapTheme()
 
 const router = createBrowserRouter([
   {
+    path: '/breakpoint-window/:name',
+    element: <React.Suspense fallback={null}><BreakpointWindowPage /></React.Suspense>,
+  },
+  {
     element: <Layout />,
     children: [
       { path: '/', element: <Navigate to="/tokens" replace /> },
@@ -105,11 +110,12 @@ const router = createBrowserRouter([
         children: [
           { path: '', element: <Navigate to="/theme/core-properties" replace /> },
           { path: 'core-properties', element: <CorePropertiesPage /> },
-          { path: 'type', element: <TypePage /> },
+          { path: 'type', element: <TypeAndBreakpointsPage /> },
           { path: 'palettes', element: <PalettesPage /> },
           { path: 'elevations', element: <ElevationsPage /> },
           { path: 'layers', element: <LayersPage /> },
           { path: 'dimensions', element: <DimensionsPage /> },
+          { path: 'breakpoints', element: <Navigate to="/theme/type" replace /> },
           { path: 'states', element: <StatesPage /> },
           { path: 'compliance', element: <CompliancePage /> },
         ],

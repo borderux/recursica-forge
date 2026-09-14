@@ -84,7 +84,7 @@ html[data-theme-mode="dark"] .palette-color-control-swatch::before {
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
-  font-size: var(--recursica_brand_typography_body-small-font-size);
+  font-size: var(--recursica_brand_typography_caption-font-size);
   font-weight: 600;
   color: var(--recursica_brand_modes_light_palettes_core-colors_alert_tone);
   text-decoration: none;

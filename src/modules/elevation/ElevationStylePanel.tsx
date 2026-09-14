@@ -427,7 +427,7 @@ export default function ElevationStylePanel({
               style={{
                 color: `var(--recursica_brand_modes_${mode}_layers_layer-0_elements_text-color)`,
                 opacity: `var(--recursica_brand_modes_${mode}_layers_layer-0_elements_text-low-emphasis)`,
-                fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                 cursor: 'pointer',
                 flex: 1,
               }}

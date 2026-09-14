@@ -325,7 +325,7 @@ export default function MantineShell({
                     <span
                       style={{
                         fontSize:
-                          "var(--recursica_brand_typography_body-small-font-size)",
+                          "var(--recursica_brand_typography_caption-font-size)",
                         color: `var(${layer0TextColor})`,
                         opacity: `var(${layer0TextLow})`,
                       }}

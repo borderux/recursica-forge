@@ -301,7 +301,7 @@ export function resolveTokenReferenceToCssVar(
           // Other properties (like letter-spacing) get "font-" prefix
           return `var(${brandTypography(styleName, `font-${property}`)})`
         } else if (remainingParts.length === 1) {
-          // Only style name provided (e.g., {brand.typography.body-small})
+          // Only style name provided (e.g., {brand.typography.caption})
           // Resolve to font-size CSS variable so style name can be extracted
           const styleName = remainingParts[0]
           return `var(${brandTypography(styleName, 'font-size')})`

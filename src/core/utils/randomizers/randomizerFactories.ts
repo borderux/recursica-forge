@@ -345,7 +345,7 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     const typographyMatch = content.match(/^brand\.typography\.([a-z0-9-]+)(?:\.([a-zA-Z]+))?$/);
     if (typographyMatch) {
        const [, level, prop] = typographyMatch;
-       const levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline'];
+       const levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body', 'caption', 'overline'];
        const newLevel = shiftValue(level, levels);
        return prop ? `{brand.typography.${newLevel}.${prop}}` : `{brand.typography.${newLevel}}`;
     }
