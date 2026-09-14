@@ -51,9 +51,9 @@ export default function ElevationToolbar({
       cssVar = prop.cssVar
       // If prop.cssVar contains a mode, replace it with current mode
       // Handle both UI kit and brand CSS var formats
-      cssVar = cssVar.replace(/themes-(light|dark)-/, `themes-${mode}-`)
+      cssVar = cssVar.replace(/modes-(light|dark)-/, `modes-${mode}-`)
       // Also handle the case where it might be in a different position
-      cssVar = cssVar.replace(/-themes-(light|dark)-/, `-themes-${mode}-`)
+      cssVar = cssVar.replace(/-modes-(light|dark)-/, `-modes-${mode}-`)
     }
     
     return cssVar
@@ -64,8 +64,8 @@ export default function ElevationToolbar({
   const elevationOptions = useMemo(() => {
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const themes = root?.themes || root
-      const elev: any = themes?.[mode]?.elevations || root?.[mode]?.elevations || {}
+      const modes = root?.modes || root
+      const elev: any = modes?.[mode]?.elevations || root?.[mode]?.elevations || {}
       const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a, b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
       return names.map((n) => {
         const idx = Number(n.split('-')[1])
@@ -101,9 +101,9 @@ export default function ElevationToolbar({
       return 'elevation-0'
     }
     
-    // Parse token reference format: {brand.themes.light.elevations.elevation-0}
+    // Parse token reference format: {brand.modes.light.elevations.elevation-0}
     // Check if the token reference is for the correct mode
-    const tokenMatch = inlineValue.match(/themes[._](light|dark)[._]elevations?[._](elevation-\d+)/i)
+    const tokenMatch = inlineValue.match(/modes[._](light|dark)[._]elevations?[._](elevation-\d+)/i)
     if (tokenMatch) {
       const refMode = tokenMatch[1].toLowerCase() as 'light' | 'dark'
       const elevationName = tokenMatch[2]
@@ -168,7 +168,7 @@ export default function ElevationToolbar({
       const elevationName = selectedOption.name
       
       // Update CSS var with elevation token reference (use token format, not CSS var format)
-      const elevationTokenRef = `{brand.themes.${mode}.elevations.${elevationName}}`
+      const elevationTokenRef = `{brand.modes.${mode}.elevations.${elevationName}}`
       updateCssVar(elevationVar, elevationTokenRef)
       
       // Update local state immediately for responsive UI feedback

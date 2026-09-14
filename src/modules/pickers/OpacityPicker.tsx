@@ -155,7 +155,7 @@ export default function OpacityPicker() {
       try {
         const themeCopy = getVarsStore().getLatestThemeCopy()
         const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-        const themes = root?.themes || root
+        const modes = root?.modes || root
         
         // Determine which mode (light or dark)
         const isDark = targetCssVar.includes('-dark-')
@@ -167,34 +167,34 @@ export default function OpacityPicker() {
           const emphasisKey = isHigh ? 'high' : 'low'
           
           // Ensure text-emphasis structure exists
-          if (!themes[modeKey]) themes[modeKey] = {}
-          if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
+          if (!modes[modeKey]) modes[modeKey] = {}
+          if (!modes[modeKey]['text-emphasis']) modes[modeKey]['text-emphasis'] = {}
           
           // Update the opacity reference in theme JSON
-          themes[modeKey]['text-emphasis'][emphasisKey] = {
+          modes[modeKey]['text-emphasis'][emphasisKey] = {
             $type: 'number',
             $value: `{tokens.opacities.${tokenKey}}`
           }
         } else if (isDisabledOpacity) {
           // Handle disabled opacity
           // Ensure states structure exists
-          if (!themes[modeKey]) themes[modeKey] = {}
-          if (!themes[modeKey].states) themes[modeKey].states = {}
+          if (!modes[modeKey]) modes[modeKey] = {}
+          if (!modes[modeKey].states) modes[modeKey].states = {}
           
           // Update the disabled opacity reference in theme JSON
-          themes[modeKey].states.disabled = {
+          modes[modeKey].states.disabled = {
             $type: 'number',
             $value: `{tokens.opacities.${tokenKey}}`
           }
         } else if (isOverlayOpacity) {
           // Handle overlay opacity
           // Ensure states structure exists
-          if (!themes[modeKey]) themes[modeKey] = {}
-          if (!themes[modeKey].states) themes[modeKey].states = {}
-          if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+          if (!modes[modeKey]) modes[modeKey] = {}
+          if (!modes[modeKey].states) modes[modeKey].states = {}
+          if (!modes[modeKey].states.overlay) modes[modeKey].states.overlay = {}
           
           // Update the overlay opacity reference in theme JSON
-          themes[modeKey].states.overlay.opacity = {
+          modes[modeKey].states.overlay.opacity = {
             $type: 'number',
             $value: `{tokens.opacities.${tokenKey}}`
           }

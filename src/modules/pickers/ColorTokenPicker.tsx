@@ -278,10 +278,10 @@ export default function ColorTokenPicker() {
     if (!setTheme || !themeJson || !tokensJson) return
 
     // Check if this is a core color CSS var for the current mode
-    // Use --recursica_brand_themes_ format to match varsStore.ts and palettes.ts
+    // Use --recursica_brand_modes_ format to match varsStore.ts and palettes.ts
     // paletteCore() generates `core_` with underscore, not `core-` with hyphen
     const modeLower = mode.toLowerCase()
-    const coreColorPrefix = `--recursica_brand_themes_${modeLower}_palettes_core-colors_`
+    const coreColorPrefix = `--recursica_brand_modes_${modeLower}_palettes_core-colors_`
     if (!cssVar.startsWith(coreColorPrefix)) return // Not a core color
 
     // Extract the color name from the CSS var
@@ -320,14 +320,14 @@ export default function ColorTokenPicker() {
 
       const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-      const themes = root?.themes || root
+      const modes = root?.modes || root
 
       // Navigate to core-colors (direct children, no $value wrapper)
-      if (!themes[modeLower]) themes[modeLower] = {}
-      if (!themes[modeLower].palettes) themes[modeLower].palettes = {}
-      if (!themes[modeLower].palettes['core-colors']) themes[modeLower].palettes['core-colors'] = {}
+      if (!modes[modeLower]) modes[modeLower] = {}
+      if (!modes[modeLower].palettes) modes[modeLower].palettes = {}
+      if (!modes[modeLower].palettes['core-colors']) modes[modeLower].palettes['core-colors'] = {}
 
-      const coreColors = themes[modeLower].palettes['core-colors']
+      const coreColors = modes[modeLower].palettes['core-colors']
 
       // Build the token reference string: {tokens.colors.{family}.{level}}
       const tokenParts = tokenName.split('/')
@@ -386,12 +386,12 @@ export default function ColorTokenPicker() {
       // Handle interactive colors with nested structure
       if (mapping.isInteractive) {
         // For main interactive var (backward compatibility), it maps to default.tone
-        const isMainInteractive = cssVar === `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive`
+        const isMainInteractive = cssVar === `--recursica_brand_modes_${modeLower}_palettes_core-colors_interactive`
 
         if (!coreColors.interactive) {
           coreColors.interactive = {
             tone: { $value: tokenRef },
-            'on-tone': { $value: `{brand.themes.${modeLower}.palettes.core-colors.low-contrast.tone}` }
+            'on-tone': { $value: `{brand.modes.${modeLower}.palettes.core-colors.low-contrast.tone}` }
           }
         } else {
           // Update tone (flat structure)
@@ -404,7 +404,7 @@ export default function ColorTokenPicker() {
         if (!coreColors[colorName]) {
           coreColors[colorName] = {
             tone: { $value: tokenRef },
-            'on-tone': { $value: `{brand.themes.${mode}.palettes.core-colors.low-contrast}` },
+            'on-tone': { $value: `{brand.modes.${mode}.palettes.core-colors.low-contrast}` },
             interactive: { $value: `{tokens.colors.scale-05.300}` } // Default from recursica_brand.json - will be updated by AA compliance if needed
           }
         } else {
@@ -414,14 +414,14 @@ export default function ColorTokenPicker() {
           // AA compliance is now manual via header button - removed automatic on-tone update
           // Preserve existing on-tone if it exists, otherwise set default
           if (!coreColors[colorName]['on-tone']) {
-            coreColors[colorName]['on-tone'] = { $value: `{brand.themes.${mode}.palettes.core-colors.low-contrast}` }
+            coreColors[colorName]['on-tone'] = { $value: `{brand.modes.${mode}.palettes.core-colors.low-contrast}` }
           }
         }
       }
 
       // Also update layer text colors if it's alert, warning, or success
       if (colorName === 'alert' || colorName === 'warning' || colorName === 'success') {
-        const layers = themes[modeLower]?.layers || {}
+        const layers = modes[modeLower]?.layers || {}
         const tokenCssVar = buildTokenCssVar(family, level)
         for (const layerKey of ['layer-0', 'layer-1', 'layer-2', 'layer-3']) {
           if (layers[layerKey] && layers[layerKey].elements && layers[layerKey].elements.text) {
@@ -431,7 +431,7 @@ export default function ColorTokenPicker() {
             }
           }
           // Also update CSS variable directly in the DOM to avoid stale preservation values
-          const themedVar = `--recursica_brand_themes_${modeLower}_layers_${layerKey}_elements_text-${colorName}`
+          const themedVar = `--recursica_brand_modes_${modeLower}_layers_${layerKey}_elements_text-${colorName}`
           const nonThemedVar = `--recursica_brand_${layerKey}_elements_text-${colorName}`
           updateCssVar(themedVar, `var(${tokenCssVar})`, tokensJson)
           updateCssVar(nonThemedVar, `var(${tokenCssVar})`, tokensJson)
@@ -482,11 +482,11 @@ export default function ColorTokenPicker() {
     // Still try to set it even if variable doesn't exist yet - it might be created dynamically
 
     // Check if this is a core color CSS var
-    const isCoreColor = targetVar.startsWith(`--recursica_brand_themes_${modeLower}_palettes_core-colors_`)
+    const isCoreColor = targetVar.startsWith(`--recursica_brand_modes_${modeLower}_palettes_core-colors_`)
 
     // Check if this is an interactive color change
-    const isInteractiveDefault = targetVar === `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_tone` ||
-      targetVar === `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive`
+    const isInteractiveDefault = targetVar === `--recursica_brand_modes_${modeLower}_palettes_core-colors_interactive_tone` ||
+      targetVar === `--recursica_brand_modes_${modeLower}_palettes_core-colors_interactive`
 
     if (isInteractiveDefault) {
       // Get the hex value for the selected token from tokens JSON (checking overrides first)
@@ -527,7 +527,7 @@ export default function ColorTokenPicker() {
 
         // Update CSS variable FIRST for immediate visual feedback (before setTheme triggers recompute)
         const tokenCssVar = buildTokenCssVar(family, level)
-        const targetCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_tone`
+        const targetCssVar = `--recursica_brand_modes_${modeLower}_palettes_core-colors_interactive_tone`
         updateCssVar(targetCssVar, `var(${tokenCssVar})`, tokensJson)
 
 
@@ -538,12 +538,12 @@ export default function ColorTokenPicker() {
           const defaultToneRef = hexToCssVarRef(normalizedHex, tokensJson)
 
           // Keep current hover color
-          const currentHover = readCssVar(`--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_hover_tone`)
+          const currentHover = readCssVar(`--recursica_brand_modes_${modeLower}_palettes_core-colors_interactive_hover_tone`)
           let hoverHex: string
           if (currentHover && !currentHover.startsWith('var(')) {
             hoverHex = currentHover
           } else {
-            hoverHex = resolveCssVarToHex(`var(--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_hover_tone)`, tokenIndex) || normalizedHex
+            hoverHex = resolveCssVarToHex(`var(--recursica_brand_modes_${modeLower}_palettes_core-colors_interactive_hover_tone)`, tokenIndex) || normalizedHex
           }
           const hoverToneRef = hexToCssVarRef(hoverHex, tokensJson)
 
@@ -571,13 +571,13 @@ export default function ColorTokenPicker() {
           // Update theme JSON FIRST (before updating CSS vars) to prevent flicker
           const themeCopy = getVarsStore().getLatestThemeCopy()
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-          const themes = root?.themes || root
+          const modes = root?.modes || root
 
-          if (!themes[modeLower]) themes[modeLower] = {}
-          if (!themes[modeLower].palettes) themes[modeLower].palettes = {}
-          if (!themes[modeLower].palettes['core-colors']) themes[modeLower].palettes['core-colors'] = {}
+          if (!modes[modeLower]) modes[modeLower] = {}
+          if (!modes[modeLower].palettes) modes[modeLower].palettes = {}
+          if (!modes[modeLower].palettes['core-colors']) modes[modeLower].palettes['core-colors'] = {}
 
-          const coreColors = themes[modeLower].palettes['core-colors']
+          const coreColors = modes[modeLower].palettes['core-colors']
           if (!coreColors.interactive) {
             coreColors.interactive = {}
           }
@@ -604,7 +604,7 @@ export default function ColorTokenPicker() {
 
           // Update on-tone in theme JSON (nested default)
           coreColors.interactive.default['on-tone'] = {
-            $value: `{brand.themes.${modeLower}.palettes.core-colors.${defaultOnToneCore}.tone}`
+            $value: `{brand.modes.${modeLower}.palettes.core-colors.${defaultOnToneCore}.tone}`
           }
 
           // Update hover state in theme JSON (nested hover)
@@ -615,7 +615,7 @@ export default function ColorTokenPicker() {
             coreColors.interactive.hover.tone.$value = tokenRef
           }
           coreColors.interactive.hover['on-tone'] = {
-            $value: `{brand.themes.${modeLower}.palettes.core-colors.${hoverOnToneCore}.tone}`
+            $value: `{brand.modes.${modeLower}.palettes.core-colors.${hoverOnToneCore}.tone}`
           }
 
           // Update theme JSON synchronously - CSS vars were already updated above
@@ -724,14 +724,14 @@ export default function ColorTokenPicker() {
               height: '100%',
               borderRadius: isNoneSelected ? '4px' : '0',
               position: 'relative',
-              background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_surface)`
+              background: `var(--recursica_brand_modes_${modeLower}_layers_layer-3_properties_surface)`
             }}>
               <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
-                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral_500_color_tone)`} strokeWidth="1.5" />
+                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica_brand_modes_${modeLower}_palettes_neutral_500_color_tone)`} strokeWidth="1.5" />
               </svg>
               {isNoneSelected && (
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
-                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` }} /> : '✓'}
+                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_modes_${modeLower}_palettes_core_high-contrast)` }} /> : '✓'}
                 </div>
               )}
             </div>
@@ -773,7 +773,7 @@ export default function ColorTokenPicker() {
                       height: swatch,
                       background: tokenCssVar ? `var(${tokenCssVar})` : it.value,
                       cursor: 'pointer',
-                      border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                      border: `1px solid ${isSelected ? `var(--recursica_brand_modes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_modes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                       padding: isSelected ? '1px' : '0',
                       borderRadius: isSelected ? '5px' : '0',
                       boxSizing: 'border-box',

@@ -108,8 +108,8 @@ function deriveDynamicPalettes(themeState?: any): PaletteStore['dynamic'] {
   let lightPalettes: any = null
   if (themeState) {
     const brandRoot: any = themeState?.brand ? themeState.brand : themeState
-    const themes: any = brandRoot?.themes || brandRoot
-    lightPalettes = themes?.light?.palettes
+    const modes: any = brandRoot?.modes || brandRoot
+    lightPalettes = modes?.light?.palettes
   }
 
   if (!lightPalettes) {
@@ -345,14 +345,46 @@ class VarsStore {
         themeImportRaw = initKey(STORAGE_KEYS.editedBrand, STORAGE_KEYS.importedBrand, themeImportRaw)
         uikitRaw = initKey(STORAGE_KEYS.editedUikit, STORAGE_KEYS.importedUikit, uikitRaw)
 
+        // Migration: the brand's per-mode container was renamed `themes` → `modes`. State
+        // persisted before the rename still carries the old key and the old refs, and refs into
+        // the brand also appear in the ui-kit, so both are rewritten and written straight back —
+        // otherwise every existing user boots with a brand the resolvers cannot read.
+        for (const [raw, editedKey, isBrand] of [
+          [themeImportRaw, STORAGE_KEYS.editedBrand, true],
+          [uikitRaw, STORAGE_KEYS.editedUikit, false],
+        ] as Array<[any, string, boolean]>) {
+          if (!raw) continue
+          const before = typeof raw === 'string' ? raw : JSON.stringify(raw)
+          const after = before
+            .replace(/\{brand\.themes\./g, '{brand.modes.')
+            .replace(/--recursica_(brand|ui-kit)_themes_/g, '--recursica_$1_modes_')
+          if (after === before) continue
+          const parsed = JSON.parse(after)
+          if (isBrand) themeImportRaw = parsed
+          else uikitRaw = parsed
+          try { localStorage.setItem(editedKey, after) } catch { /* noop */ }
+        }
+        if (themeImportRaw) {
+          const brandRoot = themeImportRaw.brand ?? themeImportRaw
+          if (brandRoot && typeof brandRoot === 'object' && brandRoot.themes && !brandRoot.modes) {
+            const rebuilt: Record<string, unknown> = {}
+            for (const [key, value] of Object.entries(brandRoot)) {
+              rebuilt[key === 'themes' ? 'modes' : key] = value
+            }
+            for (const key of Object.keys(brandRoot)) delete brandRoot[key]
+            Object.assign(brandRoot, rebuilt)
+            try { localStorage.setItem(STORAGE_KEYS.editedBrand, JSON.stringify(themeImportRaw)) } catch { /* noop */ }
+          }
+        }
+
         // Migration: fix corrupted elevation color refs where core-colors palette entries
         // were incorrectly stored with a spurious `.color.` subgroup that doesn't exist
         // (e.g. core-colors.alert.color.tone → core-colors.alert.tone).
         if (themeImportRaw) {
           let themeStr = typeof themeImportRaw === 'string' ? themeImportRaw : JSON.stringify(themeImportRaw)
           const fixedStr = themeStr.replace(
-            /\{brand\.themes\.(light|dark)\.palettes\.core-colors\.([^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
-            '{brand.themes.$1.palettes.core-colors.$2.$3}'
+            /\{brand\.modes\.(light|dark)\.palettes\.core-colors\.([^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
+            '{brand.modes.$1.palettes.core-colors.$2.$3}'
           )
           if (fixedStr !== themeStr) {
             themeImportRaw = JSON.parse(fixedStr)
@@ -746,7 +778,7 @@ class VarsStore {
     // 1. Replace all references to the deleted palette with the fallback palette
     let stateStr = JSON.stringify(this.state)
     stateStr = stateStr.replace(new RegExp(`\\{brand\\.palettes\\.${paletteKeyToDelete}\\.`, 'g'), `{brand.palettes.${fallbackPaletteKey}.`)
-    stateStr = stateStr.replace(new RegExp(`\\{brand\\.themes\\.(light|dark)\\.palettes\\.${paletteKeyToDelete}\\.`, 'g'), `{brand.themes.$1.palettes.${fallbackPaletteKey}.`)
+    stateStr = stateStr.replace(new RegExp(`\\{brand\\.modes\\.(light|dark)\\.palettes\\.${paletteKeyToDelete}\\.`, 'g'), `{brand.modes.$1.palettes.${fallbackPaletteKey}.`)
     stateStr = stateStr.replace(new RegExp(`_palettes_${paletteKeyToDelete}_`, 'g'), `_palettes_${fallbackPaletteKey}_`)
 
     // Clear from DOM immediately
@@ -764,10 +796,10 @@ class VarsStore {
       stateObj.palettes.dynamic = stateObj.palettes.dynamic.filter((p: any) => p.key !== paletteKeyToDelete)
     }
 
-    const themes = stateObj.theme?.brand?.themes || stateObj.theme?.themes || stateObj.theme
+    const modes = stateObj.theme?.brand?.modes || stateObj.theme?.modes || stateObj.theme
 
     for (const mode of ['light', 'dark']) {
-      const palettes = themes?.[mode]?.palettes
+      const palettes = modes?.[mode]?.palettes
       if (!palettes) continue
       delete palettes[paletteKeyToDelete]
     }
@@ -788,7 +820,7 @@ class VarsStore {
 
         // Update references in JSON string
         finalStateStr = finalStateStr.replace(new RegExp(`\\{brand\\.palettes\\.${oldKey}\\.`, 'g'), `{brand.palettes.${newKey}.`)
-        finalStateStr = finalStateStr.replace(new RegExp(`\\{brand\\.themes\\.(light|dark)\\.palettes\\.${oldKey}\\.`, 'g'), `{brand.themes.$1.palettes.${newKey}.`)
+        finalStateStr = finalStateStr.replace(new RegExp(`\\{brand\\.modes\\.(light|dark)\\.palettes\\.${oldKey}\\.`, 'g'), `{brand.modes.$1.palettes.${newKey}.`)
         finalStateStr = finalStateStr.replace(new RegExp(`_palettes_${oldKey}_`, 'g'), `_palettes_${newKey}_`)
         finalStateStr = finalStateStr.replace(new RegExp(`"${oldKey}"`, 'g'), `"${newKey}"`)
 
@@ -1166,14 +1198,14 @@ class VarsStore {
     try {
       const theme = this.state.theme as any
       const brand = theme?.brand || theme
-      const themes = brand?.themes || brand
-      if (themes) {
+      const modes = brand?.modes || brand
+      if (modes) {
         for (const m of ['light', 'dark'] as const) {
           // Sync palette selections (color)
           const modeSelections = next.paletteSelections[m] || {}
           for (const [elevKey, sel] of Object.entries(modeSelections)) {
             const { paletteKey, level } = sel
-            const elevNode = themes?.[m]?.elevations?.[elevKey]
+            const elevNode = modes?.[m]?.elevations?.[elevKey]
             if (elevNode?.['$value']) {
               if (!elevNode['$value'].color) elevNode['$value'].color = {}
               elevNode['$value'].color.$type = 'color'
@@ -1181,15 +1213,15 @@ class VarsStore {
               // have a .color. subgroup (e.g. neutral.500.color.tone).
               const isCoreColors = paletteKey === 'core-colors'
               elevNode['$value'].color.$value = isCoreColors
-                ? `{brand.themes.${m}.palettes.${paletteKey}.${level}.tone}`
-                : `{brand.themes.${m}.palettes.${paletteKey}.${level}.color.tone}`
+                ? `{brand.modes.${m}.palettes.${paletteKey}.${level}.tone}`
+                : `{brand.modes.${m}.palettes.${paletteKey}.${level}.color.tone}`
             }
           }
 
           // Sync controls (blur, spread, opacity, offsetX, offsetY)
           const modeControls = next.controls[m] || {}
           for (const [elevKey, ctrl] of Object.entries(modeControls)) {
-            const elevNode = themes?.[m]?.elevations?.[elevKey]
+            const elevNode = modes?.[m]?.elevations?.[elevKey]
             if (elevNode?.['$value']) {
               if (!elevNode['$value'].blur) elevNode['$value'].blur = {}
               elevNode['$value'].blur.$type = 'number'
@@ -1216,7 +1248,7 @@ class VarsStore {
           // Sync directions (x-direction, y-direction)
           const modeDirections = next.directions[m] || {}
           for (const [elevKey, dir] of Object.entries(modeDirections)) {
-            const elevNode = themes?.[m]?.elevations?.[elevKey]
+            const elevNode = modes?.[m]?.elevations?.[elevKey]
             if (elevNode?.['$value']) {
               if (!elevNode['$value']['x-direction']) elevNode['$value']['x-direction'] = {}
               elevNode['$value']['x-direction'].$type = 'number'
@@ -1684,11 +1716,11 @@ class VarsStore {
       // This ensures all PaletteGrid components re-read primary levels from theme JSON
       // Get palette keys from the reset state
       const root: any = normalizedTheme?.brand ? normalizedTheme.brand : normalizedTheme
-      const themes = root?.themes || root
+      const modes = root?.modes || root
       const allPaletteKeys = new Set<string>()
 
       for (const modeKey of ['light', 'dark']) {
-        const palettes = themes?.[modeKey]?.palettes || {}
+        const palettes = modes?.[modeKey]?.palettes || {}
         Object.keys(palettes).forEach(key => {
           if (key !== 'core' && key !== 'core-colors') {
             allPaletteKeys.add(key)
@@ -1729,8 +1761,8 @@ class VarsStore {
     {
       // Build defaults from theme for both modes
       const brand: any = (theme as any)?.brand || (theme as any)
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-      const themes = brand?.themes || brand
+      // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+      const modes = brand?.modes || brand
       const toNumeric = (ref?: any): number => {
         // Handle new structure: { $value: { value: number, unit: "px" }, $type: "number" }
         if (ref && typeof ref === 'object' && '$value' in ref) {
@@ -1756,7 +1788,7 @@ class VarsStore {
 
       // Initialize controls for both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
-        const modeElevations: any = themes?.[mode]?.elevations || {}
+        const modeElevations: any = modes?.[mode]?.elevations || {}
         controls[mode] = {}
         for (let i = 0; i <= 4; i++) {
           const node: any = modeElevations[`elevation-${i}`]?.['$value'] || {}
@@ -1806,8 +1838,8 @@ class VarsStore {
         const parsed = parseTokenReference(s, context)
         if (parsed && parsed.type === 'brand') {
           const pathStr = parsed.path.join('.')
-          // Target format: palettes.neutral.500.color.tone or themes.light.palettes.neutral.500.color.tone
-          const paletteFlexMatch = /^(?:themes\.[a-z0-9-]+\.)?palettes?\.([a-z0-9-]+)\.([a-z0-9-]+)(?:\.color)?\.(tone|on-tone)$/i.exec(pathStr)
+          // Target format: palettes.neutral.500.color.tone or modes.light.palettes.neutral.500.color.tone
+          const paletteFlexMatch = /^(?:modes\.[a-z0-9-]+\.)?palettes?\.([a-z0-9-]+)\.([a-z0-9-]+)(?:\.color)?\.(tone|on-tone)$/i.exec(pathStr)
           
           if (paletteFlexMatch) {
             const paletteKey = paletteFlexMatch[1]
@@ -1816,10 +1848,10 @@ class VarsStore {
             // If level is 'default', try to resolve it from the theme
             if (level === 'default' || !level) {
               try {
-                // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+                // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
                 const brandRoot = (theme as any)?.brand || theme
-                const themes = brandRoot?.themes || brandRoot
-                const defaultRef = themes?.light?.palettes?.[paletteKey]?.default
+                const modes = brandRoot?.modes || brandRoot
+                const defaultRef = modes?.light?.palettes?.[paletteKey]?.default
                 if (defaultRef) {
                   let defaultValue: any
                   if (typeof defaultRef === 'object' && defaultRef.$value) {
@@ -1859,10 +1891,10 @@ class VarsStore {
             if (level === 'primary') {
               // Try to get primary level from palette
               try {
-                // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
+                // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
                 const brandRoot = (theme as any)?.brand || theme
-                const themes = brandRoot?.themes || brandRoot
-                const primaryLevel = themes?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
+                const modes = brandRoot?.modes || brandRoot
+                const primaryLevel = modes?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
                 if (typeof primaryLevel === 'string') {
                   level = primaryLevel
                 } else {
@@ -1879,7 +1911,7 @@ class VarsStore {
         return null
       }
       // Get light mode elevations for shadow color control and palette selections (these are mode-independent settings)
-      const lightElevations: any = themes?.light?.elevations || {}
+      const lightElevations: any = modes?.light?.elevations || {}
       const elev1: any = lightElevations?.['elevation-1']?.['$value'] || lightElevations?.['elevation-1'] || {}
       shadowColorControl = { colorToken: '', alphaToken: '' }
 
@@ -1887,7 +1919,7 @@ class VarsStore {
       const initialPaletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} }
       const tokensToUse = tokens || this.state?.tokens
       for (const m of ['light', 'dark'] as const) {
-        const modeElevations: any = themes?.[m]?.elevations || {}
+        const modeElevations: any = modes?.[m]?.elevations || {}
         for (let i = 0; i <= 4; i++) {
           const key = `elevation-${i}`
           const elev: any = modeElevations?.[key]?.['$value'] || modeElevations?.[key] || {}
@@ -1917,7 +1949,7 @@ class VarsStore {
 
       // Initialize directions per mode from theme
       for (const mode of ['light', 'dark'] as const) {
-        const modeElevations: any = themes?.[mode]?.elevations || {}
+        const modeElevations: any = modes?.[mode]?.elevations || {}
         const modeElev1Node = modeElevations?.['elevation-1']?.['$value'] || modeElevations?.['elevation-1'] || {}
         const modeBaseX = modeElev1Node?.['x-direction'] !== undefined ? toNumeric(modeElev1Node['x-direction']) : baseX
         const modeBaseY = modeElev1Node?.['y-direction'] !== undefined ? toNumeric(modeElev1Node['y-direction']) : baseY
@@ -2091,28 +2123,28 @@ class VarsStore {
     // Clear overlay CSS variables from DOM before recomputing to ensure new values from theme JSON are used
     if (typeof document !== 'undefined') {
       const overlayVars = [
-        '--recursica_brand_themes_light_states_overlay_color',
-        '--recursica_brand_themes_light_states_overlay_opacity',
-        '--recursica_brand_themes_dark_states_overlay_color',
-        '--recursica_brand_themes_dark_states_overlay_opacity',
-        '--recursica_brand_themes_light_states_hover_color',
-        '--recursica_brand_themes_light_states_hover_opacity',
-        '--recursica_brand_themes_dark_states_hover_color',
-        '--recursica_brand_themes_dark_states_hover_opacity',
-        '--recursica_brand_themes_light_states_focus_color',
-        '--recursica_brand_themes_light_states_focus_border-size',
-        '--recursica_brand_themes_light_states_focus_margin',
-        '--recursica_brand_themes_light_states_focus_blur',
-        '--recursica_brand_themes_dark_states_focus_color',
-        '--recursica_brand_themes_dark_states_focus_border-size',
-        '--recursica_brand_themes_dark_states_focus_margin',
-        '--recursica_brand_themes_dark_states_focus_blur',
-        '--recursica_brand_themes_light_states_link_decoration',
-        '--recursica_brand_themes_light_states_link_style',
-        '--recursica_brand_themes_light_states_link_weight',
-        '--recursica_brand_themes_dark_states_link_decoration',
-        '--recursica_brand_themes_dark_states_link_style',
-        '--recursica_brand_themes_dark_states_link_weight'
+        '--recursica_brand_modes_light_states_overlay_color',
+        '--recursica_brand_modes_light_states_overlay_opacity',
+        '--recursica_brand_modes_dark_states_overlay_color',
+        '--recursica_brand_modes_dark_states_overlay_opacity',
+        '--recursica_brand_modes_light_states_hover_color',
+        '--recursica_brand_modes_light_states_hover_opacity',
+        '--recursica_brand_modes_dark_states_hover_color',
+        '--recursica_brand_modes_dark_states_hover_opacity',
+        '--recursica_brand_modes_light_states_focus_color',
+        '--recursica_brand_modes_light_states_focus_border-size',
+        '--recursica_brand_modes_light_states_focus_margin',
+        '--recursica_brand_modes_light_states_focus_blur',
+        '--recursica_brand_modes_dark_states_focus_color',
+        '--recursica_brand_modes_dark_states_focus_border-size',
+        '--recursica_brand_modes_dark_states_focus_margin',
+        '--recursica_brand_modes_dark_states_focus_blur',
+        '--recursica_brand_modes_light_states_link_decoration',
+        '--recursica_brand_modes_light_states_link_style',
+        '--recursica_brand_modes_light_states_link_weight',
+        '--recursica_brand_modes_dark_states_link_decoration',
+        '--recursica_brand_modes_dark_states_link_style',
+        '--recursica_brand_modes_dark_states_link_weight'
       ]
       overlayVars.forEach((cssVar) => {
         document.documentElement.style.removeProperty(cssVar)
@@ -2502,8 +2534,8 @@ class VarsStore {
       // Generate for both light and dark modes
       try {
         const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
-        // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-        const themes = root?.themes || root
+        // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+        const modes = root?.modes || root
 
 
 
@@ -2520,19 +2552,19 @@ class VarsStore {
         // Process both light and dark modes
         for (const mode of ['light', 'dark'] as const) {
           // Get core-colors object - it may have $value wrapper or be direct
-          const coreColorsObj: any = themes?.[mode]?.palettes?.['core-colors'] || themes?.[mode]?.palettes?.core
+          const coreColorsObj: any = modes?.[mode]?.palettes?.['core-colors'] || modes?.[mode]?.palettes?.core
           // Extract the actual colors object (handle both $value wrapper and direct structure)
           const core: any = coreColorsObj?.$value || coreColorsObj || {}
 
           // Map core color names to CSS variable names
-          // Use --recursica_brand_themes_ format to match palettes.ts resolver
+          // Use --recursica_brand_modes_ format to match palettes.ts resolver
           const coreColorMap: Record<string, string> = {
-            black: `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast`,
-            white: `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast`,
-            alert: `--recursica_brand_themes_${mode}_palettes_core-colors_alert`,
-            warning: `--recursica_brand_themes_${mode}_palettes_core-colors_warning`,
-            success: `--recursica_brand_themes_${mode}_palettes_core-colors_success`,
-            interactive: `--recursica_brand_themes_${mode}_palettes_core-colors_interactive`,
+            black: `--recursica_brand_modes_${mode}_palettes_core-colors_high-contrast`,
+            white: `--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast`,
+            alert: `--recursica_brand_modes_${mode}_palettes_core-colors_alert`,
+            warning: `--recursica_brand_modes_${mode}_palettes_core-colors_warning`,
+            success: `--recursica_brand_modes_${mode}_palettes_core-colors_success`,
+            interactive: `--recursica_brand_modes_${mode}_palettes_core-colors_interactive`,
           }
 
           // Default fallbacks if theme JSON doesn't have the value
@@ -2578,13 +2610,13 @@ class VarsStore {
               if (tone) {
                 const toneRef = resolveTokenRef(tone)
                 if (toneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`] = toneRef
+                  colors[`--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone`] = toneRef
                 }
               }
               if (onTone) {
                 const onToneRef = resolveTokenRef(onTone)
                 if (onToneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_on-tone`] = onToneRef
+                  colors[`--recursica_brand_modes_${mode}_palettes_core-colors_interactive_on-tone`] = onToneRef
                 }
               }
             } else if (coreValue && typeof coreValue === 'object' && !coreValue.$value) {
@@ -2599,23 +2631,23 @@ class VarsStore {
               }
 
               // Generate additional CSS vars for new structure
-              // Use --recursica_brand_themes_ format to match palettes.ts resolver
+              // Use --recursica_brand_modes_ format to match palettes.ts resolver
               if (tone) {
                 const toneRef = resolveTokenRef(tone)
                 if (toneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_tone`] = toneRef
+                  colors[`--recursica_brand_modes_${mode}_palettes_core-colors_${colorName}_tone`] = toneRef
                 }
               }
               if (onTone) {
                 const onToneRef = resolveTokenRef(onTone)
                 if (onToneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_on-tone`] = onToneRef
+                  colors[`--recursica_brand_modes_${mode}_palettes_core-colors_${colorName}_on-tone`] = onToneRef
                 }
               }
               if (interactive) {
                 const interactiveRef = resolveTokenRef(interactive)
                 if (interactiveRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_interactive`] = interactiveRef
+                  colors[`--recursica_brand_modes_${mode}_palettes_core-colors_${colorName}_interactive`] = interactiveRef
                 }
               }
             } else {
@@ -2680,7 +2712,7 @@ class VarsStore {
         uikitVars = { ...uikitVarsLight, ...uikitVarsDark }
 
         const currentMode = this.getCurrentMode()
-        const currentModePrefix = `--recursica_ui-kit_themes_${currentMode}_`
+        const currentModePrefix = `--recursica_ui-kit_modes_${currentMode}_`
         const nonThemedPrefix = '--recursica_ui-kit_'
         const currentModeVars = currentMode === 'light' ? uikitVarsLight : uikitVarsDark
         for (const [themedKey, value] of Object.entries(currentModeVars)) {
@@ -2826,7 +2858,7 @@ class VarsStore {
             const sel = this.state.elevation.paletteSelections[mode]?.[key]
             if (sel) {
               const paletteToneSuffix = sel.paletteKey.startsWith('core') ? '_tone' : '_color_tone'
-              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}_${sel.level}${paletteToneSuffix}`
+              const paletteVarName = `--recursica_brand_modes_${mode}_palettes_${sel.paletteKey}_${sel.level}${paletteToneSuffix}`
               const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
               return colorMixWithOpacityVar(paletteVarRef, alphaRef)
             }
@@ -2843,8 +2875,8 @@ class VarsStore {
           }
           
           const brand: any = (this.state.theme as any)?.brand || (this.state.theme as any)
-          const themes = brand?.themes || brand
-          const modeElevations: any = themes?.[mode]?.elevations || {}
+          const modes = brand?.modes || brand
+          const modeElevations: any = modes?.[mode]?.elevations || {}
           const baseElevationNode: any = modeElevations?.['elevation-0']?.['$value'] || {}
 
           const vars: Record<string, string> = {}
@@ -2864,7 +2896,7 @@ class VarsStore {
             let yValue = control ? control.offsetY : toNumeric(elevNode?.y)
 
             const dir = dirForLevel(i)
-            const brandScope = `--brand_themes_${mode}_elevations_elevation-${i}`
+            const brandScope = `--brand_modes_${mode}_elevations_elevation-${i}`
             const prefixedScope = `--recursica_${brandScope.slice(2)}`
 
             const hasControlsInAnyMode = elevationsWithControls.has(k)
@@ -2893,7 +2925,7 @@ class VarsStore {
             const statePaletteSel = this.state.elevation.paletteSelections[mode]?.[k]
             if (statePaletteSel) {
               const paletteToneSuffix2 = statePaletteSel.paletteKey.startsWith('core') ? '_tone' : '_color_tone'
-              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.level}${paletteToneSuffix2}`
+              const paletteVarName = `--recursica_brand_modes_${mode}_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.level}${paletteToneSuffix2}`
               const paletteVarRef = allPaletteVars[paletteVarName] ? allPaletteVars[paletteVarName] : `var(${paletteVarName})`
               vars[`${prefixedScope}_shadow-color`] = colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
             } else {
@@ -2982,11 +3014,11 @@ class VarsStore {
   private isEmphasisOpacityToken(opacityKey: string): boolean {
     try {
       const root: any = this.state.theme?.brand ? this.state.theme.brand : this.state.theme
-      const themes = root?.themes || root
+      const modes = root?.modes || root
 
       // Check both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
-        const textEmphasis = themes?.[mode]?.['text-emphasis']
+        const textEmphasis = modes?.[mode]?.['text-emphasis']
         if (!textEmphasis) continue
 
         // Check high and low emphasis
@@ -3018,12 +3050,12 @@ class VarsStore {
     const result: Array<{ paletteKey: string; mode: 'light' | 'dark' }> = []
     try {
       const root: any = this.state.theme?.brand ? this.state.theme.brand : this.state.theme
-      const themes = root?.themes || root
+      const modes = root?.modes || root
       const tokenIndex = buildTokenIndex(this.state.tokens)
 
       // Check both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
-        const pal: any = themes?.[mode]?.palettes || {}
+        const pal: any = modes?.[mode]?.palettes || {}
         const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
 
         Object.keys(pal).forEach((paletteKey) => {
@@ -3073,11 +3105,11 @@ class VarsStore {
   private isCoreColorToken(family: string, level: string): boolean {
     try {
       const root: any = this.state.theme?.brand ? this.state.theme.brand : this.state.theme
-      const themes = root?.themes || root
+      const modes = root?.modes || root
 
       // Check both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
-        const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors']
+        const coreColors = modes?.[mode]?.palettes?.['core-colors']?.$value || modes?.[mode]?.palettes?.['core-colors']
         if (!coreColors) continue
 
         const coreColorKeys = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success', 'interactive']
@@ -3137,7 +3169,7 @@ class VarsStore {
 
       for (const colorName of coreColors) {
         // Get the tone hex for this core color
-        const toneCssVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_tone`
+        const toneCssVar = `--recursica_brand_modes_${mode}_palettes_core-colors_${colorName}_tone`
         const tokenIndex = buildTokenIndex(this.state.tokens)
         const toneValue = readCssVarResolved(toneCssVar) || readCssVar(toneCssVar)
         const toneHex = toneValue

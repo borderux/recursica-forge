@@ -107,7 +107,7 @@ function OptionCard({
 
 export function OnToneModal({ isOpen, onClose, conflict }: OnToneModalProps) {
   const { mode } = useThemeMode()
-  const layerElements = `--recursica_brand_themes_${mode}_layers_layer-1_elements`
+  const layerElements = `--recursica_brand_modes_${mode}_layers_layer-1_elements`
   const textColor = `var(${layerElements}_text-color)`
   const accentColor = `var(${layerElements}_interactive-tone)`
   const idleBorder = 'rgba(128,128,128,0.35)'

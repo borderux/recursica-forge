@@ -274,7 +274,7 @@ export default function ElevationStylePanel({
   // ─── Shadow color CSS var helpers ────────────────────────────────────────────
 
   const getShadowColorCssVar = React.useCallback((level: number): string =>
-    `--recursica_brand_themes_${mode}_elevations_elevation-${level}_shadow-color`,
+    `--recursica_brand_modes_${mode}_elevations_elevation-${level}_shadow-color`,
     [mode])
 
   // ─── Panel chrome ────────────────────────────────────────────────────────────
@@ -412,7 +412,7 @@ export default function ElevationStylePanel({
             targetCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : getShadowColorCssVar(1)}
             targetCssVars={levelsArr.length > 0 ? levelsArr.map(lvl => getShadowColorCssVar(lvl)) : [getShadowColorCssVar(1)]}
             currentValueCssVar={statePaletteSel
-              ? `--recursica_brand_themes_${mode}_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.paletteLevel}${statePaletteSel.paletteKey.startsWith('core') ? '_tone' : '_color_tone'}`
+              ? `--recursica_brand_modes_${mode}_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.paletteLevel}${statePaletteSel.paletteKey.startsWith('core') ? '_tone' : '_color_tone'}`
               : undefined}
             onSelect={onShadowColorSelect}
           />
@@ -425,8 +425,8 @@ export default function ElevationStylePanel({
             <label
               onClick={onToggleColorMirror}
               style={{
-                color: `var(--recursica_brand_themes_${mode}_layers_layer-0_elements_text-color)`,
-                opacity: `var(--recursica_brand_themes_${mode}_layers_layer-0_elements_text-low-emphasis)`,
+                color: `var(--recursica_brand_modes_${mode}_layers_layer-0_elements_text-color)`,
+                opacity: `var(--recursica_brand_modes_${mode}_layers_layer-0_elements_text-low-emphasis)`,
                 fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
                 cursor: 'pointer',
                 flex: 1,

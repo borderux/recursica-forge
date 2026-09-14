@@ -123,7 +123,7 @@ const mockTokens = {
 
 const mockTheme = {
   brand: {
-    themes: {
+    modes: {
       light: {
         palettes: {
           'core-colors': {
@@ -169,79 +169,79 @@ describe('ComplianceService Components Audit', () => {
     document.documentElement.style.setProperty('--recursica_tokens_color_gray_500', '#808080')
     document.documentElement.style.setProperty('--recursica_tokens_color_gray_1000', '#000000')
     
-    document.documentElement.style.setProperty('--recursica_brand_themes_light_layers_layer-0_properties_surface', '#ffffff')
-    document.documentElement.style.setProperty('--recursica_brand_themes_dark_layers_layer-0_properties_surface', '#000000')
+    document.documentElement.style.setProperty('--recursica_brand_modes_light_layers_layer-0_properties_surface', '#ffffff')
+    document.documentElement.style.setProperty('--recursica_brand_modes_dark_layers_layer-0_properties_surface', '#000000')
 
     // Inactive tabs and link text have low contrast (e.g. gray #cccccc on white #ffffff background in light mode)
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_tabs_variants_styles_default_properties_inactive_colors_layer-0_text-color',
+      '--recursica_ui-kit_modes_light_components_tabs_variants_styles_default_properties_inactive_colors_layer-0_text-color',
       '#cccccc'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_tabs_variants_styles_default_properties_inactive_colors_layer-0_icon-color',
+      '--recursica_ui-kit_modes_light_components_tabs_variants_styles_default_properties_inactive_colors_layer-0_icon-color',
       '#cccccc'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_link_variants_states_default_properties_colors_layer-0_text',
+      '--recursica_ui-kit_modes_light_components_link_variants_states_default_properties_colors_layer-0_text',
       '#cccccc'
     )
     
     // Set up dark mode variables with low contrast (e.g. #333333 on #000000)
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_tabs_variants_styles_default_properties_inactive_colors_layer-0_text-color',
+      '--recursica_ui-kit_modes_dark_components_tabs_variants_styles_default_properties_inactive_colors_layer-0_text-color',
       '#333333'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_tabs_variants_styles_default_properties_inactive_colors_layer-0_icon-color',
+      '--recursica_ui-kit_modes_dark_components_tabs_variants_styles_default_properties_inactive_colors_layer-0_icon-color',
       '#333333'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_link_variants_states_default_properties_colors_layer-0_text',
+      '--recursica_ui-kit_modes_dark_components_link_variants_states_default_properties_colors_layer-0_text',
       '#333333'
     )
 
     // Active tabs text has high contrast
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_tabs_variants_styles_default_properties_active_colors_layer-0_text-color',
+      '--recursica_ui-kit_modes_light_components_tabs_variants_styles_default_properties_active_colors_layer-0_text-color',
       '#000000'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_tabs_variants_styles_default_properties_active_colors_layer-0_text-color',
+      '--recursica_ui-kit_modes_dark_components_tabs_variants_styles_default_properties_active_colors_layer-0_text-color',
       '#ffffff'
     )
 
     // Set up tooltip and toast variables with low contrast
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-0_background',
+      '--recursica_ui-kit_modes_light_components_tooltip_properties_colors_layer-0_background',
       '#ffffff'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-0_text',
+      '--recursica_ui-kit_modes_light_components_tooltip_properties_colors_layer-0_text',
       '#cccccc'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_toast_variants_styles_default_properties_colors_layer-0_background-color',
+      '--recursica_ui-kit_modes_light_components_toast_variants_styles_default_properties_colors_layer-0_background-color',
       '#ffffff'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_light_components_toast_variants_styles_default_properties_colors_layer-0_text-color',
+      '--recursica_ui-kit_modes_light_components_toast_variants_styles_default_properties_colors_layer-0_text-color',
       '#cccccc'
     )
 
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_tooltip_properties_colors_layer-0_background',
+      '--recursica_ui-kit_modes_dark_components_tooltip_properties_colors_layer-0_background',
       '#000000'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_tooltip_properties_colors_layer-0_text',
+      '--recursica_ui-kit_modes_dark_components_tooltip_properties_colors_layer-0_text',
       '#333333'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_toast_variants_styles_default_properties_colors_layer-0_background-color',
+      '--recursica_ui-kit_modes_dark_components_toast_variants_styles_default_properties_colors_layer-0_background-color',
       '#000000'
     )
     document.documentElement.style.setProperty(
-      '--recursica_ui-kit_themes_dark_components_toast_variants_styles_default_properties_colors_layer-0_text-color',
+      '--recursica_ui-kit_modes_dark_components_toast_variants_styles_default_properties_colors_layer-0_text-color',
       '#333333'
     )
   })
@@ -252,7 +252,7 @@ describe('ComplianceService Components Audit', () => {
   // on a missing `background` key and never checked button at all.
   beforeEach(() => {
     for (const mode of ['light', 'dark'] as const) {
-      const base = `--recursica_ui-kit_themes_${mode}_components_button_variants_styles_solid_properties_colors_layer-0`
+      const base = `--recursica_ui-kit_modes_${mode}_components_button_variants_styles_solid_properties_colors_layer-0`
       document.documentElement.style.setProperty(`${base}_background-color`, '#1a7f8c')
       document.documentElement.style.setProperty(`${base}_text-color`, '#1a7f8c')
     }
@@ -317,11 +317,11 @@ describe('ComplianceService interactive-color write path (2.1.0)', () => {
   // (cssVarRefToJsonRef) needs injected tokens plus live DOM CSS vars, so it is stubbed;
   // routing is the part 2.1.0 changed.
 
-  // Shape matters: the layer write path resolves `root.themes?.[mode] ?? root[mode]`, so
+  // Shape matters: the layer write path resolves `root.modes?.[mode] ?? root[mode]`, so
   // the fixture must be mode-keyed. A bare { layers: ... } matches nothing and makes every
   // "left untouched" assertion vacuously true.
   const makeThemeCopy = () => ({
-    themes: {
+    modes: {
       dark: {
         layers: {
           'layer-3': {
@@ -338,9 +338,9 @@ describe('ComplianceService interactive-color write path (2.1.0)', () => {
     }
   })
 
-  const interOf = (t: any) => t.themes.dark.layers['layer-3'].elements.interactive
-  const VAR = '--recursica_brand_themes_dark_layers_layer-3_elements_interactive-color'
-  const TONE_VAR = '--recursica_brand_themes_dark_layers_layer-3_elements_interactive-tone'
+  const interOf = (t: any) => t.modes.dark.layers['layer-3'].elements.interactive
+  const VAR = '--recursica_brand_modes_dark_layers_layer-3_elements_interactive-color'
+  const TONE_VAR = '--recursica_brand_modes_dark_layers_layer-3_elements_interactive-tone'
   const FIXED = '{tokens.colors.scale-06.100}'
 
   let svc: any
@@ -405,7 +405,7 @@ describe('ComplianceService interactive on-tone issue (flat var fallback)', () =
   beforeEach(() => {
     document.documentElement.style.cssText = ''
     for (const mode of ['light', 'dark'] as const) {
-      const base = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive`
+      const base = `--recursica_brand_modes_${mode}_palettes_core-colors_interactive`
       // tone and on-tone identical => exactly 1.00:1, an invisible label
       document.documentElement.style.setProperty(`${base}_tone`, '#1a7f8c')
       document.documentElement.style.setProperty(`${base}_on-tone`, '#1a7f8c')
@@ -433,8 +433,8 @@ describe('ComplianceService interactive on-tone issue (flat var fallback)', () =
     service.connect(() => mockTokens, () => mockTheme)
     service.runFullScan()
 
-    const cellToneVar = '--recursica_brand_themes_light_palettes_core-colors_interactive_tone'
-    const cellOnToneVar = '--recursica_brand_themes_light_palettes_core-colors_interactive_on-tone'
+    const cellToneVar = '--recursica_brand_modes_light_palettes_core-colors_interactive_tone'
+    const cellOnToneVar = '--recursica_brand_modes_light_palettes_core-colors_interactive_on-tone'
 
     const match = service.getThemeIssues().find(
       i => i.suggestion?.targetCssVar === cellOnToneVar || i.toneCssVar === cellToneVar
@@ -463,10 +463,10 @@ describe('ComplianceService per-mode component fix', () => {
   // can be fixed on its own. These use real token values: scale-02/300 (#359ead) is
   // 3.00:1 on #f9f9f9 and fails, while scale-02/400 (#007889) is 4.93:1 and passes.
   const FG_TEMPLATE =
-    '--recursica_ui-kit_themes_MODE_components_toast_variants_styles_default_properties_colors_layer-0_button'
+    '--recursica_ui-kit_modes_MODE_components_toast_variants_styles_default_properties_colors_layer-0_button'
   const BG_TEMPLATE =
-    '--recursica_ui-kit_themes_MODE_components_toast_variants_styles_default_properties_colors_layer-0_background-color'
-  const BRAND_LIGHT = '--recursica_brand_themes_light_palettes_core-colors_interactive_tone'
+    '--recursica_ui-kit_modes_MODE_components_toast_variants_styles_default_properties_colors_layer-0_background-color'
+  const BRAND_LIGHT = '--recursica_brand_modes_light_palettes_core-colors_interactive_tone'
 
   const failingLight = { bgHex: '#f9f9f9', fgHex: '#359ead', contrastRatio: 3.0, passes: false }
 
@@ -474,10 +474,10 @@ describe('ComplianceService per-mode component fix', () => {
     document.documentElement.style.cssText = ''
     document.documentElement.style.setProperty(BRAND_LIGHT, '#359ead')
     document.documentElement.style.setProperty(
-      FG_TEMPLATE.replace('_themes_MODE_', '_themes_light_'), componentValue
+      FG_TEMPLATE.replace('_modes_MODE_', '_modes_light_'), componentValue
     )
     document.documentElement.style.setProperty(
-      BG_TEMPLATE.replace('_themes_MODE_', '_themes_light_'), '#f9f9f9'
+      BG_TEMPLATE.replace('_modes_MODE_', '_modes_light_'), '#f9f9f9'
     )
   }
 
@@ -498,7 +498,7 @@ describe('ComplianceService per-mode component fix', () => {
     const s = call()
     // Writing the component var would move both modes; the brand var is per-mode.
     expect(s.targetCssVar).toBe(BRAND_LIGHT)
-    expect(s.targetCssVar).toContain('_themes_light_')
+    expect(s.targetCssVar).toContain('_modes_light_')
     expect(s.targetCssVar).not.toContain('ui-kit')
   })
 

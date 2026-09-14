@@ -243,7 +243,7 @@ export default function ComponentDetailPage() {
   const layerNum = selectedLayer.replace('layer-', '')
 
   // Get elevation level from layer property (if it exists)
-  // Elevation is stored as a reference like {brand.themes.light.elevations.elevation-1}
+  // Elevation is stored as a reference like {brand.modes.light.elevations.elevation-1}
   // We need to extract the elevation number and build the box-shadow CSS
   const elevationBoxShadow = useMemo(() => {
     if (!component) return undefined
@@ -251,10 +251,10 @@ export default function ComponentDetailPage() {
 
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      const themes = root?.themes || root
+      const modes = root?.modes || root
 
       // Read the actual elevation reference for ALL layers (including layer 0)
-      const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
+      const layerSpec: any = modes?.[mode]?.layers?.[`layer-${layerNum}`] || modes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
       const v: any = layerSpec?.properties?.elevation?.$value
       if (typeof v === 'string') {
         // Use centralized parser to extract elevation name

@@ -80,14 +80,14 @@ function extractRefPath(ref: string): string {
 
 /**
  * Expands theme-relative refs using the current path as context.
- * e.g. brand.palettes.neutral.100 → brand.themes.light.palettes.neutral.100 when currentPath is in light theme.
+ * e.g. brand.palettes.neutral.100 → brand.modes.light.palettes.neutral.100 when currentPath is in light theme.
  * Handles palettes.black/white, palettes.neutral.default, etc.
  * @param refPath - The reference path from the JSON
  * @param currentPath - Path where the ref appears (used to infer theme)
  */
 function expandRefPath(refPath: string, currentPath: string): string {
   let theme: string | null = null
-  const themeMatch = currentPath.match(/^brand\.themes\.(light|dark)\./)
+  const themeMatch = currentPath.match(/^brand\.modes\.(light|dark)\./)
   if (themeMatch) theme = themeMatch[1]
   else if (currentPath.startsWith('ui-kit.')) theme = 'light'
   if (!theme || !refPath.startsWith('brand.')) return refPath
@@ -96,9 +96,9 @@ function expandRefPath(refPath: string, currentPath: string): string {
   const themeScoped = ['palettes', 'elevations', 'layers', 'states', 'text-emphasis']
   for (const key of themeScoped) {
     if (afterBrand === key || afterBrand.startsWith(key + '.')) {
-      let expanded = `brand.themes.${theme}.${afterBrand}`
+      let expanded = `brand.modes.${theme}.${afterBrand}`
       if (afterBrand === 'palettes.black' || afterBrand === 'palettes.white') {
-        expanded = `brand.themes.${theme}.palettes.core-colors.${afterBrand.replace('palettes.', '')}.tone`
+        expanded = `brand.modes.${theme}.palettes.core-colors.${afterBrand.replace('palettes.', '')}.tone`
       }
       return expanded
     }
@@ -129,13 +129,13 @@ function resolvePathAlias(path: string): string[] {
       candidates.push(path.replace(/\.me$/, '.md'))
     }
   }
-  const m = path.match(/^brand\.themes\.(light|dark)\.palettes\.(black|white)$/)
-  if (m) candidates.push(`brand.themes.${m[1]}.palettes.core-colors.${m[2]}.tone`)
-  const coreBlackWhiteShort = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-(black|white)$/)
-  if (coreBlackWhiteShort) candidates.push(`brand.themes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2]}.tone`)
-  const coreBlackWhite = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white)$/)
+  const m = path.match(/^brand\.modes\.(light|dark)\.palettes\.(black|white)$/)
+  if (m) candidates.push(`brand.modes.${m[1]}.palettes.core-colors.${m[2]}.tone`)
+  const coreBlackWhiteShort = path.match(/^brand\.modes\.(light|dark)\.palettes\.core-(black|white)$/)
+  if (coreBlackWhiteShort) candidates.push(`brand.modes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2]}.tone`)
+  const coreBlackWhite = path.match(/^brand\.modes\.(light|dark)\.palettes\.core-colors\.(black|white)$/)
   if (coreBlackWhite) candidates.push(`${path}.tone`)
-  const coreColor = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(warning|success|alert)$/)
+  const coreColor = path.match(/^brand\.modes\.(light|dark)\.palettes\.core-colors\.(warning|success|alert)$/)
   if (coreColor) candidates.push(`${path}.tone`)
   const typographyProp = path.match(/^brand\.typography\.[^.]+\.(font-family|font-size|font-weight|letter-spacing|line-height|font-style|text-transform|text-case|text-decoration)$/)
   if (typographyProp) {
@@ -153,11 +153,11 @@ function resolvePathAlias(path: string): string[] {
     const camel = kebabToCamel[typographyProp[1]] || typographyProp[1].replace(/-([a-z])/g, (_, c) => c.toUpperCase())
     candidates.push(path.replace(new RegExp(typographyProp[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'), camel))
   }
-  const paletteLevel = path.match(/^brand\.themes\.(light|dark)\.palettes\.([^.]+)\.(\d{3,4}|default|primary)$/)
+  const paletteLevel = path.match(/^brand\.modes\.(light|dark)\.palettes\.([^.]+)\.(\d{3,4}|default|primary)$/)
   if (paletteLevel) candidates.push(`${path}.color.tone`)
 
-  const layersInteractiveColor = path.match(/^brand\.themes\.(light|dark)\.layers\.(layer-\d+)\.elements\.interactive\.color$/)
-  if (layersInteractiveColor) candidates.push(`brand.themes.${layersInteractiveColor[1]}.layers.${layersInteractiveColor[2]}.elements.interactive.tone`)
+  const layersInteractiveColor = path.match(/^brand\.modes\.(light|dark)\.layers\.(layer-\d+)\.elements\.interactive\.color$/)
+  if (layersInteractiveColor) candidates.push(`brand.modes.${layersInteractiveColor[1]}.layers.${layersInteractiveColor[2]}.elements.interactive.tone`)
 
   if (path.match(/^brand\.dimensions\.border-radii\.md$/)) candidates.push('brand.dimensions.border-radii.default')
   if (path.match(/^brand\.dimensions\.general\.xs$/)) candidates.push('brand.dimensions.general.sm')
@@ -415,7 +415,7 @@ function injectTypographyAliases(out: FlatEntry[]): void {
  */
 function injectDarkLayer0InteractiveAliases(out: FlatEntry[]): void {
   const paths = new Set(out.map((e) => e.path))
-  const base = 'brand.themes.dark.layers.layer-0.elements.interactive'
+  const base = 'brand.modes.dark.layers.layer-0.elements.interactive'
   const hasColor = paths.has(`${base}.color`)
   const hasHoverColor = paths.has(`${base}.hover-color`)
   const hasTone = paths.has(`${base}.tone`)
@@ -436,21 +436,21 @@ function injectDarkLayer0InteractiveAliases(out: FlatEntry[]): void {
 }
 
 /**
- * Injects composite box-shadow vars for each elevation in brand.themes.{light,dark}.elevations.
+ * Injects composite box-shadow vars for each elevation in brand.modes.{light,dark}.elevations.
  * The composite is built from var refs to the part vars (x, y, blur, spread, color), so consumers
  * can override individual parts. Parts are collected by normal traversal; we add the composite.
  */
 function injectElevationComposites(brand: Record<string, unknown>, out: FlatEntry[]): void {
-  const themes = brand?.themes as Record<string, unknown> | undefined
-  if (!themes) return
-  for (const [theme, themeData] of Object.entries(themes)) {
+  const modes = brand?.modes as Record<string, unknown> | undefined
+  if (!modes) return
+  for (const [theme, themeData] of Object.entries(modes)) {
     const elevations = (themeData as Record<string, unknown>)?.elevations as Record<string, unknown> | undefined
     if (!elevations) continue
     for (const [name, elev] of Object.entries(elevations)) {
       const v = elev as Record<string, unknown> | undefined
       const val = v?.$value as Record<string, unknown> | undefined
       if (!val || typeof val !== 'object') continue
-      const basePath = `brand.themes.${theme}.elevations.${name}`
+      const basePath = `brand.modes.${theme}.elevations.${name}`
       const composite = `var(${pathToVarName(`${basePath}.x`)}) var(${pathToVarName(`${basePath}.y`)}) var(${pathToVarName(`${basePath}.blur`)}) var(${pathToVarName(`${basePath}.spread`)}) var(${pathToVarName(`${basePath}.color`)})`
       out.push({ path: basePath, value: composite })
     }
@@ -535,20 +535,20 @@ function formatCss(vars: Array<{ name: string; value: string; comment?: string }
   css += ` *\n`
   css += ` * About Recursica:\n`
   css += ` * Recursica is a design token system that manages variables across three layers: tokens (primitives),\n`
-  css += ` * brand (themes, palettes, layers), and ui-kit (component-level styles). Variables have semantic\n`
+  css += ` * brand (modes, palettes, layers), and ui-kit (component-level styles). Variables have semantic\n`
   css += ` * meaning—tokens define raw values, brand applies theming and layering, ui-kit exposes component\n`
   css += ` * properties. Use the variables as intended for consistent theming and easy updates.\n`
   css += ` *\n`
   css += ` * Multi-layer approach:\n`
   css += ` * - Tokens: Primitive values (colors, sizes, typography). Foundation layer.\n`
-  css += ` * - Brand: Applies tokens to themes (light/dark), palettes, and elevation layers (0-3).\n`
+  css += ` * - Brand: Applies tokens to modes (light/dark), palettes, and elevation layers (0-3).\n`
   css += ` * - UI-kit: Component-specific variables that reference brand; abstract surface, text, border colors.\n`
   css += ` *\n`
   css += ` * Format: All variables are on :root. Include this file and apply via CSS custom properties.\n`
   css += ` *\n`
   css += ` * Usage in your components:\n`
   css += ` * - Reference ui-kit variables (--recursica_ui-kit_*) in your component styles\n`
-  css += ` * - Avoid referencing brand layer variables (--recursica_brand_themes_*_layers_*) directly; ui-kit abstracts these\n`
+  css += ` * - Avoid referencing brand layer variables (--recursica_brand_modes_*_layers_*) directly; ui-kit abstracts these\n`
   css += ` * - ui-kit variables never reference tokens directly; they go through brand for theming\n`
   css += ` *\n`
   css += ` * Variant Handling:\n`
@@ -563,10 +563,10 @@ function formatCss(vars: Array<{ name: string; value: string; comment?: string }
   css += ` * (e.g., font-family, font-weight). The base reference variable is safely discarded.\n`
   css += ` *\n`
   css += ` * Disabled state (implicit rule):\n`
-  css += ` * The brand theme exposes a disabled token per theme (e.g. --recursica_brand_themes_light_states_disabled,\n`
-  css += ` * --recursica_brand_themes_dark_states_disabled), an opacity value for implicit disabled styling.\n`
+  css += ` * The brand theme exposes a disabled token per theme (e.g. --recursica_brand_modes_light_states_disabled,\n`
+  css += ` * --recursica_brand_modes_dark_states_disabled), an opacity value for implicit disabled styling.\n`
   css += ` * When a component has no explicit disabled state variables, apply\n`
-  css += ` * opacity: var(--recursica_brand_themes_<theme>_states_disabled) to the disabled component\n`
+  css += ` * opacity: var(--recursica_brand_modes_<theme>_states_disabled) to the disabled component\n`
   css += ` * (e.g. :disabled or [aria-disabled="true"]). If a component has its own disabled state variables\n`
   css += ` * (e.g. ui-kit form components with disabled background, border, or text colors), use those tokens\n`
   css += ` * for the disabled look and do not apply the global opacity.\n`

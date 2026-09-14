@@ -41,7 +41,7 @@ function pascalToKebabCase(str: string): string {
  *
  * @example
  * toCssVarName('components.button.color.layer-0.background-solid', 'light')
- * => '--recursica_ui-kit_themes_light_components_button_color_layer-0_background-solid'
+ * => '--recursica_ui-kit_modes_light_components_button_color_layer-0_background-solid'
  */
 export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   // Remove leading/trailing dots and split
@@ -51,9 +51,9 @@ export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   // toCssVarName so both functions produce identical var names for the same path.
   const varName = parts.map(part => escapeSegment(part.replace(/\s+/g, '-').toLowerCase())).join('_')
 
-  // Include mode in the name if provided (like the resolver: --recursica_ui-kit_themes_light_...)
+  // Include mode in the name if provided (like the resolver: --recursica_ui-kit_modes_light_...)
   if (mode) {
-    return `--recursica_ui-kit_themes_${mode}_${varName}`
+    return `--recursica_ui-kit_modes_${mode}_${varName}`
   }
 
   return `--recursica_ui-kit_${varName}`
@@ -65,11 +65,11 @@ export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
  * 
  * @example
  * buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background-color')
- * => '--recursica_ui-kit_themes_light_components_button_variants_styles_solid_properties_colors_layer-0_background'
+ * => '--recursica_ui-kit_modes_light_components_button_variants_styles_solid_properties_colors_layer-0_background'
  * 
  * @example
  * buildComponentCssVarPath('Chip', 'properties', 'horizontal-padding', 'dark')
- * => '--recursica_ui-kit_themes_dark_components_chip_properties_horizontal-padding'
+ * => '--recursica_ui-kit_modes_dark_components_chip_properties_horizontal-padding'
  * 
  * @param component - Component name (e.g., 'Button', 'Chip')
  * @param pathSegments - Path segments from recursica_ui-kit.json structure (e.g., ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background-color'])
@@ -332,15 +332,15 @@ export function getFormCssVar(
  * 
  * @example
  * getComponentLevelCssVar('Button', 'elevation')
- * => '--recursica_ui-kit_themes_light_components_button_properties_elevation'
+ * => '--recursica_ui-kit_modes_light_components_button_properties_elevation'
  * 
  * @example
  * getComponentLevelCssVar('Toast', 'text-size')
- * => '--recursica_ui-kit_themes_light_components_toast_properties_text-size'
+ * => '--recursica_ui-kit_modes_light_components_toast_properties_text-size'
  * 
  * @example
  * getComponentLevelCssVar('Chip', 'colors.error.text-color')
- * => '--recursica_ui-kit_themes_light_components_chip_properties_colors_error_text-color'
+ * => '--recursica_ui-kit_modes_light_components_chip_properties_colors_error_text-color'
  */
 export function getComponentLevelCssVar(
   component: ComponentName,
@@ -356,7 +356,7 @@ export function getComponentLevelCssVar(
  * 
  * @example
  * buildVariantColorCssVar('Chip', 'unselected', 'background-color', 'layer-0')
- * => '--recursica_ui-kit_themes_light_components_chip_variants_styles_unselected_properties_colors_layer-0_background'
+ * => '--recursica_ui-kit_modes_light_components_chip_variants_styles_unselected_properties_colors_layer-0_background'
  */
 export function buildVariantColorCssVar(
   component: ComponentName,
@@ -375,7 +375,7 @@ export function buildVariantColorCssVar(
  * 
  * @example
  * buildVariantSizeCssVar('Button', 'default', 'height')
- * => '--recursica_ui-kit_themes_light_components_button_variants_sizes_default_properties_height'
+ * => '--recursica_ui-kit_modes_light_components_button_variants_sizes_default_properties_height'
  */
 export function buildVariantSizeCssVar(
   component: ComponentName,
@@ -390,15 +390,15 @@ export function buildVariantSizeCssVar(
  * 
  * @example
  * getComponentTextCssVar('Button', 'text', 'font-size')
- * => '--recursica_ui-kit_themes_light_components_button_properties_text_font-size'
+ * => '--recursica_ui-kit_modes_light_components_button_properties_text_font-size'
  * 
  * @example
  * getComponentTextCssVar('AccordionItem', 'header-text', 'font-weight')
- * => '--recursica_ui-kit_themes_light_components_accordion-item_properties_header-text_font-weight'
+ * => '--recursica_ui-kit_modes_light_components_accordion-item_properties_header-text_font-weight'
  * 
  * @example
  * getComponentTextCssVar('Avatar', 'text', 'font-size', 'small')
- * => '--recursica_ui-kit_themes_light_components_avatar_variants_sizes_small_properties_text_font-size'
+ * => '--recursica_ui-kit_modes_light_components_avatar_variants_sizes_small_properties_text_font-size'
  * 
  * @param componentName - Component name (e.g., 'Button', 'Label')
  * @param textElementName - Text element name (e.g., 'text', 'header-text', 'content-text', 'label-text', 'optional-text')

@@ -25,11 +25,11 @@ export function extractCssVarsFromObject(obj: unknown): ThemeVars {
  * True for the theme-less form of a ui-kit component property, e.g.
  *   --recursica_ui-kit_components_button_..._background-color
  * as opposed to its themed source of truth
- *   --recursica_ui-kit_themes_light_components_button_..._background-color
+ *   --recursica_ui-kit_modes_light_components_button_..._background-color
  *
  * These must NOT be written as inline styles on :root. core/css/scopedCssEngine.ts already
  * defines every one of them inside [data-recursica-theme="light"] / ["dark"] blocks pointing at
- * the themed var (measured: 2898 names, 100% covered in both themes), and an inline style on
+ * the themed var (measured: 2898 names, 100% covered in both modes), and an inline style on
  * :root outranks those stylesheet rules. Writing the generic copy therefore pins the property
  * to whichever theme was applied last, with two visible consequences:
  *
@@ -43,7 +43,7 @@ export function extractCssVarsFromObject(obj: unknown): ThemeVars {
 function isThemeScopedGenericName(name: string): boolean {
   const n = !name.startsWith('--') || name.startsWith('--recursica_') ? name : `--recursica_${name.slice(2)}`
   if (!n.startsWith('--recursica_ui-kit_components_')) return false
-  return !/_themes_(light|dark)_/.test(n)
+  return !/_modes_(light|dark)_/.test(n)
 }
 
 export function applyCssVars(theme: ThemeVars) {

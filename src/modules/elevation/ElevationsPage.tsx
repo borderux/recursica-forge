@@ -51,8 +51,8 @@ export default function ElevationsPage() {
   const getThemeDefaults = (elevationKey: string): { blur: number; spread: number; offsetX: number; offsetY: number; opacity: number } => {
     try {
       const brand: any = (theme as any)?.brand || (theme as any)
-      const themes = brand?.themes || brand
-      const elevations: any = themes?.[mode]?.elevations || brand?.[mode]?.elevations || {}
+      const modes = brand?.modes || brand
+      const elevations: any = modes?.[mode]?.elevations || brand?.[mode]?.elevations || {}
       const node: any = elevations[elevationKey]?.['$value'] || {}
       const toNum = (ref?: any): number => {
         if (ref && typeof ref === 'object' && '$value' in ref) {
@@ -201,12 +201,12 @@ export default function ElevationsPage() {
   // Revert selected levels to theme defaults
   const revertSelected = (levels: Set<number>) => {
     const brand: any = (theme as any)?.brand || (theme as any)
-    const themes = brand?.themes || brand
+    const modes = brand?.modes || brand
     const pristineBrand: any = getVarsStore().getPristineBrand()
-    const pristineThemes = pristineBrand?.brand?.themes || pristineBrand?.themes || pristineBrand
+    const pristineThemes = pristineBrand?.brand?.modes || pristineBrand?.modes || pristineBrand
     // Read the color ref from the PRISTINE brand JSON to avoid reading back user-mutated values
     const pristineElevations: any = pristineThemes?.[mode]?.elevations || {}
-    const light: any = themes?.[mode]?.elevations || brand?.[mode]?.elevations || {}
+    const light: any = modes?.[mode]?.elevations || brand?.[mode]?.elevations || {}
 
     const toNumeric = (ref?: any): number => {
       // Handle new structure: { $value: { value: number, unit: "px" }, $type: "number" }
@@ -338,8 +338,8 @@ export default function ElevationsPage() {
             let level = rawLevel
             if (level === 'primary' || level === 'default') {
               const brand: any = (theme as any)?.brand || (theme as any)
-              const themes2 = brand?.themes || brand
-              const primaryLevel = themes2?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
+              const modes2 = brand?.modes || brand
+              const primaryLevel = modes2?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
               level = typeof primaryLevel === 'string' ? primaryLevel : '500'
             }
             restoredPaletteSel = { paletteKey, level }
@@ -357,7 +357,7 @@ export default function ElevationsPage() {
 
         // Clear shadow color CSS variables (both scoped and themed) to reset to default
         const scopedShadowColorCssVar = `--recursica_brand_elevations_elevation-${lvl}_shadow-color`
-        const themedShadowColorCssVar = `--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_shadow-color`
+        const themedShadowColorCssVar = `--recursica_brand_modes_${mode}_elevations_elevation-${lvl}_shadow-color`
         removeCssVar(scopedShadowColorCssVar)
         removeCssVar(themedShadowColorCssVar)
         // Also clear scoped elevation property vars so resolver defaults take effect

@@ -74,7 +74,7 @@ function fireBatchedEvent() {
 /**
  * Layer geometry is mode-independent, but is stored per theme.
  *
- * `brand.themes.<mode>.layers.layer-N.properties.{padding,border-radius,border-size}` holds the
+ * `brand.modes.<mode>.layers.layer-N.properties.{padding,border-radius,border-size}` holds the
  * same value in light and dark by design — the shipped brand has them identical on all four
  * layers, and the Layers page offers one control per layer, targeting whichever mode is being
  * viewed (see LayersPage's useThemeMode). So an edit made in light mode wrote light only and left
@@ -89,12 +89,12 @@ function fireBatchedEvent() {
 const MODE_INDEPENDENT_LAYER_PROPS = new Set(['padding', 'border-radius', 'border-size'])
 
 export function modeIndependentLayerCounterpart(cssVarName: string): string | null {
-  const m = /^--recursica_brand_themes_(light|dark)_layers_layer-\d+_properties_(.+)$/.exec(cssVarName)
+  const m = /^--recursica_brand_modes_(light|dark)_layers_layer-\d+_properties_(.+)$/.exec(cssVarName)
   if (!m) return null
   if (!MODE_INDEPENDENT_LAYER_PROPS.has(m[2])) return null
   return m[1] === 'light'
-    ? cssVarName.replace('_themes_light_', '_themes_dark_')
-    : cssVarName.replace('_themes_dark_', '_themes_light_')
+    ? cssVarName.replace('_modes_light_', '_modes_dark_')
+    : cssVarName.replace('_modes_dark_', '_modes_light_')
 }
 
 /**
@@ -174,11 +174,11 @@ export function updateCssVar(
   // Color vars (_properties_colors_) are deliberately excluded — they ARE mode-dependent
   // and must not be cross-copied between light and dark.
   if (isUIKitVar && !cssVarName.includes('_properties_colors_')) {
-    if (cssVarName.includes('_themes_light_')) {
-      const darkVarName = cssVarName.replace('_themes_light_', '_themes_dark_')
+    if (cssVarName.includes('_modes_light_')) {
+      const darkVarName = cssVarName.replace('_modes_light_', '_modes_dark_')
       root.style.setProperty(darkVarName, trimmedValue)
-    } else if (cssVarName.includes('_themes_dark_')) {
-      const lightVarName = cssVarName.replace('_themes_dark_', '_themes_light_')
+    } else if (cssVarName.includes('_modes_dark_')) {
+      const lightVarName = cssVarName.replace('_modes_dark_', '_modes_light_')
       root.style.setProperty(lightVarName, trimmedValue)
     }
   }

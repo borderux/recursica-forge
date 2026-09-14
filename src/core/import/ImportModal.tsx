@@ -458,7 +458,7 @@ export function ImportModal({
                       style={{
                         padding: "12px",
                         backgroundColor:
-                          "var(--recursica_brand_themes_light_palettes_palette_2_danger_color_tone, #fee)",
+                          "var(--recursica_brand_modes_light_palettes_palette_2_danger_color_tone, #fee)",
                         color: "#c00",
                         borderRadius: "4px",
                         fontSize: "14px",
@@ -638,7 +638,7 @@ export function ImportModal({
                       style={{
                         padding: "16px",
                         backgroundColor:
-                          "var(--recursica_brand_themes_light_layers_layer-2_surface, rgba(0,0,0,0.02))",
+                          "var(--recursica_brand_modes_light_layers_layer-2_surface, rgba(0,0,0,0.02))",
                         borderRadius: "8px",
                       }}
                     >

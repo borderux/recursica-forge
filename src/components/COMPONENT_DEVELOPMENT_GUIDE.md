@@ -164,7 +164,7 @@ The recursica_ui-kit.json file uses a consistent structure for all components:
 
 ### Property Value Guidelines for Token Resolution & Theme Customization
 
-To ensure components export properly and inherit themes correctly, follow these guidelines when defining property values in `recursica_ui-kit.json`:
+To ensure components export properly and inherit modes correctly, follow these guidelines when defining property values in `recursica_ui-kit.json`:
 
 #### 1. **Use Design Token References (Not Hardcoded Literals)**
 
@@ -437,7 +437,7 @@ Create implementations for each library simultaneously. Each library implementat
    }
    ```
    
-   **Note**: Always use `getElevationBoxShadow()` from `brandCssVars.ts` instead of manually constructing box-shadow values. This ensures consistency and correct CSS variable paths (including the `themes` segment).
+   **Note**: Always use `getElevationBoxShadow()` from `brandCssVars.ts` instead of manually constructing box-shadow values. This ensures consistency and correct CSS variable paths (including the `modes` segment).
    
    **For all other properties**: Reference CSS variables directly - they update immediately without React listeners.
 
@@ -1367,7 +1367,7 @@ See `src/components/adapters/__tests__/Button.toolbar.test.tsx` for a complete r
    - Ensure component follows the structure: `variants.styles.{variant}.properties.colors.{layer}.{property}`
    - Ensure component-level properties are under `properties.{property}`
    - Ensure all `$type` and `$value` fields are correct
-   - Ensure no theme-specific references (use `{brand.*}` not `{brand.themes.light.*}`)
+   - Ensure no theme-specific references (use `{brand.*}` not `{brand.modes.light.*}`)
 
 3. **Schema validation is automatic**:
    - Runs on `importUIKitJson()` via `validateUIKitJson()`
@@ -2264,10 +2264,10 @@ The component system uses a **three-layer CSS variable system**:
    - **Typography**: `--recursica-brand-typography-{style}-{property}`
      - Built using: `getBrandTypographyCssVar(styleName, property)`
      - Example: `--recursica-brand-typography-button-font-weight`
-   - **State**: `--recursica-brand-themes-{mode}-state-{state}`
+   - **State**: `--recursica-brand-modes-{mode}-state-{state}`
      - Built using: `getBrandStateCssVar(mode, state)`
-     - Example: `--recursica-brand-themes-light-state-disabled`
-   - **Elevation**: `--recursica-brand-themes-{mode}-elevations-elevation-{level}-{property}`
+     - Example: `--recursica-brand-modes-light-state-disabled`
+   - **Elevation**: `--recursica-brand-modes-{mode}-elevations-elevation-{level}-{property}`
      - Box-shadow generated using: `getElevationBoxShadow(mode, elevation)`
 
 3. **Component Custom Properties** (set by component, used by CSS file)

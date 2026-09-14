@@ -64,7 +64,7 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
     if (trimmed.includes('var(--recursica_tokens_') || trimmed.includes('var(--tokens-')) {
       return { valid: true }
     }
-    // Special case: elevation can use token reference strings (e.g., {brand.themes.light.elevations.elevation-0})
+    // Special case: elevation can use token reference strings (e.g., {brand.modes.light.elevations.elevation-0})
     // or direct elevation names (e.g., elevation-0, elevation-1)
     // This allows elevation properties to reference elevation definitions
     if (cssVarName.includes('elevation')) {

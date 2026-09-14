@@ -18,7 +18,7 @@ import { resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../ut
  * 
  * @example
  * toCssVarName('globals.icon.style', 'light')
- * => '--recursica_ui-kit_themes_light_globals_icon_style'
+ * => '--recursica_ui-kit_modes_light_globals_icon_style'
  * 
  * @example
  * toCssVarName('globals.icon.style')
@@ -37,9 +37,9 @@ function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   // Escape underscores in segment names and join with _
   const escaped = filteredParts.map(seg => seg.replace(/_/g, '__'))
 
-  // Include mode in the name if provided (like palette vars: --recursica_brand_themes_light_...)
+  // Include mode in the name if provided (like palette vars: --recursica_brand_modes_light_...)
   if (mode) {
-    return `--recursica_ui-kit_themes_${mode}_${escaped.join('_')}`
+    return `--recursica_ui-kit_modes_${mode}_${escaped.join('_')}`
   }
 
   return `--recursica_ui-kit_${escaped.join('_')}`
@@ -232,7 +232,7 @@ function traverseUIKit(
       } else if (type === 'elevation') {
         // Handle elevation type: extract elevation name from reference
         // e.g., {brand.elevations.elevation-0} -> elevation-0
-        // e.g., {brand.themes.light.elevations.elevation-0} -> elevation-0
+        // e.g., {brand.modes.light.elevations.elevation-0} -> elevation-0
 
         // Handle null values for elevations — means no elevation
         if (val === null || val === undefined) {
@@ -253,7 +253,7 @@ function traverseUIKit(
 
             // Extract elevation name from both themed and non-themed patterns:
             // brand.elevations.elevation-0
-            // brand.themes.light.elevations.elevation-0
+            // brand.modes.light.elevations.elevation-0
             const elevationMatch = /elevations?\.(elevation-\d+)$/i.exec(normalized)
             if (elevationMatch) {
               vars[cssVarName] = elevationMatch[1] // Just the elevation name like "elevation-0"

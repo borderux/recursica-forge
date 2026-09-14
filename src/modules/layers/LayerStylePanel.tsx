@@ -212,7 +212,7 @@ function BrandDimensionSliderInline({
     return () => window.removeEventListener('cssVarsUpdated', handleCssVarsUpdated)
   }, [targetCssVar, readInitialValue])
   // Derive scoped var for live preview (LayerModule reads scoped vars, not themed)
-  // Themed: --recursica_brand_themes_light_layers_layer-1_properties_padding
+  // Themed: --recursica_brand_modes_light_layers_layer-1_properties_padding
   // Scoped: --recursica_brand_layer_1_properties_padding
   const scopedVar = useMemo(() => {
     const m = targetCssVar.match(/layer-(\d+)_properties_(.+)$/)
@@ -409,7 +409,7 @@ function ElevationSliderInline({
   }, [primaryVar, readInitialValue])
 
   // Derive the scoped CSS var (read by LayerModule) from the themed primaryVar
-  // Themed: --recursica_brand_themes_light_layers_layer-1_properties_elevation
+  // Themed: --recursica_brand_modes_light_layers_layer-1_properties_elevation
   // Scoped: --recursica_brand_layer_1_properties_elevation
   const scopedElevationVar = useMemo(() => {
     const m = primaryVar.match(/layer-(\d+)_properties_elevation/)
@@ -440,7 +440,7 @@ function ElevationSliderInline({
     const selectedToken = tokens[clampedIndex]
     if (selectedToken) {
       const elevationName = selectedToken.name
-      const tokenReference = `{brand.themes.${mode}.elevations.${selectedToken.name}}`
+      const tokenReference = `{brand.modes.${mode}.elevations.${selectedToken.name}}`
 
       updateCssVarFn(primaryVar, elevationName, undefined, true)
       if (scopedElevationVar) {
@@ -610,10 +610,10 @@ export default function LayerStylePanel({
   const spec = useMemo(() => {
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
-      const themes = root?.themes || root
+      // Support both old structure (brand.light.layer) and new structure (brand.modes.light.layers)
+      const modes = root?.modes || root
       // For regular layers
-      return themes?.[mode]?.layers?.[layerKey] || themes?.[mode]?.layer?.[layerKey] || root?.[mode]?.layers?.[layerKey] || root?.[mode]?.layer?.[layerKey] || {}
+      return modes?.[mode]?.layers?.[layerKey] || modes?.[mode]?.layer?.[layerKey] || root?.[mode]?.layers?.[layerKey] || root?.[mode]?.layer?.[layerKey] || {}
     } catch {
       return {}
     }
@@ -639,18 +639,18 @@ export default function LayerStylePanel({
     const out: Array<{ label: string; value: string }> = []
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-      const themes = root?.themes || root
-      const light: any = themes?.light?.palettes || root?.light?.palettes || {}
+      // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+      const modes = root?.modes || root
+      const light: any = modes?.light?.palettes || root?.light?.palettes || {}
       const core: any = light?.['core-colors']?.['$value'] || light?.['core-colors'] || light?.['core']?.['$value'] || light?.['core'] || {}
       Object.keys(core || {}).forEach((name) => {
         // Skip interactive since it has nested structure
         if (name === 'interactive' && typeof core[name] === 'object' && !core[name].$value) return
-        out.push({ label: `core/${name}`, value: `{brand.themes.light.palettes.core-colors.${name}}` })
+        out.push({ label: `core/${name}`, value: `{brand.modes.light.palettes.core-colors.${name}}` })
       })
       const neutral: any = light?.neutral || {}
       Object.keys(neutral || {}).forEach((lvl) => {
-        if (/^\d{2,4}|000$/.test(lvl)) out.push({ label: `neutral/${lvl}`, value: `{brand.themes.light.palettes.neutral.${lvl}.color.tone}` })
+        if (/^\d{2,4}|000$/.test(lvl)) out.push({ label: `neutral/${lvl}`, value: `{brand.modes.light.palettes.neutral.${lvl}.color.tone}` })
       })
       const dynamicPaletteKeys = Object.keys(light).filter(
           (pk) => pk !== 'neutral' && pk !== 'core' && pk !== 'core-colors' && !pk.startsWith('$')
@@ -658,9 +658,9 @@ export default function LayerStylePanel({
         dynamicPaletteKeys.forEach((pk) => {
           const group: any = light?.[pk] || {}
           Object.keys(group || {}).forEach((lvl) => {
-            if (/^\d{2,4}|000$/.test(lvl)) out.push({ label: `${pk}/${lvl}`, value: `{brand.themes.light.palettes.${pk}.${lvl}.color.tone}` })
+            if (/^\d{2,4}|000$/.test(lvl)) out.push({ label: `${pk}/${lvl}`, value: `{brand.modes.light.palettes.${pk}.${lvl}.color.tone}` })
           })
-          if (group?.default?.['$value']) out.push({ label: `${pk}/default`, value: `{brand.themes.light.palettes.${pk}.default.color.tone}` })
+          if (group?.default?.['$value']) out.push({ label: `${pk}/default`, value: `{brand.modes.light.palettes.${pk}.default.color.tone}` })
         })
 
     } catch { }
@@ -669,9 +669,9 @@ export default function LayerStylePanel({
   const elevationOptions = useMemo(() => {
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-      const themes = root?.themes || root
-      const elev: any = themes?.[mode]?.elevations || root?.[mode]?.elevations || {}
+      // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+      const modes = root?.modes || root
+      const elev: any = modes?.[mode]?.elevations || root?.[mode]?.elevations || {}
       const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a, b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
       return names.map((n) => {
         const idx = Number(n.split('-')[1])
@@ -844,8 +844,8 @@ export default function LayerStylePanel({
 
   const handleReset = () => {
     const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
-    const themes = root?.themes || root
-    const defaults: any = themes?.[mode]?.layers || themes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
+    const modes = root?.modes || root
+    const defaults: any = modes?.[mode]?.layers || modes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
     const levels = selectedLevels.slice()
     const rootEl = document.documentElement
     const allLayerProperties = ['surface', 'border-color', 'padding', 'border-radius', 'border-size', 'elevation']

@@ -71,8 +71,8 @@ export function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dar
   const hcBaseContrast = contrastRatio(toneHex, hc)
   const lcBaseContrast = contrastRatio(toneHex, lc)
 
-  const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_high`)
-  const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_low`)
+  const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_modes_${modeLower}_text-emphasis_high`)
+  const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_modes_${modeLower}_text-emphasis_low`)
 
   const hcHighContrast = contrastRatio(toneHex, blendHexWithOpacity(hc, toneHex, highEmphasisOpacity))
   const hcLowContrast = contrastRatio(toneHex, blendHexWithOpacity(hc, toneHex, lowEmphasisOpacity))
@@ -146,11 +146,11 @@ export default function PaletteColorSelector({
     }
 
     const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-    // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-    const themes = root?.themes || root
+    // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+    const modes = root?.modes || root
     // Use 'palette' prefix (singular) to match resolver's buildThemeIndex
-    if (themes?.light?.palettes) visit(themes.light.palettes, 'palette', 'Light')
-    if (themes?.dark?.palettes) visit(themes.dark.palettes, 'palette', 'Dark')
+    if (modes?.light?.palettes) visit(modes.light.palettes, 'palette', 'Light')
+    if (modes?.dark?.palettes) visit(modes.dark.palettes, 'palette', 'Dark')
     // Also support old structure for backward compatibility
     if (root?.light?.palettes) visit(root.light.palettes, 'palette', 'Light')
     if (root?.dark?.palettes) visit(root.dark.palettes, 'palette', 'Dark')
@@ -412,9 +412,9 @@ export default function PaletteColorSelector({
       Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, modeLabel))
     }
     const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-    const themes = root?.themes || root
-    if (themes?.light?.palettes) visit(themes.light.palettes, 'palette', 'Light')
-    if (themes?.dark?.palettes) visit(themes.dark.palettes, 'palette', 'Dark')
+    const modes = root?.modes || root
+    if (modes?.light?.palettes) visit(modes.light.palettes, 'palette', 'Light')
+    if (modes?.dark?.palettes) visit(modes.dark.palettes, 'palette', 'Dark')
     return out
   }, [themeJson])
 
@@ -481,8 +481,8 @@ export default function PaletteColorSelector({
         const normalizedHC = hcHex.startsWith('#') ? hcHex.toLowerCase() : `#${hcHex.toLowerCase()}`
         const normalizedLC = lcHex.startsWith('#') ? lcHex.toLowerCase() : `#${lcHex.toLowerCase()}`
 
-        const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_high`)
-        const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_low`)
+        const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_modes_${modeLower}_text-emphasis_high`)
+        const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_modes_${modeLower}_text-emphasis_low`)
         const AA = 4.5
 
         const hcHighContrast = contrastRatio(hex, blendHexWithOpacity(normalizedHC, hex, highEmphasisOpacity))
@@ -616,10 +616,10 @@ export default function PaletteColorSelector({
     const modeLower = mode.toLowerCase()
     const modeLabel = mode
     const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-    const themes = root?.themes || root
+    const modes = root?.modes || root
     const tokensRoot: any = (tokensJson as any)?.tokens || {}
     const colorsRoot: any = tokensRoot?.colors || {}
-    const paletteTheme = themes?.[modeLower]?.palettes?.[paletteKey]
+    const paletteTheme = modes?.[modeLower]?.palettes?.[paletteKey]
 
     try {
       if (paletteTheme) {
@@ -713,14 +713,14 @@ export default function PaletteColorSelector({
     try {
       const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-      const themes = root?.themes || root
+      // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+      const modes = root?.modes || root
 
       // Only update the current mode — palettes are independent per mode
       const currentModeKey = mode.toLowerCase()
       const currentModeLabel = mode
-      // Use themes structure if available, otherwise fall back to root structure
-      const targetRoot = themes !== root ? themes : root
+      // Use modes structure if available, otherwise fall back to root structure
+      const targetRoot = modes !== root ? modes : root
       if (!targetRoot[currentModeKey]) targetRoot[currentModeKey] = {}
       if (!targetRoot[currentModeKey].palettes) targetRoot[currentModeKey].palettes = {}
       if (!targetRoot[currentModeKey].palettes[paletteKey]) targetRoot[currentModeKey].palettes[paletteKey] = {}
@@ -1003,7 +1003,7 @@ function FamilyDropdown({
                   width: 14,
                   height: 14,
                   borderRadius: 3,
-                  border: `1px solid var(--recursica_brand_themes_${mode.toLowerCase()}_layers_layer-1_properties_border-color)`,
+                  border: `1px solid var(--recursica_brand_modes_${mode.toLowerCase()}_layers_layer-1_properties_border-color)`,
                   background: primaryHex || 'transparent',
                   display: 'inline-block'
                 }}

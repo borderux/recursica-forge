@@ -99,7 +99,7 @@ function updateOnToneColors(
     }
 
     // Step 3: Try white and step up and down through white's token scale
-    const whiteToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone`
+    const whiteToneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast_tone`
     const whiteToneValue = readCssVar(whiteToneVar)
     let whiteHex = '#ffffff'
     if (whiteToneValue) {
@@ -155,11 +155,11 @@ function updateOnToneColors(
     // Try white directly
     const whiteContrast = contrastRatio(toneHex, whiteHex)
     if (whiteContrast >= AA) {
-      return `{brand.themes.${mode}.palettes.core-colors.low-contrast.tone}`
+      return `{brand.modes.${mode}.palettes.core-colors.low-contrast.tone}`
     }
 
     // Step 4: Try black
-    const blackToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast_tone`
+    const blackToneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_high-contrast_tone`
     const blackToneValue = readCssVar(blackToneVar)
     let blackHex = '#000000'
     if (blackToneValue) {
@@ -169,7 +169,7 @@ function updateOnToneColors(
 
     const blackContrast = contrastRatio(toneHex, blackHex)
     if (blackContrast >= AA) {
-      return `{brand.themes.${mode}.palettes.core-colors.high-contrast.tone}`
+      return `{brand.modes.${mode}.palettes.core-colors.high-contrast.tone}`
     }
 
     const blackFamily = findColorFamilyAndLevel(blackHex, tokens)
@@ -216,18 +216,18 @@ function updateOnToneColors(
 
     // Fallback: use the one with higher contrast
     return whiteContrast >= blackContrast
-      ? `{brand.themes.${mode}.palettes.core-colors.low-contrast.tone}`
-      : `{brand.themes.${mode}.palettes.core-colors.high-contrast.tone}`
+      ? `{brand.modes.${mode}.palettes.core-colors.low-contrast.tone}`
+      : `{brand.modes.${mode}.palettes.core-colors.high-contrast.tone}`
   }
 
   // Get the interactive tone hex for default and hover
-  const defaultToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_tone`
-  const hoverToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone`
+  const defaultToneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_interactive_default_tone`
+  const hoverToneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_interactive_hover_tone`
   const defaultToneHex = resolveCssVarToHex(`var(${defaultToneVar})`, tokenIndex) ||
-    resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`, tokenIndex) ||
+    resolveCssVarToHex(`var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone)`, tokenIndex) ||
     interactiveHex
   const hoverToneHex = resolveCssVarToHex(`var(${hoverToneVar})`, tokenIndex) ||
-    resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`, tokenIndex) ||
+    resolveCssVarToHex(`var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone)`, tokenIndex) ||
     hoverHex
 
   // Find AA-compliant on-tone for default
@@ -248,11 +248,11 @@ function updateOnToneColors(
       theme: {}
     }
     const resolved = resolveTokenReferenceToCssVar(defaultOnToneRef, context)
-    defaultOnToneVar = resolved || `var(--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone)`
+    defaultOnToneVar = resolved || `var(--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast_tone)`
   } else if (defaultOnToneRef.startsWith('#')) {
     // It's a hex color, convert to CSS var reference
     const cssVarRef = hexToCssVarRef(defaultOnToneRef, tokens)
-    defaultOnToneVar = cssVarRef || `var(--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone)`
+    defaultOnToneVar = cssVarRef || `var(--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast_tone)`
   } else {
     defaultOnToneVar = defaultOnToneRef
   }
@@ -264,30 +264,30 @@ function updateOnToneColors(
       theme: {}
     }
     const resolved = resolveTokenReferenceToCssVar(hoverOnToneRef, context)
-    hoverOnToneVar = resolved || `var(--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone)`
+    hoverOnToneVar = resolved || `var(--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast_tone)`
   } else if (hoverOnToneRef.startsWith('#')) {
     const cssVarRef = hexToCssVarRef(hoverOnToneRef, tokens)
-    hoverOnToneVar = cssVarRef || `var(--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone)`
+    hoverOnToneVar = cssVarRef || `var(--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast_tone)`
   } else {
     hoverOnToneVar = hoverOnToneRef
   }
 
-  updateCssVar(`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_on-tone`, defaultOnToneVar, tokens)
-  updateCssVar(`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_on-tone`, defaultOnToneVar, tokens)
-  updateCssVar(`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_on-tone`, hoverOnToneVar, tokens)
+  updateCssVar(`--recursica_brand_modes_${mode}_palettes_core-colors_interactive_default_on-tone`, defaultOnToneVar, tokens)
+  updateCssVar(`--recursica_brand_modes_${mode}_palettes_core-colors_interactive_on-tone`, defaultOnToneVar, tokens)
+  updateCssVar(`--recursica_brand_modes_${mode}_palettes_core-colors_interactive_hover_on-tone`, hoverOnToneVar, tokens)
 
   // Update theme JSON if provided
   if (theme && setTheme) {
     try {
       const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-      const themes = root?.themes || root
+      const modes = root?.modes || root
 
       // Ensure structure exists
-      if (!themes[mode]) themes[mode] = {}
-      if (!themes[mode].palettes) themes[mode].palettes = {}
-      if (!themes[mode].palettes['core-colors']) themes[mode].palettes['core-colors'] = {}
-      const coreColors = themes[mode].palettes['core-colors']
+      if (!modes[mode]) modes[mode] = {}
+      if (!modes[mode].palettes) modes[mode].palettes = {}
+      if (!modes[mode].palettes['core-colors']) modes[mode].palettes['core-colors'] = {}
+      const coreColors = modes[mode].palettes['core-colors']
       if (!coreColors.interactive) coreColors.interactive = {}
 
       // Clean flat structure properties to avoid pollution
@@ -338,8 +338,8 @@ function updateLayerInteractiveColors(interactiveHex: string, tokens: JsonLike, 
 
   // Update layers 0-3
   for (let layer = 0; layer <= 3; layer++) {
-    const surfaceVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_properties_surface`
-    const interactiveVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_elements_interactive-color`
+    const surfaceVar = `--recursica_brand_modes_${mode}_layers_layer-${layer}_properties_surface`
+    const interactiveVar = `--recursica_brand_modes_${mode}_layers_layer-${layer}_elements_interactive-color`
 
     const surfaceHex = resolveCssVarToHex(`var(${surfaceVar})`, tokenIndex) || '#ffffff'
     const contrast = contrastRatio(surfaceHex, interactiveHex)
@@ -371,13 +371,13 @@ export function updateInteractiveColor(
 
   if (defaultToneRef) {
     updateCssVar(
-      `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_tone`,
+      `--recursica_brand_modes_${mode}_palettes_core-colors_interactive_default_tone`,
       defaultToneRef,
       tokens
     )
     // Also update the main interactive var for backward compatibility
     updateCssVar(
-      `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`,
+      `--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone`,
       defaultToneRef,
       tokens
     )
@@ -387,14 +387,14 @@ export function updateInteractiveColor(
   let hoverHex: string
   if (hoverOption === 'keep') {
     // Keep current hover color
-    const currentHover = readCssVar(`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone`)
+    const currentHover = readCssVar(`--recursica_brand_modes_${mode}_palettes_core-colors_interactive_hover_tone`)
     if (currentHover && !currentHover.startsWith('var(')) {
       hoverHex = currentHover
     } else {
       // Resolve to hex
       const tokenIndex = buildTokenIndex(tokens)
-      hoverHex = resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone)`, tokenIndex) ||
-        resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`, tokenIndex) ||
+      hoverHex = resolveCssVarToHex(`var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive_hover_tone)`, tokenIndex) ||
+        resolveCssVarToHex(`var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone)`, tokenIndex) ||
         normalizedHex
     }
   } else {
@@ -405,7 +405,7 @@ export function updateInteractiveColor(
   const hoverToneRef = hexToCssVarRef(hoverHex, tokens)
   if (hoverToneRef) {
     updateCssVar(
-      `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone`,
+      `--recursica_brand_modes_${mode}_palettes_core-colors_interactive_hover_tone`,
       hoverToneRef,
       tokens
     )
@@ -441,13 +441,13 @@ export function updateCoreColorInteractiveOnTones(
   try {
     const themeCopy = getVarsStore().getLatestThemeCopy()
     const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-    const themes = root?.themes || root
-    const coreColorsPath = themes?.[mode]?.palettes?.['core-colors']
+    const modes = root?.modes || root
+    const coreColorsPath = modes?.[mode]?.palettes?.['core-colors']
 
     if (!coreColorsPath) return
 
     // Get the interactive tone color (this is our starting point)
-    const interactiveToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`
+    const interactiveToneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone`
     const interactiveToneValue = readCssVar(interactiveToneVar)
     const interactiveToneHex = interactiveToneValue
       ? (resolveCssVarToHex(interactiveToneValue, tokenIndex) || interactiveHex)
@@ -497,7 +497,7 @@ export function updateCoreColorInteractiveOnTones(
 
       // Step 3: Try the opposite of the high emphasis on-tone (the tone's own scale)
       // Get the high emphasis on-tone for this core color to determine the "opposite"
-      const highEmphasisOnToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${coreColorName}_on-tone`
+      const highEmphasisOnToneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_${coreColorName}_on-tone`
       const highEmphasisOnToneValue = readCssVar(highEmphasisOnToneVar)
 
       // Find what scale the core color tone belongs to
@@ -548,7 +548,7 @@ export function updateCoreColorInteractiveOnTones(
       }
 
       // Step 4: Try ALL levels (000->1000) of the white scale
-      const whiteToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone`
+      const whiteToneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast_tone`
       const whiteToneValue = readCssVar(whiteToneVar)
       let whiteHex = '#ffffff'
       if (whiteToneValue) {
@@ -582,7 +582,7 @@ export function updateCoreColorInteractiveOnTones(
       }
 
       // Step 5: Try ALL levels (000->1000) of the black scale
-      const blackToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast_tone`
+      const blackToneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_high-contrast_tone`
       const blackToneValue = readCssVar(blackToneVar)
       let blackHex = '#000000'
       if (blackToneValue) {
@@ -620,17 +620,17 @@ export function updateCoreColorInteractiveOnTones(
       const blackContrast = contrastRatio(coreColorToneHex, blackHex)
 
       if (whiteContrast >= AA) {
-        return `{brand.themes.${mode}.palettes.core-colors.low-contrast.tone}`
+        return `{brand.modes.${mode}.palettes.core-colors.low-contrast.tone}`
       }
       if (blackContrast >= AA) {
-        return `{brand.themes.${mode}.palettes.core-colors.high-contrast.tone}`
+        return `{brand.modes.${mode}.palettes.core-colors.high-contrast.tone}`
       }
 
       // Both white and black scales failed - return a fallback (this will show as 'x' in UI)
       // Use the one with higher contrast even if it doesn't pass AA
       return whiteContrast >= blackContrast
-        ? `{brand.themes.${mode}.palettes.core-colors.low-contrast.tone}`
-        : `{brand.themes.${mode}.palettes.core-colors.high-contrast.tone}`
+        ? `{brand.modes.${mode}.palettes.core-colors.low-contrast.tone}`
+        : `{brand.modes.${mode}.palettes.core-colors.high-contrast.tone}`
     }
 
     // Process each core color
@@ -646,7 +646,7 @@ export function updateCoreColorInteractiveOnTones(
       const context: TokenReferenceContext = {
         currentMode: mode,
         tokenIndex,
-        theme: { brand: { themes: themes } }
+        theme: { brand: { modes: modes } }
       }
       const resolveRef = (ref: string): string | null => {
         const resolved = resolveTokenReferenceToValue(ref, context)
@@ -681,7 +681,7 @@ export function updateCoreColorInteractiveOnTones(
 
       // Update CSS variable immediately for visual feedback
       // Use the updated theme copy for proper resolution of brand references
-      const interactiveCssVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_interactive`
+      const interactiveCssVar = `--recursica_brand_modes_${mode}_palettes_core-colors_${colorName}_interactive`
       const contextForCssVar: TokenReferenceContext = {
         currentMode: mode,
         tokenIndex: buildTokenIndex(tokens),
@@ -728,8 +728,8 @@ export function updateCoreColorOnTones(
   try {
     const themeCopy = getVarsStore().getLatestThemeCopy()
     const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-    const themes = root?.themes || root
-    const coreColorsPath = themes?.[mode]?.palettes?.['core-colors']
+    const modes = root?.modes || root
+    const coreColorsPath = modes?.[mode]?.palettes?.['core-colors']
 
     if (!coreColorsPath) return
 
@@ -738,8 +738,8 @@ export function updateCoreColorOnTones(
     const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_text-emphasis_low`) || 0.6
 
     // Get core black and white hex values
-    const coreBlackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast_tone`
-    const coreWhiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone`
+    const coreBlackVar = `--recursica_brand_modes_${mode}_palettes_core-colors_high-contrast_tone`
+    const coreWhiteVar = `--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast_tone`
     const blackHex = readCssVarResolved(coreBlackVar) || readCssVar(coreBlackVar) || '#000000'
     const whiteHex = readCssVarResolved(coreWhiteVar) || readCssVar(coreWhiteVar) || '#ffffff'
     const normalizedBlack = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
@@ -749,7 +749,7 @@ export function updateCoreColorOnTones(
     const context: TokenReferenceContext = {
       currentMode: mode,
       tokenIndex,
-      theme: { brand: { themes: themes } }
+      theme: { brand: { modes: modes } }
     }
     const resolveToneRef = (ref: string): string | null => {
       const resolved = resolveTokenReferenceToValue(ref, context)
@@ -822,17 +822,17 @@ export function updateCoreColorOnTones(
 
       // Update recursica_brand.json
       if (!colorDef['on-tone']) colorDef['on-tone'] = {}
-      colorDef['on-tone'].$value = `{brand.themes.${mode}.palettes.core-colors.${onToneCore}.tone}`
+      colorDef['on-tone'].$value = `{brand.modes.${mode}.palettes.core-colors.${onToneCore}.tone}`
 
       // Update CSS variable
-      const onToneCssVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_on-tone`
-      const onToneCoreVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${onToneCore}_tone`
+      const onToneCssVar = `--recursica_brand_modes_${mode}_palettes_core-colors_${colorName}_on-tone`
+      const onToneCoreVar = `--recursica_brand_modes_${mode}_palettes_core-colors_${onToneCore}_tone`
       updateCssVar(onToneCssVar, `var(${onToneCoreVar})`, tokens)
     }
 
     // Also update the interactive on-tones since they rely on white/black
-    const interactiveToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`
-    const hoverToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`
+    const interactiveToneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone`
+    const hoverToneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone`
     const interactiveToneHex = resolveCssVarToHex(`var(${interactiveToneVar})`, tokenIndex)
     const hoverToneHex = resolveCssVarToHex(`var(${hoverToneVar})`, tokenIndex)
     if (interactiveToneHex && hoverToneHex) {

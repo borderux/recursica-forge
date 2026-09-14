@@ -52,16 +52,16 @@ describe('JSON Schema Validation', () => {
       expect(validate).toBeDefined()
     })
 
-    it('should have brand.themes.light.palettes.core-colors', () => {
-      const coreColors = brandJson.brand?.themes?.light?.palettes?.['core-colors']
+    it('should have brand.modes.light.palettes.core-colors', () => {
+      const coreColors = brandJson.brand?.modes?.light?.palettes?.['core-colors']
       expect(coreColors).toBeDefined()
       expect(coreColors?.['high-contrast']).toBeDefined()
       expect(coreColors?.['low-contrast']).toBeDefined()
       expect(coreColors?.interactive).toBeDefined()
     })
 
-    it('should have brand.themes.dark.palettes.core-colors', () => {
-      const coreColors = brandJson.brand?.themes?.dark?.palettes?.['core-colors']
+    it('should have brand.modes.dark.palettes.core-colors', () => {
+      const coreColors = brandJson.brand?.modes?.dark?.palettes?.['core-colors']
       expect(coreColors).toBeDefined()
       expect(coreColors?.['high-contrast']).toBeDefined()
       expect(coreColors?.['low-contrast']).toBeDefined()
@@ -69,7 +69,7 @@ describe('JSON Schema Validation', () => {
     })
 
     it('should have required core-colors values', () => {
-      const coreColors = brandJson.brand?.themes?.light?.palettes?.['core-colors']
+      const coreColors = brandJson.brand?.modes?.light?.palettes?.['core-colors']
       expect(coreColors).toBeDefined()
       expect(coreColors?.['high-contrast']).toBeDefined()
       expect(coreColors?.['low-contrast']).toBeDefined()
@@ -80,13 +80,13 @@ describe('JSON Schema Validation', () => {
     })
 
     it('should have neutral palette', () => {
-      expect(brandJson.brand?.themes?.light?.palettes?.neutral).toBeDefined()
-      expect(brandJson.brand?.themes?.dark?.palettes?.neutral).toBeDefined()
+      expect(brandJson.brand?.modes?.light?.palettes?.neutral).toBeDefined()
+      expect(brandJson.brand?.modes?.dark?.palettes?.neutral).toBeDefined()
     })
 
     it('should have matching structure between light and dark', () => {
-      const lightKeys = Object.keys(brandJson.brand?.themes?.light?.palettes || {})
-      const darkKeys = Object.keys(brandJson.brand?.themes?.dark?.palettes || {})
+      const lightKeys = Object.keys(brandJson.brand?.modes?.light?.palettes || {})
+      const darkKeys = Object.keys(brandJson.brand?.modes?.dark?.palettes || {})
       
       // Both should have core-colors and neutral
       expect(lightKeys).toContain('core-colors')
@@ -232,17 +232,17 @@ describe('JSON Schema Validation', () => {
   })
 
   describe('JSON Structure Consistency', () => {
-    it('should have consistent structure between light and dark themes in recursica_brand.json', () => {
-      const lightPalettes = Object.keys(brandJson.brand?.themes?.light?.palettes || {})
-      const darkPalettes = Object.keys(brandJson.brand?.themes?.dark?.palettes || {})
+    it('should have consistent structure between light and dark modes in recursica_brand.json', () => {
+      const lightPalettes = Object.keys(brandJson.brand?.modes?.light?.palettes || {})
+      const darkPalettes = Object.keys(brandJson.brand?.modes?.dark?.palettes || {})
       
       // Both should have same palette keys
       expect(lightPalettes.sort()).toEqual(darkPalettes.sort())
     })
 
     it('should have consistent layer structure', () => {
-      const lightLayers = Object.keys(brandJson.brand?.themes?.light?.layers || {})
-      const darkLayers = Object.keys(brandJson.brand?.themes?.dark?.layers || {})
+      const lightLayers = Object.keys(brandJson.brand?.modes?.light?.layers || {})
+      const darkLayers = Object.keys(brandJson.brand?.modes?.dark?.layers || {})
       
       // Both should have same layer keys
       expect(lightLayers.sort()).toEqual(darkLayers.sort())
@@ -311,7 +311,7 @@ describe('JSON Schema Validation', () => {
     it('should reject recursica_brand.json missing required core-colors', () => {
       const invalidBrand = {
         brand: {
-          themes: {
+          modes: {
             light: {
               palettes: {
                 // Missing core-colors
@@ -338,7 +338,7 @@ describe('JSON Schema Validation', () => {
     it('should reject recursica_brand.json missing required neutral palette', () => {
       const invalidBrand = {
         brand: {
-          themes: {
+          modes: {
             light: {
               palettes: {
                 'core-colors': {
@@ -405,7 +405,7 @@ describe('JSON Schema Validation', () => {
     it('should validate correct token reference patterns in recursica_brand.json', () => {
       const validBrand = {
         brand: {
-          themes: {
+          modes: {
             light: {
               palettes: {
                 'core-colors': {
@@ -461,7 +461,7 @@ describe('JSON Schema Validation', () => {
     it('should validate elevation structure in recursica_brand.json', () => {
       const brandWithElevation = {
         brand: {
-          themes: {
+          modes: {
             light: {
               elevations: {
                 'elevation-0': {
@@ -502,7 +502,7 @@ describe('DTCG reference validation', () => {
 
   it('should export explicit work-around list', () => {
     expect(REF_WORKAROUND_IDS.length).toBeGreaterThan(0)
-    expect(REF_WORKAROUND_IDS).toContain('brand-theme-agnostic→themes.light|dark')
+    expect(REF_WORKAROUND_IDS).toContain('brand-theme-agnostic→modes.light|dark')
     expect(REF_WORKAROUND_IDS).toContain('typography-composite-subproperty')
     expect(REF_WORKAROUND_IDS).toContain('recursica-component-token')
   })
@@ -510,7 +510,7 @@ describe('DTCG reference validation', () => {
   it('should fail when ref points to group and work-arounds disabled', () => {
     const brandWithGroupRef = {
       brand: {
-        themes: {
+        modes: {
           light: {
             palettes: {
               neutral: {
@@ -522,7 +522,7 @@ describe('DTCG reference validation', () => {
                 },
                 default: {
                   $type: 'color',
-                  $value: '{brand.themes.light.palettes.neutral.200}',
+                  $value: '{brand.modes.light.palettes.neutral.200}',
                 },
               },
             },
@@ -568,13 +568,13 @@ describe('DTCG structural compliance (validateDtcgStructure)', () => {
   })
 
   it('should throw when $type is "boxShadow" (non-standard; should be "shadow")', () => {
-    const bad = { brand: { themes: { light: { elevations: { 'elevation-0': { $type: 'boxShadow', $value: {} } } } } } }
+    const bad = { brand: { modes: { light: { elevations: { 'elevation-0': { $type: 'boxShadow', $value: {} } } } } } }
     expect(() => validateDtcgStructure(bad as any, 'test.json')).toThrow(/non-standard-\$type/)
   })
 
   it('should accept $type:"shadow" with $extensions.recursica.type:"boxShadow"', () => {
     const valid = {
-      brand: { themes: { light: { elevations: { 'elevation-0': {
+      brand: { modes: { light: { elevations: { 'elevation-0': {
         $type: 'shadow',
         $extensions: { 'recursica.type': 'boxShadow' },
         $value: { x: 0, y: 0, blur: 0, spread: 0, color: '#000' },

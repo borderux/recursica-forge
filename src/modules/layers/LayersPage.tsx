@@ -27,8 +27,8 @@ export default function LayersPage() {
   }, [])
   const handleResetAll = () => {
     const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
-    const themes = root?.themes || root
-    const defaults: any = themes?.[mode]?.layers || themes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
+    const modes = root?.modes || root
+    const defaults: any = modes?.[mode]?.layers || modes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
 
     // Get all available layer keys dynamically
     const allLayerKeys = Object.keys(defaults).filter(key => /^layer-\d+$/.test(key))
@@ -63,13 +63,13 @@ export default function LayersPage() {
     const themeRoot: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
     const nextTheme = getVarsStore().getLatestThemeCopy()
     const target = nextTheme.brand || nextTheme
-    const container = target?.themes?.[mode]?.layers || target?.themes?.[mode]?.layer || target?.[mode]?.layers || target?.[mode]?.layer
+    const container = target?.modes?.[mode]?.layers || target?.modes?.[mode]?.layer || target?.[mode]?.layers || target?.[mode]?.layer
 
     if (!container) {
-      if (!target.themes) target.themes = {}
-      if (!target.themes[mode]) target.themes[mode] = {}
-      if (!target.themes[mode].layers) target.themes[mode].layers = {}
-      const newContainer = target.themes[mode].layers
+      if (!target.modes) target.modes = {}
+      if (!target.modes[mode]) target.modes[mode] = {}
+      if (!target.modes[mode].layers) target.modes[mode].layers = {}
+      const newContainer = target.modes[mode].layers
       allLayers.forEach((lvl) => {
         const key = `layer-${lvl}`
         const def = defaults[key]
@@ -94,10 +94,10 @@ export default function LayersPage() {
   const layerModules = useMemo(() => {
     // Try to get layers from current theme, fallback to brandDefault if theme not loaded
     const sourceTheme: any = theme || brandDefault
-    // Theme structure is always { brand: { themes: { light: { layers: {...} }, dark: { layers: {...} } } } }
+    // Theme structure is always { brand: { modes: { light: { layers: {...} }, dark: { layers: {...} } } } }
     const brand = sourceTheme?.brand || sourceTheme
-    const themes = brand?.themes || {}
-    const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
+    const modes = brand?.modes || {}
+    const layersData: any = modes?.[mode]?.layers || modes?.[mode]?.layer || {}
 
     const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
       const aNum = parseInt(a.replace('layer-', ''), 10)
@@ -167,14 +167,14 @@ export default function LayersPage() {
               const root: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
               const nextTheme = getVarsStore().getLatestThemeCopy()
               const target = nextTheme.brand || nextTheme
-              // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
-              const themes = target?.themes || target
-              const container = themes?.[mode]?.layers || themes?.[mode]?.layer || target?.[mode]?.layers || target?.[mode]?.layer
+              // Support both old structure (brand.light.layer) and new structure (brand.modes.light.layers)
+              const modes = target?.modes || target
+              const container = modes?.[mode]?.layers || modes?.[mode]?.layer || target?.[mode]?.layers || target?.[mode]?.layer
               if (!container) {
                 // Create the structure if it doesn't exist
-                if (!themes[mode]) themes[mode] = {}
-                if (!themes[mode].layers) themes[mode].layers = {}
-                const newContainer = themes[mode].layers
+                if (!modes[mode]) modes[mode] = {}
+                if (!modes[mode].layers) modes[mode].layers = {}
+                const newContainer = modes[mode].layers
                 Array.from(selectedLayerLevels).forEach((lvl) => {
                   const key = `layer-${lvl}`
                   if (!newContainer[key]) newContainer[key] = {}

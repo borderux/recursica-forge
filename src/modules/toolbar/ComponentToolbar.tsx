@@ -266,8 +266,8 @@ export default function ComponentToolbar({
     try {
       const t: any = theme
       const themeRoot: any = t?.brand ? t : { brand: t }
-      const themes = themeRoot?.themes || themeRoot
-      const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
+      const modes = themeRoot?.modes || themeRoot
+      const layersData: any = modes?.[mode]?.layers || modes?.[mode]?.layer || {}
       const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
         const aNum = parseInt(a.replace('layer-', ''), 10)
         const bNum = parseInt(b.replace('layer-', ''), 10)

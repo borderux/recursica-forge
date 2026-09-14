@@ -72,7 +72,7 @@ export function getElevationBoxShadow(
  * Parses elevation value from recursica_ui-kit.json or prop value
  * 
  * Handles both direct elevation values (e.g., "elevation-1") and
- * brand references (e.g., "{brand.themes.light.elevations.elevation-4}")
+ * brand references (e.g., "{brand.modes.light.elevations.elevation-4}")
  * 
  * @param elevationValue - Elevation value from recursica_ui-kit.json or prop
  * @returns Parsed elevation level (e.g., "elevation-1") or undefined
@@ -100,7 +100,7 @@ export function parseElevationValue(elevationValue: string | undefined): string 
  * Extracts mode information from elevation token reference or CSS variable name
  * 
  * @param elevationValue - Elevation value that may contain a token reference
- * @param cssVarName - Optional CSS variable name (e.g., "--recursica_ui-kit_themes_dark_components_toast_properties_elevation_layer-1")
+ * @param cssVarName - Optional CSS variable name (e.g., "--recursica_ui-kit_modes_dark_components_toast_properties_elevation_layer-1")
  * @returns Mode ('light' | 'dark') if found in token reference or CSS variable name, undefined otherwise
  */
 export function extractElevationMode(elevationValue: string | undefined, cssVarName?: string): 'light' | 'dark' | undefined {
@@ -110,16 +110,16 @@ export function extractElevationMode(elevationValue: string | undefined, cssVarN
 
   // First, try to extract mode from token reference in elevation value
   if (elevationValue) {
-    const modeMatch = elevationValue.match(/themes\.(light|dark)\.elevations/)
+    const modeMatch = elevationValue.match(/modes\.(light|dark)\.elevations/)
     if (modeMatch) {
       return modeMatch[1] as 'light' | 'dark'
     }
   }
 
   // If not found in value, try to extract mode from CSS variable name
-  // CSS var names like: --recursica_ui-kit_themes_dark_components_toast_properties_elevation_layer-1
+  // CSS var names like: --recursica_ui-kit_modes_dark_components_toast_properties_elevation_layer-1
   if (cssVarName) {
-    const varModeMatch = cssVarName.match(/themes_(light|dark)_components/)
+    const varModeMatch = cssVarName.match(/modes_(light|dark)_components/)
     if (varModeMatch) {
       return varModeMatch[1] as 'light' | 'dark'
     }

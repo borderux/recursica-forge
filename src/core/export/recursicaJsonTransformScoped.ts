@@ -83,14 +83,14 @@ function pathToScopedVarName(path: string, scope: ScopeKind): string {
   if (scope === 'root') return pathToVarName(path)
   const escapeSegments = (s: string) => s.split('.').map((seg) => seg.replace(/_/g, '__')).join('_')
   if ('layer' in scope) {
-    const layerPrefix = `brand.themes.${scope.theme}.layers.layer-${scope.layer}.`
+    const layerPrefix = `brand.modes.${scope.theme}.layers.layer-${scope.layer}.`
     if (path.startsWith(layerPrefix)) {
       const rest = path.slice(layerPrefix.length)
       return PREFIX + 'brand_layer_' + scope.layer + '_' + escapeSegments(rest)
     }
   }
   if ('theme' in scope && !('layer' in scope)) {
-    const themePrefix = `brand.themes.${scope.theme}.`
+    const themePrefix = `brand.modes.${scope.theme}.`
     if (path.startsWith(themePrefix)) {
       const rest = path.slice(themePrefix.length)
       if (rest.startsWith('layers.') && /^layers\.layer-\d+\./.test(rest)) return pathToVarName(path)
@@ -106,7 +106,7 @@ function pathToScopedVarName(path: string, scope: ScopeKind): string {
  * Returns the root (specific) variable name for a layer-specific ui-kit path.
  * Includes theme and layer in the name so root has one var per (theme, layer).
  * Example: ui-kit.components.Modal.properties.colors.layer-0.background, theme 'dark'
- *   → --recursica_ui-kit_themes_dark_layer_0_components_Modal_properties_colors_background
+ *   → --recursica_ui-kit_modes_dark_layer_0_components_Modal_properties_colors_background
  */
 function pathToRootVarNameLayerSpecificUIKit(path: string, theme: 'light' | 'dark'): string {
   const layer = getLayerFromUIKitPath(path)
@@ -114,22 +114,22 @@ function pathToRootVarNameLayerSpecificUIKit(path: string, theme: 'light' | 'dar
   const canonicalPath = getCanonicalUIKitPath(path)
   const canonicalVarName = pathToVarName(canonicalPath)
   const withoutPrefix = canonicalVarName.slice(PREFIX.length)
-  return PREFIX + 'ui-kit_themes_' + theme + '_layer_' + layer + '_' + withoutPrefix
+  return PREFIX + 'ui-kit_modes_' + theme + '_layer_' + layer + '_' + withoutPrefix
 }
 
 /**
  * Determines which scope block a path belongs to.
  * tokens, brand.typography, brand.dimensions, ui-kit (except layer-specific) → root.
  * Layer-specific ui-kit paths (ui-kit.*.layer-N.*) are handled separately: emitted in theme+layer blocks only.
- * brand.themes.{light|dark}.* (excluding layers) → theme.
- * brand.themes.{light|dark}.layers.layer-N.* → theme+layer.
+ * brand.modes.{light|dark}.* (excluding layers) → theme.
+ * brand.modes.{light|dark}.layers.layer-N.* → theme+layer.
  */
 function getScope(path: string): ScopeKind {
   if (path.startsWith('tokens.') || path.startsWith('brand.typography.') || path.startsWith('brand.dimensions.')) return 'root'
   if (path.startsWith('ui-kit.')) return 'root'
-  const themeLayer = path.match(/^brand\.themes\.(light|dark)\.layers\.layer-(\d+)\./)
+  const themeLayer = path.match(/^brand\.modes\.(light|dark)\.layers\.layer-(\d+)\./)
   if (themeLayer) return { theme: themeLayer[1] as 'light' | 'dark', layer: themeLayer[2] }
-  const themeOnly = path.match(/^brand\.themes\.(light|dark)\./)
+  const themeOnly = path.match(/^brand\.modes\.(light|dark)\./)
   if (themeOnly) return { theme: themeOnly[1] as 'light' | 'dark' }
   return 'root'
 }
@@ -154,11 +154,11 @@ function extractRefPath(ref: string): string {
 
 /**
  * Expands theme-relative refs using the current path as context.
- * e.g. brand.palettes.neutral.100 → brand.themes.light.palettes.neutral.100 when currentPath is in light theme.
+ * e.g. brand.palettes.neutral.100 → brand.modes.light.palettes.neutral.100 when currentPath is in light theme.
  */
 function expandRefPath(refPath: string, currentPath: string): string {
   let theme: string | null = null
-  const themeMatch = currentPath.match(/^brand\.themes\.(light|dark)\./)
+  const themeMatch = currentPath.match(/^brand\.modes\.(light|dark)\./)
   if (themeMatch) theme = themeMatch[1]
   else if (currentPath.startsWith('ui-kit.')) theme = 'light'
   if (!theme || !refPath.startsWith('brand.')) return refPath
@@ -167,12 +167,12 @@ function expandRefPath(refPath: string, currentPath: string): string {
   const themeScoped = ['palettes', 'elevations', 'layers', 'states', 'text-emphasis']
   for (const key of themeScoped) {
     if (afterBrand === key || afterBrand.startsWith(key + '.')) {
-      let expanded = `brand.themes.${theme}.${afterBrand}`
+      let expanded = `brand.modes.${theme}.${afterBrand}`
       if (afterBrand === 'palettes.black' || afterBrand === 'palettes.white' ||
           afterBrand === 'palettes.high-contrast' || afterBrand === 'palettes.low-contrast') {
         const colorKey = afterBrand.replace('palettes.', '')
         const normalizedKey = colorKey === 'black' ? 'high-contrast' : colorKey === 'white' ? 'low-contrast' : colorKey
-        expanded = `brand.themes.${theme}.palettes.core-colors.${normalizedKey}.tone`
+        expanded = `brand.modes.${theme}.palettes.core-colors.${normalizedKey}.tone`
       }
       return expanded
     }
@@ -200,16 +200,16 @@ function resolvePathAlias(path: string): string[] {
       candidates.push(path.replace(/\.me$/, '.md'))
     }
   }
-  const m = path.match(/^brand\.themes\.(light|dark)\.palettes\.(black|white|high-contrast|low-contrast)$/)
+  const m = path.match(/^brand\.modes\.(light|dark)\.palettes\.(black|white|high-contrast|low-contrast)$/)
   if (m) {
     const colorKey = m[2] === 'black' ? 'high-contrast' : m[2] === 'white' ? 'low-contrast' : m[2]
-    candidates.push(`brand.themes.${m[1]}.palettes.core-colors.${colorKey}.tone`)
+    candidates.push(`brand.modes.${m[1]}.palettes.core-colors.${colorKey}.tone`)
   }
-  const coreBlackWhiteShort = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-(black|white)$/)
-  if (coreBlackWhiteShort) candidates.push(`brand.themes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2] === 'black' ? 'high-contrast' : 'low-contrast'}.tone`)
-  const coreBlackWhite = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|high-contrast|low-contrast)$/)
+  const coreBlackWhiteShort = path.match(/^brand\.modes\.(light|dark)\.palettes\.core-(black|white)$/)
+  if (coreBlackWhiteShort) candidates.push(`brand.modes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2] === 'black' ? 'high-contrast' : 'low-contrast'}.tone`)
+  const coreBlackWhite = path.match(/^brand\.modes\.(light|dark)\.palettes\.core-colors\.(black|white|high-contrast|low-contrast)$/)
   if (coreBlackWhite) candidates.push(`${path}.tone`)
-  const coreColor = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(warning|success|alert)$/)
+  const coreColor = path.match(/^brand\.modes\.(light|dark)\.palettes\.core-colors\.(warning|success|alert)$/)
   if (coreColor) candidates.push(`${path}.tone`)
   const typographyProp = path.match(/^brand\.typography\.[^.]+\.(font-family|font-size|font-weight|letter-spacing|line-height|font-style|text-transform|text-case|text-decoration)$/)
   if (typographyProp) {
@@ -227,11 +227,11 @@ function resolvePathAlias(path: string): string[] {
     const camel = kebabToCamel[typographyProp[1]] || typographyProp[1].replace(/-([a-z])/g, (_, c) => c.toUpperCase())
     candidates.push(path.replace(new RegExp(typographyProp[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'), camel))
   }
-  const paletteLevel = path.match(/^brand\.themes\.(light|dark)\.palettes\.([^.]+)\.(\d{3,4}|default|primary)$/)
+  const paletteLevel = path.match(/^brand\.modes\.(light|dark)\.palettes\.([^.]+)\.(\d{3,4}|default|primary)$/)
   if (paletteLevel) candidates.push(`${path}.color.tone`)
 
-  const layersInteractiveColor = path.match(/^brand\.themes\.(light|dark)\.layers\.(layer-\d+)\.elements\.interactive\.color$/)
-  if (layersInteractiveColor) candidates.push(`brand.themes.${layersInteractiveColor[1]}.layers.${layersInteractiveColor[2]}.elements.interactive.tone`)
+  const layersInteractiveColor = path.match(/^brand\.modes\.(light|dark)\.layers\.(layer-\d+)\.elements\.interactive\.color$/)
+  if (layersInteractiveColor) candidates.push(`brand.modes.${layersInteractiveColor[1]}.layers.${layersInteractiveColor[2]}.elements.interactive.tone`)
 
   if (path.match(/^brand\.dimensions\.border-radii\.md$/)) candidates.push('brand.dimensions.border-radii.default')
   if (path.match(/^brand\.dimensions\.general\.xs$/)) candidates.push('brand.dimensions.general.sm')
@@ -258,7 +258,7 @@ function formatValue(
   options?: FormatValueRootOptions
 ): string | null {
   if (val == null) return null
-  const pathForExpand = options?.themeForExpand ? `brand.themes.${options.themeForExpand}.layers.layer-0` : currentPath
+  const pathForExpand = options?.themeForExpand ? `brand.modes.${options.themeForExpand}.layers.layer-0` : currentPath
   const refNamer = options?.refNamer ?? ((path: string) => pathToScopedVarName(path, getScope(path)))
 
   if (isRef(val)) {
@@ -482,7 +482,7 @@ function injectTypographyAliases(out: FlatEntry[]): void {
 function injectDarkLayer0InteractiveAliases(out: Array<{ path: string; value: unknown }>): void {
   const paths = new Set(out.map((e) => e.path))
   for (const layer of ['0', '1', '2', '3']) {
-    const base = `brand.themes.dark.layers.layer-${layer}.elements.interactive`
+    const base = `brand.modes.dark.layers.layer-${layer}.elements.interactive`
     const hasColor = paths.has(`${base}.color`)
     const hasHoverColor = paths.has(`${base}.hover-color`)
     const hasTone = paths.has(`${base}.tone`)
@@ -504,20 +504,20 @@ function injectDarkLayer0InteractiveAliases(out: Array<{ path: string; value: un
 }
 
 /**
- * Injects composite box-shadow vars for each elevation in brand.themes.{light,dark}.elevations.
+ * Injects composite box-shadow vars for each elevation in brand.modes.{light,dark}.elevations.
  * The composite is built from var refs to the part vars (x, y, blur, spread, color).
  */
 function injectElevationComposites(brand: Record<string, unknown>, out: Array<{ path: string; value: unknown }>): void {
-  const themes = (brand as Record<string, unknown>)?.themes as Record<string, unknown> | undefined
-  if (!themes) return
-  for (const [theme, themeData] of Object.entries(themes)) {
+  const modes = (brand as Record<string, unknown>)?.modes as Record<string, unknown> | undefined
+  if (!modes) return
+  for (const [theme, themeData] of Object.entries(modes)) {
     const elevations = (themeData as Record<string, unknown>)?.elevations as Record<string, unknown> | undefined
     if (!elevations) continue
     for (const [name, elev] of Object.entries(elevations)) {
       const v = elev as Record<string, unknown> | undefined
       const val = v?.$value as Record<string, unknown> | undefined
       if (!val || typeof val !== 'object') continue
-      const basePath = `brand.themes.${theme}.elevations.${name}`
+      const basePath = `brand.modes.${theme}.elevations.${name}`
       const x = pathToVarName(`${basePath}.x`)
       const y = pathToVarName(`${basePath}.y`)
       const blur = pathToVarName(`${basePath}.blur`)
@@ -554,7 +554,7 @@ function getLayerFromUIKitPath(path: string): string | null {
   return m ? m[1] : null
 }
 
-const LAYER_SPECIFIC_ROOT_PATTERN = /^--recursica_ui-kit_themes_(light|dark)_layer_(\d+)_(.+)$/
+const LAYER_SPECIFIC_ROOT_PATTERN = /^--recursica_ui-kit_modes_(light|dark)_layer_(\d+)_(.+)$/
 
 /** Extract canonical var name from a root layer-specific var name, or null if not layer-specific. */
 function rootLayerSpecificNameToCanonical(rootName: string): string | null {
@@ -572,7 +572,7 @@ function pathToRootVarNameFromCanonical(
   layer: string
 ): string {
   const rest = canonicalVarName.slice((PREFIX + 'ui-kit_').length)
-  return PREFIX + 'ui-kit_themes_' + theme + '_layer_' + layer + '_' + rest
+  return PREFIX + 'ui-kit_modes_' + theme + '_layer_' + layer + '_' + rest
 }
 
 /**
@@ -608,7 +608,7 @@ function validateLayerSpecificUIKitRootComplete(
 }
 
 /**
- * Ensures every canonical layer-specific ui-kit var has all 8 root vars (2 themes × 4 layers).
+ * Ensures every canonical layer-specific ui-kit var has all 8 root vars (2 modes × 4 layers).
  * Missing (theme, layer) combinations get a type-appropriate fallback from an existing value.
  */
 function fillMissingLayerSpecificUIKitRootVars(rootVarsMap: Map<string, string>): void {
@@ -619,12 +619,12 @@ function fillMissingLayerSpecificUIKitRootVars(rootVarsMap: Map<string, string>)
     if (!canonicalToExampleValue.has(canonical)) canonicalToExampleValue.set(canonical, value)
   }
 
-  const themes: Array<'light' | 'dark'> = ['light', 'dark']
+  const modes: Array<'light' | 'dark'> = ['light', 'dark']
   const layers = ['0', '1', '2', '3']
   for (const canonical of canonicalToExampleValue.keys()) {
     const exampleValue = canonicalToExampleValue.get(canonical) ?? 'transparent'
     const fallback = fallbackForMissingLayerVar(exampleValue)
-    for (const theme of themes) {
+    for (const theme of modes) {
       for (const layer of layers) {
         const name = pathToRootVarNameFromCanonical(canonical, theme, layer)
         if (!rootVarsMap.has(name)) rootVarsMap.set(name, fallback)
@@ -899,8 +899,8 @@ function formatScopedCss(
   css += ` *      var(--recursica_brand_layer_0_properties_surface)\n`
   css += ` *\n`
   css += ` *    Do not use (specific; wrong in component CSS):\n`
-  css += ` *      var(--recursica_ui-kit_themes_light_layer_0_...)\n`
-  css += ` *      var(--recursica_brand_themes_light_layers_layer-0_...)\n`
+  css += ` *      var(--recursica_ui-kit_modes_light_layer_0_...)\n`
+  css += ` *      var(--recursica_brand_modes_light_layers_layer-0_...)\n`
   css += ` *\n`
   css += ` *    The correct value for the generic name is set by the theme and layer of the element's\n`
   css += ` *    ancestors. Your component does not need to know theme or layer; it just uses the generic\n`
