@@ -434,11 +434,25 @@ export function exportTokensJson(): object {
         $type: 'fontFamily'
       }
 
-      // Union of original and store keys — new fonts added at runtime only exist in the store
-      const allTypefaceKeys = new Set([
-        ...Object.keys(originalTypefaces).filter(k => k !== '$type'),
-        ...Object.keys(storeTokens.font.typefaces || {}).filter(k => k !== '$type'),
-      ])
+      // The store decides WHICH typefaces exist: syncFontsToTokens rebuilds this group from the
+      // user's font list, so a font the user deleted is gone from the store while it necessarily
+      // survives in the bundled/imported original. Unioning the two resurrected every deleted
+      // default on export — the export listed fonts the theme no longer used, and re-importing it
+      // brought them back (#482). Fonts added at runtime are covered because they are in the
+      // store too; the original is still read below, but only for metadata (Google Fonts URLs,
+      // variants) belonging to a typeface that is still present.
+      const storeTypefaceKeys = [
+        ...Object.keys(storeTokens.font.typefaces || {}),
+        ...Object.keys(storeTokens.font.typeface || {}),
+      ].filter(k => k !== '$type')
+
+      // Falling back to the original is only correct when the store has no typeface group at all
+      // — the font list never synced. An empty group after a sync means the fonts really are gone.
+      const allTypefaceKeys = new Set(
+        storeTypefaceKeys.length > 0
+          ? storeTypefaceKeys
+          : Object.keys(originalTypefaces).filter(k => k !== '$type')
+      )
 
       allTypefaceKeys.forEach((key) => {
         const originalTypeface = originalTypefaces[key]
