@@ -26,6 +26,8 @@ type Props = {
   grid: Grid
   scale: SizeToken[]
   isDefault: boolean
+  /** How far this breakpoint may stretch before it would run into a neighbour. */
+  limits?: { floor: number; ceiling: number }
   onChange: (patch: Partial<Grid>) => void
   onClose: () => void
 }
@@ -33,9 +35,9 @@ type Props = {
 const asNumber = (v: number | [number, number]) => Math.round(typeof v === 'number' ? v : v[0])
 const titleCase = (s: string) => s.replace(/[-_]+/g, ' ').replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1))
 
-export default function BreakpointPanel({ open, grid, scale, isDefault, onChange, onClose }: Props) {
+export default function BreakpointPanel({ open, grid, scale, isDefault, limits, onChange, onClose }: Props) {
   // Slider positions while dragging. Null means "read the stored value".
-  const [draft, setDraft] = useState<Partial<Record<keyof Grid, number>>>({})
+  const [draft, setDraft] = useState<Partial<Record<keyof Grid | 'edge', number>>>({})
 
   useEffect(() => { setDraft({}) }, [grid.name, open])
 
@@ -45,9 +47,12 @@ export default function BreakpointPanel({ open, grid, scale, isDefault, onChange
     const i = scale.findIndex((s) => s.ref === ref)
     return i < 0 ? 0 : i
   }
+  // Slider values read as the token's name with its size in parens, as they do elsewhere.
   const tokenLabel = (index: number) => {
     const token = scale[index]
-    return token ? `${token.key} · ${token.px}px` : ''
+    if (!token) return ''
+    const name = token.key.charAt(0).toUpperCase() + token.key.slice(1)
+    return `${name} (${token.px}px)`
   }
 
   const sizeSlider = (
@@ -111,15 +116,24 @@ export default function BreakpointPanel({ open, grid, scale, isDefault, onChange
         {sizeSlider('Row gutter', 'rowGutter', grid.rowGutter)}
         {sizeSlider('Side margin', 'margin', grid.margin)}
 
-        {/* The base grid has no width — it is what applies when no breakpoint does. */}
-        {!isDefault && (
-          <>
+        {/* The base grid has no width — it is what applies when no breakpoint does. The others
+            carry a single edge; the rest of their range is imputed from their neighbours. */}
+        {!isDefault && (() => {
+          const up = grid.maxWidth == null
+          const stored = (up ? grid.minWidth : grid.maxWidth) ?? MIN_WIDTH
+          // The bounds are the neighbouring breakpoints, not a fixed range — a breakpoint that
+          // already sits below the usual minimum must still be representable.
+          const floor = Math.min(limits?.floor ?? 0, stored)
+          const ceiling = Math.max(Math.min(MAX_WIDTH, limits?.ceiling ?? MAX_WIDTH), stored)
+          const edge = stored
+          return (
             <Slider
-              value={draft.minWidth ?? grid.minWidth ?? MIN_WIDTH}
-              onChange={(v) => setDraft((d) => ({ ...d, minWidth: asNumber(v) }))}
-              onChangeCommitted={(v) => onChange({ minWidth: asNumber(v) })}
-              min={MIN_WIDTH}
-              max={MAX_WIDTH}
+              value={Math.min(Math.max(draft.edge ?? edge, floor), Math.max(floor, ceiling))}
+              onChange={(v) => setDraft((d) => ({ ...d, edge: asNumber(v) }))}
+              onChangeCommitted={(v) =>
+                onChange(up ? { minWidth: asNumber(v) } : { maxWidth: asNumber(v) })}
+              min={floor}
+              max={Math.max(floor, ceiling)}
               step={WIDTH_STEP}
               layer="layer-3"
               layout="stacked"
@@ -128,26 +142,10 @@ export default function BreakpointPanel({ open, grid, scale, isDefault, onChange
               showMinMaxLabels={false}
               valueLabel={(v: number) => `${v}px`}
               tooltipText={(v: number) => `${v}px`}
-              label={<Label layer="layer-3" layout="stacked">From</Label>}
+              label={<Label layer="layer-3" layout="stacked">Breakpoint</Label>}
             />
-            <Slider
-              value={draft.maxWidth ?? grid.maxWidth ?? MAX_WIDTH}
-              onChange={(v) => setDraft((d) => ({ ...d, maxWidth: asNumber(v) }))}
-              onChangeCommitted={(v) => onChange({ maxWidth: asNumber(v) })}
-              min={MIN_WIDTH}
-              max={MAX_WIDTH}
-              step={WIDTH_STEP}
-              layer="layer-3"
-              layout="stacked"
-              showInput={false}
-              showValueLabel
-              showMinMaxLabels={false}
-              valueLabel={(v: number) => `${v}px`}
-              tooltipText={(v: number) => `${v}px`}
-              label={<Label layer="layer-3" layout="stacked">To</Label>}
-            />
-          </>
-        )}
+          )
+        })()}
       </div>
     </Panel>
   )

@@ -20,6 +20,7 @@ import { genericLayerProperty, genericLayerText, palette, paletteCore, tokenOpac
 import { Checkbox } from '../../components/adapters/Checkbox'
 import { Button } from '../../components/adapters/Button'
 import { TextField } from '../../components/adapters/TextField'
+import { Dropdown } from '../../components/adapters/Dropdown'
 import { Textarea } from '../../components/adapters/Textarea'
 import { Modal } from '../../components/adapters/Modal'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -55,6 +56,72 @@ export type Grid = {
   columnGutter: string
   margin: string
 }
+
+/** A breakpoint's range as plain numbers; an open end reads as 0 or Infinity. */
+export const rangeOf = (g: Grid): [number, number] => [g.minWidth ?? 0, g.maxWidth ?? Number.POSITIVE_INFINITY]
+
+/**
+ * A breakpoint is defined by one width: its edge. Below the base grid that edge is a ceiling, above
+ * it a floor. The missing bound is imputed from the neighbouring breakpoints, which is what keeps
+ * the ranges unique — there is no way to express an overlap.
+ */
+export const edgeOf = (g: Grid): number | null => g.maxWidth ?? g.minWidth ?? null
+
+/**
+ * Rewrites every breakpoint's imputed bound so the ladder stays contiguous: the narrowest starts at
+ * 0, each next one starts just past the one below it, and a breakpoint above the base has no
+ * ceiling at all. Run after any edge changes.
+ */
+export function imputeRanges(brand: any): void {
+  const group = brand?.['layout-grids']
+  if (!group) return
+  const entries = Object.keys(group)
+    .filter((k) => !k.startsWith('$') && k !== DEFAULT_GRID)
+    .map((name) => ({ name, node: group[name] }))
+    .filter((e) => e.node && typeof e.node === 'object')
+
+  const ceilings = entries
+    .filter((e) => e.node['max-width'] != null)
+    .map((e) => ({ ...e, edge: numOrNull(e.node['max-width']) ?? 0 }))
+    .sort((a, b) => a.edge - b.edge)
+
+  let floor = 0
+  for (const entry of ceilings) {
+    if (floor > 0) entry.node['min-width'] = { $type: 'number', $value: floor }
+    else delete entry.node['min-width']
+    floor = entry.edge + 1
+  }
+
+  // Anything above the base keeps its floor as its edge and stays open-ended.
+  for (const entry of entries) {
+    if (entry.node['max-width'] == null) delete entry.node['max-width']
+  }
+}
+
+/** How far a breakpoint's edge may move before it would pass a neighbour's. */
+export function limitsFor(grids: Grid[], name: string): { floor: number; ceiling: number } {
+  const own = grids.find((g) => g.name === name)
+  const ownEdge = own ? edgeOf(own) : null
+  if (ownEdge == null) return { floor: 0, ceiling: Number.POSITIVE_INFINITY }
+  let floor = 0
+  let ceiling = Number.POSITIVE_INFINITY
+  for (const other of grids) {
+    if (other.name === name || other.name === DEFAULT_GRID) continue
+    const edge = edgeOf(other)
+    if (edge == null) continue
+    if (edge < ownEdge) floor = Math.max(floor, edge + 1)
+    if (edge > ownEdge) ceiling = Math.min(ceiling, edge - 1)
+  }
+  return { floor, ceiling }
+}
+
+/** The breakpoint whose range already covers this width, if any. */
+export const coveringRange = (grids: Grid[], width: number, exclude?: string): Grid | undefined =>
+  grids.find((g) => {
+    if (g.name === DEFAULT_GRID || g.name === exclude) return false
+    const [from, to] = rangeOf(g)
+    return width >= from && width <= to
+  })
 
 /** How a breakpoint's range reads on its tab. */
 export const rangeLabel = (g: Grid): string => {
@@ -128,19 +195,42 @@ export function readSampleText(): string {
 
 export type Style = { key: string; label: string; prefix: string; tag: string }
 
+/** Where a custom style records the element it is applied to. */
+const ELEMENT_EXT = 'com.recursica.element'
+
+/** The semantic elements a type style can be applied to. */
+export const ELEMENT_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'h1', label: 'Heading 1 (h1)' },
+  { value: 'h2', label: 'Heading 2 (h2)' },
+  { value: 'h3', label: 'Heading 3 (h3)' },
+  { value: 'h4', label: 'Heading 4 (h4)' },
+  { value: 'h5', label: 'Heading 5 (h5)' },
+  { value: 'h6', label: 'Heading 6 (h6)' },
+  { value: 'p', label: 'Paragraph (p)' },
+  { value: 'caption', label: 'Caption (caption)' },
+]
+
 /** Labels, heading tags and reading order for the styles a brand ships with. */
-const KNOWN: Record<string, { label: string; tag: string }> = {
+/**
+ * `tag` is what the sample renders as; `element` is the semantic element the style is applied to.
+ * They differ where an element cannot stand on its own — a <caption> outside a table is invalid.
+ */
+const KNOWN: Record<string, { label: string; tag: string; element?: string }> = {
   h1: { label: 'H1', tag: 'h1' },
   h2: { label: 'H2', tag: 'h2' },
   h3: { label: 'H3', tag: 'h3' },
   h4: { label: 'H4', tag: 'h4' },
   h5: { label: 'H5', tag: 'h5' },
   h6: { label: 'H6', tag: 'h6' },
-  body: { label: 'Body (p)', tag: 'p' },
-  caption: { label: 'Caption', tag: 'p' },
+  body: { label: 'Body (p)', tag: 'p', element: 'p' },
+  caption: { label: 'Caption (caption)', tag: 'p', element: 'caption' },
   overline: { label: 'Overline', tag: 'p' },
 }
 const KNOWN_ORDER = Object.keys(KNOWN)
+
+/** The key a typed name becomes. */
+const slugOf = (name: string) =>
+  name.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '')
 
 const titleCase = (key: string) =>
   key.replace(/[-_]+/g, ' ').replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1))
@@ -154,7 +244,9 @@ export function readStyles(themeJson: any): Style[] {
       key,
       label: KNOWN[key]?.label ?? titleCase(key),
       prefix: key,
-      tag: KNOWN[key]?.tag ?? 'p',
+      tag: KNOWN[key]?.tag
+        ?? typography[key]?.$extensions?.[ELEMENT_EXT]?.element
+        ?? 'p',
     }))
     .sort((a, b) => {
       const ai = KNOWN_ORDER.indexOf(a.key)
@@ -227,8 +319,11 @@ export default function TypeAndBreakpointsPage() {
   const [sampleDraft, setSampleDraft] = useState('')
   const [sampleOpen, setSampleOpen] = useState(false)
   const [newStyle, setNewStyle] = useState('')
+  const [newStyleTag, setNewStyleTag] = useState('p')
   const [styleModalOpen, setStyleModalOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [typeMenuOpen, setTypeMenuOpen] = useState(false)
+  const typeMenuRef = useRef<HTMLDivElement>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [renaming, setRenaming] = useState<string | null>(null)
   const [renameTo, setRenameTo] = useState('')
@@ -243,6 +338,15 @@ export default function TypeAndBreakpointsPage() {
     document.addEventListener('mousedown', onOutside)
     return () => document.removeEventListener('mousedown', onOutside)
   }, [menuOpen])
+
+  useEffect(() => {
+    if (!typeMenuOpen) return
+    const onOutside = (e: MouseEvent) => {
+      if (typeMenuRef.current && !typeMenuRef.current.contains(e.target as Node)) setTypeMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onOutside)
+    return () => document.removeEventListener('mousedown', onOutside)
+  }, [typeMenuOpen])
 
 
   // CSS vars change outside React; re-render so the samples reflect the current values.
@@ -273,29 +377,37 @@ export default function TypeAndBreakpointsPage() {
   }
 
   const writeGrid = (name: string, patch: Partial<Grid>) => {
+    // An edge cannot move past the breakpoints either side of it.
+    const { floor, ceiling } = limitsFor(grids, name)
+    const clampEdge = (v: number) => Math.min(Math.max(v, floor), ceiling)
+
     commitTheme((brand) => {
       if (!brand['layout-grids']) brand['layout-grids'] = {}
       const entry = { ...(brand['layout-grids'][name] ?? {}) }
-      // Carry a legacy single `gutter` onto both axes before dropping it, so editing one field
-      // never throws the other value away.
       // The base grid is what applies when no breakpoint does, so it never carries a width —
       // clear one left behind by an older brand.
       if (name === DEFAULT_GRID) {
         delete entry['max-width']
         delete entry['min-width']
       }
+      // Carry a legacy single `gutter` onto both axes before dropping it, so editing one field
+      // never throws the other value away.
       const legacy = entry[LEGACY_GUTTER]
       if (legacy !== undefined) {
         if (entry['row-gutter'] === undefined) entry['row-gutter'] = legacy
         if (entry['column-gutter'] === undefined) entry['column-gutter'] = legacy
         delete entry[LEGACY_GUTTER]
       }
-      if (patch.maxWidth !== undefined) entry['max-width'] = { $type: 'number', $value: patch.maxWidth }
+      if (patch.maxWidth != null) entry['max-width'] = { $type: 'number', $value: clampEdge(patch.maxWidth) }
+      if (patch.minWidth != null) entry['min-width'] = { $type: 'number', $value: clampEdge(patch.minWidth) }
       if (patch.columns !== undefined) entry.columns = { $type: 'number', $value: patch.columns }
       if (patch.rowGutter !== undefined) entry['row-gutter'] = { $type: 'number', $value: patch.rowGutter }
       if (patch.columnGutter !== undefined) entry['column-gutter'] = { $type: 'number', $value: patch.columnGutter }
       if (patch.margin !== undefined) entry.margin = { $type: 'number', $value: patch.margin }
       brand['layout-grids'][name] = entry
+      // Moving one edge moves the neighbour's imputed bound with it, so the ladder stays
+      // contiguous — no gaps, no overlaps.
+      imputeRanges(brand)
     })
   }
 
@@ -303,33 +415,39 @@ export default function TypeAndBreakpointsPage() {
    * A new breakpoint needs a name and a width. Which side of the base grid it applies on comes
    * from that width: narrower than a desktop container applies up to it, wider applies from it.
    */
-  const addBreakpoint = () => {
-    const name = newName.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '')
+  /** A name already in use, so Create can say so rather than quietly doing nothing. */
+  const nameConflict = useMemo(() => {
+    const name = slugOf(newName)
+    if (!name) return undefined
+    if (name === DEFAULT_GRID) return 'default'
+    return grids.find((g) => g.name === name)?.name
+  }, [newName, grids])
+
+  /** Two breakpoints cannot share an edge — that would leave one of them with no range at all. */
+  const widthConflict = useMemo(() => {
     const width = Number(newWidth)
-    if (!name || name === DEFAULT_GRID) return
-    // A second Create on a name that now exists just opens it, rather than leaving the modal up.
-    if (grids.some((g) => g.name === name)) {
-      setSelectedBp(name)
-      setAdding(false)
-      return
-    }
+    if (!Number.isFinite(width) || width <= 0) return undefined
+    return grids.find((g) => g.name !== DEFAULT_GRID && edgeOf(g) === width)
+  }, [newWidth, grids])
+
+  const addBreakpoint = () => {
+    const name = slugOf(newName)
+    const width = Number(newWidth)
+    if (!name || nameConflict || widthConflict) return
     if (!Number.isFinite(width) || width <= 0) return
     const base = grids.find((g) => g.name === DEFAULT_GRID) ?? grids[0]
+    // The width given is the breakpoint's edge; the other bound is imputed from its neighbours.
     const up = width >= DESKTOP_WIDTH
-    // The width given is the edge it applies at; the other bound comes from the breakpoints
-    // already there, so a new one slots in beside them instead of overlapping.
-    const bounds = up
-      ? { 'min-width': { $type: 'number', $value: width } }
-      : { 'min-width': { $type: 'number', $value: nextFloorBelow(width) }, 'max-width': { $type: 'number', $value: width } }
     commitTheme((brand) => {
       if (!brand['layout-grids']) brand['layout-grids'] = {}
       brand['layout-grids'][name] = {
-        ...bounds,
+        [up ? 'min-width' : 'max-width']: { $type: 'number', $value: width },
         columns: { $type: 'number', $value: up ? (base?.columns ?? 6) : Math.max(2, Math.round((base?.columns ?? 6) / 2)) },
         'row-gutter': { $type: 'number', $value: base?.rowGutter || scale[2]?.ref || '' },
         'column-gutter': { $type: 'number', $value: base?.columnGutter || scale[2]?.ref || '' },
         margin: { $type: 'number', $value: base?.margin || scale[2]?.ref || '' },
       }
+      imputeRanges(brand)
     })
     setSelectedBp(name)
     setNewName('')
@@ -352,15 +470,6 @@ export default function TypeAndBreakpointsPage() {
       `recursica-breakpoint-${grid.name}`,
       `width=${Math.min(width, 1600)},height=900`,
     )
-  }
-
-  /** The next width up from the widest breakpoint that already ends below this one. */
-  const nextFloorBelow = (width: number) => {
-    const below = grids
-      .map((g) => g.maxWidth)
-      .filter((w): w is number => w != null && w < width)
-      .sort((a, b) => b - a)[0]
-    return below != null ? below + 1 : 0
   }
 
   /**
@@ -411,9 +520,13 @@ export default function TypeAndBreakpointsPage() {
     const key = newStyle.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
     if (!key || styles.some((x) => x.key === key)) return
     commitTheme((brand) => {
-      const source = brand.typography?.body ?? brand.typography?.[styles[0]?.key]
+      // Start from the style that already uses this element, so the new one is a sane variant of it.
+      const sibling = Object.keys(KNOWN).find((k) => KNOWN[k].tag === newStyleTag)
+      const source = brand.typography?.[sibling ?? 'body'] ?? brand.typography?.[styles[0]?.key]
       if (!source) return
-      brand.typography[key] = JSON.parse(JSON.stringify(source))
+      const next = JSON.parse(JSON.stringify(source))
+      next.$extensions = { ...(next.$extensions ?? {}), [ELEMENT_EXT]: { element: newStyleTag } }
+      brand.typography[key] = next
     })
     setStyleModalOpen(false)
     setNewStyle('')
@@ -503,14 +616,6 @@ export default function TypeAndBreakpointsPage() {
                       >
                         Open window
                       </MenuItem>
-                      <MenuItem
-                        layer="layer-1"
-                        leadingIcon={<PencilSimple size={14} />}
-                        leadingIconType="icon"
-                        onClick={() => { setSampleDraft(sample); setSampleOpen(true); setMenuOpen(false) }}
-                      >
-                        Edit sample text
-                      </MenuItem>
                       {/* The base grid is not a breakpoint, so it cannot be renamed or deleted. */}
                       {!isDefault && (
                         <MenuItem
@@ -546,7 +651,6 @@ export default function TypeAndBreakpointsPage() {
               grid={grid}
               styles={styles}
               scale={scale}
-              sample={sample}
               themeJson={themeJson}
               mode={mode}
             />
@@ -557,8 +661,33 @@ export default function TypeAndBreakpointsPage() {
         {/* Type styles for this breakpoint */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
           <h2 style={{ ...styleOf('h2'), margin: 0 }}>Type</h2>
-          <Button variant="outline" size="small" icon={plusIcon} layer="layer-0"
-            onClick={() => { setNewStyle(''); setStyleModalOpen(true) }}>Add type style</Button>
+          <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <Button variant="outline" size="small" icon={plusIcon} layer="layer-0"
+              onClick={() => { setNewStyle(''); setNewStyleTag('p'); setStyleModalOpen(true) }}>Add type style</Button>
+            <div ref={typeMenuRef} style={{ position: 'relative' }}>
+              <Button
+                variant="text"
+                size="small"
+                layer="layer-0"
+                icon={<DotsThreeOutline size={16} weight="fill" />}
+                onClick={() => setTypeMenuOpen((prev) => !prev)}
+              />
+              {typeMenuOpen && (
+                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 100 }}>
+                  <Menu layer="layer-1">
+                    <MenuItem
+                      layer="layer-1"
+                      leadingIcon={<PencilSimple size={14} />}
+                      leadingIconType="icon"
+                      onClick={() => { setSampleDraft(sample); setSampleOpen(true); setTypeMenuOpen(false) }}
+                    >
+                      Edit sample text
+                    </MenuItem>
+                  </Menu>
+                </div>
+              )}
+            </div>
+          </span>
         </div>
 
         <div style={{ display: 'grid', gap: 16 }}>
@@ -631,12 +760,12 @@ export default function TypeAndBreakpointsPage() {
         onSecondaryAction={() => setSampleDraft(DEFAULT_SAMPLE)}
         layer="layer-0"
       >
-        <Textarea
+        {sampleOpen && <Textarea
           value={sampleDraft}
           onChange={(e: any) => setSampleDraft(typeof e === 'string' ? e : e?.target?.value ?? '')}
           layer="layer-1"
           disableTopBottomMargin
-        />
+        />}
       </Modal>
 
       <Modal
@@ -651,12 +780,12 @@ export default function TypeAndBreakpointsPage() {
         onSecondaryAction={() => setRenaming(null)}
         layer="layer-0"
       >
-        <TextField
+        {renaming && <TextField
           label="Name"
           value={renameTo}
           onChange={(e: any) => setRenameTo(typeof e === 'string' ? e : e?.target?.value ?? '')}
           layer="layer-1"
-        />
+        />}
       </Modal>
 
       <Modal
@@ -684,15 +813,16 @@ export default function TypeAndBreakpointsPage() {
         title="New breakpoint"
         primaryActionLabel="Create"
         onPrimaryAction={addBreakpoint}
-        primaryActionDisabled={!newName.trim() || !(Number(newWidth) > 0)}
+        primaryActionDisabled={!newName.trim() || !(Number(newWidth) > 0) || !!widthConflict || !!nameConflict}
         showSecondaryButton
         secondaryActionLabel="Cancel"
         onSecondaryAction={() => setAdding(false)}
         layer="layer-0"
       >
-        <TextField
+        {adding && <><TextField
           label="Name"
           placeholder="e.g. mobile"
+          errorText={nameConflict ? `${nameConflict} already exists` : undefined}
           value={newName}
           onChange={(e: any) => setNewName(typeof e === 'string' ? e : e?.target?.value ?? '')}
           layer="layer-1"
@@ -700,13 +830,14 @@ export default function TypeAndBreakpointsPage() {
         <TextField
           label="Width (px)"
           placeholder="e.g. 480"
+          errorText={widthConflict ? `${widthConflict.name} already ends at ${edgeOf(widthConflict)}px` : undefined}
           value={newWidth}
           onChange={(e: any) => {
             const raw = typeof e === 'string' ? e : e?.target?.value ?? ''
             setNewWidth(raw.replace(/[^0-9]/g, ''))
           }}
           layer="layer-1"
-        />
+        /></>}
       </Modal>
 
       <Modal
@@ -721,13 +852,21 @@ export default function TypeAndBreakpointsPage() {
         onSecondaryAction={() => setStyleModalOpen(false)}
         layer="layer-0"
       >
-        <TextField
+        {styleModalOpen && <><TextField
           label="Name"
           placeholder="e.g. lead"
           value={newStyle}
           onChange={(e: any) => setNewStyle(typeof e === 'string' ? e : e?.target?.value ?? '')}
           layer="layer-1"
         />
+        <Dropdown
+          label="Applies to"
+          items={ELEMENT_OPTIONS}
+          value={newStyleTag}
+          onChange={(v) => setNewStyleTag(v || 'p')}
+          layer="layer-1"
+          zIndex={10001}
+        /></>}
       </Modal>
 
       <TypeStylePanel
@@ -746,6 +885,7 @@ export default function TypeAndBreakpointsPage() {
           grid={grid}
           scale={scale}
           isDefault={isDefault}
+          limits={limitsFor(grids, grid.name)}
           onChange={(patch) => writeGrid(grid.name, patch)}
           onClose={() => setGridPanelOpen(false)}
         />

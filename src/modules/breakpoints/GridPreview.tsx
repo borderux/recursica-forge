@@ -8,26 +8,45 @@
 import { genericLayerProperty, palette, tokenOpacity } from '../../core/css/cssVarBuilder'
 import { styleOf, type Grid, type SizeToken, type Style } from './TypeAndBreakpointsPage'
 
-const PREVIEW_ROWS = 4
+/**
+ * The preview shows a heading, a subheading and a paragraph — enough to judge a layout. Each line
+ * is its own copy rather than the sample sentence repeated, so the block reads like a real page.
+ */
+const PREVIEW_COPY: Array<{ style: string; text: string }> = [
+  { style: 'h1', text: 'Nightfall at the Onyx Crossing' },
+  { style: 'h2', text: 'What the dwarf saw, and what the village wrote down' },
+  {
+    style: 'body',
+    text:
+      'Goblins have crossed here since the river was narrow enough to argue over, and every one ' +
+      'of them is measured against the onyx. The dwarf keeps the ledger, though he keeps it badly, ' +
+      'and the village has learned to read around his handwriting. Ask three of them how far the ' +
+      'last jump carried and you will get three numbers, a long silence, and a fourth number ' +
+      'nobody will stand behind.',
+  },
+]
+
+const PREVIEW_ROWS = PREVIEW_COPY.length
 
 type Props = {
   grid: Grid
   styles: Style[]
   scale: SizeToken[]
-  sample: string
   themeJson: any
   mode: string
   /** Fills the window rather than sitting in the page's container. */
   standalone?: boolean
 }
 
-export default function GridPreview({ grid, styles, scale, sample, themeJson, mode, standalone }: Props) {
+export default function GridPreview({ grid, styles, scale, themeJson, mode, standalone }: Props) {
   const pxOf = (ref: string, fallback: number) => scale.find((s) => s.ref === ref)?.px ?? fallback
   const colGap = pxOf(grid.columnGutter, 16)
   const rowGap = pxOf(grid.rowGutter, 24)
   const margin = pxOf(grid.margin, 24)
   const cols = Math.max(2, Math.min(24, grid.columns))
-  const samples = styles.slice(0, PREVIEW_ROWS)
+  // Fall back to whatever styles the brand has, in case it renamed or dropped the usual ones.
+  const samples = PREVIEW_COPY.map((row, i) =>
+    styles.find((st) => st.key === row.style) ?? styles[i]).filter(Boolean)
   const border = `var(${genericLayerProperty(1, 'border-color')})`
   const capped = grid.maxWidth != null || grid.minWidth != null
   const accent = 'var(--recursica_brand_palettes_core-colors_interactive_tone)'
@@ -51,8 +70,7 @@ export default function GridPreview({ grid, styles, scale, sample, themeJson, mo
       boxSizing: 'border-box',
     }}>
       <div style={{ display: 'grid', gap: rowGap }}>
-        {Array.from({ length: PREVIEW_ROWS }).map((_, r) => {
-          const s = samples[r]
+        {samples.map((s, r) => {
           return (
             <div key={r} style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: colGap }}>
               {/* Column guides sit behind the text so both read at once */}
@@ -65,7 +83,7 @@ export default function GridPreview({ grid, styles, scale, sample, themeJson, mo
                     const Tag = s.tag as any
                     return (
                       <Tag style={styleOf(s.prefix, { themeJson, breakpoint: grid.name, styleKey: s.key })}>
-                        {s.label} – {sample}
+                        {PREVIEW_COPY[r].text}
                       </Tag>
                     )
                   })()}

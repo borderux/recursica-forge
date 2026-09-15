@@ -540,7 +540,7 @@
                   },
                   "line-height": {
                     "$type": "number",
-                    "$value": "{tokens.font.line-heights.tall}"
+                    "$value": "{tokens.font.line-heights.default}"
                   },
                   "text-decoration": {
                     "$type": "string",
@@ -611,7 +611,7 @@
                   },
                   "line-height": {
                     "$type": "number",
-                    "$value": "{tokens.font.line-heights.tall}"
+                    "$value": "{tokens.font.line-heights.default}"
                   },
                   "text-decoration": {
                     "$type": "string",
