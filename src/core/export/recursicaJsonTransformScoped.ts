@@ -86,7 +86,13 @@ function pathToScopedVarName(path: string, scope: ScopeKind): string {
     const layerPrefix = `brand.themes.${scope.theme}.layers.layer-${scope.layer}.`
     if (path.startsWith(layerPrefix)) {
       const rest = path.slice(layerPrefix.length)
-      return PREFIX + 'brand_layer_' + scope.layer + '_' + escapeSegments(rest)
+      // Layer-less generic name: one shared name across all four layers, mirroring the ui-kit
+      // canonical pattern (getCanonicalUIKitPath, which drops the .layer-N. segment). The
+      // [data-recursica-theme][data-recursica-layer="N"] block overwrites this name per layer,
+      // and the theme-only block defaults it to layer-0 (see the layer-0 merge in the transform).
+      // Components reference the generic name and get the right layer from their ancestor's
+      // data-recursica-layer, instead of addressing brand_layer_0/1/2/3 by name.
+      return PREFIX + 'brand_layer_' + escapeSegments(rest)
     }
   }
   if ('theme' in scope && !('layer' in scope)) {
@@ -896,7 +902,7 @@ function formatScopedCss(
   css += ` *\n`
   css += ` *    Use (generic; correct):\n`
   css += ` *      var(--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_background)\n`
-  css += ` *      var(--recursica_brand_layer_0_properties_surface)\n`
+  css += ` *      var(--recursica_brand_layer_properties_surface)\n`
   css += ` *\n`
   css += ` *    Do not use (specific; wrong in component CSS):\n`
   css += ` *      var(--recursica_ui-kit_themes_light_layer_0_...)\n`
@@ -912,7 +918,7 @@ function formatScopedCss(
   css += ` *\n`
   css += ` * 5. Prefer ui-kit variables over brand layer variables in components\n`
   css += ` *    Use --recursica_ui-kit_* for component styling when a suitable token exists. Use\n`
-  css += ` *    --recursica_brand_layer_N_* only when you need layer surface/border/elevation directly\n`
+  css += ` *    --recursica_brand_layer_* only when you need layer surface/border/elevation directly\n`
   css += ` *    (e.g. for a Layer container).\n`
   css += ` *\n`
   css += ` * 6. Optional: use typography helper classes for type styles\n`

@@ -98,15 +98,43 @@ describe('recursicaJsonTransform (Scoped)', () => {
     // Match theme-only block (selector followed by {), not theme+layer selector
     const lightBlock = css.match(/\[data-recursica-theme="light"\]\s*\{[\s\S]*?^}/m)?.[0] ?? ''
     const darkBlock = css.match(/\[data-recursica-theme="dark"\]\s*\{[\s\S]*?^}/m)?.[0] ?? ''
-    expect(lightBlock).toMatch(/--recursica_brand_layer_0_/)
-    expect(darkBlock).toMatch(/--recursica_brand_layer_0_/)
+    // Layer-less generic name: the theme-only block defaults it to layer-0's value.
+    expect(lightBlock).toMatch(/--recursica_brand_layer_/)
+    expect(darkBlock).toMatch(/--recursica_brand_layer_/)
+  })
+
+  it('brand layer generic names are layer-less and overwritten per data-recursica-layer block', () => {
+    const result = recursicaJsonTransform(json)
+    const css = result[0].contents
+
+    // The same layer-less generic name is declared in each layer block, aliasing that
+    // layer's specific root var (mirrors the ui-kit canonical layer pattern).
+    const blockFor = (layer: string) =>
+      css.match(
+        new RegExp(
+          `\\[data-recursica-theme="light"\\]\\[data-recursica-layer="${layer}"\\],\\n\\[data-recursica-theme="light"\\] \\[data-recursica-layer="${layer}"\\] \\{([\\s\\S]*?)\\n\\}`
+        )
+      )?.[1] ?? ''
+    const layer1Block = blockFor('1')
+    const layer2Block = blockFor('2')
+
+    expect(layer1Block).toMatch(
+      /--recursica_brand_layer_elements_interactive_color:\s*var\(--recursica_brand_themes_light_layers_layer-1_elements_interactive_color\);/
+    )
+    expect(layer2Block).toMatch(
+      /--recursica_brand_layer_elements_interactive_color:\s*var\(--recursica_brand_themes_light_layers_layer-2_elements_interactive_color\);/
+    )
+
+    // Generic (aliased) brand layer names inside layer blocks must NOT carry a layer number.
+    expect(layer1Block).not.toMatch(/--recursica_brand_layer_\d+_[a-z]/)
+    expect(layer2Block).not.toMatch(/--recursica_brand_layer_\d+_[a-z]/)
   })
 
   it('dark layer-0 emits tone/on-tone for ui-kit (not only color/hover-color)', () => {
     const result = recursicaJsonTransform(json)
     const css = result[0].contents
-    expect(css).toMatch(/--recursica_brand_layer_0_elements_interactive_tone\b/)
-    expect(css).toMatch(/--recursica_brand_layer_0_elements_interactive_on-tone\b/)
+    expect(css).toMatch(/--recursica_brand_layer_elements_interactive_tone\b/)
+    expect(css).toMatch(/--recursica_brand_layer_elements_interactive_on-tone\b/)
   })
 
   it('includes typography helper classes from brand.typography with path-based names', () => {
