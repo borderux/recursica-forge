@@ -586,7 +586,7 @@ export default function TypeAndBreakpointsPage() {
                       cursor: 'pointer', font: 'inherit', fontSize: 14, textTransform: 'capitalize',
                     }}>
                     {g.name}{g.name !== DEFAULT_GRID
-                      ? ` · ${rangeLabel(g)}`
+                      ? ` (${rangeLabel(g)})`
                       : ''}
                   </button>
                 )
