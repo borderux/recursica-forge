@@ -32,6 +32,7 @@
  */
 
 import uikitTemplate from '../../../recursica_ui-kit.json'
+import { expandLayers } from '../uikit/expandLayers'
 import { sanitizeGoogleFontsUrl } from '../../modules/type/fontUtils'
 
 const TARGET_STRUCTURE_VERSION = '2.1.1'
@@ -301,7 +302,9 @@ export function migrateBrandTo2x(root: any): any {
 // at its 2.x path via `mapOldUikitPath`. Values with no 2.x home (hover/focus/
 // per-component disabled-opacity — all global in 2.x) are intentionally dropped.
 
-const CURRENT_UIKIT_TEMPLATE: any = (uikitTemplate as any)?.['ui-kit']
+// The bundled ui-kit is written in the short layer form; an overlay maps old values onto the
+// current structure path by path, so it needs the layers written out.
+const CURRENT_UIKIT_TEMPLATE: any = expandLayers((uikitTemplate as any)?.['ui-kit'])
 
 const FORM_INPUTS = new Set([
   'text-field', 'textarea', 'number-input', 'date-picker', 'time-picker',

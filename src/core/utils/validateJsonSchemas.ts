@@ -9,6 +9,7 @@
  *  - No non-standard $type values (custom types use $extensions.recursica.type + a DTCG base type or no $type)
  */
 
+import { expandLayers } from '../uikit/expandLayers'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 import brandSchema from '../../../schemas/brand.schema.json'
@@ -763,6 +764,11 @@ export function validateReferences(
   uikitJson: JsonLike,
   allowedWorkarounds: ReadonlySet<RefWorkaroundId> = DEFAULT_ALLOWED_REF_WORKAROUNDS
 ): RefValidationResult[] {
+  // A ui-kit written in the short layer form names only `layer-0` explicitly. Expanding here keeps
+  // the rule identical — every layer must still resolve — and means validation can never
+  // accidentally run against a file where three of the four layers are implied.
+  uikitJson = expandLayers(uikitJson)
+
   const combined: Record<string, unknown> = {
     brand: (brandJson as Record<string, unknown>)?.brand ?? brandJson,
     tokens: (tokensJson as Record<string, unknown>)?.tokens ?? tokensJson,

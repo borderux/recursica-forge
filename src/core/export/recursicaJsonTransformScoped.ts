@@ -11,6 +11,67 @@
  * - No generic names on root; no values in blocks that reference vars outside root.
  */
 
+/**
+ * The ui-kit may be written in the short layer form: a `layers` block holding `layer-0` in full,
+ * and the layers above it carrying only what they do differently. Every reference in it is a real
+ * token path, correct as written for the layer it sits in; expanding `layer-0` into the layers
+ * above shifts its layer references by the same distance, stopping at the top layer. That is how a
+ * card ends up one layer proud of the surface behind it.
+ *
+ * Expanding here means this transform accepts either form and emits exactly the same CSS.
+ * (Inlined rather than imported: this file is deliberately self-contained — see the header.)
+ */
+const LAYER_KEYS = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
+const BASE_LAYER_KEY = 'layer-0'
+const LAYERS_KEY = 'layers'
+
+function shiftLayerRefsInValue(value: unknown, distance: number): unknown {
+  if (distance === 0) return value
+  if (typeof value === 'string') {
+    return value.replace(/layers\.layer-(\d+)/g, (_m, n) =>
+      `layers.layer-${Math.min(Number(n) + distance, LAYER_KEYS.length - 1)}`)
+  }
+  if (Array.isArray(value)) return value.map((v) => shiftLayerRefsInValue(v, distance))
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(value)) out[k] = shiftLayerRefsInValue(v, distance)
+    return out
+  }
+  return value
+}
+
+function expandUIKitLayers<T>(node: T): T {
+  const walk = (n: any): any => {
+    if (Array.isArray(n)) return n.map(walk)
+    if (!n || typeof n !== 'object') return n
+    const blocks = n[LAYERS_KEY]
+    const blockKeys = blocks && typeof blocks === 'object' && !Array.isArray(blocks)
+      ? Object.keys(blocks).filter((k) => !k.startsWith('$'))
+      : []
+    if (blockKeys.length > 0 && blockKeys.every((k) => LAYER_KEYS.includes(k))) {
+      const out: Record<string, unknown> = {}
+      for (const [k, v] of Object.entries(n)) if (k !== LAYERS_KEY) out[k] = walk(v)
+      const base = blocks[BASE_LAYER_KEY]
+      LAYER_KEYS.forEach((layer, i) => {
+        const merged: Record<string, unknown> = {}
+        for (const [k, v] of Object.entries(base ?? {})) {
+          merged[k] = shiftLayerRefsInValue(JSON.parse(JSON.stringify(v)), i)
+        }
+        // An override is written for the layer it applies to, so it is used as-is.
+        for (const [k, v] of Object.entries(blocks[layer] ?? {})) {
+          merged[k] = JSON.parse(JSON.stringify(v))
+        }
+        out[layer] = walk(merged)
+      })
+      return out
+    }
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(n)) out[k] = walk(v)
+    return out
+  }
+  return walk(node)
+}
+
 const FILENAME = 'recursica_variables_scoped.css'
 const PREFIX = '--recursica_'
 const TRANSFORM_VERSION = '1.3.3'
@@ -633,6 +694,76 @@ function fillMissingLayerSpecificUIKitRootVars(rootVarsMap: Map<string, string>)
   }
 }
 
+/**
+ * The layer-agnostic form of a brand layer var: `--recursica_brand_layer_1_properties_surface`
+ * becomes `--recursica_brand_layer_properties_surface`. Each theme+layer block defines these to
+ * point at its own layer, so a value written with them resolves to whichever layer it lands in.
+ */
+function toLayerAgnosticBrandVar(name: string): string | null {
+  const m = /^(--recursica_brand_layer_)(\d+)_(.+)$/.exec(name)
+  return m ? `${m[1]}${m[3]}` : null
+}
+
+/**
+ * The canonical var name a per-(theme, layer) root name belongs to, as components spell it.
+ * `rootLayerSpecificNameToCanonical` above produces a doubled `ui-kit_ui-kit_` prefix; that is
+ * harmless where it is only used as a grouping key, but this has to match the real name.
+ */
+function canonicalFromLayerRootName(rootName: string): string | null {
+  const m = LAYER_SPECIFIC_ROOT_PATTERN.exec(rootName)
+  return m ? PREFIX + m[3] : null
+}
+
+/** Rewrites every brand layer reference in a value to its layer-agnostic form. */
+function withLayerAgnosticBrandRefs(value: string): string {
+  return value.replace(/--recursica_brand_layer_\d+_/g, '--recursica_brand_layer_')
+}
+
+/** The root var name for a property that is the same on every layer: mode in it, no layer. */
+function layerlessRootName(canonicalVarName: string, theme: 'light' | 'dark'): string {
+  return PREFIX + 'ui-kit_modes_' + theme + '_' + canonicalVarName.slice(PREFIX.length)
+}
+
+/**
+ * Finds the ui-kit properties that hold the same value on every layer, once a reference to
+ * "layer N's" brand var is read as "this layer's". They are the large majority, and each one costs
+ * eight root declarations plus eight aliases to say one thing. Emitting them once per mode, and
+ * letting the layer blocks supply the brand vars they point at, is what the cascade is for.
+ *
+ * Returns canonical var name → theme → the single value to emit.
+ */
+function collectLayerInvariantUIKitValues(
+  rootVarsMap: Map<string, string>
+): Map<string, Map<'light' | 'dark', string>> {
+  const byCanonical = new Map<string, Map<'light' | 'dark', Map<string, string>>>()
+  for (const [rootName, value] of rootVarsMap) {
+    const canonical = canonicalFromLayerRootName(rootName)
+    if (canonical == null) continue
+    const theme: 'light' | 'dark' = rootName.includes('_modes_dark_') ? 'dark' : 'light'
+    const layer = /_layer_(\d+)_/.exec(rootName)?.[1]
+    if (layer == null) continue
+    if (!byCanonical.has(canonical)) byCanonical.set(canonical, new Map())
+    const perTheme = byCanonical.get(canonical)!
+    if (!perTheme.has(theme)) perTheme.set(theme, new Map())
+    perTheme.get(theme)!.set(layer, value)
+  }
+
+  const invariant = new Map<string, Map<'light' | 'dark', string>>()
+  for (const [canonical, perTheme] of byCanonical) {
+    const values = new Map<'light' | 'dark', string>()
+    let sameEverywhere = true
+    for (const theme of ['light', 'dark'] as const) {
+      const byLayer = perTheme.get(theme)
+      if (!byLayer || byLayer.size !== 4) { sameEverywhere = false; break }
+      const agnostic = [...byLayer.values()].map(withLayerAgnosticBrandRefs)
+      if (new Set(agnostic).size !== 1) { sameEverywhere = false; break }
+      values.set(theme, agnostic[0])
+    }
+    if (sameEverywhere) invariant.set(canonical, values)
+  }
+  return invariant
+}
+
 /** Returns layer numbers (0–3) referenced in a CSS value string (e.g. var(--recursica_brand_layer_1_...)). */
 function getReferencedBrandLayers(value: string): number[] {
   const matches = value.matchAll(/--recursica_brand_layer_(\d+)_/g)
@@ -857,7 +988,9 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   const errors: TransformError[] = []
   // Split the optional breakpoint groups off first so the base output is unchanged by their
   // presence; they are rendered as media blocks after the base CSS is built.
-  const { base: baseJson, breakpoints } = extractBreakpoints(json, errors)
+  // Accept the collapsed layer form as well as the written-out one.
+  const input = { ...json, uikit: expandUIKitLayers((json as any).uikit) } as RecursicaJsonInput
+  const { base: baseJson, breakpoints } = extractBreakpoints(input, errors)
   const entries = flattenInput(baseJson)
 
   // 1. Build set of all root var names (so refs validate and we know what exists on root)
@@ -935,6 +1068,20 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
 
   fillMissingLayerSpecificUIKitRootVars(rootVarsMap)
 
+  // A property that reads the same on every layer is emitted once per mode instead of once per
+  // (mode, layer); the layer blocks below supply the layer-agnostic brand vars it points at.
+  const layerInvariant = collectLayerInvariantUIKitValues(rootVarsMap)
+  for (const [rootName] of [...rootVarsMap]) {
+    const canonical = canonicalFromLayerRootName(rootName)
+    if (canonical == null || !layerInvariant.has(canonical)) continue
+    rootVarsMap.delete(rootName)
+  }
+  for (const [canonical, perTheme] of layerInvariant) {
+    for (const [theme, value] of perTheme) {
+      rootVarsMap.set(layerlessRootName(canonical, theme), value)
+    }
+  }
+
   // 3. Build theme and theme+layer alias lists: genericName -> rootName (only aliases in blocks)
   const themeAliases = new Map<string, Array<{ genericName: string; rootName: string }>>()
   const themeLayerAliases = new Map<string, Array<{ genericName: string; rootName: string }>>()
@@ -947,6 +1094,13 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
       const canonicalName = pathToVarName(getCanonicalUIKitPath(path))
       for (const theme of ['light', 'dark'] as const) {
         const rootName = pathToRootVarNameLayerSpecificUIKit(path, theme)
+        if (layerInvariant.has(canonicalName)) {
+          // One alias in the theme block covers every layer.
+          if (layer !== '0') continue
+          if (!themeAliases.has(theme)) themeAliases.set(theme, [])
+          themeAliases.get(theme)!.push({ genericName: canonicalName, rootName: layerlessRootName(canonicalName, theme) })
+          continue
+        }
         const key = `${theme}+layer-${layer}`
         if (!themeLayerAliases.has(key)) themeLayerAliases.set(key, [])
         themeLayerAliases.get(key)!.push({ genericName: canonicalName, rootName })
@@ -1131,9 +1285,18 @@ function formatScopedCss(
     const aliases = themeAliases.get(theme) ?? []
     if (aliases.length === 0) continue
     const sorted = [...aliases].sort((a, b) => a.genericName.localeCompare(b.genericName))
+    // Layer 0 is the root's layer, so the theme block carries its layer-agnostic brand vars. An
+    // element inside a layer block gets that block's values instead.
+    const layer0 = (themeLayerAliases.get(`${theme}+layer-0`) ?? [])
+      .map(({ genericName, rootName }) => ({ name: toLayerAgnosticBrandVar(genericName), rootName }))
+      .filter((a): a is { name: string; rootName: string } => a.name != null)
+      .sort((a, b) => a.name.localeCompare(b.name))
     css += `[data-recursica-theme="${theme}"] {\n`
     for (const { genericName, rootName } of sorted) {
       css += `  ${genericName}: var(${rootName});\n`
+    }
+    for (const { name, rootName } of layer0) {
+      css += `  ${name}: var(${rootName});\n`
     }
     css += `}\n\n`
   }
@@ -1155,9 +1318,17 @@ function formatScopedCss(
     const aliases = themeLayerAliases.get(key) ?? []
     if (aliases.length === 0) continue
     const sorted = [...aliases].sort((a, b) => a.genericName.localeCompare(b.genericName))
+    // Layer-agnostic brand vars: the same values under a name with no layer number in it, so a
+    // ui-kit property written once at root resolves to whichever layer it is used in.
+    const agnostic = sorted
+      .map(({ genericName, rootName }) => ({ name: toLayerAgnosticBrandVar(genericName), rootName }))
+      .filter((a): a is { name: string; rootName: string } => a.name != null)
     css += `[data-recursica-theme="${theme}"][data-recursica-layer="${layer}"],\n[data-recursica-theme="${theme}"] [data-recursica-layer="${layer}"] {\n`
     for (const { genericName, rootName } of sorted) {
       css += `  ${genericName}: var(${rootName});\n`
+    }
+    for (const { name, rootName } of agnostic) {
+      css += `  ${name}: var(${rootName});\n`
     }
     css += `}\n\n`
   }

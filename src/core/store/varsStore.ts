@@ -6,6 +6,7 @@ import { buildLayerVars } from '../resolvers/layers'
 import { buildTypographyVars, type TypographyChoices } from '../resolvers/typography'
 import { reconcileUikitFontRefs } from '../import/migrateImportedJson'
 import { buildUIKitVars } from '../resolvers/uikit'
+import { expandLayers } from '../uikit/expandLayers'
 import { buildDimensionVars } from '../resolvers/dimensions'
 import { applyCssVars, type CssVarMap, clearAllCssVars } from '../css/apply'
 import { updateScopedCss, setThemeAttribute } from '../css/scopedCssEngine'
@@ -302,7 +303,7 @@ class VarsStore {
    * mutations from updateUIKitValue. Used by handleReset to build CSS vars from the truly
    * pristine file structure regardless of what user changes have accumulated in state.
    */
-  private readonly pristineUikit: JsonLike = JSON.parse(JSON.stringify(uikitImport))
+  private readonly pristineUikit: JsonLike = expandLayers(JSON.parse(JSON.stringify(uikitImport)))
   private readonly pristineBrand: JsonLike = JSON.parse(JSON.stringify(themeImport))
 
   constructor() {
@@ -401,7 +402,10 @@ class VarsStore {
     const tokens = sortFontTokenObjects(tokensRaw) || tokensRaw || {}
     themeImportRaw = cloneJSON(themeImportRaw)
     const theme = themeImportRaw?.brand ? themeImportRaw : { brand: themeImportRaw }
-    const uikit = cloneJSON(uikitRaw)
+    // The ui-kit may be written in the collapsed layer form; everything downstream — the
+    // resolvers, the adapters, the validators — expects all four layers, so expand it here, once,
+    // before it reaches the state.
+    const uikit = expandLayers(cloneJSON(uikitRaw))
     const palettes = defaultPaletteStore()
 
     // Ensure tokens is defined before passing to initElevationState

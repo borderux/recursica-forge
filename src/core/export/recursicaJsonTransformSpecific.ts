@@ -14,6 +14,67 @@
  * - Validate refs and values; throw with all errors if invalid
  */
 
+/**
+ * The ui-kit may be written in the short layer form: a `layers` block holding `layer-0` in full,
+ * and the layers above it carrying only what they do differently. Every reference in it is a real
+ * token path, correct as written for the layer it sits in; expanding `layer-0` into the layers
+ * above shifts its layer references by the same distance, stopping at the top layer. That is how a
+ * card ends up one layer proud of the surface behind it.
+ *
+ * Expanding here means this transform accepts either form and emits exactly the same CSS.
+ * (Inlined rather than imported: this file is deliberately self-contained — see the header.)
+ */
+const LAYER_KEYS = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
+const BASE_LAYER_KEY = 'layer-0'
+const LAYERS_KEY = 'layers'
+
+function shiftLayerRefsInValue(value: unknown, distance: number): unknown {
+  if (distance === 0) return value
+  if (typeof value === 'string') {
+    return value.replace(/layers\.layer-(\d+)/g, (_m, n) =>
+      `layers.layer-${Math.min(Number(n) + distance, LAYER_KEYS.length - 1)}`)
+  }
+  if (Array.isArray(value)) return value.map((v) => shiftLayerRefsInValue(v, distance))
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(value)) out[k] = shiftLayerRefsInValue(v, distance)
+    return out
+  }
+  return value
+}
+
+function expandUIKitLayers<T>(node: T): T {
+  const walk = (n: any): any => {
+    if (Array.isArray(n)) return n.map(walk)
+    if (!n || typeof n !== 'object') return n
+    const blocks = n[LAYERS_KEY]
+    const blockKeys = blocks && typeof blocks === 'object' && !Array.isArray(blocks)
+      ? Object.keys(blocks).filter((k) => !k.startsWith('$'))
+      : []
+    if (blockKeys.length > 0 && blockKeys.every((k) => LAYER_KEYS.includes(k))) {
+      const out: Record<string, unknown> = {}
+      for (const [k, v] of Object.entries(n)) if (k !== LAYERS_KEY) out[k] = walk(v)
+      const base = blocks[BASE_LAYER_KEY]
+      LAYER_KEYS.forEach((layer, i) => {
+        const merged: Record<string, unknown> = {}
+        for (const [k, v] of Object.entries(base ?? {})) {
+          merged[k] = shiftLayerRefsInValue(JSON.parse(JSON.stringify(v)), i)
+        }
+        // An override is written for the layer it applies to, so it is used as-is.
+        for (const [k, v] of Object.entries(blocks[layer] ?? {})) {
+          merged[k] = JSON.parse(JSON.stringify(v))
+        }
+        out[layer] = walk(merged)
+      })
+      return out
+    }
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(n)) out[k] = walk(v)
+    return out
+  }
+  return walk(node)
+}
+
 const FILENAME = 'recursica_variables_specific.css'
 const PREFIX = '--recursica_'
 const TRANSFORM_VERSION = '1.3.3'
@@ -628,7 +689,9 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   const errors: TransformError[] = []
   // Split the optional breakpoint groups off first so the base output is unchanged by their
   // presence; they are rendered as media blocks after the base CSS is built.
-  const { base: baseJson, breakpoints } = extractBreakpoints(json, errors)
+  // Accept the collapsed layer form as well as the written-out one.
+  const input = { ...json, uikit: expandUIKitLayers((json as any).uikit) } as RecursicaJsonInput
+  const { base: baseJson, breakpoints } = extractBreakpoints(input, errors)
   const entries = flattenInput(baseJson)
   const allVarNames = new Set(entries.map((e) => pathToVarName(e.path)))
   const varMap: Array<{ name: string; value: string; comment?: string }> = []
