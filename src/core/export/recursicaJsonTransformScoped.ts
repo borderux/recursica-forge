@@ -174,8 +174,8 @@ function pathToRootVarNameLayerSpecificUIKit(path: string, theme: 'light' | 'dar
   if (layer == null) return pathToVarName(path)
   const canonicalPath = getCanonicalUIKitPath(path)
   const canonicalVarName = pathToVarName(canonicalPath)
-  const withoutPrefix = canonicalVarName.slice(PREFIX.length)
-  return PREFIX + 'ui-kit_modes_' + theme + '_layer_' + layer + '_' + withoutPrefix
+  const rest = canonicalVarName.slice((PREFIX + 'ui-kit_').length)
+  return PREFIX + 'ui-kit_modes_' + theme + '_layer_' + layer + '_' + rest
 }
 
 /**
@@ -704,16 +704,6 @@ function toLayerAgnosticBrandVar(name: string): string | null {
   return m ? `${m[1]}${m[3]}` : null
 }
 
-/**
- * The canonical var name a per-(theme, layer) root name belongs to, as components spell it.
- * `rootLayerSpecificNameToCanonical` above produces a doubled `ui-kit_ui-kit_` prefix; that is
- * harmless where it is only used as a grouping key, but this has to match the real name.
- */
-function canonicalFromLayerRootName(rootName: string): string | null {
-  const m = LAYER_SPECIFIC_ROOT_PATTERN.exec(rootName)
-  return m ? PREFIX + m[3] : null
-}
-
 /** Rewrites every brand layer reference in a value to its layer-agnostic form. */
 function withLayerAgnosticBrandRefs(value: string): string {
   return value.replace(/--recursica_brand_layer_\d+_/g, '--recursica_brand_layer_')
@@ -721,7 +711,7 @@ function withLayerAgnosticBrandRefs(value: string): string {
 
 /** The root var name for a property that is the same on every layer: mode in it, no layer. */
 function layerlessRootName(canonicalVarName: string, theme: 'light' | 'dark'): string {
-  return PREFIX + 'ui-kit_modes_' + theme + '_' + canonicalVarName.slice(PREFIX.length)
+  return PREFIX + 'ui-kit_modes_' + theme + '_' + canonicalVarName.slice((PREFIX + 'ui-kit_').length)
 }
 
 /**
@@ -737,7 +727,7 @@ function collectLayerInvariantUIKitValues(
 ): Map<string, Map<'light' | 'dark', string>> {
   const byCanonical = new Map<string, Map<'light' | 'dark', Map<string, string>>>()
   for (const [rootName, value] of rootVarsMap) {
-    const canonical = canonicalFromLayerRootName(rootName)
+    const canonical = rootLayerSpecificNameToCanonical(rootName)
     if (canonical == null) continue
     const theme: 'light' | 'dark' = rootName.includes('_modes_dark_') ? 'dark' : 'light'
     const layer = /_layer_(\d+)_/.exec(rootName)?.[1]
@@ -1072,7 +1062,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   // (mode, layer); the layer blocks below supply the layer-agnostic brand vars it points at.
   const layerInvariant = collectLayerInvariantUIKitValues(rootVarsMap)
   for (const [rootName] of [...rootVarsMap]) {
-    const canonical = canonicalFromLayerRootName(rootName)
+    const canonical = rootLayerSpecificNameToCanonical(rootName)
     if (canonical == null || !layerInvariant.has(canonical)) continue
     rootVarsMap.delete(rootName)
   }

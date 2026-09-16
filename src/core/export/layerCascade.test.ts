@@ -118,4 +118,14 @@ describe('layer cascade', () => {
     // Was 10,438 when every layer-specific property was emitted per (mode, layer).
     expect(declarations).toBeLessThan(7000)
   })
+
+  it('names a root var once, not twice', () => {
+    // Three separate helpers build or read these names, and they only agree if each one treats
+    // `ui-kit_` as part of the prefix it strips. When one of them counted it as part of the rest,
+    // 1,648 vars came out as `--recursica_ui-kit_modes_dark_layer_0_ui-kit_components_…`. That
+    // still resolved — the same helper wrote the reference — but it is not the name this format
+    // documents, so it would mislead anyone reading the file or matching on it.
+    const declared = [...css.matchAll(/^\s*(--recursica_[\w-]+)\s*:/gm)].map((m) => m[1])
+    expect(declared.filter((n) => /ui-kit_.*_ui-kit_/.test(n))).toEqual([])
+  })
 })
