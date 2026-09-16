@@ -11,6 +11,67 @@
  * - No generic names on root; no values in blocks that reference vars outside root.
  */
 
+/**
+ * The ui-kit may be written in the short layer form: a `layers` block holding `layer-0` in full,
+ * and the layers above it carrying only what they do differently. Every reference in it is a real
+ * token path, correct as written for the layer it sits in; expanding `layer-0` into the layers
+ * above shifts its layer references by the same distance, stopping at the top layer. That is how a
+ * card ends up one layer proud of the surface behind it.
+ *
+ * Expanding here means this transform accepts either form and emits exactly the same CSS.
+ * (Inlined rather than imported: this file is deliberately self-contained — see the header.)
+ */
+const LAYER_KEYS = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
+const BASE_LAYER_KEY = 'layer-0'
+const LAYERS_KEY = 'layers'
+
+function shiftLayerRefsInValue(value: unknown, distance: number): unknown {
+  if (distance === 0) return value
+  if (typeof value === 'string') {
+    return value.replace(/layers\.layer-(\d+)/g, (_m, n) =>
+      `layers.layer-${Math.min(Number(n) + distance, LAYER_KEYS.length - 1)}`)
+  }
+  if (Array.isArray(value)) return value.map((v) => shiftLayerRefsInValue(v, distance))
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(value)) out[k] = shiftLayerRefsInValue(v, distance)
+    return out
+  }
+  return value
+}
+
+function expandUIKitLayers<T>(node: T): T {
+  const walk = (n: any): any => {
+    if (Array.isArray(n)) return n.map(walk)
+    if (!n || typeof n !== 'object') return n
+    const blocks = n[LAYERS_KEY]
+    const blockKeys = blocks && typeof blocks === 'object' && !Array.isArray(blocks)
+      ? Object.keys(blocks).filter((k) => !k.startsWith('$'))
+      : []
+    if (blockKeys.length > 0 && blockKeys.every((k) => LAYER_KEYS.includes(k))) {
+      const out: Record<string, unknown> = {}
+      for (const [k, v] of Object.entries(n)) if (k !== LAYERS_KEY) out[k] = walk(v)
+      const base = blocks[BASE_LAYER_KEY]
+      LAYER_KEYS.forEach((layer, i) => {
+        const merged: Record<string, unknown> = {}
+        for (const [k, v] of Object.entries(base ?? {})) {
+          merged[k] = shiftLayerRefsInValue(JSON.parse(JSON.stringify(v)), i)
+        }
+        // An override is written for the layer it applies to, so it is used as-is.
+        for (const [k, v] of Object.entries(blocks[layer] ?? {})) {
+          merged[k] = JSON.parse(JSON.stringify(v))
+        }
+        out[layer] = walk(merged)
+      })
+      return out
+    }
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(n)) out[k] = walk(v)
+    return out
+  }
+  return walk(node)
+}
+
 const FILENAME = 'recursica_variables_scoped.css'
 const PREFIX = '--recursica_'
 const TRANSFORM_VERSION = '1.3.3'
@@ -83,14 +144,14 @@ function pathToScopedVarName(path: string, scope: ScopeKind): string {
   if (scope === 'root') return pathToVarName(path)
   const escapeSegments = (s: string) => s.split('.').map((seg) => seg.replace(/_/g, '__')).join('_')
   if ('layer' in scope) {
-    const layerPrefix = `brand.themes.${scope.theme}.layers.layer-${scope.layer}.`
+    const layerPrefix = `brand.modes.${scope.theme}.layers.layer-${scope.layer}.`
     if (path.startsWith(layerPrefix)) {
       const rest = path.slice(layerPrefix.length)
       return PREFIX + 'brand_layer_' + scope.layer + '_' + escapeSegments(rest)
     }
   }
   if ('theme' in scope && !('layer' in scope)) {
-    const themePrefix = `brand.themes.${scope.theme}.`
+    const themePrefix = `brand.modes.${scope.theme}.`
     if (path.startsWith(themePrefix)) {
       const rest = path.slice(themePrefix.length)
       if (rest.startsWith('layers.') && /^layers\.layer-\d+\./.test(rest)) return pathToVarName(path)
@@ -106,30 +167,30 @@ function pathToScopedVarName(path: string, scope: ScopeKind): string {
  * Returns the root (specific) variable name for a layer-specific ui-kit path.
  * Includes theme and layer in the name so root has one var per (theme, layer).
  * Example: ui-kit.components.Modal.properties.colors.layer-0.background, theme 'dark'
- *   → --recursica_ui-kit_themes_dark_layer_0_components_Modal_properties_colors_background
+ *   → --recursica_ui-kit_modes_dark_layer_0_components_Modal_properties_colors_background
  */
 function pathToRootVarNameLayerSpecificUIKit(path: string, theme: 'light' | 'dark'): string {
   const layer = getLayerFromUIKitPath(path)
   if (layer == null) return pathToVarName(path)
   const canonicalPath = getCanonicalUIKitPath(path)
   const canonicalVarName = pathToVarName(canonicalPath)
-  const withoutPrefix = canonicalVarName.slice(PREFIX.length)
-  return PREFIX + 'ui-kit_themes_' + theme + '_layer_' + layer + '_' + withoutPrefix
+  const rest = canonicalVarName.slice((PREFIX + 'ui-kit_').length)
+  return PREFIX + 'ui-kit_modes_' + theme + '_layer_' + layer + '_' + rest
 }
 
 /**
  * Determines which scope block a path belongs to.
  * tokens, brand.typography, brand.dimensions, ui-kit (except layer-specific) → root.
  * Layer-specific ui-kit paths (ui-kit.*.layer-N.*) are handled separately: emitted in theme+layer blocks only.
- * brand.themes.{light|dark}.* (excluding layers) → theme.
- * brand.themes.{light|dark}.layers.layer-N.* → theme+layer.
+ * brand.modes.{light|dark}.* (excluding layers) → theme.
+ * brand.modes.{light|dark}.layers.layer-N.* → theme+layer.
  */
 function getScope(path: string): ScopeKind {
   if (path.startsWith('tokens.') || path.startsWith('brand.typography.') || path.startsWith('brand.dimensions.')) return 'root'
   if (path.startsWith('ui-kit.')) return 'root'
-  const themeLayer = path.match(/^brand\.themes\.(light|dark)\.layers\.layer-(\d+)\./)
+  const themeLayer = path.match(/^brand\.modes\.(light|dark)\.layers\.layer-(\d+)\./)
   if (themeLayer) return { theme: themeLayer[1] as 'light' | 'dark', layer: themeLayer[2] }
-  const themeOnly = path.match(/^brand\.themes\.(light|dark)\./)
+  const themeOnly = path.match(/^brand\.modes\.(light|dark)\./)
   if (themeOnly) return { theme: themeOnly[1] as 'light' | 'dark' }
   return 'root'
 }
@@ -154,11 +215,11 @@ function extractRefPath(ref: string): string {
 
 /**
  * Expands theme-relative refs using the current path as context.
- * e.g. brand.palettes.neutral.100 → brand.themes.light.palettes.neutral.100 when currentPath is in light theme.
+ * e.g. brand.palettes.neutral.100 → brand.modes.light.palettes.neutral.100 when currentPath is in light theme.
  */
 function expandRefPath(refPath: string, currentPath: string): string {
   let theme: string | null = null
-  const themeMatch = currentPath.match(/^brand\.themes\.(light|dark)\./)
+  const themeMatch = currentPath.match(/^brand\.modes\.(light|dark)\./)
   if (themeMatch) theme = themeMatch[1]
   else if (currentPath.startsWith('ui-kit.')) theme = 'light'
   if (!theme || !refPath.startsWith('brand.')) return refPath
@@ -167,12 +228,12 @@ function expandRefPath(refPath: string, currentPath: string): string {
   const themeScoped = ['palettes', 'elevations', 'layers', 'states', 'text-emphasis']
   for (const key of themeScoped) {
     if (afterBrand === key || afterBrand.startsWith(key + '.')) {
-      let expanded = `brand.themes.${theme}.${afterBrand}`
+      let expanded = `brand.modes.${theme}.${afterBrand}`
       if (afterBrand === 'palettes.black' || afterBrand === 'palettes.white' ||
           afterBrand === 'palettes.high-contrast' || afterBrand === 'palettes.low-contrast') {
         const colorKey = afterBrand.replace('palettes.', '')
         const normalizedKey = colorKey === 'black' ? 'high-contrast' : colorKey === 'white' ? 'low-contrast' : colorKey
-        expanded = `brand.themes.${theme}.palettes.core-colors.${normalizedKey}.tone`
+        expanded = `brand.modes.${theme}.palettes.core-colors.${normalizedKey}.tone`
       }
       return expanded
     }
@@ -200,16 +261,16 @@ function resolvePathAlias(path: string): string[] {
       candidates.push(path.replace(/\.me$/, '.md'))
     }
   }
-  const m = path.match(/^brand\.themes\.(light|dark)\.palettes\.(black|white|high-contrast|low-contrast)$/)
+  const m = path.match(/^brand\.modes\.(light|dark)\.palettes\.(black|white|high-contrast|low-contrast)$/)
   if (m) {
     const colorKey = m[2] === 'black' ? 'high-contrast' : m[2] === 'white' ? 'low-contrast' : m[2]
-    candidates.push(`brand.themes.${m[1]}.palettes.core-colors.${colorKey}.tone`)
+    candidates.push(`brand.modes.${m[1]}.palettes.core-colors.${colorKey}.tone`)
   }
-  const coreBlackWhiteShort = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-(black|white)$/)
-  if (coreBlackWhiteShort) candidates.push(`brand.themes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2] === 'black' ? 'high-contrast' : 'low-contrast'}.tone`)
-  const coreBlackWhite = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|high-contrast|low-contrast)$/)
+  const coreBlackWhiteShort = path.match(/^brand\.modes\.(light|dark)\.palettes\.core-(black|white)$/)
+  if (coreBlackWhiteShort) candidates.push(`brand.modes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2] === 'black' ? 'high-contrast' : 'low-contrast'}.tone`)
+  const coreBlackWhite = path.match(/^brand\.modes\.(light|dark)\.palettes\.core-colors\.(black|white|high-contrast|low-contrast)$/)
   if (coreBlackWhite) candidates.push(`${path}.tone`)
-  const coreColor = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(warning|success|alert)$/)
+  const coreColor = path.match(/^brand\.modes\.(light|dark)\.palettes\.core-colors\.(warning|success|alert)$/)
   if (coreColor) candidates.push(`${path}.tone`)
   const typographyProp = path.match(/^brand\.typography\.[^.]+\.(font-family|font-size|font-weight|letter-spacing|line-height|font-style|text-transform|text-case|text-decoration)$/)
   if (typographyProp) {
@@ -227,11 +288,11 @@ function resolvePathAlias(path: string): string[] {
     const camel = kebabToCamel[typographyProp[1]] || typographyProp[1].replace(/-([a-z])/g, (_, c) => c.toUpperCase())
     candidates.push(path.replace(new RegExp(typographyProp[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'), camel))
   }
-  const paletteLevel = path.match(/^brand\.themes\.(light|dark)\.palettes\.([^.]+)\.(\d{3,4}|default|primary)$/)
+  const paletteLevel = path.match(/^brand\.modes\.(light|dark)\.palettes\.([^.]+)\.(\d{3,4}|default|primary)$/)
   if (paletteLevel) candidates.push(`${path}.color.tone`)
 
-  const layersInteractiveColor = path.match(/^brand\.themes\.(light|dark)\.layers\.(layer-\d+)\.elements\.interactive\.color$/)
-  if (layersInteractiveColor) candidates.push(`brand.themes.${layersInteractiveColor[1]}.layers.${layersInteractiveColor[2]}.elements.interactive.tone`)
+  const layersInteractiveColor = path.match(/^brand\.modes\.(light|dark)\.layers\.(layer-\d+)\.elements\.interactive\.color$/)
+  if (layersInteractiveColor) candidates.push(`brand.modes.${layersInteractiveColor[1]}.layers.${layersInteractiveColor[2]}.elements.interactive.tone`)
 
   if (path.match(/^brand\.dimensions\.border-radii\.md$/)) candidates.push('brand.dimensions.border-radii.default')
   if (path.match(/^brand\.dimensions\.general\.xs$/)) candidates.push('brand.dimensions.general.sm')
@@ -258,7 +319,7 @@ function formatValue(
   options?: FormatValueRootOptions
 ): string | null {
   if (val == null) return null
-  const pathForExpand = options?.themeForExpand ? `brand.themes.${options.themeForExpand}.layers.layer-0` : currentPath
+  const pathForExpand = options?.themeForExpand ? `brand.modes.${options.themeForExpand}.layers.layer-0` : currentPath
   const refNamer = options?.refNamer ?? ((path: string) => pathToScopedVarName(path, getScope(path)))
 
   if (isRef(val)) {
@@ -482,7 +543,7 @@ function injectTypographyAliases(out: FlatEntry[]): void {
 function injectDarkLayer0InteractiveAliases(out: Array<{ path: string; value: unknown }>): void {
   const paths = new Set(out.map((e) => e.path))
   for (const layer of ['0', '1', '2', '3']) {
-    const base = `brand.themes.dark.layers.layer-${layer}.elements.interactive`
+    const base = `brand.modes.dark.layers.layer-${layer}.elements.interactive`
     const hasColor = paths.has(`${base}.color`)
     const hasHoverColor = paths.has(`${base}.hover-color`)
     const hasTone = paths.has(`${base}.tone`)
@@ -504,20 +565,20 @@ function injectDarkLayer0InteractiveAliases(out: Array<{ path: string; value: un
 }
 
 /**
- * Injects composite box-shadow vars for each elevation in brand.themes.{light,dark}.elevations.
+ * Injects composite box-shadow vars for each elevation in brand.modes.{light,dark}.elevations.
  * The composite is built from var refs to the part vars (x, y, blur, spread, color).
  */
 function injectElevationComposites(brand: Record<string, unknown>, out: Array<{ path: string; value: unknown }>): void {
-  const themes = (brand as Record<string, unknown>)?.themes as Record<string, unknown> | undefined
-  if (!themes) return
-  for (const [theme, themeData] of Object.entries(themes)) {
+  const modes = (brand as Record<string, unknown>)?.modes as Record<string, unknown> | undefined
+  if (!modes) return
+  for (const [theme, themeData] of Object.entries(modes)) {
     const elevations = (themeData as Record<string, unknown>)?.elevations as Record<string, unknown> | undefined
     if (!elevations) continue
     for (const [name, elev] of Object.entries(elevations)) {
       const v = elev as Record<string, unknown> | undefined
       const val = v?.$value as Record<string, unknown> | undefined
       if (!val || typeof val !== 'object') continue
-      const basePath = `brand.themes.${theme}.elevations.${name}`
+      const basePath = `brand.modes.${theme}.elevations.${name}`
       const x = pathToVarName(`${basePath}.x`)
       const y = pathToVarName(`${basePath}.y`)
       const blur = pathToVarName(`${basePath}.blur`)
@@ -554,7 +615,7 @@ function getLayerFromUIKitPath(path: string): string | null {
   return m ? m[1] : null
 }
 
-const LAYER_SPECIFIC_ROOT_PATTERN = /^--recursica_ui-kit_themes_(light|dark)_layer_(\d+)_(.+)$/
+const LAYER_SPECIFIC_ROOT_PATTERN = /^--recursica_ui-kit_modes_(light|dark)_layer_(\d+)_(.+)$/
 
 /** Extract canonical var name from a root layer-specific var name, or null if not layer-specific. */
 function rootLayerSpecificNameToCanonical(rootName: string): string | null {
@@ -572,7 +633,7 @@ function pathToRootVarNameFromCanonical(
   layer: string
 ): string {
   const rest = canonicalVarName.slice((PREFIX + 'ui-kit_').length)
-  return PREFIX + 'ui-kit_themes_' + theme + '_layer_' + layer + '_' + rest
+  return PREFIX + 'ui-kit_modes_' + theme + '_layer_' + layer + '_' + rest
 }
 
 /**
@@ -608,7 +669,7 @@ function validateLayerSpecificUIKitRootComplete(
 }
 
 /**
- * Ensures every canonical layer-specific ui-kit var has all 8 root vars (2 themes × 4 layers).
+ * Ensures every canonical layer-specific ui-kit var has all 8 root vars (2 modes × 4 layers).
  * Missing (theme, layer) combinations get a type-appropriate fallback from an existing value.
  */
 function fillMissingLayerSpecificUIKitRootVars(rootVarsMap: Map<string, string>): void {
@@ -619,18 +680,78 @@ function fillMissingLayerSpecificUIKitRootVars(rootVarsMap: Map<string, string>)
     if (!canonicalToExampleValue.has(canonical)) canonicalToExampleValue.set(canonical, value)
   }
 
-  const themes: Array<'light' | 'dark'> = ['light', 'dark']
+  const modes: Array<'light' | 'dark'> = ['light', 'dark']
   const layers = ['0', '1', '2', '3']
   for (const canonical of canonicalToExampleValue.keys()) {
     const exampleValue = canonicalToExampleValue.get(canonical) ?? 'transparent'
     const fallback = fallbackForMissingLayerVar(exampleValue)
-    for (const theme of themes) {
+    for (const theme of modes) {
       for (const layer of layers) {
         const name = pathToRootVarNameFromCanonical(canonical, theme, layer)
         if (!rootVarsMap.has(name)) rootVarsMap.set(name, fallback)
       }
     }
   }
+}
+
+/**
+ * The layer-agnostic form of a brand layer var: `--recursica_brand_layer_1_properties_surface`
+ * becomes `--recursica_brand_layer_properties_surface`. Each theme+layer block defines these to
+ * point at its own layer, so a value written with them resolves to whichever layer it lands in.
+ */
+function toLayerAgnosticBrandVar(name: string): string | null {
+  const m = /^(--recursica_brand_layer_)(\d+)_(.+)$/.exec(name)
+  return m ? `${m[1]}${m[3]}` : null
+}
+
+/** Rewrites every brand layer reference in a value to its layer-agnostic form. */
+function withLayerAgnosticBrandRefs(value: string): string {
+  return value.replace(/--recursica_brand_layer_\d+_/g, '--recursica_brand_layer_')
+}
+
+/** The root var name for a property that is the same on every layer: mode in it, no layer. */
+function layerlessRootName(canonicalVarName: string, theme: 'light' | 'dark'): string {
+  return PREFIX + 'ui-kit_modes_' + theme + '_' + canonicalVarName.slice((PREFIX + 'ui-kit_').length)
+}
+
+/**
+ * Finds the ui-kit properties that hold the same value on every layer, once a reference to
+ * "layer N's" brand var is read as "this layer's". They are the large majority, and each one costs
+ * eight root declarations plus eight aliases to say one thing. Emitting them once per mode, and
+ * letting the layer blocks supply the brand vars they point at, is what the cascade is for.
+ *
+ * Returns canonical var name → theme → the single value to emit.
+ */
+function collectLayerInvariantUIKitValues(
+  rootVarsMap: Map<string, string>
+): Map<string, Map<'light' | 'dark', string>> {
+  const byCanonical = new Map<string, Map<'light' | 'dark', Map<string, string>>>()
+  for (const [rootName, value] of rootVarsMap) {
+    const canonical = rootLayerSpecificNameToCanonical(rootName)
+    if (canonical == null) continue
+    const theme: 'light' | 'dark' = rootName.includes('_modes_dark_') ? 'dark' : 'light'
+    const layer = /_layer_(\d+)_/.exec(rootName)?.[1]
+    if (layer == null) continue
+    if (!byCanonical.has(canonical)) byCanonical.set(canonical, new Map())
+    const perTheme = byCanonical.get(canonical)!
+    if (!perTheme.has(theme)) perTheme.set(theme, new Map())
+    perTheme.get(theme)!.set(layer, value)
+  }
+
+  const invariant = new Map<string, Map<'light' | 'dark', string>>()
+  for (const [canonical, perTheme] of byCanonical) {
+    const values = new Map<'light' | 'dark', string>()
+    let sameEverywhere = true
+    for (const theme of ['light', 'dark'] as const) {
+      const byLayer = perTheme.get(theme)
+      if (!byLayer || byLayer.size !== 4) { sameEverywhere = false; break }
+      const agnostic = [...byLayer.values()].map(withLayerAgnosticBrandRefs)
+      if (new Set(agnostic).size !== 1) { sameEverywhere = false; break }
+      values.set(theme, agnostic[0])
+    }
+    if (sameEverywhere) invariant.set(canonical, values)
+  }
+  return invariant
 }
 
 /** Returns layer numbers (0–3) referenced in a CSS value string (e.g. var(--recursica_brand_layer_1_...)). */
@@ -690,6 +811,150 @@ function fallbackForMissingLayerVar(exampleValue: string): string {
  * Architecture: root has all specific (full-path) names; theme/layer blocks have only generic aliases.
  * See docs/SCOPED_CSS_ARCHITECTURE.md.
  */
+/* ── Breakpoints ───────────────────────────────────────────────────────────────
+ *
+ * `tokens.breakpoints.<name>` and `brand.breakpoints.<name>` are OPTIONAL groups holding a sparse
+ * tree at the same paths as the base, carrying only the tokens that differ at that breakpoint.
+ * No group means no responsive layer at all — the common case, and the reason nothing here runs
+ * for a brand that does not use it.
+ *
+ * This works because every emitted value is a var() reference back to a single primitive
+ * declaration: re-declaring just the overridden vars inside a media block re-resolves everything
+ * downstream, so the delta in the JSON is the delta in the CSS. There is no second full export.
+ *
+ * The condition comes from `$extensions.com.recursica.breakpoint.condition`, or is derived from
+ * the matching `brand.layout-grids.<name>`: a `max-width` makes a breakpoint that applies below the
+ * base grid, a `min-width` one that applies above it. The base grid itself declares neither — it is
+ * the plain CSS every breakpoint narrows or widens from.
+ */
+const BREAKPOINTS_KEY = 'breakpoints'
+const BREAKPOINT_EXT = 'com.recursica.breakpoint'
+
+type BreakpointOverride = {
+  name: string
+  condition: string
+  width: number
+  /** 'down' narrows from the base grid (max-width), 'up' widens from it (min-width). */
+  direction: 'down' | 'up'
+  trees: Array<{ prefix: string; tree: unknown }>
+}
+
+/** Reads a width off brand.layout-grids.<name>, following a `$value` wrapper. */
+function layoutGridWidth(brandRoot: any, name: string, key: 'max-width' | 'min-width'): number | null {
+  const node = brandRoot?.['layout-grids']?.[name]?.[key]
+  const raw = node && typeof node === 'object' && '$value' in node ? node.$value : node
+  const num = typeof raw === 'number' ? raw : Number(raw)
+  return Number.isFinite(num) ? num : null
+}
+
+/**
+ * Splits the breakpoint groups off tokens/brand. Returns the input with those groups removed — so
+ * the base output is byte-identical to a file that never had them — plus one entry per breakpoint.
+ */
+function extractBreakpoints(
+  json: RecursicaJsonInput,
+  errors: TransformError[]
+): { base: RecursicaJsonInput; breakpoints: BreakpointOverride[] } {
+  const base: any = { ...json }
+  const collected = new Map<string, { trees: Array<{ prefix: string; tree: unknown }>; ext?: any }>()
+
+  for (const key of ['tokens', 'brand'] as const) {
+    const wrapper: any = (json as any)[key]
+    if (!wrapper || typeof wrapper !== 'object') continue
+    const wrapped = wrapper[key] && typeof wrapper[key] === 'object'
+    const root: any = wrapped ? wrapper[key] : wrapper
+    const group = root?.[BREAKPOINTS_KEY]
+    if (!group || typeof group !== 'object') continue
+
+    const strippedRoot: any = { ...root }
+    delete strippedRoot[BREAKPOINTS_KEY]
+    base[key] = wrapped ? { ...wrapper, [key]: strippedRoot } : strippedRoot
+
+    for (const [name, tree] of Object.entries<any>(group)) {
+      if (name.startsWith('$') || !tree || typeof tree !== 'object') continue
+      const { $extensions, ...overrides } = tree
+      const entry = collected.get(name) ?? { trees: [] }
+      entry.trees.push({ prefix: key, tree: overrides })
+      const ext = $extensions?.[BREAKPOINT_EXT]
+      if (ext) entry.ext = ext
+      collected.set(name, entry)
+    }
+  }
+
+  const brandRoot: any = (base.brand as any)?.brand ?? base.brand
+  const breakpoints: BreakpointOverride[] = []
+
+  for (const [name, { trees, ext }] of collected) {
+    const declared = typeof ext?.condition === 'string' ? ext.condition.trim() : ''
+    const maxWidth = layoutGridWidth(brandRoot, name, 'max-width')
+    const minWidth = layoutGridWidth(brandRoot, name, 'min-width')
+    // A breakpoint usually has both bounds, which makes one query with two conditions.
+    const parts: string[] = []
+    if (minWidth != null) parts.push(`(min-width: ${minWidth}px)`)
+    if (maxWidth != null) parts.push(`(max-width: ${maxWidth}px)`)
+    const derived = parts.join(' and ')
+    const condition = declared || derived
+    if (!condition) {
+      errors.push({
+        path: `breakpoints.${name}`,
+        message: `Breakpoint "${name}" has no condition: add $extensions["${BREAKPOINT_EXT}"].condition, or a brand.layout-grids.${name}.max-width (applies below the base grid) or .min-width (above it) to derive it from.`,
+      })
+      continue
+    }
+    // A bounded breakpoint is ordered by its ceiling, one that only has a floor by that floor.
+    const declaredMax = Number(/max-width:\s*(\d+(?:\.\d+)?)/.exec(condition)?.[1])
+    const declaredMin = Number(/min-width:\s*(\d+(?:\.\d+)?)/.exec(condition)?.[1])
+    const ceiling = maxWidth ?? (Number.isFinite(declaredMax) ? declaredMax : null)
+    const floor = minWidth ?? (Number.isFinite(declaredMin) ? declaredMin : null)
+    const direction: 'down' | 'up' = ceiling != null ? 'down' : 'up'
+    const width = ceiling ?? floor ?? Number.POSITIVE_INFINITY
+    breakpoints.push({ name, condition, width, direction, trees })
+  }
+
+  return { base, breakpoints }
+}
+/**
+ * Renders one media block per breakpoint, holding only the overridden declarations.
+ *
+ * Ordered so the closest matching breakpoint is last and therefore wins. The max-width blocks come
+ * first, widest to narrowest: at 400px both `(max-width: 810px)` and `(max-width: 480px)` match, and
+ * the later block applies. The min-width blocks follow, narrowest to widest, for the same reason in
+ * the other direction. Ordering off the declared widths rather than key order keeps output
+ * independent of how the JSON happens to be written.
+ */
+function renderBreakpointBlocks(
+  breakpoints: BreakpointOverride[],
+  allRootNames: Set<string>,
+  errors: TransformError[]
+): string {
+  if (breakpoints.length === 0) return ''
+  const blocks: string[] = []
+
+  const ordered = [...breakpoints].sort((a, b) => {
+    if (a.direction !== b.direction) return a.direction === 'down' ? -1 : 1
+    return a.direction === 'down' ? b.width - a.width : a.width - b.width
+  })
+  for (const bp of ordered) {
+    const decls: string[] = []
+    for (const { prefix, tree } of bp.trees) {
+      const entries: FlatEntry[] = []
+      collectVars(tree, prefix, entries)
+      for (const { path, value, type } of entries) {
+        let formatted = formatValue(value, path, allRootNames, errors, {
+          refNamer: (p: string) => isLayerSpecificUIKitPath(p) ? pathToRootVarNameLayerSpecificUIKit(p, 'light') : pathToVarName(p),
+        })
+        if (formatted == null) formatted = fallbackForNullByType(type)
+        if (formatted == null) continue
+        decls.push(`    ${pathToVarName(path)}: ${formatted};`)
+      }
+    }
+    if (decls.length === 0) continue
+    blocks.push(`/* Breakpoint: ${bp.name} */\n@media ${bp.condition} {\n  :root {\n${decls.join('\n')}\n  }\n}`)
+  }
+
+  return blocks.length ? `\n${blocks.join('\n\n')}\n` : ''
+}
+
 /**
  * A token with `$value: null` has no value to emit: `null` means "no declaration", not "some
  * empty value". Layer-specific ui-kit vars still take a type fallback (`transparent`, `0`) because
@@ -710,8 +975,13 @@ function isNullStringToken(value: unknown, tokenType: string | undefined): boole
 }
 
 export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
-  const entries = flattenInput(json)
   const errors: TransformError[] = []
+  // Split the optional breakpoint groups off first so the base output is unchanged by their
+  // presence; they are rendered as media blocks after the base CSS is built.
+  // Accept the collapsed layer form as well as the written-out one.
+  const input = { ...json, uikit: expandUIKitLayers((json as any).uikit) } as RecursicaJsonInput
+  const { base: baseJson, breakpoints } = extractBreakpoints(input, errors)
+  const entries = flattenInput(baseJson)
 
   // 1. Build set of all root var names (so refs validate and we know what exists on root)
   const allRootNames = new Set<string>()
@@ -788,6 +1058,20 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
 
   fillMissingLayerSpecificUIKitRootVars(rootVarsMap)
 
+  // A property that reads the same on every layer is emitted once per mode instead of once per
+  // (mode, layer); the layer blocks below supply the layer-agnostic brand vars it points at.
+  const layerInvariant = collectLayerInvariantUIKitValues(rootVarsMap)
+  for (const [rootName] of [...rootVarsMap]) {
+    const canonical = rootLayerSpecificNameToCanonical(rootName)
+    if (canonical == null || !layerInvariant.has(canonical)) continue
+    rootVarsMap.delete(rootName)
+  }
+  for (const [canonical, perTheme] of layerInvariant) {
+    for (const [theme, value] of perTheme) {
+      rootVarsMap.set(layerlessRootName(canonical, theme), value)
+    }
+  }
+
   // 3. Build theme and theme+layer alias lists: genericName -> rootName (only aliases in blocks)
   const themeAliases = new Map<string, Array<{ genericName: string; rootName: string }>>()
   const themeLayerAliases = new Map<string, Array<{ genericName: string; rootName: string }>>()
@@ -800,6 +1084,13 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
       const canonicalName = pathToVarName(getCanonicalUIKitPath(path))
       for (const theme of ['light', 'dark'] as const) {
         const rootName = pathToRootVarNameLayerSpecificUIKit(path, theme)
+        if (layerInvariant.has(canonicalName)) {
+          // One alias in the theme block covers every layer.
+          if (layer !== '0') continue
+          if (!themeAliases.has(theme)) themeAliases.set(theme, [])
+          themeAliases.get(theme)!.push({ genericName: canonicalName, rootName: layerlessRootName(canonicalName, theme) })
+          continue
+        }
         const key = `${theme}+layer-${layer}`
         if (!themeLayerAliases.has(key)) themeLayerAliases.set(key, [])
         themeLayerAliases.get(key)!.push({ genericName: canonicalName, rootName })
@@ -831,6 +1122,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   }
 
   const css = formatScopedCss(rootVarsMap, themeAliases, themeLayerAliases, rootVarsComments, getSourceJsonVersion(json))
+    + renderBreakpointBlocks(breakpoints, allRootNames, errors)
   return [{ filename: FILENAME, contents: css }]
 }
 
@@ -899,8 +1191,8 @@ function formatScopedCss(
   css += ` *      var(--recursica_brand_layer_0_properties_surface)\n`
   css += ` *\n`
   css += ` *    Do not use (specific; wrong in component CSS):\n`
-  css += ` *      var(--recursica_ui-kit_themes_light_layer_0_...)\n`
-  css += ` *      var(--recursica_brand_themes_light_layers_layer-0_...)\n`
+  css += ` *      var(--recursica_ui-kit_modes_light_layer_0_...)\n`
+  css += ` *      var(--recursica_brand_modes_light_layers_layer-0_...)\n`
   css += ` *\n`
   css += ` *    The correct value for the generic name is set by the theme and layer of the element's\n`
   css += ` *    ancestors. Your component does not need to know theme or layer; it just uses the generic\n`
@@ -983,9 +1275,18 @@ function formatScopedCss(
     const aliases = themeAliases.get(theme) ?? []
     if (aliases.length === 0) continue
     const sorted = [...aliases].sort((a, b) => a.genericName.localeCompare(b.genericName))
+    // Layer 0 is the root's layer, so the theme block carries its layer-agnostic brand vars. An
+    // element inside a layer block gets that block's values instead.
+    const layer0 = (themeLayerAliases.get(`${theme}+layer-0`) ?? [])
+      .map(({ genericName, rootName }) => ({ name: toLayerAgnosticBrandVar(genericName), rootName }))
+      .filter((a): a is { name: string; rootName: string } => a.name != null)
+      .sort((a, b) => a.name.localeCompare(b.name))
     css += `[data-recursica-theme="${theme}"] {\n`
     for (const { genericName, rootName } of sorted) {
       css += `  ${genericName}: var(${rootName});\n`
+    }
+    for (const { name, rootName } of layer0) {
+      css += `  ${name}: var(${rootName});\n`
     }
     css += `}\n\n`
   }
@@ -1007,9 +1308,17 @@ function formatScopedCss(
     const aliases = themeLayerAliases.get(key) ?? []
     if (aliases.length === 0) continue
     const sorted = [...aliases].sort((a, b) => a.genericName.localeCompare(b.genericName))
+    // Layer-agnostic brand vars: the same values under a name with no layer number in it, so a
+    // ui-kit property written once at root resolves to whichever layer it is used in.
+    const agnostic = sorted
+      .map(({ genericName, rootName }) => ({ name: toLayerAgnosticBrandVar(genericName), rootName }))
+      .filter((a): a is { name: string; rootName: string } => a.name != null)
     css += `[data-recursica-theme="${theme}"][data-recursica-layer="${layer}"],\n[data-recursica-theme="${theme}"] [data-recursica-layer="${layer}"] {\n`
     for (const { genericName, rootName } of sorted) {
       css += `  ${genericName}: var(${rootName});\n`
+    }
+    for (const { name, rootName } of agnostic) {
+      css += `  ${name}: var(${rootName});\n`
     }
     css += `}\n\n`
   }

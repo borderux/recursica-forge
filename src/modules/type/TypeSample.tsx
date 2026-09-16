@@ -95,7 +95,7 @@ function getTokenValueWithOverrides(name: string | undefined, overrides: Record<
 
 function getThemeEntry(prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal' | 'line-height', theme: Record<string, any>) {
   const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
-  const key = `[themes][Light][font/${map[prefix] || prefix}/${prop}]`
+  const key = `[modes][Light][font/${map[prefix] || prefix}/${prop}]`
   const recRoot = ((theme as any)?.brand?.RecursicaBrand) || ((theme as any)?.RecursicaBrand)
   return (recRoot ? (recRoot as any)[key] : undefined) as ThemeRecord | undefined
 }

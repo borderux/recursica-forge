@@ -285,7 +285,7 @@ export default function ComponentDebugTable({
       <div style={{
         padding: 'var(--recursica_brand_dimensions_general_md)',
         color: `var(${genericLayerText(0, 'low-emphasis')})`,
-        fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+        fontSize: 'var(--recursica_brand_typography_caption-font-size)',
       }}>
         No CSS variables found for {componentName}
       </div>
@@ -320,7 +320,7 @@ export default function ComponentDebugTable({
         <table style={{
           width: '100%',
           borderCollapse: 'collapse',
-          fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+          fontSize: 'var(--recursica_brand_typography_caption-font-size)',
         }}>
           <thead>
             <tr style={{
@@ -378,7 +378,7 @@ export default function ComponentDebugTable({
                     padding: 'var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md)',
                     color: `var(${genericLayerText(0, 'color')})`,
                     fontFamily: 'monospace',
-                    fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                    fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                     borderRight: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
                     fontWeight: isHighlighted ? 700 : 400,
                   }}>
@@ -393,7 +393,7 @@ export default function ComponentDebugTable({
                       ? `var(${genericLayerProperty(1, 'surface')})`
                       : 'transparent',
                     fontFamily: 'monospace',
-                    fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                    fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                     borderRight: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
                   }}>
                     {v.currentValue || <span style={{ opacity: 0.5 }}>—</span>}

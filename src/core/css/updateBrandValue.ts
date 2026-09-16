@@ -4,7 +4,7 @@
  *
  * `cssVarToRef()` already contains battle-tested de-flattening rules that convert
  * CSS var flat segments back to nested JSON paths (e.g. `elements_text-alert` →
- * `elements.text.alert`). However, it also strips `themes.{mode}.` for component
+ * `elements.text.alert`). However, it also strips `modes.{mode}.` for component
  * theme-agnosticism. We use its output but restore the mode segment before
  * converting the ref to a navigation path array.
  */
@@ -17,7 +17,7 @@ import { cssVarToRef } from './cssVarBuilder'
  * Returns null for brand vars that don't include a mode segment.
  */
 function extractModeFromCssVar(cssVar: string): 'light' | 'dark' | null {
-  const m = cssVar.match(/--recursica_brand_themes_(light|dark)_/)
+  const m = cssVar.match(/--recursica_brand_modes_(light|dark)_/)
   return m ? (m[1] as 'light' | 'dark') : null
 }
 
@@ -28,7 +28,7 @@ function extractModeFromCssVar(cssVar: string): 'light' | 'dark' | null {
  *   1. Let `cssVarToRef` handle all the complex de-flattening (elements.text.alert,
  *      core-colors nesting, etc.) — it already has every rule encoded.
  *   2. Extract the mode from the raw CSS var name (before cssVarToRef strips it).
- *   3. Reconstruct the full mode-aware path: `brand.themes.{mode}.<rest>`.
+ *   3. Reconstruct the full mode-aware path: `brand.modes.{mode}.<rest>`.
  */
 function cssVarToJsonPath(cssVar: string): string[] | null {
   if (!cssVar.startsWith('--recursica_brand_')) return null
@@ -46,8 +46,8 @@ function cssVarToJsonPath(cssVar: string): string[] | null {
     return inner.split('.')
   }
 
-  // Reconstruct the full path with mode: brand.themes.{mode}.<rest>
-  return `brand.themes.${mode}.${afterBrand}`.split('.')
+  // Reconstruct the full path with mode: brand.modes.{mode}.<rest>
+  return `brand.modes.${mode}.${afterBrand}`.split('.')
 }
 
 export function updateBrandValue(cssVar: string, value: string): boolean {
@@ -65,12 +65,12 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
 
   if (resolvedRef) {
     jsonValue = resolvedRef
-    // cssVarToRef strips `themes.{mode}.` from brand refs. Re-inject it so the stored
+    // cssVarToRef strips `modes.{mode}.` from brand refs. Re-inject it so the stored
     // $value correctly points to the mode-specific path in the JSON (unless it is a global reference like dimensions or typography).
-    if (path.length > 2 && path[0] === 'brand' && path[1] === 'themes' && (path[2] === 'light' || path[2] === 'dark')) {
+    if (path.length > 2 && path[0] === 'brand' && path[1] === 'modes' && (path[2] === 'light' || path[2] === 'dark')) {
       const mode = path[2]
-      if (typeof jsonValue === 'string' && jsonValue.startsWith('{brand.') && !jsonValue.startsWith('{brand.themes.') && !jsonValue.startsWith('{brand.dimensions.') && !jsonValue.startsWith('{brand.typography.')) {
-        jsonValue = jsonValue.replace('{brand.', `{brand.themes.${mode}.`)
+      if (typeof jsonValue === 'string' && jsonValue.startsWith('{brand.') && !jsonValue.startsWith('{brand.modes.') && !jsonValue.startsWith('{brand.dimensions.') && !jsonValue.startsWith('{brand.typography.')) {
+        jsonValue = jsonValue.replace('{brand.', `{brand.modes.${mode}.`)
       }
     }
   } else if (/^elevation-\d+$/.test(value.trim())) {
@@ -80,14 +80,14 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
     // which points at nothing and is not a resolvable reference.
     //
     // This was previously masked: the Layers panel writes the JSON a second time via its own
-    // onUpdate handler, with the correct `{brand.themes.<mode>.elevations.<name>}`, and that
+    // onUpdate handler, with the correct `{brand.modes.<mode>.elevations.<name>}`, and that
     // happened to land after this one. Any caller without that second write — or a change in
     // ordering — would persist the malformed value.
-    const mode = (path[0] === 'brand' && path[1] === 'themes' && (path[2] === 'light' || path[2] === 'dark'))
+    const mode = (path[0] === 'brand' && path[1] === 'modes' && (path[2] === 'light' || path[2] === 'dark'))
       ? path[2]
       : null
     if (!mode) return false
-    jsonValue = `{brand.themes.${mode}.elevations.${value.trim()}}`
+    jsonValue = `{brand.modes.${mode}.elevations.${value.trim()}}`
   } else if (value.includes('var(')) {
     // A var() reference that cssVarToRef couldn't convert — cannot persist safely.
     return false

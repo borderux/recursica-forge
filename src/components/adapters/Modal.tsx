@@ -81,6 +81,26 @@ export function Modal({
     carbon,
 }: ModalProps) {
     const Component = useComponent('Modal')
+
+    /**
+     * Return submits an open modal, the way a form would. A textarea keeps Enter for newlines, and
+     * a disabled primary action means there is nothing valid to submit.
+     */
+    useEffect(() => {
+        if (!isOpen || !onPrimaryAction || primaryActionDisabled) return
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key !== 'Enter' || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.isComposing) return
+            const target = e.target as HTMLElement | null
+            if (target?.tagName === 'TEXTAREA' || target?.isContentEditable) return
+            // A focused button handles its own Enter; do not fire the primary action twice.
+            if (target?.tagName === 'BUTTON' || target?.getAttribute?.('role') === 'button') return
+            e.preventDefault()
+            onPrimaryAction()
+        }
+        // Capture phase: a library modal may stop the event before it bubbles to the document.
+        document.addEventListener('keydown', onKeyDown, true)
+        return () => document.removeEventListener('keydown', onKeyDown, true)
+    }, [isOpen, onPrimaryAction, primaryActionDisabled])
     const { mode } = useThemeMode()
 
     // Get elevation from CSS vars if not provided as props

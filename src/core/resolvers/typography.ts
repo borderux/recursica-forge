@@ -43,10 +43,13 @@ function safeGetCachedFontFamilyName(name: string): string {
 export type TypographyChoices = Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>
 
 export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides: Record<string, any> | undefined, choices: TypographyChoices | undefined): { vars: Record<string, string>; familiesToLoad: string[] } {
-  const PREFIXES = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle-1', 'subtitle-2', 'body-1', 'body-2', 'caption', 'overline']
   const tokenIndex = buildTokenIndex(tokens)
   const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
   const ttyp: any = troot?.typography || {}
+  // The styles are whatever the brand defines, so adding or removing one is a data change, not a
+  // code change. Falls back to the original list only for a brand with no typography at all.
+  const PREFIXES = Object.keys(ttyp).filter((k) => !k.startsWith('$'))
+  if (PREFIXES.length === 0) PREFIXES.push('h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body', 'caption', 'overline')
   const usedFamilies = new Set<string>()
   const vars: Record<string, string> = {}
   const readChoices = choices || {}
@@ -335,8 +338,10 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
   PREFIXES.forEach((p) => {
     const mapKey: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
     const brandKey = mapKey[p] || p
+    // Choices were stored under the old numbered names (body-1, subtitle-1), so look there too.
+    const legacyKey = Object.keys(mapKey).find((k) => mapKey[k] === brandKey)
     const spec: any = ttyp?.[brandKey]?.$value
-    const ch = readChoices[p] || {}
+    const ch = readChoices[p] || (legacyKey ? readChoices[legacyKey] : undefined) || {}
     // Use brandKey for CSS variable names to match recursica_brand.json naming
     const cssVarPrefix = brandKey
 

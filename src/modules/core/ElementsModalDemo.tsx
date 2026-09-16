@@ -22,31 +22,31 @@ export default function ElementsModalDemo() {
     try {
       const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-      const themes = root?.themes || root
+      const modes = root?.modes || root
       const newValue = `{tokens.opacities.${tokenKey}}`
 
       // Update both modes
       for (const mk of ['light', 'dark']) {
-        if (!themes[mk]) continue
+        if (!modes[mk]) continue
         if (path === 'text-emphasis-high') {
-          if (!themes[mk]['text-emphasis']) themes[mk]['text-emphasis'] = {}
-          const te = themes[mk]['text-emphasis']
+          if (!modes[mk]['text-emphasis']) modes[mk]['text-emphasis'] = {}
+          const te = modes[mk]['text-emphasis']
           if (te.high && typeof te.high === 'object' && '$value' in te.high) {
             te.high.$value = newValue
           } else {
             te.high = { $type: 'number', $value: newValue }
           }
         } else if (path === 'text-emphasis-low') {
-          if (!themes[mk]['text-emphasis']) themes[mk]['text-emphasis'] = {}
-          const te = themes[mk]['text-emphasis']
+          if (!modes[mk]['text-emphasis']) modes[mk]['text-emphasis'] = {}
+          const te = modes[mk]['text-emphasis']
           if (te.low && typeof te.low === 'object' && '$value' in te.low) {
             te.low.$value = newValue
           } else {
             te.low = { $type: 'number', $value: newValue }
           }
         } else if (path === 'state-disabled') {
-          if (!themes[mk].states) themes[mk].states = {}
-          const st = themes[mk].states
+          if (!modes[mk].states) modes[mk].states = {}
+          const st = modes[mk].states
           if (st.disabled && typeof st.disabled === 'object' && '$value' in st.disabled) {
             st.disabled.$value = newValue
           } else {
@@ -352,7 +352,7 @@ export default function ElementsModalDemo() {
                   const tokenKey = option.key
                   const opacityCssVar = tokenOpacity(tokenKey)
                   updateCssVar(textEmphasis(modeLower, 'high'), `var(${opacityCssVar})`)
-                  updateCssVar(`--recursica_brand_themes_${otherMode}_text-emphasis_high`, `var(${opacityCssVar})`)
+                  updateCssVar(`--recursica_brand_modes_${otherMode}_text-emphasis_high`, `var(${opacityCssVar})`)
                   persistToThemeJson('text-emphasis-high', tokenKey)
                   setSelectedHigh(val)
                 }
@@ -373,7 +373,7 @@ export default function ElementsModalDemo() {
                   const tokenKey = option.key
                   const opacityCssVar = tokenOpacity(tokenKey)
                   updateCssVar(textEmphasis(modeLower, 'low'), `var(${opacityCssVar})`)
-                  updateCssVar(`--recursica_brand_themes_${otherMode}_text-emphasis_low`, `var(${opacityCssVar})`)
+                  updateCssVar(`--recursica_brand_modes_${otherMode}_text-emphasis_low`, `var(${opacityCssVar})`)
                   persistToThemeJson('text-emphasis-low', tokenKey)
                   setSelectedLow(val)
                 }

@@ -43,11 +43,11 @@ All other keys (e.g. `alias` on color scale groups) are non-reserved and treated
 
 - **Curly-brace syntax**: `"{path.to.token}"` — a string value that references another token by path. The path is built from group and token names joined by `.`. References resolve to the referenced token's `$value`; resolution must follow the spec (e.g. no circular references).
 - **Target**: References must target **whole tokens** (objects with `$value`), not groups. The path must resolve to an object that has a `$value` property. Do not reference a group or an intermediate path that has no `$value`.
-- **Fully qualified paths (DTCG-aligned)**: We encourage **fully qualified** references — complete paths to the token that holds the value. For example: `{brand.themes.light.palettes.neutral.200.color.tone}`, `{tokens.sizes.3x}`, `{brand.themes.dark.palettes.palette-1.600.color.on-tone}`. No special or shorthand refs; the path should unambiguously identify the token. This aligns with DTCG and keeps resolution explicit.
+- **Fully qualified paths (DTCG-aligned)**: We encourage **fully qualified** references — complete paths to the token that holds the value. For example: `{brand.modes.light.palettes.neutral.200.color.tone}`, `{tokens.sizes.3x}`, `{brand.modes.dark.palettes.palette-1.600.color.on-tone}`. No special or shorthand refs; the path should unambiguously identify the token. This aligns with DTCG and keeps resolution explicit.
 
 #### Exception: theme-agnostic refs allowed in ui-kit
 
-Strict DTCG alignment would use fully qualified brand paths (including theme). In **recursica_ui-kit.json** only, we **allow** theme-agnostic brand references (e.g. `{brand.palettes.neutral.100.color.tone}` instead of `{brand.themes.light.palettes.neutral.100.color.tone}`) so that a single ui-kit file can be resolved against any theme at runtime. This is a pragmatic exception, not the preferred pattern elsewhere; the brand file and general guidance should use fully qualified refs to values (tokens), not groups, and should not rely on special ref forms outside the ui-kit.
+Strict DTCG alignment would use fully qualified brand paths (including theme). In **recursica_ui-kit.json** only, we **allow** theme-agnostic brand references (e.g. `{brand.palettes.neutral.100.color.tone}` instead of `{brand.modes.light.palettes.neutral.100.color.tone}`) so that a single ui-kit file can be resolved against any theme at runtime. This is a pragmatic exception, not the preferred pattern elsewhere; the brand file and general guidance should use fully qualified refs to values (tokens), not groups, and should not rely on special ref forms outside the ui-kit.
 
 ---
 
@@ -56,7 +56,7 @@ Strict DTCG alignment would use fully qualified brand paths (including theme). I
 | File | Root key | Role |
 |------|----------|------|
 | **recursica_tokens.json** | `tokens` | Primitive design tokens: color scales, sizes, font, opacities. No theme or layer. |
-| **recursica_brand.json** | `brand` | Theme-aware brand: themes (e.g. light/dark), layers, palettes, dimensions, elevations, states, text-emphasis. References `tokens.*` and `brand.*` paths. |
+| **recursica_brand.json** | `brand` | Theme-aware brand: modes (e.g. light/dark), layers, palettes, dimensions, elevations, states, text-emphasis. References `tokens.*` and `brand.*` paths. |
 | **recursica_ui-kit.json** | `ui-kit` | Component-level design: globals (form, icon, etc.) and per-component properties/variants. References `brand.*` and `tokens.*`. |
 
 All three are valid JSON and follow the same token/group and reference rules above.
@@ -80,8 +80,8 @@ This file has no theme or layer structure; it is the shared primitive token set.
 
 ## 4. recursica_brand.json (`brand`)
 
-- **Main groups**: `themes`, and under each theme (e.g. `light`, `dark`): `layers` (e.g. `layer-0`, `layer-1`), `palettes`, `elevations`, `states`, `text-emphasis`, `dimensions` (at theme or brand level as per schema), etc.
-- **Tokens**: Any object with `$value` is a token. Prefer **fully qualified** references (e.g. `{brand.themes.light.palettes.neutral.200.color.tone}`) so paths resolve to tokens, not groups, in line with DTCG.
+- **Main groups**: `modes`, and under each theme (e.g. `light`, `dark`): `layers` (e.g. `layer-0`, `layer-1`), `palettes`, `elevations`, `states`, `text-emphasis`, `dimensions` (at theme or brand level as per schema), etc.
+- **Tokens**: Any object with `$value` is a token. Prefer **fully qualified** references (e.g. `{brand.modes.light.palettes.neutral.200.color.tone}`) so paths resolve to tokens, not groups, in line with DTCG.
 - **Types used**: `color`, `number`, `dimension`, `elevation` (composite), and composite values (e.g. dimension with `value` + `unit`, where `value` can be a reference string like `"{tokens.sizes.2x}"`).
 - **Palettes**: Nested structure (e.g. `palettes.neutral.050.color.tone` / `on-tone`); each leaf that has `$value` is a token. Each palette may have a `default` key (with `color.tone` and `color.on-tone`) so that the ui-kit, when using its allowed theme-agnostic refs, can reference e.g. `{brand.palettes.palette-1.default.color.on-tone}`.
 

@@ -74,9 +74,9 @@ export default function PaletteColorControl({
     const modeLower = mode.toLowerCase()
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-      const themes = root?.themes || root
-      const modePal: any = themes?.[modeLower]?.palettes || themes?.[modeLower]?.palette || {}
+      // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+      const modes = root?.modes || root
+      const modePal: any = modes?.[modeLower]?.palettes || modes?.[modeLower]?.palette || {}
       Object.keys(modePal).forEach((k) => {
         if (k !== 'core' && k !== 'core-colors' && !dynamic.includes(k)) {
           staticPalettes.push(k)
@@ -92,9 +92,9 @@ export default function PaletteColorControl({
     paletteKeys.forEach((pk) => {
       try {
         const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-        // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-        const themes = root?.themes || root
-        const paletteData: any = themes?.[modeLower]?.palettes?.[pk] || themes?.[modeLower]?.palette?.[pk]
+        // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+        const modes = root?.modes || root
+        const paletteData: any = modes?.[modeLower]?.palettes?.[pk] || modes?.[modeLower]?.palette?.[pk]
         if (paletteData) {
           const levels = Object.keys(paletteData).filter((k) => /^(\d{2,4}|000|1000)$/.test(k))
           levels.sort((a, b) => {
@@ -115,7 +115,7 @@ export default function PaletteColorControl({
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
     const modeLower = mode.toLowerCase()
     const suffix = paletteKey.startsWith('core') ? '_tone' : '_color_tone'
-    return `--recursica_brand_themes_${modeLower}_palettes_${paletteKey}_${level}${suffix}`
+    return `--recursica_brand_modes_${modeLower}_palettes_${paletteKey}_${level}${suffix}`
   }
 
   // Helper to find palette swatch that matches a token hex
@@ -329,7 +329,7 @@ export default function PaletteColorControl({
             'success-tone', 'success'
           ]
           for (const coreKey of coreColorKeys) {
-            const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${coreKey.replace(/-tone$/, '_tone')}`
+            const coreCssVar = `--recursica_brand_modes_${modeLower}_palettes_core-colors_${coreKey.replace(/-tone$/, '_tone')}`
             const coreHex = readCssVarResolved(coreCssVar, 10)
             if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
               // Found a core color match! Format and return
@@ -495,7 +495,7 @@ export default function PaletteColorControl({
           'success-tone', 'success'
         ]
         for (const coreKey of coreColorKeys) {
-          const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${coreKey.replace(/-tone$/, '_tone')}`
+          const coreCssVar = `--recursica_brand_modes_${modeLower}_palettes_core-colors_${coreKey.replace(/-tone$/, '_tone')}`
           const coreHex = readCssVarResolved(coreCssVar, 10)
           if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
             // Found a core color match! Return the core color reference
@@ -590,7 +590,7 @@ export default function PaletteColorControl({
             'success-tone', 'success'
           ]
           for (const coreKey of coreColorKeys) {
-            const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${coreKey.replace(/-tone$/, '_tone')}`
+            const coreCssVar = `--recursica_brand_modes_${modeLower}_palettes_core-colors_${coreKey.replace(/-tone$/, '_tone')}`
             const coreHex = readCssVarResolved(coreCssVar, 10)
             if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
               // Found a core color match! Format and display
@@ -854,15 +854,15 @@ export default function PaletteColorControl({
   // Use the same border style as the overlay swatches
   // Match PaletteSwatchPicker's border style exactly
   // Use CSS variable reference directly (same as overlay) - template literal interpolation
-  const swatchBorderColorVar = `--recursica_brand_themes_${modeLower}_palettes_neutral_500_color_tone`
+  const swatchBorderColorVar = `--recursica_brand_modes_${modeLower}_palettes_neutral_500_color_tone`
   const swatchBorderColor = `var(${swatchBorderColorVar})`
 
   // Get highest layer number for background (same as PaletteSwatchPicker)
   const highestLayerNum = useMemo(() => {
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const themes = root?.themes || root
-      const layersData: any = themes?.[modeLower]?.layers || themes?.[modeLower]?.layer || {}
+      const modes = root?.modes || root
+      const layersData: any = modes?.[modeLower]?.layers || modes?.[modeLower]?.layer || {}
       const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
         const aNum = parseInt(a.replace('layer-', ''), 10)
         const bNum = parseInt(b.replace('layer-', ''), 10)
@@ -901,7 +901,7 @@ export default function PaletteColorControl({
           width: '100%',
           height: '100%',
           display: 'block',
-          background: `var(--recursica_brand_themes_${modeLower}_layers_layer-${highestLayerNum}_properties_surface)`,
+          background: `var(--recursica_brand_modes_${modeLower}_layers_layer-${highestLayerNum}_properties_surface)`,
           position: 'relative',
         }}
       >
@@ -923,7 +923,7 @@ export default function PaletteColorControl({
             y1={swatchSize - 2}
             x2={swatchSize - 2}
             y2="2"
-            stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral_500_color_tone)`}
+            stroke={`var(--recursica_brand_modes_${modeLower}_palettes_neutral_500_color_tone)`}
             strokeWidth="1.5"
             strokeLinecap="round"
           />

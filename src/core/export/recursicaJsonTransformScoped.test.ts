@@ -69,7 +69,7 @@ describe('recursicaJsonTransform (Scoped)', () => {
     const result = recursicaJsonTransform(json)
     const css = result[0].contents
     // Root holds all specific names; blocks only alias. Theme blocks reference root vars.
-    expect(css).toMatch(/var\(--recursica_brand_(palettes|themes)_/)
+    expect(css).toMatch(/var\(--recursica_brand_(palettes|modes)_/)
     expect(css).toMatch(/\[data-recursica-theme="light"\][\s\S]*?--recursica_brand_[^:]+:\s*var\(--recursica_/)
     expect(css).toMatch(/\[data-recursica-theme="dark"\][\s\S]*?--recursica_brand_[^:]+:\s*var\(--recursica_/)
   })
@@ -84,7 +84,7 @@ describe('recursicaJsonTransform (Scoped)', () => {
   it('handles minimal input without throwing', () => {
     const minimal = {
       tokens: { tokens: { colors: {}, sizes: {}, opacities: {}, font: {} } },
-      brand: { brand: { themes: { light: {}, dark: {} } } },
+      brand: { brand: { modes: { light: {}, dark: {} } } },
       uikit: { 'ui-kit': {} }
     }
     const result = recursicaJsonTransform(minimal)
@@ -115,7 +115,7 @@ describe('recursicaJsonTransform (Scoped)', () => {
     expect(css).toMatch(/typography helper classes/i)
     expect(css).toMatch(/\.recursica_brand_typography_h1\s*\{/)
     expect(css).toMatch(/\.recursica_brand_typography_body\s*\{/)
-    expect(css).toMatch(/recursica_brand_typography_body-small/)
+    expect(css).toMatch(/recursica_brand_typography_caption/)
   })
 
   it('throws an error if a typography group reference targets a non-existent typography set', () => {
@@ -145,14 +145,14 @@ describe('recursicaJsonTransform (Scoped)', () => {
     const result = recursicaJsonTransform(json)
     const css = result[0].contents
     // text-decoration: "underline" must be a bare keyword, not a quoted string
-    expect(css).toMatch(/--recursica_brand_themes_light_states_link_decoration:\s*underline;/)
+    expect(css).toMatch(/--recursica_brand_modes_light_states_link_decoration:\s*underline;/)
     // font-style: "normal" was already correct; confirm it still is
-    expect(css).toMatch(/--recursica_brand_themes_light_states_link_style:\s*normal;/)
+    expect(css).toMatch(/--recursica_brand_modes_light_states_link_style:\s*normal;/)
     // font-weight: "400" (a numeric string) must be emitted bare, not quoted
-    expect(css).toMatch(/--recursica_brand_themes_light_states_link_weight:\s*400;/)
+    expect(css).toMatch(/--recursica_brand_modes_light_states_link_weight:\s*400;/)
     // None of the three should ever appear quoted
-    expect(css).not.toMatch(/--recursica_brand_themes_light_states_link_decoration:\s*"underline";/)
-    expect(css).not.toMatch(/--recursica_brand_themes_light_states_link_weight:\s*"400";/)
+    expect(css).not.toMatch(/--recursica_brand_modes_light_states_link_decoration:\s*"underline";/)
+    expect(css).not.toMatch(/--recursica_brand_modes_light_states_link_weight:\s*"400";/)
   })
 
   // `$value: null` means "emit no declaration", not "emit an empty value" — `""` is not valid for

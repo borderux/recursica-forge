@@ -119,8 +119,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     const staticPalettes: string[] = []
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const themes = root?.themes || root
-      const modePal: any = themes?.[modeLower]?.palettes || themes?.[modeLower]?.palette || {}
+      const modes = root?.modes || root
+      const modePal: any = modes?.[modeLower]?.palettes || modes?.[modeLower]?.palette || {}
       Object.keys(modePal).forEach((k) => {
         if (k !== 'core' && k !== 'core-colors' && !dynamic.includes(k)) {
           staticPalettes.push(k)
@@ -201,9 +201,9 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     const norm = hex.trim().toLowerCase()
     if (!/^#[0-9a-f]{6}$/i.test(norm)) return null
     const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-    const themes = root?.themes || root
+    const modes = root?.modes || root
     for (const pk of paletteKeys) {
-      const pal: any = themes?.[modeLower]?.palettes?.[pk] || themes?.[modeLower]?.palette?.[pk] || {}
+      const pal: any = modes?.[modeLower]?.palettes?.[pk] || modes?.[modeLower]?.palette?.[pk] || {}
       const levels = Object.keys(pal).filter((k) => /^\d+$/.test(k))
       for (const level of levels) {
         const h = readCssVarResolved(buildPaletteCssVar(pk, level))
@@ -463,15 +463,15 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 try {
                   const themeCopy = getVarsStore().getLatestThemeCopy()
                   const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-                  const themes = root?.themes || root
+                  const modes = root?.modes || root
                   const isDark = targetOpacityCssVar.includes('-dark-')
                   const modeKey = isDark ? 'dark' : 'light'
 
-                  if (!themes[modeKey]) themes[modeKey] = {}
-                  if (!themes[modeKey].states) themes[modeKey].states = {}
-                  if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+                  if (!modes[modeKey]) modes[modeKey] = {}
+                  if (!modes[modeKey].states) modes[modeKey].states = {}
+                  if (!modes[modeKey].states.overlay) modes[modeKey].states.overlay = {}
 
-                  themes[modeKey].states.overlay.opacity = {
+                  modes[modeKey].states.overlay.opacity = {
                     $type: 'number',
                     $value: `{tokens.opacities.${val}}`
                   }
@@ -502,13 +502,13 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                   try {
                     const themeCopy = getVarsStore().getLatestThemeCopy()
                     const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-                    const themes = root?.themes || root
+                    const modes = root?.modes || root
                     const isDark = cssVarsToUpdate.some(v => v.includes('-dark-'))
                     const modeKey = isDark ? 'dark' : 'light'
-                    if (!themes[modeKey]) themes[modeKey] = {}
-                    if (!themes[modeKey].states) themes[modeKey].states = {}
-                    if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
-                    themes[modeKey].states.overlay.color = {
+                    if (!modes[modeKey]) modes[modeKey] = {}
+                    if (!modes[modeKey].states) modes[modeKey].states = {}
+                    if (!modes[modeKey].states.overlay) modes[modeKey].states.overlay = {}
+                    modes[modeKey].states.overlay.color = {
                       $type: 'color',
                       $value: null
                     }
@@ -527,7 +527,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 height: swatch,
                 cursor: 'pointer',
                 background: 'transparent',
-                border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                border: `1px solid ${isNoneSelected ? `var(--recursica_brand_modes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_modes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                 position: 'relative',
                 padding: isNoneSelected ? '1px' : '0',
                 borderRadius: isNoneSelected ? '5px' : '0',
@@ -539,14 +539,14 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 height: '100%',
                 borderRadius: isNoneSelected ? '4px' : '0',
                 position: 'relative',
-                background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_surface)`
+                background: `var(--recursica_brand_modes_${modeLower}_layers_layer-3_properties_surface)`
               }}>
                 <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
-                  <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral_500_color_tone)`} strokeWidth="1.5" />
+                  <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica_brand_modes_${modeLower}_palettes_neutral_500_color_tone)`} strokeWidth="1.5" />
                 </svg>
                 {isNoneSelected && (
                   <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
-                    {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` }} /> : '✓'}
+                    {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_modes_${modeLower}_palettes_core_high-contrast)` }} /> : '✓'}
                   </div>
                 )}
               </div>
@@ -561,13 +561,13 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
           try {
             const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-            const themes = root?.themes || root
-            const coreColors: any = themes?.[modeLower]?.palettes?.['core-colors'] || {}
+            const modes = root?.modes || root
+            const coreColors: any = modes?.[modeLower]?.palettes?.['core-colors'] || {}
 
             coreColorNames.forEach(name => {
               if (coreColors[name] && coreColors[name].tone) {
-                const cssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${name}_tone`
-                const onToneCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${name}_on-tone`
+                const cssVar = `--recursica_brand_modes_${modeLower}_palettes_core-colors_${name}_tone`
+                const onToneCssVar = `--recursica_brand_modes_${modeLower}_palettes_core-colors_${name}_on-tone`
                 coreSwatches.push({
                   key: name,
                   label: name.charAt(0).toUpperCase() + name.slice(1),
@@ -643,15 +643,15 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                           try {
                             const themeCopy = getVarsStore().getLatestThemeCopy()
                             const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-                            const themes = root?.themes || root
+                            const modes = root?.modes || root
                             const isDark = cssVarsToUpdate.some(v => v.includes('-dark-'))
                             const modeKey = isDark ? 'dark' : 'light'
-                            if (!themes[modeKey]) themes[modeKey] = {}
-                            if (!themes[modeKey].states) themes[modeKey].states = {}
-                            if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
-                            themes[modeKey].states.overlay.color = {
+                            if (!modes[modeKey]) modes[modeKey] = {}
+                            if (!modes[modeKey].states) modes[modeKey].states = {}
+                            if (!modes[modeKey].states.overlay) modes[modeKey].states.overlay = {}
+                            modes[modeKey].states.overlay.color = {
                               $type: 'color',
-                              $value: `{brand.themes.${modeKey}.palettes.core-colors.${s.key}.tone}`
+                              $value: `{brand.modes.${modeKey}.palettes.core-colors.${s.key}.tone}`
                             }
                             getVarsStore().setThemeSilent(themeCopy)
                           } catch { }
@@ -670,7 +670,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         height: swatch,
                         cursor: 'pointer',
                         background: `var(${s.cssVar})`,
-                        border: `1px solid ${isCoreSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                        border: `1px solid ${isCoreSelected ? `var(--recursica_brand_modes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_modes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                         padding: isCoreSelected ? '1px' : '0',
                         borderRadius: isCoreSelected ? '5px' : '0',
                         boxSizing: 'border-box',
@@ -693,8 +693,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
           const swatches: { key: string; label: string; cssVar: string }[] = []
           try {
             const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-            const themes = root?.themes || root
-            const pal: any = themes?.[modeLower]?.palettes?.[pk] || themes?.[modeLower]?.palette?.[pk] || {}
+            const modes = root?.modes || root
+            const pal: any = modes?.[modeLower]?.palettes?.[pk] || modes?.[modeLower]?.palette?.[pk] || {}
 
             // Get keys and sort them: 1000 on the left to 000 on the right
             const keys = Object.keys(pal).filter(k => /^\d+$/.test(k))
@@ -756,15 +756,15 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                           try {
                             const themeCopy = getVarsStore().getLatestThemeCopy()
                             const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-                            const themes = root?.themes || root
+                            const modes = root?.modes || root
                             const isDark = cssVarsToUpdate.some(v => v.includes('-dark-'))
                             const modeKey = isDark ? 'dark' : 'light'
-                            if (!themes[modeKey]) themes[modeKey] = {}
-                            if (!themes[modeKey].states) themes[modeKey].states = {}
-                            if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
-                            themes[modeKey].states.overlay.color = {
+                            if (!modes[modeKey]) modes[modeKey] = {}
+                            if (!modes[modeKey].states) modes[modeKey].states = {}
+                            if (!modes[modeKey].states.overlay) modes[modeKey].states.overlay = {}
+                            modes[modeKey].states.overlay.color = {
                               $type: 'color',
-                              $value: `{brand.themes.${modeKey}.palettes.${pk}.${s.key}.tone}`
+                              $value: `{brand.modes.${modeKey}.palettes.${pk}.${s.key}.tone}`
                             }
                             getVarsStore().setThemeSilent(themeCopy)
                           } catch (err) { }
@@ -783,7 +783,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         height: swatch,
                         cursor: 'pointer',
                         background: `var(${s.cssVar})`,
-                        border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                        border: `1px solid ${isSelected ? `var(--recursica_brand_modes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_modes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                         padding: isSelected ? '1px' : '0',
                         borderRadius: isSelected ? '5px' : '0',
                         boxSizing: 'border-box',

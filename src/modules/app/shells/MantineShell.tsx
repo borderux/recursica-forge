@@ -325,7 +325,7 @@ export default function MantineShell({
                     <span
                       style={{
                         fontSize:
-                          "var(--recursica_brand_typography_body-small-font-size)",
+                          "var(--recursica_brand_typography_caption-font-size)",
                         color: `var(${layer0TextColor})`,
                         opacity: `var(${layer0TextLow})`,
                       }}
@@ -362,16 +362,16 @@ export default function MantineShell({
                                 style={{
                                   width: 14,
                                   height: 14,
-                                  color: `var(--recursica_brand_themes_${mode}_palettes_core-colors_alert_tone)`,
+                                  color: `var(--recursica_brand_modes_${mode}_palettes_core-colors_alert_tone)`,
                                 }}
                               />
                             ) : null;
                           })()}
-                          Theme
+                          Brand
                         </span>
                       </Tooltip>
                     ) : (
-                      <span>Theme</span>
+                      <span>Brand</span>
                     )}
                   </Tabs.Tab>
                   <Tabs.Tab value='components'>Components</Tabs.Tab>

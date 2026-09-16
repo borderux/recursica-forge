@@ -674,7 +674,7 @@ export function Slider({
             disableTopBottomMargin={true}
             className="recursica-slider-number-input"
             style={{
-              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+              fontSize: 'var(--recursica_brand_typography_caption-font-size)',
               margin: 0,
               width: `var(${inputWidthVar})`,
               height: `var(${inputHeightVar})`,

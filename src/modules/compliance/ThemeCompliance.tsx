@@ -213,8 +213,8 @@ export function ThemeCompliance({ issues, runScan, applySuggestion }: ThemeCompl
             const mode = issue.mode || 'light'
             const onToneCssVar = issue.suggestion?.targetCssVar || (issue.toneCssVar ? issue.toneCssVar.replace(/_tone$/, '_on-tone') : null)
             if (onToneCssVar) {
-                const onToneValueJson = `{brand.themes.${mode}.palettes.core-colors.${newOnToneColor}.tone}`
-                const onToneCssVarValue = `var(--recursica_brand_themes_${mode}_palettes_core-colors_${newOnToneColor}_tone)`
+                const onToneValueJson = `{brand.modes.${mode}.palettes.core-colors.${newOnToneColor}.tone}`
+                const onToneCssVarValue = `var(--recursica_brand_modes_${mode}_palettes_core-colors_${newOnToneColor}_tone)`
                 updateBrandValue(onToneCssVar, onToneValueJson)
                 cssUpdates[onToneCssVar] = onToneCssVarValue
             }

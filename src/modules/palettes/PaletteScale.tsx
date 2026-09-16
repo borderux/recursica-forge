@@ -173,11 +173,11 @@ export function PaletteScaleHeader({
           cursor: 'pointer',
           padding: `0 var(--recursica_brand_dimensions_general_md)`,
           boxSizing: 'border-box',
-          fontFamily: 'var(--recursica_brand_typography_body-small-font-family)',
-          fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
-          fontWeight: 'var(--recursica_brand_typography_body-small-font-weight)',
-          letterSpacing: 'var(--recursica_brand_typography_body-small-font-letter-spacing)',
-          lineHeight: 'var(--recursica_brand_typography_body-small-line-height)',
+          fontFamily: 'var(--recursica_brand_typography_caption-font-family)',
+          fontSize: 'var(--recursica_brand_typography_caption-font-size)',
+          fontWeight: 'var(--recursica_brand_typography_caption-font-weight)',
+          letterSpacing: 'var(--recursica_brand_typography_caption-font-letter-spacing)',
+          lineHeight: 'var(--recursica_brand_typography_caption-line-height)',
           color: `var(${genericLayerText(0, 'color')})`,
           width: isPrimary ? '20%' : undefined,
           flex: isPrimary ? '0 0 20%' : 1,
@@ -237,10 +237,10 @@ export function PaletteScaleHeader({
                 try {
                   const themeCopy = getVarsStore().getLatestThemeCopy()
                   const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-                  const themes = root?.themes || root
+                  const modes = root?.modes || root
                   const modeKey = mode.toLowerCase()
 
-                  if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
+                  if (modes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
                     // Read actual core colors from CSS vars
                     const hcHex = (readCssVarResolved(paletteCore(modeKey, 'high-contrast')) || (modeKey === 'dark' ? '#fcfcfc' : '#131313')).toLowerCase()
                     const lcHex = (readCssVarResolved(paletteCore(modeKey, 'low-contrast')) || (modeKey === 'dark' ? '#131313' : '#fcfcfc')).toLowerCase()
@@ -260,19 +260,19 @@ export function PaletteScaleHeader({
                     }
 
                     // Update the on-tone value in theme JSON - use short alias format (no theme path)
-                    if (!themes[modeKey].palettes[paletteKey][level]) {
-                      themes[modeKey].palettes[paletteKey][level] = {}
+                    if (!modes[modeKey].palettes[paletteKey][level]) {
+                      modes[modeKey].palettes[paletteKey][level] = {}
                     }
-                    if (!themes[modeKey].palettes[paletteKey][level].color) {
-                      themes[modeKey].palettes[paletteKey][level].color = {}
+                    if (!modes[modeKey].palettes[paletteKey][level].color) {
+                      modes[modeKey].palettes[paletteKey][level].color = {}
                     }
-                    themes[modeKey].palettes[paletteKey][level].color['on-tone'] = {
+                    modes[modeKey].palettes[paletteKey][level].color['on-tone'] = {
                       $type: 'color',
                       $value: `{brand.palettes.core-colors.${chosen}.tone}`
                     }
 
                     // Set the CSS var directly for immediate visual feedback
-                    const onToneCssVar = `--recursica_brand_themes_${modeKey}_palettes_${paletteKey}_${level}_color_on-tone`
+                    const onToneCssVar = `--recursica_brand_modes_${modeKey}_palettes_${paletteKey}_${level}_color_on-tone`
                     updateCssVar(onToneCssVar, `var(${paletteCore(modeKey, chosen)})`)
                     getVarsStore().setThemeSilent(themeCopy)
                   }

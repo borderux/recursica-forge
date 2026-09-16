@@ -601,7 +601,7 @@ export function GoogleFontsModal({
                     <label style={{
                       display: 'block',
                       marginBottom: 'var(--recursica_brand_dimensions_general_default)',
-                      fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                      fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                       color: `var(${genericLayerText(0, 'color')})`,
                       opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                     }}>
@@ -674,7 +674,7 @@ export function GoogleFontsModal({
                     />
                     <div style={{
                       marginTop: 'var(--recursica_brand_dimensions_general_default)',
-                      fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                      fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                       color: `var(${genericLayerText(0, 'color')})`,
                       opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
                     }}>
@@ -727,7 +727,7 @@ export function GoogleFontsModal({
                     <div style={{ marginTop: 'var(--recursica_brand_dimensions_general_md)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_default)', marginBottom: 'var(--recursica_brand_dimensions_general_md)' }}>
                         <span style={{
-                          fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                          fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                           color: `var(${genericLayerText(0, 'color')})`,
                           opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                         }}>
@@ -756,7 +756,7 @@ export function GoogleFontsModal({
                         <table style={{
                           width: '100%',
                           borderCollapse: 'collapse',
-                          fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                          fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                           tableLayout: 'fixed',
                         }}>
                           <thead>
@@ -844,7 +844,7 @@ export function GoogleFontsModal({
                       borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
                       background: `var(${genericLayerProperty(1, 'surface')})`,
                       border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
-                      fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                      fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                       color: `var(${genericLayerText(0, 'color')})`,
                     }}>
                       Font detected: <strong>{availableFonts[0]}</strong>
@@ -877,7 +877,7 @@ export function GoogleFontsModal({
                     <label style={{
                       display: 'block',
                       marginBottom: 'var(--recursica_brand_dimensions_general_default)',
-                      fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                      fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                       color: `var(${genericLayerText(0, 'color')})`,
                       opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                     }}>
@@ -918,7 +918,7 @@ export function GoogleFontsModal({
                   <div style={{ marginTop: 'var(--recursica_brand_dimensions_general_md)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_default)', marginBottom: 'var(--recursica_brand_dimensions_general_md)' }}>
                       <span style={{
-                        fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                        fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                         color: `var(${genericLayerText(0, 'color')})`,
                         opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                       }}>
@@ -946,7 +946,7 @@ export function GoogleFontsModal({
                       <table style={{
                         width: '100%',
                         borderCollapse: 'collapse',
-                        fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                        fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                         tableLayout: 'fixed',
                       }}>
                         <thead>
@@ -1038,7 +1038,7 @@ export function GoogleFontsModal({
             borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
             background: `var(--recursica_brand_palettes_core_error-50_color_tone)`,
             border: `1px solid var(--recursica_brand_palettes_core_error-200_color_tone)`,
-            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+            fontSize: 'var(--recursica_brand_typography_caption-font-size)',
             color: `var(--recursica_brand_palettes_core_error-200_color_tone)`,
             marginTop: 'var(--recursica_brand_dimensions_general_md)',
             flexShrink: 0

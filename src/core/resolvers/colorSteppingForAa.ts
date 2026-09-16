@@ -40,7 +40,7 @@ function resolveCssVarToHex(cssVar: string, tokenIndex: { get: (path: string) =>
     // Try palette var reference using central parser
     const brandParsed = parseBrandCssVar(trimmed)
     if (brandParsed && brandParsed.type === 'palette') {
-      const paletteVarName = `--recursica_brand_themes_${brandParsed.mode}_palettes_${brandParsed.paletteName}_${brandParsed.level}_${brandParsed.prop}`
+      const paletteVarName = `--recursica_brand_modes_${brandParsed.mode}_palettes_${brandParsed.paletteName}_${brandParsed.level}_${brandParsed.prop}`
       const paletteValue = readCssVar(paletteVarName)
       if (paletteValue) {
         return resolveCssVarToHex(paletteValue, tokenIndex, depth + 1)

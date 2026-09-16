@@ -96,8 +96,8 @@ function getCoreToneRef(
 ): { family: string; level: string } | null {
   try {
     const root: any = theme?.brand ? theme.brand : theme
-    const themes = root?.themes || root
-    const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors']
+    const modes = root?.modes || root
+    const coreColors = modes?.[mode]?.palettes?.['core-colors']?.$value || modes?.[mode]?.palettes?.['core-colors']
     const colorDef = coreColors?.[coreColor]
     if (!colorDef) return null
 
@@ -136,15 +136,15 @@ export function updateCoreColorOnTonesForCompliance(
   const modeLower = mode.toLowerCase()
 
   // Get emphasis opacity values
-  const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_high`) || 1
-  const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_low`) || 0.6
+  const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_modes_${modeLower}_text-emphasis_high`) || 1
+  const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_modes_${modeLower}_text-emphasis_low`) || 0.6
 
   // Get black and white tone references from theme
   const blackToneRef = getCoreToneRef('high-contrast', tokens, theme, mode)
   const whiteToneRef = getCoreToneRef('low-contrast', tokens, theme, mode)
 
   // Update high emphasis on-tone
-  const highOnToneVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${coreColorName}_on-tone`
+  const highOnToneVar = `--recursica_brand_modes_${modeLower}_palettes_core-colors_${coreColorName}_on-tone`
 
   // First, check if the current on-tone value already passes AA compliance
   // If forceUpdate is true, skip this check and always search for a new value
@@ -204,7 +204,7 @@ export function updateCoreColorInteractiveOnToneForCompliance(
   const modeLower = mode.toLowerCase()
 
   // Get interactive tone reference
-  const interactiveToneVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_tone`
+  const interactiveToneVar = `--recursica_brand_modes_${modeLower}_palettes_core-colors_interactive_tone`
   const interactiveToneValue = readCssVar(interactiveToneVar)
   const interactiveToneHex = interactiveToneValue
     ? (resolveCssVarToHex(interactiveToneValue, tokenIndex) || '#000000')
@@ -253,7 +253,7 @@ export function updateCoreColorInteractiveOnToneForCompliance(
         // Use the token CSS var for the level that passed (this is the interactive TONE, not on-tone)
         // The interactive property for base colors should reference the interactive tone color directly
         const tokenCssVar = `var(${tokenColors(interactiveToneRef.family, normalizedLevel)})`
-        const interactiveVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${coreColorName}_interactive`
+        const interactiveVar = `--recursica_brand_modes_${modeLower}_palettes_core-colors_${coreColorName}_interactive`
         updateCssVar(interactiveVar, tokenCssVar)
 
         // Only update theme JSON if setTheme is provided and not a no-op
@@ -263,8 +263,8 @@ export function updateCoreColorInteractiveOnToneForCompliance(
           try {
             const themeCopy = getVarsStore().getLatestThemeCopy()
             const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-            const themes = root?.themes || root
-            const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors']
+            const modes = root?.modes || root
+            const coreColors = modes?.[mode]?.palettes?.['core-colors']?.$value || modes?.[mode]?.palettes?.['core-colors']
             const colorDef = coreColors?.[coreColorName]
             if (colorDef) {
               const tokenRef = `{tokens.colors.${interactiveToneRef.family}.${normalizedLevel}}`

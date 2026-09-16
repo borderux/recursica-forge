@@ -101,7 +101,7 @@ export function clearGlobalRefPreference(): void {
  * same greedy-match algorithm as `updateUIKitValue.ts`.
  */
 function cssVarToUIKitPath(cssVar: string, rootObj: any): string[] | null {
-  const match = cssVar.match(/^--recursica_ui-kit_(?:themes_(?:light|dark)_)?(.+)$/)
+  const match = cssVar.match(/^--recursica_ui-kit_(?:modes_(?:light|dark)_)?(.+)$/)
   if (!match) return null
 
   const pathString = match[1]
@@ -183,18 +183,18 @@ function findGlobalRef(uikit: any, jsonPath: string[]): string | null {
 /**
  * Convert a DTCG reference like `{ui-kit.globals.form.field.colors.background}`
  * to the actual themed CSS variable name, e.g.
- * `--recursica_ui-kit_themes_light_globals_form_field_colors_background`.
+ * `--recursica_ui-kit_modes_light_globals_form_field_colors_background`.
  *
- * The UIKit resolver always emits themed globals (with `themes_{mode}_` prefix),
+ * The UIKit resolver always emits themed globals (with `modes_{mode}_` prefix),
  * so we must include the mode to match the live CSS var.
  */
 function globalRefToCssVar(ref: string, mode: 'light' | 'dark'): string {
   const inner = ref.slice(1, -1) // strip { }
   const segments = inner.split('.')
   // segments[0] = 'ui-kit', rest = 'globals', 'form', 'field', …
-  // Result: --recursica_ui-kit_themes_{mode}_globals_form_field_…
+  // Result: --recursica_ui-kit_modes_{mode}_globals_form_field_…
   const tail = segments.slice(1).join('_') // skip 'ui-kit'
-  return `--recursica_ui-kit_themes_${mode}_${tail}`
+  return `--recursica_ui-kit_modes_${mode}_${tail}`
 }
 
 /**
@@ -220,14 +220,14 @@ function formatGlobalRefLabel(ref: string): string {
  * `--recursica_ui-kit_components_text-field_...` → "text-field"
  */
 function extractComponentName(cssVar: string): string {
-  const match = cssVar.match(/--recursica_ui-kit_(?:themes_(?:light|dark)_)?components_([^_]+)/)
+  const match = cssVar.match(/--recursica_ui-kit_(?:modes_(?:light|dark)_)?components_([^_]+)/)
   if (match) return match[1]
 
   // Greedy match: walk the UIKit JSON to find the component key
   const store = getVarsStore()
   const uikit = store.getPristineUikit()
   const components = (uikit as any)?.['ui-kit']?.components || {}
-  const pathString = cssVar.replace(/^--recursica_ui-kit_(?:themes_(?:light|dark)_)?components_/, '')
+  const pathString = cssVar.replace(/^--recursica_ui-kit_(?:modes_(?:light|dark)_)?components_/, '')
   const parts = pathString.split('_')
 
   // Try greedy match against component keys
@@ -288,8 +288,8 @@ export function checkForGlobalRef(
 
   // We have a global ref. Build the conflict descriptor.
   // Extract the current theme mode from the component CSS var
-  // (e.g. `--recursica_ui-kit_themes_light_components_…`).
-  const modeMatch = cssVarName.match(/themes_(light|dark)/)
+  // (e.g. `--recursica_ui-kit_modes_light_components_…`).
+  const modeMatch = cssVarName.match(/modes_(light|dark)/)
   const mode: 'light' | 'dark' = (modeMatch?.[1] as 'light' | 'dark') || 'light'
 
   const globalCssVarName = globalRefToCssVar(globalRef, mode)
@@ -403,10 +403,10 @@ export function resolveGlobalRefConflict(
       const root = document.documentElement
       
       // Determine themed and non-themed variable names to clean up DOM overrides
-      const baseVar = conflict.cssVarName.replace(/^--recursica_ui-kit_(?:themes_(?:light|dark)_)?/, '')
+      const baseVar = conflict.cssVarName.replace(/^--recursica_ui-kit_(?:modes_(?:light|dark)_)?/, '')
       const nonThemedVar = `--recursica_ui-kit_${baseVar}`
-      const lightVar = `--recursica_ui-kit_themes_light_${baseVar}`
-      const darkVar = `--recursica_ui-kit_themes_dark_${baseVar}`
+      const lightVar = `--recursica_ui-kit_modes_light_${baseVar}`
+      const darkVar = `--recursica_ui-kit_modes_dark_${baseVar}`
       
       root.style.removeProperty(nonThemedVar)
       root.style.removeProperty(lightVar)
@@ -540,7 +540,7 @@ export function getPropertyGlobalRefStatus(cssVarName: string, currentUikit: any
   // If it's not attached, but we had an original global ref, it is detached!
   const isDetached = !isAttached
   
-  const modeMatch = cssVarName.match(/themes_(light|dark)/)
+  const modeMatch = cssVarName.match(/modes_(light|dark)/)
   const mode: 'light' | 'dark' = (modeMatch?.[1] as 'light' | 'dark') || 'light'
   const globalCssVarName = globalRefToCssVar(originalRef, mode)
   
@@ -602,7 +602,7 @@ export function useGlobalRefControl(primaryVar: string, uikit: any) {
         style: { 
           width: '16px', 
           height: '16px', 
-          color: 'var(--recursica_brand_themes_light_palettes_core-colors_primary_tone)'
+          color: 'var(--recursica_brand_modes_light_palettes_core-colors_primary_tone)'
         }
       })
     )

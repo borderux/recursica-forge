@@ -94,7 +94,7 @@ export default function TypeStyleSelector({
   const extractTypeStyleName = useCallback((cssVarValue: string): string | null => {
     if (!cssVarValue) return null
     
-    // Check if it's a brace reference: {brand.typography.body-small}
+    // Check if it's a brace reference: {brand.typography.caption}
     const braceMatch = cssVarValue.match(/\{brand\.typography\.([^}]+)\}/)
     if (braceMatch) {
       return braceMatch[1].toLowerCase()
@@ -142,7 +142,7 @@ export default function TypeStyleSelector({
           const propValue = labelComponent?.properties?.[propName]
           
           if (propValue?.$type === 'typography' && propValue?.$value) {
-            // Extract typography style name from default value (e.g., "{brand.typography.body-small}" -> "body-small")
+            // Extract typography style name from default value (e.g., "{brand.typography.caption}" -> "body-small")
             const defaultStyleName = extractTypeStyleName(propValue.$value)
             if (defaultStyleName) {
               const matchingToken = typeStyleTokens.find(t => {

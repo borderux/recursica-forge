@@ -7,9 +7,9 @@ import { palette as buildPaletteVarName, paletteCore, layerProperty, layerText, 
 export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' | 'dark' = 'light', overrides?: Record<string, any>, paletteVars?: Record<string, string>): Record<string, string> {
   const tokenIndex = buildTokenIndex(tokens)
   const troot: any = (theme as any)?.brand ? (theme as any).brand : theme
-  // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
-  const themes = troot?.themes || troot
-  const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
+  // Support both old structure (brand.light.layer) and new structure (brand.modes.light.layers)
+  const modes = troot?.modes || troot
+  const layersData: any = modes?.[mode]?.layers || modes?.[mode]?.layer || {}
 
   const mapBWHexToVar = (hex: string): string => {
     const h = (hex || '').toLowerCase()
@@ -75,8 +75,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
         if (m) return { paletteKey: m[1], level: m[2] }
       }
       // Brand-scoped palette var format (both old hyphen and new underscore format)
-      if (/^var\(\s*--recursica[_-]brand[_-](?:themes[_-])?(?:light|dark)[_-]palettes[_-][a-z0-9\-]+[_-](?:[0-9]{3,4}|000|050|primary)[_-]tone\s*\)$/i.test(s)) {
-        const m = /^var\(\s*--recursica[_-]brand[_-](?:themes[_-])?(?:light|dark)[_-]palettes[_-]([a-z0-9\-]+)[_-]([0-9]{3,4}|000|050|primary)[_-]tone\s*\)$/i.exec(s)
+      if (/^var\(\s*--recursica[_-]brand[_-](?:modes[_-])?(?:light|dark)[_-]palettes[_-][a-z0-9\-]+[_-](?:[0-9]{3,4}|000|050|primary)[_-]tone\s*\)$/i.test(s)) {
+        const m = /^var\(\s*--recursica[_-]brand[_-](?:modes[_-])?(?:light|dark)[_-]palettes[_-]([a-z0-9\-]+)[_-]([0-9]{3,4}|000|050|primary)[_-]tone\s*\)$/i.exec(s)
         if (m) return { paletteKey: m[1], level: m[2] }
       }
     } catch { }
@@ -85,11 +85,11 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
   const parseCoreTokenRef = (name: 'interactive' | 'alert' | 'warning' | 'success' | 'high-contrast' | 'low-contrast'): { family: string; level: string } | null => {
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-      const themes = root?.themes || root
+      // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+      const modes = root?.modes || root
       const core: any =
-        themes?.[mode]?.palettes?.['core']?.['$value'] || themes?.[mode]?.palettes?.['core'] ||
-        themes?.[mode]?.palettes?.['core-colors']?.['$value'] || themes?.[mode]?.palettes?.['core-colors'] || themes?.[mode]?.palettes?.core?.['$value'] || themes?.[mode]?.palettes?.core || {}
+        modes?.[mode]?.palettes?.['core']?.['$value'] || modes?.[mode]?.palettes?.['core'] ||
+        modes?.[mode]?.palettes?.['core-colors']?.['$value'] || modes?.[mode]?.palettes?.['core-colors'] || modes?.[mode]?.palettes?.core?.['$value'] || modes?.[mode]?.palettes?.core || {}
       const v: any = core?.[name]
       const s = typeof v === 'string' ? v : typeof (v?.['$value']) === 'string' ? String(v['$value']) : ''
       if (!s) return null
@@ -139,7 +139,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
             }
             if (color && ['high-contrast', 'low-contrast', 'interactive', 'alert', 'warning', 'success'].includes(color.toLowerCase())) {
               const refMode = parsed.mode || mode
-              return `--recursica_brand_themes_${refMode}_palettes_core-colors_${color.toLowerCase()}`
+              return `--recursica_brand_modes_${refMode}_palettes_core-colors_${color.toLowerCase()}`
             }
           }
         }
@@ -489,10 +489,10 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     result[`${brandTextBase}high-emphasis`] = `var(${textEmphasisVar(mode, 'high')})`
     result[`${brandTextBase}low-emphasis`] = `var(${textEmphasisVar(mode, 'low')})`
     // Status colors: core color → step within its token family → fallback to surface on-tone (AA with opacity considered)
-    // Support both old format (brand.light.*) and new format (brand.themes.light.*)
-    const coreAlert = resolveRef(`{brand.themes.${mode}.palettes.core-colors.alert}`) ?? resolveRef(`{brand.${mode}.palettes.core-colors.alert}`) ?? resolveRef(`{brand.${mode}.palettes.core.alert}`)
-    const coreWarn = resolveRef(`{brand.themes.${mode}.palettes.core-colors.warning}`) ?? resolveRef(`{brand.${mode}.palettes.core-colors.warning}`) ?? resolveRef(`{brand.${mode}.palettes.core.warning}`)
-    const coreSuccess = resolveRef(`{brand.themes.${mode}.palettes.core-colors.success}`) ?? resolveRef(`{brand.${mode}.palettes.core-colors.success}`) ?? resolveRef(`{brand.${mode}.palettes.core.success}`)
+    // Support both old format (brand.light.*) and new format (brand.modes.light.*)
+    const coreAlert = resolveRef(`{brand.modes.${mode}.palettes.core-colors.alert}`) ?? resolveRef(`{brand.${mode}.palettes.core-colors.alert}`) ?? resolveRef(`{brand.${mode}.palettes.core.alert}`)
+    const coreWarn = resolveRef(`{brand.modes.${mode}.palettes.core-colors.warning}`) ?? resolveRef(`{brand.${mode}.palettes.core-colors.warning}`) ?? resolveRef(`{brand.${mode}.palettes.core.warning}`)
+    const coreSuccess = resolveRef(`{brand.modes.${mode}.palettes.core-colors.success}`) ?? resolveRef(`{brand.${mode}.palettes.core-colors.success}`) ?? resolveRef(`{brand.${mode}.palettes.core.success}`)
     const alertHex = typeof (talert ?? coreAlert) === 'string' ? String(talert ?? coreAlert) : undefined
     const warnHex = typeof (twarn ?? coreWarn) === 'string' ? String(twarn ?? coreWarn) : undefined
     const successHex = typeof (tsuccess ?? coreSuccess) === 'string' ? String(tsuccess ?? coreSuccess) : undefined

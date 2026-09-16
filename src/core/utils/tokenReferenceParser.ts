@@ -55,8 +55,8 @@ export function extractBraceContent(value: any): string | null {
   let inner = trimmed.slice(1, -1).trim()
 
   // Normalize spaces to dots and clean up the reference
-  // Handle cases like "{brand themes light palettes neutral.100. color tone}" 
-  // → "{brand.themes.light.palettes.neutral.100.color.tone}"
+  // Handle cases like "{brand modes light palettes neutral.100. color tone}" 
+  // → "{brand.modes.light.palettes.neutral.100.color.tone}"
   // Also handle spaces around dots: "{ui-kit .0 . globals}" → "{ui-kit.0.globals}"
   inner = inner
     .replace(/\s*\.\s*/g, '.')  // Remove spaces around dots first
@@ -105,10 +105,10 @@ export function parseTokenReference(
     let normalized = inner.replace(/^theme\./i, 'brand.')
 
     // Remove any theme specification from the reference
-    // Strip out: brand.themes.light.*, brand.themes.dark.*, brand.light.*, brand.dark.*
+    // Strip out: brand.modes.light.*, brand.modes.dark.*, brand.light.*, brand.dark.*
     // All references should be theme-agnostic and use current mode from context
     normalized = normalized
-      .replace(/^brand\.themes\.(?:light|dark)\./i, 'brand.')
+      .replace(/^brand\.modes\.(?:light|dark)\./i, 'brand.')
       .replace(/^brand\.(?:light|dark)\./i, 'brand.')
 
     const parts = normalized.split('.').filter(Boolean)
@@ -120,8 +120,8 @@ export function parseTokenReference(
 
     // Build resolved path with current mode for internal use
     const resolvedPath = pathParts.length > 0
-      ? `brand.themes.${currentMode}.${pathParts.join('.')}`
-      : `brand.themes.${currentMode}`
+      ? `brand.modes.${currentMode}.${pathParts.join('.')}`
+      : `brand.modes.${currentMode}`
 
     return {
       type: 'brand',
@@ -206,8 +206,8 @@ export function resolveTokenReferenceToCssVar(
 
     // Check if this is a globals reference (needs mode prefix)
     // Both globals and component references need mode prefix to match toCssVarName behavior
-    // Globals references like {ui-kit.globals.form.*} → --recursica_ui-kit_themes_light_globals_form_...
-    // Component references like {ui-kit.components.chip.*} → --recursica_ui-kit_themes_light_components_chip_...
+    // Globals references like {ui-kit.globals.form.*} → --recursica_ui-kit_modes_light_globals_form_...
+    // Component references like {ui-kit.components.chip.*} → --recursica_ui-kit_modes_light_components_chip_...
     const isGlobalsRef = uikitPath.startsWith('globals.')
     const isComponentRef = uikitPath.startsWith('components.')
 
@@ -217,12 +217,12 @@ export function resolveTokenReferenceToCssVar(
 
     // For both globals and component references, include mode prefix to match toCssVarName behavior
     // This ensures references like {ui-kit.globals.form.field.colors.disabled}
-    // resolve to --recursica_ui-kit_themes_light_globals_form_field_colors_disabled
+    // resolve to --recursica_ui-kit_modes_light_globals_form_field_colors_disabled
     // And {ui-kit.components.chip.properties.colors.error.text-color}
-    // resolves to --recursica_ui-kit_themes_light_components_chip_properties_colors_error_text-color
+    // resolves to --recursica_ui-kit_modes_light_components_chip_properties_colors_error_text-color
     let cssVarName: string
     if ((isGlobalsRef || isComponentRef) && mode) {
-      cssVarName = `--recursica_ui-kit_themes_${mode}_${escapedParts.join('_')}`
+      cssVarName = `--recursica_ui-kit_modes_${mode}_${escapedParts.join('_')}`
     } else {
       cssVarName = `--recursica_ui-kit_${escapedParts.join('_')}`
     }
@@ -301,7 +301,7 @@ export function resolveTokenReferenceToCssVar(
           // Other properties (like letter-spacing) get "font-" prefix
           return `var(${brandTypography(styleName, `font-${property}`)})`
         } else if (remainingParts.length === 1) {
-          // Only style name provided (e.g., {brand.typography.body-small})
+          // Only style name provided (e.g., {brand.typography.caption})
           // Resolve to font-size CSS variable so style name can be extracted
           const styleName = remainingParts[0]
           return `var(${brandTypography(styleName, 'font-size')})`
@@ -373,7 +373,7 @@ export function resolveTokenReferenceToCssVar(
     if (paletteFlexMatch) {
       const [, paletteKey, level, type] = paletteFlexMatch
       const cssLevel = level === 'default' ? 'primary' : level
-      return `var(--recursica_brand_themes_${mode}_palettes_${paletteKey}_${cssLevel}_color_${type})`
+      return `var(--recursica_brand_modes_${mode}_palettes_${paletteKey}_${cssLevel}_color_${type})`
     }
 
     // Palette references: palettes.neutral.100.tone (legacy format without .color.)
@@ -411,7 +411,7 @@ export function resolveTokenReferenceToCssVar(
       const eMatch = /elevation-(\d+)/.exec(elevationKeyMatch[1])
       if (eMatch) {
         // Return elevation base without specific property
-        return `var(--recursica_brand_themes_${mode}_elevations_elevation-${eMatch[1]})`
+        return `var(--recursica_brand_modes_${mode}_elevations_elevation-${eMatch[1]})`
       }
     }
 
@@ -426,14 +426,14 @@ export function resolveTokenReferenceToCssVar(
     const stateMatch = /^states?\.(.+)$/i.exec(pathParts.join('.'))
     if (stateMatch) {
       const statePath = stateMatch[1].replace(/\./g, '-')
-      return `var(--recursica_brand_themes_${mode}_states_${statePath})`
+      return `var(--recursica_brand_modes_${mode}_states_${statePath})`
     }
 
     // Text-emphasis references: text-emphasis.low or text-emphasis.high
     const textEmphasisMatch = /^text-emphasis\.(low|high)$/i.exec(pathParts.join('.'))
     if (textEmphasisMatch) {
       const [, emphasis] = textEmphasisMatch
-      return `var(--recursica_brand_themes_${mode}_text-emphasis_${emphasis})`
+      return `var(--recursica_brand_modes_${mode}_text-emphasis_${emphasis})`
     }
   }
 
@@ -470,9 +470,9 @@ export function resolveTokenReferenceToValue(
   // Brand references → traverse theme JSON
   if (parsed.type === 'brand' && context.theme) {
     const root: any = (context.theme as any)?.brand ? (context.theme as any).brand : context.theme
-    const themes = root?.themes || root
+    const modes = root?.modes || root
 
-    let node: any = themes
+    let node: any = modes
     const pathParts = parsed.path
 
     // Always use the mode from parsed (which comes from context.currentMode)

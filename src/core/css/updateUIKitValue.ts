@@ -11,10 +11,10 @@ import { cssVarToRef } from '../css/cssVarBuilder'
  * handle hyphenated keys like `border-size` or `min-height`.
  * 
  * @example
- * cssVarToUIKitPath('--recursica_ui-kit_themes_light_components_chip_variants_styles_unselected_properties_colors_layer-0_background', currentUIKit)
+ * cssVarToUIKitPath('--recursica_ui-kit_modes_light_components_chip_variants_styles_unselected_properties_colors_layer-0_background', currentUIKit)
  */
 export function cssVarToUIKitPath(cssVar: string, rootObj: any): string[] | null {
-    const match = cssVar.match(/^--recursica_ui-kit_(?:themes_(?:light|dark)_)?(.+)$/)
+    const match = cssVar.match(/^--recursica_ui-kit_(?:modes_(?:light|dark)_)?(.+)$/)
     if (!match) return null
 
     const pathString = match[1]

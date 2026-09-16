@@ -285,9 +285,9 @@ describe('Export Validation - Comprehensive Variable Modification Test', () => {
 
     // Modify a palette value
     const root: any = theme?.brand ? theme.brand : theme
-    const themes = root?.themes || root
-    if (themes?.light?.palettes?.['core-colors']?.['alert']?.['tone']?.['$value']) {
-      themes.light.palettes['core-colors'].alert.tone.$value = '{tokens.colors.scale-05.700}'
+    const modes = root?.modes || root
+    if (modes?.light?.palettes?.['core-colors']?.['alert']?.['tone']?.['$value']) {
+      modes.light.palettes['core-colors'].alert.tone.$value = '{tokens.colors.scale-05.700}'
     }
 
     store.setTheme(theme)

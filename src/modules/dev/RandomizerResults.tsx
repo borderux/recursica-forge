@@ -76,8 +76,8 @@ export function RandomizerResults() {
 
   const filteredDiffs = useMemo(() => {
     if (filterMode === 'all') return allDiffs;
-    if (filterMode === 'light') return allDiffs.filter(d => !d.path.includes('.themes.dark.'));
-    if (filterMode === 'dark') return allDiffs.filter(d => !d.path.includes('.themes.light.'));
+    if (filterMode === 'light') return allDiffs.filter(d => !d.path.includes('.modes.dark.'));
+    if (filterMode === 'dark') return allDiffs.filter(d => !d.path.includes('.modes.light.'));
     return allDiffs;
   }, [allDiffs, filterMode]);
 
@@ -138,7 +138,7 @@ export function RandomizerResults() {
 
   const formatPath = (path: string) => {
     let clean = path.replace(/\.\$value$/, '');
-    if (clean.startsWith('theme.brand.themes.')) {
+    if (clean.startsWith('theme.brand.modes.')) {
         const parts = clean.split('.');
         // parts[3] is light/dark
         if (filterMode === 'all') {

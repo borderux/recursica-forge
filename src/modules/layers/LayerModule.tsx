@@ -135,14 +135,14 @@ export default function LayerModule({ level, title, className, children, onSelec
     // Fallback to theme JSON
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
-      const themes = root?.themes || root
+      // Support both old structure (brand.light.layer) and new structure (brand.modes.light.layers)
+      const modes = root?.modes || root
 
       // For regular layers
-      const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerId}`] || themes?.[mode]?.layer?.[`layer-${layerId}`] || root?.[mode]?.layers?.[`layer-${layerId}`] || root?.[mode]?.layer?.[`layer-${layerId}`] || {}
+      const layerSpec: any = modes?.[mode]?.layers?.[`layer-${layerId}`] || modes?.[mode]?.layer?.[`layer-${layerId}`] || root?.[mode]?.layers?.[`layer-${layerId}`] || root?.[mode]?.layer?.[`layer-${layerId}`] || {}
       const v: any = layerSpec?.properties?.elevation?.$value
       if (typeof v === 'string') {
-        // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
+        // Match both old format (brand.light.elevations.elevation-X) and new format (brand.modes.light.elevations.elevation-X)
         const m = v.match(/elevations?\.(elevation-(\d+))/i)
         if (m) return m[2]
         // Also check for direct elevation name format
@@ -169,7 +169,7 @@ export default function LayerModule({ level, title, className, children, onSelec
   type ThemeRecord = { name: string; mode?: string; value?: any }
   const getThemeEntry = (prefix: string, prop: 'size' | 'font-family' | 'letter-spacing' | 'weight' | 'weight-normal' | 'line-height'): ThemeRecord | undefined => {
     const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
-    const key = `[themes][Light][font/${map[prefix] || prefix}/${prop}]`
+    const key = `[modes][Light][font/${map[prefix] || prefix}/${prop}]`
     const rec: any = (theme as any).RecursicaBrand
     return rec ? (rec[key] as ThemeRecord | undefined) : undefined
   }

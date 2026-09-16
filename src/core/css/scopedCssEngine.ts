@@ -26,21 +26,21 @@ interface ScopedAlias {
  * or null if no scoping applies (tokens, brand.typography, etc. stay on :root only).
  *
  * Mappings (using underscore-delimited format):
- * - brand_themes_{theme}_palettes_... → brand_palettes_...  (theme scope)
- * - brand_themes_{theme}_layers_layer-{N}_... → brand_layer_{N}_...  (theme+layer scope)
- * - brand_themes_{theme}_states_... → brand_states_...  (theme scope)
- * - brand_themes_{theme}_text-emphasis_... → brand_text-emphasis_...  (theme scope)
- * - brand_themes_{theme}_elevations_... → brand_elevations_...  (theme scope)
- * - ui-kit_themes_{theme}_layer_{N}_... → ui-kit_...  (theme+layer scope, canonical name)
+ * - brand_modes_{theme}_palettes_... → brand_palettes_...  (theme scope)
+ * - brand_modes_{theme}_layers_layer-{N}_... → brand_layer_{N}_...  (theme+layer scope)
+ * - brand_modes_{theme}_states_... → brand_states_...  (theme scope)
+ * - brand_modes_{theme}_text-emphasis_... → brand_text-emphasis_...  (theme scope)
+ * - brand_modes_{theme}_elevations_... → brand_elevations_...  (theme scope)
+ * - ui-kit_modes_{theme}_layer_{N}_... → ui-kit_...  (theme+layer scope, canonical name)
  */
 function classifyVar(specificName: string): {
   theme: 'light' | 'dark'
   layer?: string
   genericName: string
 } | null {
-  // Brand theme-scoped vars: --recursica_brand_themes_{theme}_{rest}
+  // Brand theme-scoped vars: --recursica_brand_modes_{theme}_{rest}
   const brandThemeMatch = specificName.match(
-    /^--recursica_brand_themes_(light|dark)_(.+)$/
+    /^--recursica_brand_modes_(light|dark)_(.+)$/
   )
   if (brandThemeMatch) {
     const theme = brandThemeMatch[1] as 'light' | 'dark'
@@ -65,9 +65,9 @@ function classifyVar(specificName: string): {
     }
   }
 
-  // UI-kit layer-specific: --recursica_ui-kit_themes_{theme}_layer_{N}_{rest}
+  // UI-kit layer-specific: --recursica_ui-kit_modes_{theme}_layer_{N}_{rest}
   const uikitLayerMatch = specificName.match(
-    /^--recursica_ui-kit_themes_(light|dark)_layer_(\d+)_(.+)$/
+    /^--recursica_ui-kit_modes_(light|dark)_layer_(\d+)_(.+)$/
   )
   if (uikitLayerMatch) {
     const theme = uikitLayerMatch[1] as 'light' | 'dark'
@@ -80,9 +80,9 @@ function classifyVar(specificName: string): {
     }
   }
 
-  // UI-kit theme-scoped (components, globals, etc.): --recursica_ui-kit_themes_{theme}_{rest}
+  // UI-kit theme-scoped (components, globals, etc.): --recursica_ui-kit_modes_{theme}_{rest}
   const uikitThemeMatch = specificName.match(
-    /^--recursica_ui-kit_themes_(light|dark)_(.+)$/
+    /^--recursica_ui-kit_modes_(light|dark)_(.+)$/
   )
   if (uikitThemeMatch) {
     const theme = uikitThemeMatch[1] as 'light' | 'dark'

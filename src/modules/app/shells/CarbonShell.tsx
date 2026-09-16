@@ -351,7 +351,7 @@ export default function CarbonShell({
                   <span
                     style={{
                       fontSize:
-                        "var(--recursica_brand_typography_body-small-font-size)",
+                        "var(--recursica_brand_typography_caption-font-size)",
                       color: `var(${genericLayerText(0, 'color')})`,
                       opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
                     }}
@@ -455,7 +455,7 @@ export default function CarbonShell({
                           style={{
                             width: 14,
                             height: 14,
-                            color: `var(--recursica_brand_themes_${mode}_palettes_core-colors_alert_tone)`,
+                            color: `var(--recursica_brand_modes_${mode}_palettes_core-colors_alert_tone)`,
                           }}
                         />
                       ) : null;

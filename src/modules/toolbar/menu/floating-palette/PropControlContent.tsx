@@ -590,9 +590,9 @@ function ElevationSliderInline({
       return 'elevation-0'
     }
 
-    // Parse token reference format: {brand.themes.light.elevations.elevation-0}
+    // Parse token reference format: {brand.modes.light.elevations.elevation-0}
     // Check if the token reference is for the correct mode
-    const tokenMatch = inlineValue.match(/themes[._](light|dark)[._]elevations?[._](elevation-\d+)/i)
+    const tokenMatch = inlineValue.match(/modes[._](light|dark)[._]elevations?[._](elevation-\d+)/i)
     if (tokenMatch) {
       const refMode = tokenMatch[1].toLowerCase() as 'light' | 'dark'
       const elevationName = tokenMatch[2]
@@ -683,7 +683,7 @@ function ElevationSliderInline({
     const selectedToken = tokens[clampedIndex]
 
     if (selectedToken) {
-      const elevationValue = `{brand.themes.${mode}.elevations.${selectedToken.name}}`
+      const elevationValue = `{brand.modes.${mode}.elevations.${selectedToken.name}}`
       updateCssVar(primaryVar, elevationValue)
       setCurrentElevationName(selectedToken.name)
 
@@ -749,8 +749,8 @@ export default function PropControlContent({
   const elevationOptions = useMemo(() => {
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const themes = root?.themes || root
-      const elev: any = themes?.[mode]?.elevations || root?.[mode]?.elevations || {}
+      const modes = root?.modes || root
+      const elev: any = modes?.[mode]?.elevations || root?.[mode]?.elevations || {}
       const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a, b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
       return names.map((n) => {
         const idx = Number(n.split('-')[1])
@@ -1256,7 +1256,7 @@ export default function PropControlContent({
 
     if (propToRender.type === 'elevation') {
       // Ensure primaryVar is mode-specific - it might have been built with the wrong mode
-      const modeSpecificPrimaryVar = primaryVar.replace(/themes-(light|dark)-/, `themes-${mode}-`)
+      const modeSpecificPrimaryVar = primaryVar.replace(/modes-(light|dark)-/, `modes-${mode}-`)
 
       return (
         <ElevationSliderInline

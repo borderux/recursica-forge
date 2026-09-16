@@ -684,10 +684,10 @@ export default function ColorTokens() {
     try {
       const liveTheme = getVarsStore().getLatestThemeCopy()
       const root: any = (liveTheme as any)?.brand ? (liveTheme as any).brand : liveTheme
-      const themes = root?.themes || root
+      const modes = root?.modes || root
 
       for (const mode of ['light', 'dark'] as const) {
-        const modePalettes: any = themes?.[mode]?.palettes || root?.[mode]?.palettes || {}
+        const modePalettes: any = modes?.[mode]?.palettes || root?.[mode]?.palettes || {}
         const paletteKeys = Object.keys(modePalettes)
 
         paletteKeys.forEach((pk) => {

@@ -5,6 +5,7 @@
  * the original tokens.json, brand.json, and uikit.json files.
  */
 
+import { collapseLayers } from '../uikit/expandLayers'
 import { readCssVar } from '../css/readCssVar'
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { buildTokenIndex } from '../resolvers/tokens'
@@ -434,11 +435,25 @@ export function exportTokensJson(): object {
         $type: 'fontFamily'
       }
 
-      // Union of original and store keys — new fonts added at runtime only exist in the store
-      const allTypefaceKeys = new Set([
-        ...Object.keys(originalTypefaces).filter(k => k !== '$type'),
-        ...Object.keys(storeTokens.font.typefaces || {}).filter(k => k !== '$type'),
-      ])
+      // The store decides WHICH typefaces exist: syncFontsToTokens rebuilds this group from the
+      // user's font list, so a font the user deleted is gone from the store while it necessarily
+      // survives in the bundled/imported original. Unioning the two resurrected every deleted
+      // default on export — the export listed fonts the theme no longer used, and re-importing it
+      // brought them back (#482). Fonts added at runtime are covered because they are in the
+      // store too; the original is still read below, but only for metadata (Google Fonts URLs,
+      // variants) belonging to a typeface that is still present.
+      const storeTypefaceKeys = [
+        ...Object.keys(storeTokens.font.typefaces || {}),
+        ...Object.keys(storeTokens.font.typeface || {}),
+      ].filter(k => k !== '$type')
+
+      // Falling back to the original is only correct when the store has no typeface group at all
+      // — the font list never synced. An empty group after a sync means the fonts really are gone.
+      const allTypefaceKeys = new Set(
+        storeTypefaceKeys.length > 0
+          ? storeTypefaceKeys
+          : Object.keys(originalTypefaces).filter(k => k !== '$type')
+      )
 
       allTypefaceKeys.forEach((key) => {
         const originalTypeface = originalTypefaces[key]
@@ -663,6 +678,13 @@ export function exportTokensJson(): object {
   if (Object.keys(result.tokens.sizes).length === 0) delete result.tokens.sizes
   if (Object.keys(result.tokens.opacities).length === 0) delete result.tokens.opacities
 
+  // Per-breakpoint overrides pass through untouched. This export rebuilds the file group by
+  // group, so anything it does not know about is dropped — without this the breakpoints group
+  // never reached the CSS transform and no media block was emitted.
+  if (storeTokens.breakpoints && Object.keys(storeTokens.breakpoints).length > 0) {
+    result.tokens.breakpoints = JSON.parse(JSON.stringify(storeTokens.breakpoints))
+  }
+
   // Add metadata with export timestamp (DTCG-compliant: $metadata → $extensions.recursica.metadata)
   result.$extensions = {
     'recursica.metadata': {
@@ -679,7 +701,7 @@ export function exportTokensJson(): object {
 
 /**
  * Normalizes brand references to use short alias format (no theme paths)
- * Converts {brand.themes.light.palettes.core-colors.black} -> {brand.palettes.black}
+ * Converts {brand.modes.light.palettes.core-colors.black} -> {brand.palettes.black}
  */
 function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
   if (typeof obj === 'string') {
@@ -699,20 +721,20 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
       // Fix spurious .color. subgroup in core-colors refs: core-colors entries are flat
       // (alert.tone) not nested (alert.color.tone). Strip the invalid .color. intermediary.
       .replace(
-        /\{(brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.[^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
+        /\{(brand(?:\.modes\.(?:light|dark))?\.palettes\.core-colors\.[^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
         '{$1.$2}'
       )
       // Fix malformed token references: {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
       .replace(/{tokens\.colors\.scale\.(\d+)-(\d{3,4})}/g, '{tokens.colors.scale-$1.$2}')
       // Sanitize stale/corrupt core-colors refs missing the .tone leaf.
-      // updateCoreColorOnTones previously wrote {brand.themes.light.palettes.core-colors.white}
+      // updateCoreColorOnTones previously wrote {brand.modes.light.palettes.core-colors.white}
       // (no .tone) into state.theme; map to semantic contrast keys.
       .replace(
-        /\{brand\.themes\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)\}/g,
+        /\{brand\.modes\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)\}/g,
         (_, mode, leaf) => {
-          if (leaf === 'black') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'low-contrast' : 'high-contrast'}.tone}`
-          if (leaf === 'white') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'high-contrast' : 'low-contrast'}.tone}`
-          return `{brand.themes.${mode}.palettes.core-colors.${leaf}.tone}`
+          if (leaf === 'black') return `{brand.modes.${mode}.palettes.core-colors.${mode === 'dark' ? 'low-contrast' : 'high-contrast'}.tone}`
+          if (leaf === 'white') return `{brand.modes.${mode}.palettes.core-colors.${mode === 'dark' ? 'high-contrast' : 'low-contrast'}.tone}`
+          return `{brand.modes.${mode}.palettes.core-colors.${leaf}.tone}`
         }
       )
       // Then catch the theme-agnostic form.
@@ -726,11 +748,11 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
       )
       // Fix theme-qualified palettes.core.* (no hyphen) → palettes.core-colors.*.tone
       .replace(
-        /\{brand\.themes\.(light|dark)\.palettes\.core\.([a-z0-9-]+)\}/g,
+        /\{brand\.modes\.(light|dark)\.palettes\.core\.([a-z0-9-]+)\}/g,
         (_, mode, leaf) => {
-          if (leaf === 'black') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'low-contrast' : 'high-contrast'}.tone}`
-          if (leaf === 'white') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'high-contrast' : 'low-contrast'}.tone}`
-          return `{brand.themes.${mode}.palettes.core-colors.${leaf}.tone}`
+          if (leaf === 'black') return `{brand.modes.${mode}.palettes.core-colors.${mode === 'dark' ? 'low-contrast' : 'high-contrast'}.tone}`
+          if (leaf === 'white') return `{brand.modes.${mode}.palettes.core-colors.${mode === 'dark' ? 'high-contrast' : 'low-contrast'}.tone}`
+          return `{brand.modes.${mode}.palettes.core-colors.${leaf}.tone}`
         }
       )
       // Fix bare shortcut refs {brand.palettes.white} / {brand.palettes.black}
@@ -743,7 +765,7 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
     if (stripThemes) {
       normalized = normalized
         // Core-colors: normalize to theme-agnostic semantic keys
-        .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => {
+        .replace(/{brand\.modes\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => {
           const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
           return `{brand.palettes.core-colors.${sem}${suffix || '.tone'}}`
         })
@@ -752,16 +774,16 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
           return `{brand.palettes.core-colors.${sem}${suffix || '.tone'}}`
         })
         // Core-black/core-white: normalize to semantic contrast keys
-        .replace(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.high-contrast.tone}' : '{brand.palettes.core-colors.low-contrast.tone}'))
+        .replace(/{brand\.modes\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.high-contrast.tone}' : '{brand.palettes.core-colors.low-contrast.tone}'))
         .replace(/{brand\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.high-contrast.tone}' : '{brand.palettes.core-colors.low-contrast.tone}'))
         // Already short form: {brand.palettes.core-black} / core-white -> semantic keys
         .replace(/\{brand\.palettes\.core-black\}/g, '{brand.palettes.core-colors.high-contrast.tone}')
         .replace(/\{brand\.palettes\.core-white\}/g, '{brand.palettes.core-colors.low-contrast.tone}')
         // Remove theme from all other palette references
-        .replace(/{brand\.themes\.(light|dark)\.palettes\./g, '{brand.palettes.')
+        .replace(/{brand\.modes\.(light|dark)\.palettes\./g, '{brand.palettes.')
         .replace(/{brand\.(light|dark)\.palettes\./g, '{brand.palettes.')
         // Remove theme from other brand references
-        .replace(/{brand\.themes\.(light|dark)\./g, '{brand.')
+        .replace(/{brand\.modes\.(light|dark)\./g, '{brand.')
         .replace(/{brand\.(light|dark)\./g, '{brand.')
     }
 
@@ -787,9 +809,9 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
  * Normalizes brand references in UIKit exports to remove theme information
  * Converts theme-specific references to theme-agnostic ones
  * Examples:
- * - {brand.themes.light.layer.layer.0.property.surface} -> {brand.layer.layer.0.property.surface}
- * - {brand.themes.light.palettes.neutral.100.tone} -> {brand.palettes.neutral.100.tone}
- * - {brand.themes.light.text.emphasis.low} -> {brand.text.emphasis.low}
+ * - {brand.modes.light.layer.layer.0.property.surface} -> {brand.layer.layer.0.property.surface}
+ * - {brand.modes.light.palettes.neutral.100.tone} -> {brand.palettes.neutral.100.tone}
+ * - {brand.modes.light.text.emphasis.low} -> {brand.text.emphasis.low}
  */
 function normalizeUIKitBrandReferences(obj: any, currentPath: string = ''): any {
   if (typeof obj === 'string') {
@@ -797,39 +819,39 @@ function normalizeUIKitBrandReferences(obj: any, currentPath: string = ''): any 
       // ── Layer element text path: cssVarToRef flattens `text.color` into `text-color` ──
       // Fix: {brand.layers.layer-N.elements.text-color} → {brand.layers.layer-N.elements.text.color}
       // Also handles theme-qualified variants that haven't been stripped yet
-      .replace(/{brand(?:\.themes\.(?:light|dark))?\.layers\.(layer-\d+)\.elements\.text-(color|warning|success|alert)}/g,
+      .replace(/{brand(?:\.modes\.(?:light|dark))?\.layers\.(layer-\d+)\.elements\.text-(color|warning|success|alert)}/g,
         '{brand.layers.$1.elements.text.$2}')
       // ── Layer element interactive path: cssVarToRef flattens `interactive.tone` into `interactive-tone` ──
       // Fix: {brand.layers.layer-N.elements.interactive-tone} → {brand.layers.layer-N.elements.interactive.tone}
-      .replace(/{brand(?:\.themes\.(?:light|dark))?\.layers\.(layer-\d+)\.elements\.interactive-(tone|tone-hover|on-tone|on-tone-hover)}/g,
+      .replace(/{brand(?:\.modes\.(?:light|dark))?\.layers\.(layer-\d+)\.elements\.interactive-(tone|tone-hover|on-tone|on-tone-hover)}/g,
         '{brand.layers.$1.elements.interactive.$2}')
       // ── Core palette path: cssVarToRef flattens `core-colors` into `core` ──
       // Fix: {brand.palettes.core.black.tone} → {brand.palettes.core-colors.high-contrast.tone}
-      .replace(/{brand(?:\.themes\.(?:light|dark))?\.palettes\.core\.([a-z0-9-]+)(?:\.(tone|on-tone))?}/g,
+      .replace(/{brand(?:\.modes\.(?:light|dark))?\.palettes\.core\.([a-z0-9-]+)(?:\.(tone|on-tone))?}/g,
         (_, leaf, suffix) => {
           const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
           return `{brand.palettes.core-colors.${sem}${suffix ? '.' + suffix : '.tone'}}`
         })
       // ── Core-colors toneless: ensure `.tone` suffix and semantic keys ──
-      .replace(/{brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.([a-z0-9-]+)}/g,
+      .replace(/{brand(?:\.modes\.(?:light|dark))?\.palettes\.core-colors\.([a-z0-9-]+)}/g,
         (_, leaf) => {
           const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
           return `{brand.palettes.core-colors.${sem}.tone}`
         })
       // ── Core-colors spurious .color. subgroup: alert.color.tone → alert.tone ──
       .replace(
-        /\{(brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.[^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
+        /\{(brand(?:\.modes\.(?:light|dark))?\.palettes\.core-colors\.[^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
         '{$1.$2}'
       )
       // ── Palette refs missing .color. segment ──
-      .replace(/\{brand(?:\.themes\.(?:light|dark))?\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.tone\}/g,
+      .replace(/\{brand(?:\.modes\.(?:light|dark))?\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.tone\}/g,
         '{brand.palettes.$1.$2.color.tone}')
-      .replace(/\{brand(?:\.themes\.(?:light|dark))?\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.on-tone\}/g,
+      .replace(/\{brand(?:\.modes\.(?:light|dark))?\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.on-tone\}/g,
         '{brand.palettes.$1.$2.color.on-tone}')
       // ── Remove theme prefix from all brand references ──
-      .replace(/{brand\.themes\.(light|dark)\./g, '{brand.')
+      .replace(/{brand\.modes\.(light|dark)\./g, '{brand.')
       // ── Remove theme prefix from all ui-kit references ──
-      .replace(/{ui-kit\.themes\.(light|dark)\./g, '{ui-kit.')
+      .replace(/{ui-kit\.modes\.(light|dark)\./g, '{ui-kit.')
 
 
 
@@ -863,11 +885,11 @@ const DEFAULT_PALETTE_STEP: Record<string, Record<string, string>> = {
  * so theme-agnostic refs like {brand.palettes.palette-1.default.color.on-tone} resolve in export.
  */
 function ensurePaletteDefaults(result: any): void {
-  const themes = result?.themes
-  if (!themes) return
+  const modes = result?.modes
+  if (!modes) return
 
   for (const mode of ['light', 'dark'] as const) {
-    const palettes = themes[mode]?.palettes
+    const palettes = modes[mode]?.palettes
     if (!palettes) continue
 
     const steps = DEFAULT_PALETTE_STEP[mode]
@@ -891,8 +913,8 @@ function ensurePaletteDefaults(result: any): void {
         }
       }
 
-      const toneRef = `{brand.themes.${mode}.palettes.${paletteKey}.${step}.color.tone}`
-      const onToneRef = `{brand.themes.${mode}.palettes.${paletteKey}.${step}.color.on-tone}`
+      const toneRef = `{brand.modes.${mode}.palettes.${paletteKey}.${step}.color.tone}`
+      const onToneRef = `{brand.modes.${mode}.palettes.${paletteKey}.${step}.color.on-tone}`
 
       if (!palette.default) {
         palette.default = {
@@ -921,7 +943,7 @@ function ensurePaletteDefaults(result: any): void {
       if (!color['on-tone'] || typeof color['on-tone'] !== 'object') {
         const baseRef = typeof toneValue === 'string' && toneValue.startsWith('{')
           ? toneValue.replace(/\.color\.tone\s*\}$/, '.color.on-tone}')
-          : `{brand.themes.${mode}.palettes.${paletteKey}.${resolvedStep}.color.on-tone}`
+          : `{brand.modes.${mode}.palettes.${paletteKey}.${resolvedStep}.color.on-tone}`
         color['on-tone'] = { $type: 'color', $value: baseRef }
       }
 
@@ -942,11 +964,11 @@ function ensurePaletteDefaults(result: any): void {
  * The store may not always include $type on palette tokens (especially dynamically created palettes).
  */
 function ensurePaletteTypes(result: any): void {
-  const themes = result?.themes
-  if (!themes) return
+  const modes = result?.modes
+  if (!modes) return
 
   for (const mode of ['light', 'dark'] as const) {
-    const palettes = themes[mode]?.palettes
+    const palettes = modes[mode]?.palettes
     if (!palettes) continue
 
     for (const paletteKey of Object.keys(palettes)) {
@@ -986,8 +1008,8 @@ function ensurePaletteTypes(result: any): void {
  * Normalizes those references and ensures `$type` is present.
  */
 function ensureStateTokenRefs(result: any): void {
-  const themes = result?.themes
-  if (!themes) return
+  const modes = result?.modes
+  if (!modes) return
 
   // Only stamps `$type` on actual leaf tokens (those with a `$value`); never on
   // group objects like `hover` / `focus` / `link`, which have no `$value`.
@@ -998,7 +1020,7 @@ function ensureStateTokenRefs(result: any): void {
   }
 
   for (const mode of ['light', 'dark'] as const) {
-    const modeData = themes[mode]
+    const modeData = modes[mode]
     if (!modeData) continue
 
     // 2.x states: disabled (number), hover { color, opacity }, focus { color,
@@ -1080,7 +1102,7 @@ export function exportBrandJson(): object {
   // by recursively assigning the mode based on the object's parent path.
   const restoreMissingThemes = (obj: any) => {
     if (!obj || typeof obj !== 'object') return
-    const themesBlock = obj.themes || obj
+    const themesBlock = obj.modes || obj
     if (!themesBlock || typeof themesBlock !== 'object') return
     
     const walkAndInjectTheme = (node: any, mode: string) => {
@@ -1088,8 +1110,8 @@ export function exportBrandJson(): object {
       for (const key in node) {
         const val = node[key]
         if (typeof val === 'string') {
-          if (val.startsWith('{brand.') && !val.startsWith('{brand.themes.') && !val.startsWith('{brand.dimensions.') && !val.startsWith('{brand.typography.')) {
-            node[key] = val.replace('{brand.', `{brand.themes.${mode}.`)
+          if (val.startsWith('{brand.') && !val.startsWith('{brand.modes.') && !val.startsWith('{brand.dimensions.') && !val.startsWith('{brand.typography.')) {
+            node[key] = val.replace('{brand.', `{brand.modes.${mode}.`)
           }
         } else if (typeof val === 'object') {
           // Recover float-corrupted percentage dimensions (e.g. 0.89 -> 89)
@@ -1230,7 +1252,11 @@ export function exportUIKitJson(): object {
   walkAndConvertFonts(result)
 
   // Normalize brand references to remove theme information (UIKit should be theme-agnostic)
-  const normalized = normalizeUIKitBrandReferences(result)
+  const normalizedFull = normalizeUIKitBrandReferences(result)
+
+  // The store holds every layer written out; the file is written in the short form, so an export
+  // matches the shape of the source rather than re-inflating it.
+  const normalized = collapseLayers(normalizedFull)
 
 
 
@@ -1298,8 +1324,8 @@ function extractColorLevel(varName: string): number {
  * Returns a key that groups by path structure, then sorts by level, then light before dark
  */
 function getBrandSortKey(varName: string): string {
-  // Pattern: --recursica_brand_themes_{mode}-{rest}
-  const match = varName.match(/--recursica_brand_themes_(light|dark)-(.*)$/)
+  // Pattern: --recursica_brand_modes_{mode}-{rest}
+  const match = varName.match(/--recursica_brand_modes_(light|dark)-(.*)$/)
   if (match) {
     const mode = match[1]
     const rest = match[2]
@@ -1332,14 +1358,14 @@ function parseCssVarName(varName: string): {
   hasTheme: boolean
   hasLayer: boolean
 } {
-  // Brand vars: --recursica_brand_themes_{light|dark}-...
-  const brandThemeMatch = varName.match(/^--recursica_brand_themes_(light|dark)-(.*)$/)
+  // Brand vars: --recursica_brand_modes_{light|dark}-...
+  const brandThemeMatch = varName.match(/^--recursica_brand_modes_(light|dark)-(.*)$/)
   if (brandThemeMatch) {
     const theme = brandThemeMatch[1] as 'light' | 'dark'
     const rest = brandThemeMatch[2]
 
     // Check for layer in brand vars: ...-layer-layer-{N}-...
-    // Pattern: --recursica_brand_themes_{theme}-layer-layer-{N}-...
+    // Pattern: --recursica_brand_modes_{theme}-layer-layer-{N}-...
     const layerMatch = rest.match(/^layer-layer-(\d+)-(.*)$/)
     if (layerMatch) {
       const layer = layerMatch[1]
@@ -1356,8 +1382,8 @@ function parseCssVarName(varName: string): {
     }
 
     // No layer, just theme
-    // Base name: remove themes-{mode}- prefix
-    const baseName = varName.replace(/^--recursica_brand_themes_(light|dark)-/, '--recursica_brand_')
+    // Base name: remove modes-{mode}- prefix
+    const baseName = varName.replace(/^--recursica_brand_modes_(light|dark)-/, '--recursica_brand_')
     return {
       theme,
       layer: null,
@@ -1688,8 +1714,8 @@ export function exportCssStylesheet(options: { specific?: boolean; scoped?: bool
   uikitGrouped.byLayer.forEach((vars) => {
     vars.forEach(([baseName]) => scopedVarNames.add(baseName))
   })
-  uikitGrouped.byThemeAndLayer.forEach((themes) => {
-    themes.forEach((layers) => {
+  uikitGrouped.byThemeAndLayer.forEach((modes) => {
+    modes.forEach((layers) => {
       layers.forEach((vars) => {
         vars.forEach(([baseName]) => scopedVarNames.add(baseName))
       })
