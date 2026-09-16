@@ -111,8 +111,10 @@ The recursica_ui-kit.json file uses a consistent structure for all components:
             "{variant-name}": {
               "properties": {
                 "colors": {
-                  "layer-0": {
-                    "{property}": { "$type": "color", "$value": "..." }
+                  "layers": {
+                    "layer-0": {
+                      "{property}": { "$type": "color", "$value": "..." }
+                    }
                   }
                 }
               }
@@ -135,32 +137,67 @@ The recursica_ui-kit.json file uses a consistent structure for all components:
 }
 ```
 
+### The `layers` short form
+
+A colour group holds a `layers` key, and inside it `layer-0` is the base. Layers 1–3 appear only
+where they actually differ from it, so most groups in the file contain `layer-0` alone.
+
+```json
+"colors": {
+  "layers": {
+    "layer-0": { "background-color": { "$value": "{brand.layers.layer-0.properties.surface}" } },
+    "layer-3": { "border-color":     { "$value": "{brand.layers.layer-3.properties.border-color}" } }
+  }
+}
+```
+
+Three rules follow from this, and they matter when you edit the file by hand:
+
+- **A reference is relative to the layer block it sits in.** The `layer-0` entry above points at
+  layer 0's surface; the same property under `layer-2` would point at layer 2's. When the app
+  expands the file it shifts those references for you.
+- **Omission means "same as layer-0", not "undefined".** Deleting a layer does not remove the
+  value; it inherits.
+- **Every reference must be a real token path.** There is no placeholder standing in for
+  "whichever layer this is".
+
+The app expands this to all four layers on import and collapses it again on export, so the store
+always holds every layer while the file on disk stays small. `src/core/uikit/expandLayers.ts` is
+the whole implementation, and `expandLayers.test.ts` next to it is the clearest specification.
+
 ### Key Patterns
 
-1. **Color Variants**: `variants.styles.{variant}.properties.colors.{layer}.{property}`
-   - Example: `button.variants.styles.solid.properties.colors.layer-0.background`
-   - CSS Variable: `--recursica-ui-kit-components-button-variants-styles-solid-properties-colors-layer-0-background`
-   - Code: `getComponentCssVar('Button', 'colors', 'solid-background-color', 'layer-0')`
+1. **Color Variants**: `variants.styles.{variant}.properties.colors.layers.{layer}.{property}`
+   - Example: `button.variants.styles.solid.properties.colors.layers.layer-0.background-color`
+   - CSS Variable: `--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_layer-0_background-color`
+   - Code: `buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background-color')`
 
 2. **Size Variants**: `variants.sizes.{variant}.properties.{property}`
    - Example: `button.variants.sizes.default.properties.height`
-   - CSS Variable: `--recursica-ui-kit-components-button-variants-sizes-default-properties-height`
-   - Code: `getComponentCssVar('Button', 'size', 'default-height', undefined)`
+   - CSS Variable: `--recursica_ui-kit_components_button_variants_sizes_default_properties_height`
+   - Code: `buildComponentCssVarPath('Button', 'variants', 'sizes', 'default', 'properties', 'height')`
 
 3. **Component-Level Properties**: `properties.{property}`
-   - Example: `button.properties.elevation`
-   - CSS Variable: `--recursica-ui-kit-components-button-properties-elevation`
-   - Code: `getComponentLevelCssVar('Button', 'elevation')`
+   - Example: `accordion-content.properties.border-radius`
+   - CSS Variable: `--recursica_ui-kit_components_accordion-content_properties_border-radius`
+   - Code: `getComponentLevelCssVar('AccordionContent', 'border-radius')`
+
+Note that the JSON path carries a layer and the CSS variable does not. Colors are written per layer
+in the JSON; the exported CSS turns each layer into its own block, so the name a component
+references never mentions one.
 
 ### Special Cases
 
-- **Switch Component**: Has colors directly under `properties.colors` (no variants)
-  - Structure: `switch.properties.colors.layer-0.thumb-selected`
-  - Code: `getComponentCssVar('Switch', 'colors', 'thumb-selected', 'layer-0')`
+- **Switch Component**: colors hang off selection states, not styles
+  - Structure: `switch.variants.selection-states.selected.properties.colors.layers.layer-0.{property}`
+  - Code: `buildComponentCssVarPath('Switch', 'variants', 'selection-states', 'selected', 'properties', 'colors', property)`
 
-- **Avatar Component**: Has nested variants for styles
-  - Structure: `avatar.variants.styles.text.variants.solid.properties.colors.layer-0.background`
-  - Code: `getComponentCssVar('Avatar', 'colors', 'text-solid-background-color-color', 'layer-0')`
+- **Avatar Component**: styles nest a second level of variants
+  - Structure: `avatar.variants.styles.text.variants.types.solid.properties.colors.layers.layer-0.{property}`
+  - Code: `buildComponentCssVarPath('Avatar', 'variants', 'styles', 'text', 'variants', 'types', 'solid', 'properties', 'colors', property)`
+
+When a component's shape is not obvious, read it out of `recursica_ui-kit.json` rather than
+guessing — the path segments map one to one onto the variable name.
 
 ### Property Value Guidelines for Token Resolution & Theme Customization
 
@@ -386,7 +423,7 @@ Create implementations for each library simultaneously. Each library implementat
 1. **Import Dependencies**
    ```typescript
    import { {ComponentName} as Library{ComponentName} } from '@library/package'
-   import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+   import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../../utils/cssVarNames'
    import { getComponentTextCssVar } from '../../../utils/cssVarNames'
    import { getBrandStateCssVar, getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
    import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -401,13 +438,13 @@ Create implementations for each library simultaneously. Each library implementat
    
    **Quick Reference:**
    ```typescript
-   import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+   import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../../utils/cssVarNames'
    
    // Color properties (use 'colors' plural)
-   const bgVar = getComponentCssVar('Button', 'colors', 'solid-background-color', layer)
+   const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', layer, 'background-color')
    
    // Size properties
-   const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
+   const heightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'default', 'properties', 'height')
    
    // Component-level properties
    const elevationVar = getComponentLevelCssVar('Button', 'elevation')
@@ -924,8 +961,8 @@ const baseComponents = useMemo(() => {
 **Pattern 1: Simple Component (e.g., Button)**
 ```typescript
 // 1. Define CSS variables
-const bgVar = getComponentCssVar('Button', 'colors', 'solid-background-color', layer)
-const textVar = getComponentCssVar('Button', 'colors', 'solid-text', layer)
+const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', layer, 'background-color')
+const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', layer, 'text-color')
 const borderRadiusVar = getComponentLevelCssVar('Button', 'border-radius')
 
 // 2. Set CSS custom properties
@@ -1050,15 +1087,15 @@ useEffect(() => {
    - ✅ **DO** add comments explaining why overrides are needed
    - ❌ **DO NOT** put complex styling logic in the TSX file
 
-8. **Use Library CSS Vars as Fallbacks** - `var(--recursica-var, var(--library-var))`
+8. **Use Library CSS Vars as Fallbacks** - `var(--recursica_…, var(--library-var))`
 
 #### Example Pattern:
 
 ```css
 /* Override library styles using Recursica CSS variables */
 .library-Component-root {
-  background-color: var(--recursica-ui-kit-components-{component}-color-..., var(--library-default-bg)) !important;
-  color: var(--recursica-ui-kit-components-{component}-color-..., var(--library-default-color)) !important;
+  background-color: var(--recursica_ui-kit_components_{component}_variants_styles_{variant}_properties_colors_{layer}_background-color, var(--library-default-bg)) !important;
+  color: var(--recursica_ui-kit_components_{component}_variants_styles_{variant}_properties_colors_{layer}_text-color, var(--library-default-color)) !important;
 }
 
 /* Use CSS custom properties set in TSX */
@@ -1221,7 +1258,7 @@ import { UnifiedThemeProvider } from '../providers/UnifiedThemeProvider'
 import { UiKitProvider } from '../../modules/uikit/UiKitContext'
 import { {ComponentName} } from '../{ComponentName}'
 import { updateCssVar } from '../../../core/css/updateCssVar'
-import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar } from '../utils/cssVarNames'
 
 describe('{ComponentName} Toolbar Props Integration', () => {
   beforeEach(() => {
@@ -1253,7 +1290,7 @@ describe('{ComponentName} Toolbar Props Integration', () => {
       expect(element).toBeInTheDocument()
 
       // Get the CSS variable name that the toolbar would use
-      const bgVar = getComponentCssVar('{ComponentName}', 'colors', '{variant}-background', 'layer-0')
+      const bgVar = buildComponentCssVarPath('{ComponentName}', 'variants', 'styles', '{variant}', 'properties', 'colors', layer, 'background-color')
       
       // Simulate toolbar update: change the CSS variable
       updateCssVar(bgVar, '#ff0000')
@@ -2249,26 +2286,75 @@ For all other properties (colors, dimensions, typography, etc.), reference CSS v
 
 The component system uses a **three-layer CSS variable system**:
 
+**How these names are spelled.** Segments are joined with underscores; a hyphen only ever appears
+*inside* one segment, as in `background-color`, `icon-text-gap`, or `layer-0`. A name written
+`--recursica-ui-kit-...` all the way through does not exist. The only hyphen-style names in the
+codebase are the few local helpers in `src/styles/interactive-states.css`, which are not design
+tokens.
+
+**There are two different name sets, and this guide is about the first.**
+
+<!-- namespace-comparison: exported names quoted on purpose -->
+| | In the app (what you write here) | In the exported CSS file |
+| --- | --- | --- |
+| ui-kit colour | `..._properties_colors_layer-0_background-color` | `..._properties_colors_background-color` |
+| typography | `--recursica_brand_typography_body-font-weight` | `--recursica_brand_typography_body_fontWeight` |
+| elevation | `--recursica_brand_modes_light_elevations_elevation-1_x-axis` | `--recursica_brand_elevations_elevation-1_x` |
+<!-- /namespace-comparison -->
+
+The app resolves the three JSON files into its own variables at runtime. The export transform
+writes a separate stylesheet for consumers of the design system, in a deliberately different and
+tidier scheme — that is its whole purpose, see `docs/EXPORT_PIPELINE_REFACTOR_PLAN.md`.
+
+Component code runs in the app, so it uses the left column. Copying a name out of an exported
+`.css` file, or out of `docs/SCOPED_CSS_ARCHITECTURE.md`, gives you a variable that does not exist
+here and a silent fallback. When you are unsure which set you are looking at, read the variable off
+a live element rather than guessing:
+
+```js
+getComputedStyle(el).getPropertyValue('--recursica_brand_typography_body-font-weight')
+```
+
+Do not hand-write these names. `buildComponentCssVarPath` and the brand helpers below produce the
+in-app form, and they are the only supported way to build one.
+
 1. **UIKit CSS Variables** (set by toolbar, read by components)
-   - **Color Properties**: `--recursica-ui-kit-components-{component}-variants-styles-{variant}-properties-colors-{layer}-{property}`
-     - Built using: `getComponentCssVar(componentName, 'colors', 'variant-property', layer)`
-     - Example: `--recursica-ui-kit-components-button-variants-styles-solid-properties-colors-layer-0-background`
-   - **Size Properties**: `--recursica-ui-kit-components-{component}-variants-sizes-{variant}-properties-{property}`
-     - Built using: `getComponentCssVar(componentName, 'size', 'variant-property', undefined)`
-     - Example: `--recursica-ui-kit-components-button-variants-sizes-default-properties-height`
-   - **Component-Level Properties**: `--recursica-ui-kit-components-{component}-properties-{property}`
+   - **Color Properties**: `--recursica_ui-kit_components_{component}_variants_styles_{variant}_properties_colors_{layer}_{property}`
+     - Built using: `buildComponentCssVarPath(component, 'variants', 'styles', variant, 'properties', 'colors', layer, property)`
+     - Example: `--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_layer-0_background-color`
+     - The layer is a segment here, unlike in the exported file. Pass the layer the component is
+       rendering on; non-colour properties take no layer.
+   - **Size Properties**: `--recursica_ui-kit_components_{component}_variants_sizes_{variant}_properties_{property}`
+     - Built using: `buildComponentCssVarPath(component, 'variants', 'sizes', variant, 'properties', property)`
+     - Example: `--recursica_ui-kit_components_button_variants_sizes_default_properties_height`
+   - **Component-Level Properties**: `--recursica_ui-kit_components_{component}_properties_{property}`
      - Built using: `getComponentLevelCssVar(componentName, property)`
-     - Examples: `--recursica-ui-kit-components-button-properties-elevation`, `--recursica-ui-kit-components-button-properties-border-radius`
+     - Example: `--recursica_ui-kit_components_accordion-content_properties_border-radius`
+     - Not every component has these. Button, for instance, keeps all of its properties under a
+       variant, so `--recursica_ui-kit_components_button_properties_elevation` does not exist.
+
+   `getComponentCssVar(component, category, property, layer)` also still exists, but it is
+   **deprecated**: it guesses the variant out of the property string, which only works for the
+   components it hardcodes. Use `buildComponentCssVarPath` with explicit segments in new code.
 
 2. **Brand CSS Variables** (for typography, state, elevation)
-   - **Typography**: `--recursica-brand-typography-{style}-{property}`
-     - Built using: `getBrandTypographyCssVar(styleName, property)`
-     - Example: `--recursica-brand-typography-button-font-weight`
-   - **State**: `--recursica-brand-modes-{mode}-state-{state}`
-     - Built using: `getBrandStateCssVar(mode, state)`
-     - Example: `--recursica-brand-modes-light-state-disabled`
-   - **Elevation**: `--recursica-brand-modes-{mode}-elevations-elevation-{level}-{property}`
-     - Box-shadow generated using: `getElevationBoxShadow(mode, elevation)`
+   - **Typography**: `--recursica_brand_typography_{style}-{property}`
+     - Styles are `h1`–`h6`, `body`, `caption`, `overline`, plus any the user adds on the Type
+       page. Note the style and property are joined with a hyphen, not an underscore.
+     - Properties are kebab-case and most take a `font-` prefix: `font-family`, `font-size`,
+       `font-weight`, `font-style`, `font-letter-spacing`. `line-height`, `text-transform` and
+       `text-decoration` take no prefix.
+     - Example: `--recursica_brand_typography_body-font-weight`
+     - There is no `button` type style; components pick one of the styles above.
+   - **State**: `--recursica_brand_states_{state}`
+     - Built using: `getBrandStateCssVar(mode, state)` — the `mode` argument is ignored and the
+       generic name is returned, because the theme block already resolves it.
+     - Example: `--recursica_brand_states_disabled`
+   - **Elevation**: `--recursica_brand_modes_{mode}_elevations_elevation-{level}_{property}`
+     - Properties are `x-axis`, `y-axis`, `blur`, `spread`, `shadow-color`, `opacity`.
+     - These keep the mode in the name, unlike the state variables above.
+     - Box-shadow generated using: `getElevationBoxShadow(mode, elevation)` — prefer it to
+       assembling the shadow yourself.
 
 3. **Component Custom Properties** (set by component, used by CSS file)
    - Pattern: `--{component}-{property}` (scoped to component instance)
@@ -2280,21 +2366,21 @@ The component system uses a **three-layer CSS variable system**:
 Toolbar → Updates UIKit CSS vars → Component reads vars → Component sets custom properties → CSS file uses custom properties
 ```
 
-1. **Toolbar** uses `getComponentCssVar()` to build CSS var names and updates them via `updateCssVar()`
-2. **Component** uses `getComponentCssVar()` to build the same CSS var names and references them
+1. **Toolbar** uses `buildComponentCssVarPath()` to build CSS var names and updates them via `updateCssVar()`
+2. **Component** uses `buildComponentCssVarPath()` to build the same CSS var names and references them
 3. **Component** sets CSS custom properties on `style` prop (e.g., `--button-bg: var(${bgVar})`)
 4. **CSS File** uses those custom properties to override library styles
 
 ### Using CSS Variables in Components
 
-#### ✅ Correct: Build CSS var names with `getComponentCssVar` (use 'colors' plural) - Direct Reference
+#### ✅ Correct: Build CSS var names with `buildComponentCssVarPath` - Direct Reference
 
 ```typescript
 // This matches what the toolbar uses
-// IMPORTANT: Use 'colors' (plural), not 'color' (singular)
-const bgVar = getComponentCssVar('Button', 'colors', 'solid-background-color', layer)
-const textVar = getComponentCssVar('Button', 'colors', 'solid-text', layer)
-const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
+// Every segment is a key from recursica_ui-kit.json, spelled exactly as it appears there
+const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', layer, 'background-color')
+const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', layer, 'text-color')
+const heightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'default', 'properties', 'height')
 
 style={{
   // Reference the UIKit CSS var directly (toolbar updates this immediately - no React listeners needed)
@@ -2369,21 +2455,21 @@ if (elevation && elevation !== 'elevation-0') {
 #### ❌ Incorrect: Don't build CSS var names manually
 
 ```typescript
-// ❌ Don't do this - use getComponentCssVar instead
-const bgVar = `--recursica-ui-kit-components-button-variants-styles-solid-properties-colors-layer-0-background`
+// ❌ Don't do this - use buildComponentCssVarPath instead
+const bgVar = `--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_layer-0_background-color`
 
 // ✅ Do this instead
-const bgVar = getComponentCssVar('Button', 'colors', 'solid-background-color', layer)
+const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', layer, 'background-color')
 ```
 
-#### ❌ Incorrect: Don't use 'color' (singular) - use 'colors' (plural)
+#### ❌ Incorrect: Don't invent segment names - copy them from the JSON
 
 ```typescript
-// ❌ Don't do this
-const bgVar = getComponentCssVar('Button', 'color', 'solid-background-color', layer)
+// ❌ Don't do this - the group is 'colors' (plural) and the property is 'background-color'
+const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'color', 'background')
 
 // ✅ Do this
-const bgVar = getComponentCssVar('Button', 'colors', 'solid-background-color', layer)
+const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', layer, 'background-color')
 ```
 
 #### ❌ Incorrect: Don't manually construct elevation box-shadow
@@ -2392,7 +2478,7 @@ const bgVar = getComponentCssVar('Button', 'colors', 'solid-background-color', l
 // ❌ Don't do this
 if (elevation && elevation !== 'elevation-0') {
   const level = elevation.match(/elevation-(\d+)/)?.[1]
-  style.boxShadow = `var(--recursica-brand-${mode}-elevations-elevation-${level}-x-axis, 0px) ...`
+  style.boxShadow = `var(--recursica_brand_modes_${mode}_elevations_elevation-${level}_x-axis, 0px) ...`
 }
 
 // ✅ Do this instead
@@ -2417,7 +2503,7 @@ Components support component-level properties that are stored as CSS variables a
 
 1. **Elevation** (`elevation` prop) - **Exception: Needs Reactive Function**
    - Type: `string | undefined` (e.g., `"elevation-0"`, `"elevation-1"`, etc.)
-   - CSS Variable: `--recursica-ui-kit-components-{component}-properties-elevation`
+   - CSS Variable: `--recursica_ui-kit_components_{component}_properties_elevation`
    - Priority: **Prop** > **CSS Variable** > **recursica_ui-kit.json default** > **No elevation**
    - **Why reactive**: Elevation needs to compute box-shadow values from elevation tokens, so it requires a reactive function
    - Implementation:
@@ -2470,7 +2556,7 @@ Components support component-level properties that are stored as CSS variables a
 2. **Other Component-Level Properties** - **Direct CSS Variable Reference**
    - Properties like `border-radius`, `font-size`, `max-width`, etc. are also component-level
    - Use `getComponentLevelCssVar(componentName, property)` to get their CSS variable names
-   - Pattern: `--recursica-ui-kit-components-{component}-properties-{property}`
+   - Pattern: `--recursica_ui-kit_components_{component}_properties_{property}`
    - **Use directly** - no React state or listeners needed:
      ```typescript
      const borderRadiusVar = getComponentLevelCssVar('Button', 'border-radius')
@@ -2494,7 +2580,7 @@ Components support component-level properties that are stored as CSS variables a
 
 The toolbar and components use the **same utilities** to build CSS variable names, ensuring they stay in sync:
 
-1. **Toolbar builds CSS var names** using `getComponentCssVar()` and `getComponentLevelCssVar()`
+1. **Toolbar builds CSS var names** using `buildComponentCssVarPath()` and `getComponentLevelCssVar()`
 2. **Toolbar updates CSS vars** using `updateCssVar()` (writes to DOM)
 3. **Components build the same CSS var names** using the same utilities
 4. **Components reference those CSS vars** in their styles
@@ -2503,11 +2589,11 @@ The toolbar and components use the **same utilities** to build CSS variable name
 **Example Flow:**
 ```typescript
 // Toolbar (ComponentToolbar.tsx)
-const bgVar = getComponentCssVar('Button', 'colors', 'solid-background-color', selectedLayer)
+const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', layer, 'background-color')
 updateCssVar(bgVar, newValue) // Updates DOM CSS variable
 
 // Component (Button.tsx) - Direct reference (updates immediately, no React listeners needed)
-const bgVar = getComponentCssVar('Button', 'colors', 'solid-background-color', layer)
+const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', layer, 'background-color')
 style={{ '--button-bg': `var(${bgVar})` }} // Direct reference - updates immediately
 
 // CSS File (Button.css)
@@ -2583,7 +2669,7 @@ describe('Button Component', () => {
     const button = container.querySelector('button')
     // Check CSS variables are applied
     expect(button).toHaveStyle({
-      backgroundColor: expect.stringContaining('var(--recursica-ui-kit-components-button')
+      backgroundColor: expect.stringContaining('var(--recursica_ui-kit_components_button')
     })
   })
 
@@ -2592,7 +2678,7 @@ describe('Button Component', () => {
     const button = container.querySelector('button')
     // Check size CSS variables
     expect(button).toHaveStyle({
-      height: expect.stringContaining('var(--recursica-ui-kit-components-button-size-variant-small-height')
+      height: expect.stringContaining('var(--recursica_ui-kit_components_button_variants_sizes_small_properties_height')
     })
   })
 
@@ -2601,7 +2687,7 @@ describe('Button Component', () => {
     const button = container.querySelector('button')
     // Check layer-specific CSS variables
     expect(button).toHaveStyle({
-      backgroundColor: expect.stringContaining('var(--recursica-ui-kit-components-button-color-layer-1')
+      backgroundColor: expect.stringContaining('var(--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_layer-0_background-color')
     })
   })
 })
@@ -2674,13 +2760,13 @@ describe('Button Integration', () => {
 
     // All should reference the same Recursica CSS variables
     expect(mantineButton).toHaveStyle({
-      backgroundColor: expect.stringContaining('--recursica-ui-kit-components-button')
+      backgroundColor: expect.stringContaining('--recursica_ui-kit_components_button')
     })
     expect(materialButton).toHaveStyle({
-      backgroundColor: expect.stringContaining('--recursica-ui-kit-components-button')
+      backgroundColor: expect.stringContaining('--recursica_ui-kit_components_button')
     })
     expect(carbonButton).toHaveStyle({
-      backgroundColor: expect.stringContaining('--recursica-ui-kit-components-button')
+      backgroundColor: expect.stringContaining('--recursica_ui-kit_components_button')
     })
   })
 })
@@ -2704,9 +2790,9 @@ describe('Button CSS Variables', () => {
     render(<Button variant="solid" size="default" layer="layer-0">Test</Button>)
 
     // Check that CSS variables are defined
-    const bgVar = readCssVar('--recursica-ui-kit-components-button-color-layer-0-variant-solid-background-color')
-    const textVar = readCssVar('--recursica-ui-kit-components-button-color-layer-0-variant-solid-text')
-    const heightVar = readCssVar('--recursica-ui-kit-components-button-size-variant-default-height')
+    const bgVar = readCssVar('--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_layer-0_background-color')
+    const textVar = readCssVar('--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_layer-0_text-color')
+    const heightVar = readCssVar('--recursica_ui-kit_components_button_variants_sizes_default_properties_height')
 
     expect(bgVar).toBeDefined()
     expect(textVar).toBeDefined()
@@ -2719,13 +2805,13 @@ describe('Button CSS Variables', () => {
     const styles = window.getComputedStyle(button!)
 
     // Check that styles use CSS variables
-    expect(styles.backgroundColor).toContain('var(--recursica-ui-kit-components-button')
-    expect(styles.color).toContain('var(--recursica-ui-kit-components-button')
+    expect(styles.backgroundColor).toContain('var(--recursica_ui-kit_components_button')
+    expect(styles.color).toContain('var(--recursica_ui-kit_components_button')
   })
 
   it('handles missing CSS variables gracefully', () => {
     // Remove a CSS variable
-    document.documentElement.style.removeProperty('--recursica-ui-kit-components-button-color-layer-0-variant-solid-background-color')
+    document.documentElement.style.removeProperty('--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_layer-0_background-color')
     
     const { container } = render(<Button variant="solid">Test</Button>)
     const button = container.querySelector('button')
@@ -2759,7 +2845,7 @@ These tests simulate toolbar updates by directly updating CSS variables and veri
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
 import { updateCssVar } from '../../../core/css/updateCssVar'
-import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar } from '../utils/cssVarNames'
 
 describe('{ComponentName} Toolbar Props Integration', () => {
   it('updates background color when toolbar changes', async () => {
@@ -2768,7 +2854,7 @@ describe('{ComponentName} Toolbar Props Integration', () => {
     )
     const element = container.querySelector('{selector}')
     
-    const bgVar = getComponentCssVar('{ComponentName}', 'colors', 'solid-background-color', 'layer-0')
+    const bgVar = buildComponentCssVarPath('{ComponentName}', 'variants', 'styles', 'solid', 'properties', 'colors', layer, 'background-color')
     
     // Simulate toolbar update
     updateCssVar(bgVar, '#ff0000')
@@ -3152,10 +3238,10 @@ This document audits the {ComponentName} component implementation for {Library},
 
 | Library Variable | Recursica Override | Fallback Behavior | Status |
 |-----------------|-------------------|-------------------|--------|
-| `--mantine-color-blue-6` | `--recursica-ui-kit-components-button-color-...` | Used as fallback in `var()` | ✅ Covered |
+| `--mantine-color-blue-6` | `--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_...` | Used as fallback in `var()` | ✅ Covered |
 | `--mantine-scale` | N/A | Used for border calculations | ⚠️ Library Internal |
-| `--button-bg` | `--recursica-ui-kit-components-button-color-...` | Set via style prop | ✅ Covered |
-| `--button-color` | `--recursica-ui-kit-components-button-color-...` | Set via style prop | ✅ Covered |
+| `--button-bg` | `--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_...` | Set via style prop | ✅ Covered |
+| `--button-color` | `--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_...` | Set via style prop | ✅ Covered |
 
 ### Variables NOT Overridden
 
@@ -3170,17 +3256,17 @@ This document audits the {ComponentName} component implementation for {Library},
 
 | Variable Name | Source | Used For |
 |--------------|--------|----------|
-| `--recursica-ui-kit-components-button-color-layer-0-variant-solid-background-color` | recursica_ui-kit.json | Button background color |
-| `--recursica-ui-kit-components-button-color-layer-0-variant-solid-text` | recursica_ui-kit.json | Button text color |
-| `--recursica-ui-kit-components-button-size-variant-default-height` | recursica_ui-kit.json | Button height |
-| `--recursica-ui-kit-components-button-size-variant-default-horizontal-padding` | recursica_ui-kit.json | Button padding |
+| `--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_layer-0_background-color` | recursica_ui-kit.json | Button background color |
+| `--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_layer-0_text-color` | recursica_ui-kit.json | Button text color |
+| `--recursica_ui-kit_components_button_variants_sizes_default_properties_height` | recursica_ui-kit.json | Button height |
+| `--recursica_ui-kit_components_button_variants_sizes_default_properties_horizontal-padding` | recursica_ui-kit.json | Button padding |
 
 ### Variables Used (with Library Fallbacks)
 
 ```css
 /* Example from Button.css */
 .mantine-Button-root {
-  background-color: var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-background-color, var(--mantine-color-blue-6)) !important;
+  background-color: var(--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_layer-0_background-color, var(--mantine-color-blue-6)) !important;
 }
 ```
 
@@ -3198,8 +3284,8 @@ This document audits the {ComponentName} component implementation for {Library},
 
 ```css
 .mantine-Button-leftSection {
-  width: var(--button-icon-size, var(--recursica-ui-kit-components-button-size-variant-default-icon)) !important;
-  margin-inline-end: var(--button-icon-text-gap, var(--recursica-ui-kit-components-button-size-variant-default-icon-text-gap)) !important;
+  width: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
+  margin-inline-end: var(--button-icon-text-gap, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon-text-gap)) !important;
 }
 ```
 
@@ -3208,7 +3294,7 @@ This document audits the {ComponentName} component implementation for {Library},
 ```
 Component Style
   ↓
---recursica-ui-kit-components-button-color-... (Primary)
+--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_... (Primary)
   ↓ (if not defined)
 --mantine-color-blue-6 (Library fallback)
   ↓ (if not defined)
@@ -3619,7 +3705,7 @@ See the existing Button component as a reference:
 ## Additional Resources
 
 - **CSS Variable Utilities**: `src/components/utils/cssVarNames.ts`
-  - `getComponentCssVar()` - For variant properties (colors, sizes)
+  - `buildComponentCssVarPath()` - For variant properties (colors, sizes)
   - `getComponentLevelCssVar()` - For component-level properties (elevation, border-radius, etc.)
 - **Brand CSS Variable Utilities**: `src/components/utils/brandCssVars.ts`
   - `getBrandTypographyCssVar()` - For typography CSS variables

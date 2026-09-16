@@ -16,16 +16,17 @@ This document defines the architecture and rules for the **scoped** CSS transfor
 - Examples:
   - `brand.modes.light.layers.layer-0.properties.surface` → `--recursica_brand_modes_light_layers_layer-0_properties_surface`
   - `brand.modes.dark.layers.layer-1.elements.interactive.tone` → `--recursica_brand_modes_dark_layers_layer-1_elements_interactive_tone`
-  - `ui-kit.components.Modal.properties.colors.layer-0.background` (per theme) → for each theme, a distinct root name, e.g. `--recursica_ui-kit_modes_light_layer_0_components_Modal_properties_colors_background`, `--recursica_ui-kit_modes_dark_layer_0_...`, etc.
+  - `ui-kit.components.modal.properties.colors.layers.layer-0.content-background-color` (per theme) → for each theme, a distinct root name, e.g. `--recursica_ui-kit_modes_light_layer_0_components_modal_properties_colors_content-background-color`, `--recursica_ui-kit_modes_dark_layer_0_...`, etc.
 - **Rule:** Every variable that can be referenced (by any other var in the file) must exist on `:root` under this specific name. Refs in values use these specific names so resolution always succeeds at root.
 
-### 2. Generic names (in theme/layer blocks only)
+### 2. Generic names (what components reference)
 
-- Theme and layer are **omitted** from the name; the selector provides context.
-- Examples:
-  - In `[data-recursica-theme="light"][data-recursica-layer="0"]`: `--recursica_brand_layer_0_properties_surface: var(--recursica_brand_modes_light_layers_layer-0_properties_surface);`
-  - In the same block: `--recursica_ui-kit_components_Modal_properties_colors_background: var(--recursica_ui-kit_modes_light_layer_0_components_Modal_properties_colors_background);`
-- **Rule:** Generic names are **never** defined on `:root`. They are defined only in theme and/or theme+layer blocks. So there is no specificity fight between root and blocks; blocks only alias into root.
+- The theme is always **omitted** from the name; the selector provides it. The layer is omitted too, apart from the brand layer names noted below.
+- Examples, both from `[data-recursica-theme="light"][data-recursica-layer="0"]`:
+  - `--recursica_ui-kit_components_modal_properties_colors_content-background-color: var(--recursica_ui-kit_modes_light_layer_0_components_modal_properties_colors_content-background-color);`
+  - `--recursica_brand_layer_properties_surface: var(--recursica_brand_modes_light_layers_layer-0_properties_surface);`
+- **Brand layer names come in two forms**, and every layer block emits both. `--recursica_brand_layer_properties_surface` carries no layer number, so it follows whichever layer the element sits in; this is the one components should use. `--recursica_brand_layer_0_properties_surface` pins layer 0 and ignores the ancestor, so reach for it only when you deliberately want that one layer.
+- **Rule:** A generic name for anything that varies by theme or layer is defined only in theme and/or theme+layer blocks, never on `:root`. So there is no specificity fight between root and blocks; blocks only alias into root. Values that vary by neither — component dimensions such as `--recursica_ui-kit_components_accordion_properties_border-size` — are defined once on `:root` under their generic name, because there is nothing to switch on.
 
 ## Output structure
 
@@ -37,7 +38,7 @@ This document defines the architecture and rules for the **scoped** CSS transfor
   - Brand theme-only (e.g. `--recursica_brand_modes_light_palettes_...`, `--recursica_brand_modes_dark_palettes_...`)
   - Brand per theme+layer (e.g. `--recursica_brand_modes_light_layers_layer-0_...`, `--recursica_brand_modes_dark_layers_layer-1_...`)
   - Ui-kit non–layer-specific (e.g. `--recursica_ui-kit_globals_...`)
-  - Ui-kit layer-specific: one var per (theme, layer) with a name that includes theme and layer (e.g. `--recursica_ui-kit_modes_light_layer_0_components_Modal_properties_colors_background`), so cross-layer refs in values point at root and resolve.
+  - Ui-kit layer-specific: one var per (theme, layer) with a name that includes theme and layer (e.g. `--recursica_ui-kit_modes_light_layer_0_components_modal_properties_colors_content-background-color`), so cross-layer refs in values point at root and resolve.
 
 ### `[data-recursica-theme="light"]` / `[data-recursica-theme="dark"]`
 
@@ -49,16 +50,16 @@ This document defines the architecture and rules for the **scoped** CSS transfor
 
 - Only **generic** names that alias to root:
   - Brand for that theme+layer: `--recursica_brand_layer_N_...: var(--recursica_brand_modes_light_layers_layer-N_...);`
-  - Layer-specific ui-kit (one canonical name per semantic): `--recursica_ui-kit_components_Modal_properties_colors_background: var(--recursica_ui-kit_modes_light_layer_N_components_Modal_properties_colors_background);`
+  - Layer-specific ui-kit (one canonical name per semantic): `--recursica_ui-kit_components_modal_properties_colors_content-background-color: var(--recursica_ui-kit_modes_light_layer_N_components_modal_properties_colors_content-background-color);`
 - No values in these blocks reference a variable that is not on root; they only reference specific names on root.
 
 ## Rules (summary)
 
-1. **Root has only specific names.** Every variable that appears anywhere in the file as a ref target is defined on `:root` with its full path name (including theme and layer where applicable).
+1. **Anything that varies by theme or layer is on root under a specific name.** Every variable that appears anywhere in the file as a ref target is defined on `:root` with its full path name (including theme and layer where applicable).
 2. **Theme/layer blocks have only generic names.** They never introduce a new value that references a variable not defined on root. They only set `genericName: var(specificNameOnRoot);`.
-3. **Generic names are never on root.** This avoids the previous “specificity issues” where root and blocks competed for the same name.
-4. **Layer-specific ui-kit on root is per (theme, layer).** So each layer-specific semantic has 2×4 = 8 root vars (light/ dark × layer 0–3). Names include theme and layer (e.g. `--recursica_ui-kit_modes_light_layer_0_...`). Values are formatted with refs resolved to root (specific) names so cross-layer refs (e.g. modal layer-0 → layer-1 surface) resolve at root.
-5. **Components use generic names.** In component CSS, reference e.g. `var(--recursica_ui-kit_components_Modal_properties_colors_background)`. The cascade (which theme+layer block the element is under) determines which root value that resolves to.
+3. **A generic name that varies by theme or layer is never on root.** This avoids the previous “specificity issues” where root and blocks competed for the same name. A value that varies by neither — component dimensions, for instance — has nothing to switch on, so it sits on `:root` under its generic name and no block redefines it.
+4. **Layer-specific ui-kit on root is per (theme, layer), but only where the layers differ.** A semantic whose value genuinely changes from layer to layer gets 2×4 = 8 root vars (light/dark × layer 0–3), named with theme and layer (e.g. `--recursica_ui-kit_modes_light_layer_0_...`). Most do not change: those get 2 (one per mode), named with theme only (e.g. `--recursica_ui-kit_modes_light_...`), and the layer blocks supply the layer-agnostic brand vars they point at. At present that is 976 per-layer names against 672 layer-invariant ones. Values are formatted with refs resolved to root (specific) names so cross-layer refs (e.g. modal layer-0 → layer-1 surface) resolve at root.
+5. **Components use generic names.** In component CSS, reference e.g. `var(--recursica_ui-kit_components_modal_properties_colors_content-background-color)`. The cascade (which theme+layer block the element is under) determines which root value that resolves to.
 
 ## Relation to specific CSS
 

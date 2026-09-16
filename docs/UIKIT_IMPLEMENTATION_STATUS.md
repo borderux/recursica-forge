@@ -28,7 +28,7 @@
 - ✅ Supports `size` prop (default, small)
 - ✅ Supports `layer` prop (layer-0, layer-1, layer-2, layer-3) with CSS cascading
 - ✅ Supports library-specific props via `mantine`, `material`, `carbon` props
-- ✅ Uses CSS variables for theming: `--recursica-ui-kit-components-button-*`
+- ✅ Uses CSS variables for theming: `--recursica_ui-kit_components_button_*`
 
 ### 3. Unified Theme Provider
 - **Location**: `src/components/providers/UnifiedThemeProvider.tsx`
@@ -38,11 +38,11 @@
   - ✅ Ensures components can render regardless of selected kit
 
 ### 4. CSS Variable System
-- **Naming Pattern**: `--recursica-ui-kit-components-{component}-{category}-{layer?}-{property}`
+- **Naming Pattern**: `--recursica_ui-kit_components_{component}_variants_{category}_{variant}_properties_{property}`
 - **Examples**:
-  - `--recursica-ui-kit-components-button-color-layer-0-background-solid`
-  - `--recursica-ui-kit-components-button-size-default-height`
-  - `--recursica-ui-kit-components-button-size-small-height`
+  - `--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_background-color`
+  - `--recursica_ui-kit_components_button_variants_sizes_default_properties_height`
+  - `--recursica_ui-kit_components_button_variants_sizes_small_properties_height`
 
 ### 5. PreviewPage Integration
 - **Location**: `src/modules/preview/PreviewPage.tsx`
@@ -162,7 +162,7 @@ Component Registry
   ↓
 Library-Specific Implementation (mantine/material/carbon)
   ↓
-CSS Variables (--recursica-ui-kit-components-*)
+CSS Variables (--recursica_ui-kit_components_*)
 ```
 
 ### CSS Variable Flow

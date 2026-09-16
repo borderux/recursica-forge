@@ -95,7 +95,37 @@ This file is theme- and layer-aware; references should be fully qualified to tok
 - **Tokens**: Any object with `$value` is a token. Values typically reference brand or tokens.
 - **Theme-agnostic refs allowed**: In this file we **allow** theme-agnostic brand references (e.g. `{brand.palettes.neutral.000.color.tone}`, `{brand.palettes.palette-1.default.color.on-tone}`) so one ui-kit can be resolved against any theme. This is an exception to the preference for fully qualified refs; elsewhere we encourage full paths to tokens, not groups, and no special ref forms.
 - **Types used**: `color`, `dimension`, `number`, `string`. Dimension values may be `{ "value": "{...}", "unit": "px" }` with a reference inside `value`.
-- **Component structure**: Layer- and variant-specific tokens live under paths like `components.button.variants.styles.solid.properties.colors.layer-0.background`.
+- **Component structure**: Layer- and variant-specific tokens live under paths like `components.button.variants.styles.solid.properties.colors.layers.layer-0.background-color`.
+
+### The `layers` short form
+
+A colour group holds a `layers` key. Inside it, `layer-0` is the base, and layers 1–3 appear only
+where they differ from it — in the shipped file, 118 of 123 groups hold `layer-0` alone.
+
+```json
+"colors": {
+  "layers": {
+    "layer-0": { "background-color": { "$value": "{brand.layers.layer-0.properties.surface}" } },
+    "layer-3": { "border-color":     { "$value": "{brand.layers.layer-3.properties.border-color}" } }
+  }
+}
+```
+
+This is a storage form, not a change to the token model: every entry is still an ordinary DTCG
+token, and `layers`, like `layer-0`, is an ordinary group name.
+
+- **References are relative to the layer block they sit in.** The `layer-0` entry above names
+  layer 0's surface; the same property written under `layer-2` names layer 2's. Expansion shifts
+  them.
+- **An omitted layer inherits; it is not undefined.**
+- **Every `$value` must be a real token path.** There is no placeholder meaning "whichever layer
+  this is", so nothing here weakens reference validation — the validator expands the file first and
+  checks every layer.
+
+The app expands to all four layers on import and collapses again on export, so anything reading
+the store sees every layer while the file on disk stays small. Consumers parsing
+`recursica_ui-kit.json` directly must expand it themselves; `src/core/uikit/expandLayers.ts` is the
+reference implementation.
 
 This file defines component-level design tokens; references point at `brand.*` and `tokens.*` (theme-agnostic brand refs permitted here only).
 

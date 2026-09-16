@@ -1,8 +1,15 @@
 # Unit Testing Summary
 
+This walks through the **core CSS utility** tests specifically — what each file covers and why.
+It is not an inventory of the whole suite, which is far larger and grows every release. For current
+totals run `npx vitest run`; for how testing is organised overall see `TESTING.md`.
+
+Per-file counts below are indicative. They are not asserted anywhere, so treat a mismatch as this
+document being behind, not as a missing test.
+
 ## Test Coverage
 
-### ✅ Core CSS Utilities (85 tests passing)
+### Core CSS Utilities
 
 1. **`src/core/css/readCssVar.test.ts`** (21 tests)
    - `readCssVar()` - Reading CSS variables from inline and computed styles
@@ -40,7 +47,7 @@
 ## Test Infrastructure
 
 - **Framework**: Vitest
-- **Environment**: jsdom (for DOM testing)
+- **Environment**: happy-dom (for DOM testing)
 - **Setup**: `vitest.setup.ts` with:
   - `@testing-library/jest-dom` matchers
   - `window.matchMedia` mock for Mantine components

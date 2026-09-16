@@ -113,6 +113,30 @@ describe('layer cascade', () => {
     expect(resolve(cardBg, blocks, 'dark', '1')).toBe(surface('2'))
   })
 
+  it('the brand layer name without a number follows the layer it is read in', () => {
+    // This is the name the header tells consumers to use: it carries no layer, and each layer
+    // block redefines it, so one declaration in a component paints correctly wherever it lands.
+    // Every other test here addresses a layer by number, so nothing else covers it.
+    const agnostic = '--recursica_brand_layer_properties_surface'
+    for (const mode of ['light', 'dark'] as const) {
+      for (const lay of ['0', '1', '2', '3']) {
+        expect(resolve(agnostic, blocks, mode, lay)).toBe(
+          resolve(`--recursica_brand_layer_${lay}_properties_surface`, blocks, mode, lay)
+        )
+      }
+    }
+    // Layers 1 and 2 happen to share a surface, so only the ends prove it is really tracking.
+    expect(resolve(agnostic, blocks, 'dark', '0')).not.toBe(resolve(agnostic, blocks, 'dark', '3'))
+  })
+
+  it('an element with a theme but no layer gets layer 0', () => {
+    const agnostic = '--recursica_brand_layer_properties_surface'
+    for (const mode of ['light', 'dark'] as const) {
+      expect(blocks.theme.get(mode)?.get(agnostic))
+        .toBe(`var(--recursica_brand_modes_${mode}_layers_layer-0_properties_surface)`)
+    }
+  })
+
   it('is much smaller than writing every layer out', () => {
     const declarations = css.split('\n').filter((l) => /^\s*--recursica_/.test(l)).length
     // Was 10,438 when every layer-specific property was emitted per (mode, layer).

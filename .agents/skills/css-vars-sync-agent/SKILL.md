@@ -14,8 +14,8 @@ You are a specialized agent responsible for maintaining consistency between JSON
    - Use CSS variables for theme parameters, spacing, and styling tokens.
 
 2. **Utility Functions Consistency:**
-   - Ensure helper files like `src/utils/cssVarNames.ts` are updated with variables derived from tokens.
-   - Utilize token resolution methods like `readCssVar` or `getComponentCssVar` consistently across modules.
+   - Ensure helper files like `src/components/utils/cssVarNames.ts` are updated with variables derived from tokens.
+   - Build names with `buildComponentCssVarPath` and read values with `readCssVar` / `readCssVarResolved`, consistently across modules. `getComponentCssVar` is deprecated — it infers the variant from the property string — so do not introduce new calls to it.
 
 3. **No Unused or Dangling CSS Variables:**
    - Keep variable declarations clean. Remove old, deleted variables to avoid layout issues.

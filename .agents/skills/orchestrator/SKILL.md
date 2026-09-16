@@ -16,7 +16,7 @@ When a design token file or `recursica_ui-kit.json` is modified, you must execut
 
 2. **Synchronize Configurations and Utilities:**
    - Run the **Toolbar Configurator Agent** to check and update toolbar definitions (`*.toolbar.json`).
-   - Run the **CSS Variables Sync Agent** to regenerate CSS stylesheets and update variable helper utilities (`src/utils/cssVarNames.ts`).
+   - Run the **CSS Variables Sync Agent** to regenerate CSS stylesheets and update variable helper utilities (`src/components/utils/cssVarNames.ts`).
 
 3. **Update React Adapters:**
    - Run the **Adapter Sync Agent** to align React adapters (`src/components/adapters/*.tsx`) with the updated token systems.

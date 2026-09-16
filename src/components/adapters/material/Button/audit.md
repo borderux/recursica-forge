@@ -1,5 +1,10 @@
 # Button Component Audit - Material UI
 
+> **Snapshot, not current guidance.** This records one audit of this adapter on the date below.
+> The variable names in it use an older hyphen spelling (`--recursica-ui-kit-components-...`) that
+> the exporter no longer produces. For how names are built today, see the CSS Variable Guidelines
+> in `src/components/COMPONENT_DEVELOPMENT_GUIDE.md`. Re-run the audit before relying on anything here.
+
 ## Overview
 
 This document audits the Button component implementation for Material UI, identifying all CSS variables used, their sources, and any gaps in coverage.

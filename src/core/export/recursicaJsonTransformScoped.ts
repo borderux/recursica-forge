@@ -1188,7 +1188,7 @@ function formatScopedCss(
   css += ` *\n`
   css += ` *    Use (generic; correct):\n`
   css += ` *      var(--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_background)\n`
-  css += ` *      var(--recursica_brand_layer_0_properties_surface)\n`
+  css += ` *      var(--recursica_brand_layer_properties_surface)\n`
   css += ` *\n`
   css += ` *    Do not use (specific; wrong in component CSS):\n`
   css += ` *      var(--recursica_ui-kit_modes_light_layer_0_...)\n`
@@ -1204,8 +1204,9 @@ function formatScopedCss(
   css += ` *\n`
   css += ` * 5. Prefer ui-kit variables over brand layer variables in components\n`
   css += ` *    Use --recursica_ui-kit_* for component styling when a suitable token exists. Use\n`
-  css += ` *    --recursica_brand_layer_N_* only when you need layer surface/border/elevation directly\n`
-  css += ` *    (e.g. for a Layer container).\n`
+  css += ` *    --recursica_brand_layer_* only when you need layer surface/border/elevation directly\n`
+  css += ` *    (e.g. for a Layer container). That name follows the ancestor's layer. The numbered\n`
+  css += ` *    form, --recursica_brand_layer_N_*, pins that one layer instead of following.\n`
   css += ` *\n`
   css += ` * 6. Optional: use typography helper classes for type styles\n`
   css += ` *    Classes like .recursica_brand_typography_h1 and .recursica_brand_typography_body apply the\n`

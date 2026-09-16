@@ -9,9 +9,12 @@ This document provides a summary of audits completed for Avatar, Button, and Swi
 ## Audit Status
 
 ### Avatar Component
-- ✅ **Carbon**: `src/components/adapters/carbon/Avatar/Avatar.carbon.audit.md`
-- ✅ **Mantine**: `src/components/adapters/mantine/Avatar/Avatar.mantine.audit.md`
-- ✅ **Material UI**: `src/components/adapters/material/Avatar/Avatar.material.audit.md`
+- ⬜ **Carbon**: not audited — no audit file was written
+- ⬜ **Mantine**: not audited — no audit file was written
+- ⬜ **Material UI**: not audited — no audit file was written
+
+These three were marked complete here, but the files they pointed at have never existed. The rest
+of this document describes Button and Switch, which were audited.
 
 ### Button Component
 - ✅ **Carbon**: `src/components/adapters/carbon/Button/audit.md` (includes toolbar config validation)
