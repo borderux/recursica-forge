@@ -5,6 +5,7 @@
  * the original tokens.json, brand.json, and uikit.json files.
  */
 
+import { collapseLayers } from '../uikit/expandLayers'
 import { readCssVar } from '../css/readCssVar'
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { buildTokenIndex } from '../resolvers/tokens'
@@ -1251,7 +1252,11 @@ export function exportUIKitJson(): object {
   walkAndConvertFonts(result)
 
   // Normalize brand references to remove theme information (UIKit should be theme-agnostic)
-  const normalized = normalizeUIKitBrandReferences(result)
+  const normalizedFull = normalizeUIKitBrandReferences(result)
+
+  // The store holds every layer written out; the file is written in the short form, so an export
+  // matches the shape of the source rather than re-inflating it.
+  const normalized = collapseLayers(normalizedFull)
 
 
 

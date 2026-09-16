@@ -1090,7 +1090,9 @@ class VarsStore {
     }
 
     if (files.uikit) {
-      this.writeState({ uikit: files.uikit })
+      // An imported file may be written in the short layer form, the same as the bundled one.
+      // Everything downstream reads all four layers, so it is expanded on the way in.
+      this.writeState({ uikit: expandLayers(files.uikit) })
     }
 
     // Rebuild recursica_fonts from the imported data so syncFontsToTokens (called inside
