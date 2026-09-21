@@ -1,7 +1,7 @@
 /**
  * Mantine Accordion Adapter
  *
- * @recursica/mantine-adapter's Accordion is a COMPOSITION api — it renders `Accordion.Item`
+ * @recursica/adapter-mantine-v8's Accordion is a COMPOSITION api — it renders `Accordion.Item`
  * children, each composing its own `Control`/`Panel`, rather than taking Forge's data-driven
  * `items` array. This wrapper is the one place that bridges the two.
  *
@@ -16,7 +16,7 @@ import {
   AccordionItem as MantineAccordionItem,
   AccordionControl,
   AccordionPanel,
-} from '@recursica/mantine-adapter'
+} from '@recursica/adapter-mantine-v8'
 import type { AccordionAdapterProps } from '../../common/Accordion'
 import type { AssertWired } from '../../common/wiringCheck'
 

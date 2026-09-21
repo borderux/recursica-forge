@@ -39,7 +39,7 @@
  */
 
 import React from 'react'
-import { TimePicker as MantineTimePicker } from '@recursica/mantine-adapter'
+import { TimePicker as MantineTimePicker } from '@recursica/adapter-mantine-v8'
 import { resolveLabelActionArea } from '../labelActionArea'
 import type { TimePickerProps } from '../../common/TimePicker'
 import type { AssertWired } from '../../common/wiringCheck'

@@ -10,7 +10,7 @@
  */
 
 import React from 'react'
-import { Checkbox as MantineCheckbox } from '@recursica/mantine-adapter'
+import { Checkbox as MantineCheckbox } from '@recursica/adapter-mantine-v8'
 import type { CheckboxProps } from '../../common/Checkbox'
 import type { AssertWired } from '../../common/wiringCheck'
 

@@ -1,7 +1,7 @@
 /*
  * ColorTriggerControl — Forge-local styles.
  *
- * Every value comes from the same design tokens @recursica/mantine-adapter's own form fields
+ * Every value comes from the same design tokens @recursica/adapter-mantine-v8's own form fields
  * read (globals.form.field.* and components.text-field.*), so this control matches real
  * fields and reacts to token edits the same way they do. Nothing here is hardcoded except
  * structural layout.

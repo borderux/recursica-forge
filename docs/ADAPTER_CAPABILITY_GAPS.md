@@ -6,7 +6,7 @@ emits, and vice versa. It cannot see missing *props*, missing *components*, or p
 both sides use the same word for different behaviour.
 
 This document records those, found by driving Forge against
-`@recursica/mantine-adapter@0.36.1` / `@recursica/adapter-common@0.13.0`. Every item is
+`@recursica/adapter-mantine-v8@0.36.1` / `@recursica/adapter-common@0.13.0`. Every item is
 something the **adapter** should gain. Forge deliberately does not paper over them: where a
 capability is missing, the affected UI renders degraded so the gap stays visible.
 
@@ -154,7 +154,7 @@ Every Forge prop with no upstream counterpart is listed, with reasoning, in
 and logged once per session in dev as:
 
 ```
-[adapter] <Modal> prop "showFooter" has no equivalent in @recursica/mantine-adapter and was dropped.
+[adapter] <Modal> prop "showFooter" has no equivalent in @recursica/adapter-mantine-v8 and was dropped.
 ```
 
 Entries marked `GAP` in that file are adapter gaps. Entries that are renames or reshapes are

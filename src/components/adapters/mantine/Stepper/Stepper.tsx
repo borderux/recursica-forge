@@ -1,7 +1,7 @@
 /**
  * Mantine Stepper Adapter
  *
- * @recursica/mantine-adapter's Stepper is a COMPOSITION api: it renders `Stepper.Step` children,
+ * @recursica/adapter-mantine-v8's Stepper is a COMPOSITION api: it renders `Stepper.Step` children,
  * each carrying its own label/description/icon, rather than accepting Forge's data-driven
  * `steps` array directly. This wrapper is the one place that bridges the two.
  *
@@ -19,7 +19,7 @@
  */
 
 import React from 'react'
-import { Stepper as MantineStepper } from '@recursica/mantine-adapter'
+import { Stepper as MantineStepper } from '@recursica/adapter-mantine-v8'
 import type { StepperProps } from '../../common/Stepper'
 import type { AssertWired } from '../../common/wiringCheck'
 

@@ -13,7 +13,7 @@ export type LabelProps = {
   variant?: 'default' | 'required' | 'optional'
   /**
    * Raw `@mantine/core`'s and raw `@mui/material`'s own `InputLabel` both natively use
-   * unprefixed `size` too — the real `@recursica/mantine-adapter` renames it to `labelSize`
+   * unprefixed `size` too — the real `@recursica/adapter-mantine-v8` renames it to `labelSize`
    * internally, but that's intentional on Forge's side: every field component's own props
    * flow through as `labelSize` already, so keeping the adapter's name as-is (rather than
    * asking upstream to rename it) avoids a mismatch at the point where props actually get

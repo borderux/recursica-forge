@@ -2,7 +2,7 @@
  * Mantine Toast Adapter
  *
  * Not a 1:1 pass-through: the real component is Mantine's `Notification` (confirmed via
- * @recursica/mantine-adapter's `Omit<NotificationProps, "color" | "radius" | "variant" |
+ * @recursica/adapter-mantine-v8's `Omit<NotificationProps, "color" | "radius" | "variant" |
  * "loading"> & RecursicaToastProps`), which does have real, matching `icon`, `onClose` and
  * `children` slots, plus a Recursica-specific `variant` — those are wired below as literal
  * attributes rather than a spread.
@@ -12,7 +12,7 @@
  */
 
 import React from 'react'
-import { Toast as MantineToast } from '@recursica/mantine-adapter'
+import { Toast as MantineToast } from '@recursica/adapter-mantine-v8'
 import type { ToastProps } from '../../common/Toast'
 import type { AssertWired } from '../../common/wiringCheck'
 

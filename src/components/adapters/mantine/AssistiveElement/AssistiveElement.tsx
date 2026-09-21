@@ -4,7 +4,7 @@
  * Not actually a 1:1 pass-through, despite how it looked before this file had a body: the
  * real component takes its message as `children` (JSX content), not a `text` string prop,
  * and its variant prop is named `assistiveVariant`, not `variant` — confirmed against
- * @recursica/mantine-adapter's own RecursicaAssistiveElementProps.
+ * @recursica/adapter-mantine-v8's own RecursicaAssistiveElementProps.
  *
  * `icon` is dropped: the real component has no slot for a caller-supplied icon node, only a
  * boolean `assistiveWithIcon` toggle that shows its own fixed variant-specific icon. There is
@@ -13,7 +13,7 @@
  */
 
 import React from 'react'
-import { AssistiveElement as MantineAssistiveElement } from '@recursica/mantine-adapter'
+import { AssistiveElement as MantineAssistiveElement } from '@recursica/adapter-mantine-v8'
 import type { AssistiveElementProps } from '../../common/AssistiveElement'
 import type { AssertWired } from '../../common/wiringCheck'
 

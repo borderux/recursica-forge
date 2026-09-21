@@ -1,5 +1,5 @@
 /**
- * Forge → @recursica/mantine-adapter prop contract
+ * Forge → @recursica/adapter-mantine-v8 prop contract
  *
  * Forge's dispatchers (src/components/adapters/*.tsx) were written against Forge's own
  * local Mantine implementations, which accepted a Forge-invented prop vocabulary. The real
@@ -141,7 +141,7 @@ export const PROP_CONTRACT: Partial<Record<ComponentName, Record<string, PropMap
   // dispatcher's own composed-UI-only bookkeeping (filteredSource, sourceSelected,
   // onToggleSourceItem, etc). The `searchable: null` line was STALE: it was written when the
   // adapter's RecursicaTransferListProps was genuinely empty, but the currently-installed
-  // @recursica/mantine-adapter has since grown a real `searchable?: boolean` field with
+  // @recursica/adapter-mantine-v8 has since grown a real `searchable?: boolean` field with
   // matching semantics ("Enable per-pane search filtering. Defaults to true"). Rather than
   // leave a half-correct table entry, TransferList's mantine wrapper
   // (mantine/TransferList/TransferList.tsx) now does its own inline translation for all of
@@ -195,7 +195,7 @@ export function applyPropContract(
           reported.add(id)
           console.info(
             `[adapter] <${componentName}> prop "${key}" has no equivalent in ` +
-              `@recursica/mantine-adapter and was dropped. Candidate to raise upstream.`
+              `@recursica/adapter-mantine-v8 and was dropped. Candidate to raise upstream.`
           )
         }
       }

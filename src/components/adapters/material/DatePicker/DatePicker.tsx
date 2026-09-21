@@ -9,4 +9,4 @@
 // (not using any library-specific date picker components). This used to point at
 // Forge's local Mantine implementation; that has been replaced by the real
 // published adapter, so it now re-exports that instead.
-export { DatePicker as default } from '@recursica/mantine-adapter'
+export { DatePicker as default } from '@recursica/adapter-mantine-v8'

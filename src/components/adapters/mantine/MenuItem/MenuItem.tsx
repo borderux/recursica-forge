@@ -31,7 +31,7 @@
  */
 
 import React from 'react'
-import { Menu } from '@recursica/mantine-adapter'
+import { Menu } from '@recursica/adapter-mantine-v8'
 import type { MenuItemProps } from '../../common/MenuItem'
 import type { AssertWired } from '../../common/wiringCheck'
 

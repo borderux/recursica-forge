@@ -1,7 +1,7 @@
 /**
  * Mantine Timeline Adapter
  *
- * @recursica/mantine-adapter's Timeline is a COMPOSITION api: it renders `Timeline.Item`
+ * @recursica/adapter-mantine-v8's Timeline is a COMPOSITION api: it renders `Timeline.Item`
  * children rather than accepting Forge's data-driven `items` array directly. This wrapper is
  * the one place that bridges the two.
  *
@@ -28,7 +28,7 @@
  */
 
 import React from 'react'
-import { Timeline as MantineTimeline, TimelineItem as MantineTimelineItem } from '@recursica/mantine-adapter'
+import { Timeline as MantineTimeline, TimelineItem as MantineTimelineItem } from '@recursica/adapter-mantine-v8'
 import type { TimelineProps } from '../../common/Timeline'
 import type { AssertWired } from '../../common/wiringCheck'
 

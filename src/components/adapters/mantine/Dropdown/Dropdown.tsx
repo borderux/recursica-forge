@@ -1,7 +1,7 @@
 /**
  * Mantine Dropdown Adapter
  *
- * @recursica/mantine-adapter's Dropdown is Mantine's Select: it takes a `data` array (not
+ * @recursica/adapter-mantine-v8's Dropdown is Mantine's Select: it takes a `data` array (not
  * Forge's richer `items`) and its own form-field vocabulary (`assistiveText`/`error`/
  * `leftSection`/`rightSection`/`formLayout`/`labelAlignment`/`labelOptionalText`) rather than
  * Forge's. This wrapper is the one place that translates between the two.
@@ -13,7 +13,7 @@
  *   - `labelId` / `helpId` / `errorId` — the adapter wires its own aria relationships; no slot
  *     for a caller-supplied id.
  *   - Per-item `icon`/`leadingIcon`/`supportingText`: false, there's a real slot (2026-08,
- *     `@recursica/mantine-adapter@0.49.0`) — `data` items now accept `leadingIcon`/
+ *     `@recursica/adapter-mantine-v8@0.49.0`) — `data` items now accept `leadingIcon`/
  *     `supportingText` directly (`RecursicaComboboxItem`), rendered inside the option row by
  *     the adapter itself. Previously this wrapper worked around the gap with a `renderOption`
  *     callback; removed now that the real fields exist.
@@ -31,7 +31,7 @@
  */
 
 import React from 'react'
-import { Dropdown as MantineDropdown } from '@recursica/mantine-adapter'
+import { Dropdown as MantineDropdown } from '@recursica/adapter-mantine-v8'
 import { resolveLabelActionArea } from '../labelActionArea'
 import type { DropdownAdapterProps } from '../../common/Dropdown'
 import type { AssertWired } from '../../common/wiringCheck'

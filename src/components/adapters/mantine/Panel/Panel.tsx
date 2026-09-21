@@ -1,7 +1,7 @@
 /**
  * Mantine Panel Adapter
  *
- * @recursica/mantine-adapter's Panel is a Mantine Drawer: it has an `opened` flag and renders
+ * @recursica/adapter-mantine-v8's Panel is a Mantine Drawer: it has an `opened` flag and renders
  * display:none while closed, and its footer is a composed `Panel.Footer` child rather than a
  * `footer` prop (Mantine's Drawer has no footer concept at all). This wrapper is the one place
  * that bridges Forge's always-mounted, prop-driven Panel onto that shape.
@@ -21,7 +21,7 @@
  */
 
 import React from 'react'
-import { Panel as MantinePanel, PanelFooter } from '@recursica/mantine-adapter'
+import { Panel as MantinePanel, PanelFooter } from '@recursica/adapter-mantine-v8'
 import type { PanelAdapterProps } from '../../common/Panel'
 import type { AssertWired } from '../../common/wiringCheck'
 

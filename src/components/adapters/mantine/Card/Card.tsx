@@ -1,7 +1,7 @@
 /**
  * Mantine Card Adapter
  *
- * @recursica/mantine-adapter's Card is a COMPOSITION api — `title` and `footer` have no matching
+ * @recursica/adapter-mantine-v8's Card is a COMPOSITION api — `title` and `footer` have no matching
  * props on the real component at all. Instead it renders `Card.Header`/`Card.Footer` (and
  * `Card.Section`) children around the card's body content. This wrapper is the one place that
  * bridges Forge's flat `title`/`footer` props onto that shape.
@@ -23,7 +23,7 @@
  */
 
 import React from 'react'
-import { Card as MantineCard } from '@recursica/mantine-adapter'
+import { Card as MantineCard } from '@recursica/adapter-mantine-v8'
 import type { CardProps } from '../../common/Card'
 import type { AssertWired } from '../../common/wiringCheck'
 

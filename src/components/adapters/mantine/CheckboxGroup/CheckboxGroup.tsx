@@ -21,7 +21,7 @@
  * type entirely — so `orientation` now has no real destination at all and is dropped. */
 
 import React from 'react'
-import { CheckboxGroup as MantineCheckboxGroup } from '@recursica/mantine-adapter'
+import { CheckboxGroup as MantineCheckboxGroup } from '@recursica/adapter-mantine-v8'
 import type { CheckboxGroupProps } from '../../common/CheckboxGroup'
 import type { AssertWired } from '../../common/wiringCheck'
 

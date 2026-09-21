@@ -22,7 +22,7 @@
  */
 
 import React from 'react'
-import { Table } from '@recursica/mantine-adapter'
+import { Table } from '@recursica/adapter-mantine-v8'
 import type { TableHeaderProps } from '../../common/TableHeader'
 import type { AssertWired } from '../../common/wiringCheck'
 

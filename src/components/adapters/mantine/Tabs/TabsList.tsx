@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import { Tabs as MantineTabs } from '@recursica/mantine-adapter'
+import { Tabs as MantineTabs } from '@recursica/adapter-mantine-v8'
 import { useTabsContext } from '../../common/tabsContext'
 import type { TabsListProps } from '../../common/Tabs'
 import type { AssertWired } from '../../common/wiringCheck'

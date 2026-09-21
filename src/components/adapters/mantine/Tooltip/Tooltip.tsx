@@ -29,7 +29,7 @@
  */
 
 import React from 'react'
-import { Tooltip as MantineTooltip } from '@recursica/mantine-adapter'
+import { Tooltip as MantineTooltip } from '@recursica/adapter-mantine-v8'
 import type { TooltipProps } from '../../common/Tooltip'
 import type { AssertWired } from '../../common/wiringCheck'
 

@@ -5,7 +5,7 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Dropdown } from '../../components/adapters/Dropdown'
-// SHIM for adapter gap 2.1 (docs/ADAPTER_CAPABILITY_GAPS.md): @recursica/mantine-adapter's
+// SHIM for adapter gap 2.1 (docs/ADAPTER_CAPABILITY_GAPS.md): @recursica/adapter-mantine-v8's
 // Modal is a centred Mantine Modal with no anchored placement and no dragging, so driving this
 // picker through it put it centre-screen and pinned it there. Forge's own FloatingPalette does
 // anchored placement + dragging and is already what ColorTokenPicker uses, so both pickers now

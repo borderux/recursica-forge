@@ -35,7 +35,7 @@
  */
 
 import React from 'react'
-import { Label as MantineLabel } from '@recursica/mantine-adapter'
+import { Label as MantineLabel } from '@recursica/adapter-mantine-v8'
 import { resolveLabelActionArea } from '../labelActionArea'
 import type { LabelProps } from '../../common/Label'
 import type { AssertWired } from '../../common/wiringCheck'

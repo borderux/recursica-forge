@@ -20,7 +20,7 @@
  */
 
 import React from 'react'
-import { ReadOnlyField as MantineReadOnlyField } from '@recursica/mantine-adapter'
+import { ReadOnlyField as MantineReadOnlyField } from '@recursica/adapter-mantine-v8'
 import { resolveLabelActionArea } from '../labelActionArea'
 import type { ReadOnlyFieldProps } from '../../common/ReadOnlyField'
 import type { AssertWired } from '../../common/wiringCheck'

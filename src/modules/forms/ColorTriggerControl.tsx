@@ -15,7 +15,7 @@
  * row collapsed to plain text. No prop mapping can bridge that, because upstream `readOnly`
  * means "display mode" while Forge meant "not typeable, still interactive".
  *
- * @recursica/mantine-adapter has no colour-picker or picker-trigger component today, and no
+ * @recursica/adapter-mantine-v8 has no colour-picker or picker-trigger component today, and no
  * "not typeable but still interactive" field mode. Recorded as gap 2.3 in
  * docs/ADAPTER_CAPABILITY_GAPS.md. If one is added, this should be deleted in favour of it. Until then it is deliberately local, and
  * styled entirely from the same design tokens the adapter's own fields read, so it stays

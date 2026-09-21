@@ -8,7 +8,7 @@
  * a token edit moved nothing in a preview rendered by a real consumer.
  *
  * The parity test below checks against the strongest available oracle: the CSS actually
- * shipped inside @recursica/mantine-adapter. If the engine stops emitting a name that CSS
+ * shipped inside @recursica/adapter-mantine-v8. If the engine stops emitting a name that CSS
  * reads, that component silently loses the property, and this fails.
  */
 
@@ -138,12 +138,12 @@ describe('scopedCssEngine', () => {
     expect(el.textContent).toContain('--recursica_ui-kit_components_badge_properties_colors_novel-prop:')
   })
 
-  it('produces the layer-free shape @recursica/mantine-adapter actually reads', () => {
+  it('produces the layer-free shape @recursica/adapter-mantine-v8 actually reads', () => {
     // Parity against the real consumer: take the adapter's shipped CSS, keep the ui-kit
     // component variables it reads, and confirm none of them carry a layer segment. That is
     // the property this engine has to satisfy — emit the layer-free name, scoped by layer.
     const adapterCss = readFileSync(
-      resolve(process.cwd(), 'node_modules/@recursica/mantine-adapter/dist/mantine-adapter.css'),
+      resolve(process.cwd(), 'node_modules/@recursica/adapter-mantine-v8/dist/adapter-mantine-v8.css'),
       'utf8'
     )
     const read = [

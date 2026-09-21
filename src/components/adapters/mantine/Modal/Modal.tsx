@@ -57,7 +57,7 @@
  */
 
 import React from 'react'
-import { Modal as MantineModal } from '@recursica/mantine-adapter'
+import { Modal as MantineModal } from '@recursica/adapter-mantine-v8'
 import { Button } from '../../Button'
 import type { ModalProps } from '../../common/Modal'
 import type { AssertWired } from '../../common/wiringCheck'

@@ -20,7 +20,7 @@ export type SliderProps = {
    *     be set by dragging at all. `@carbon/react`'s `<Slider>` does have a real two-handle
    *     mode (`unstable_valueUpper`/`onChange({ value, valueUpper })`), it's just not wired up
    *     — a known, currently-unaddressed gap in this wrapper, not a Carbon limitation.
-   *   - Mantine: not supported at all — the real `@recursica/mantine-adapter` `Slider` only
+   *   - Mantine: not supported at all — the real `@recursica/adapter-mantine-v8` `Slider` only
    *     wraps Mantine's single-thumb `Slider`, never `RangeSlider`. An upstream ask was
    *     declined (2026-08, permanent — see `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md` #10); a
    *     tuple `value` is dropped to `undefined` on this kit rather than crashing.

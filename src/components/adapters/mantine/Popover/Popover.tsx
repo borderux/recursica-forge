@@ -1,7 +1,7 @@
 /**
  * Mantine Popover Adapter
  *
- * Same structural shape as HoverCard: @recursica/mantine-adapter's Popover is a COMPOSITION
+ * Same structural shape as HoverCard: @recursica/adapter-mantine-v8's Popover is a COMPOSITION
  * api, rendering `Popover.Target` (the trigger) and `Popover.Dropdown` (the panel) as children
  * rather than accepting Forge's flat `children`/`content` props. This wrapper bridges the two.
  *
@@ -22,7 +22,7 @@
  */
 
 import React from 'react'
-import { Popover as MantinePopover } from '@recursica/mantine-adapter'
+import { Popover as MantinePopover } from '@recursica/adapter-mantine-v8'
 import type { PopoverProps } from '../../common/Popover'
 import type { AssertWired } from '../../common/wiringCheck'
 

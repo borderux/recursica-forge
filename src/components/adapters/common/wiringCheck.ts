@@ -3,10 +3,10 @@
  *
  * Nothing in this file runs. Its only job is to make `tsc` fail — naming the exact offending
  * prop in the error message — the moment a component's Forge prop vocabulary and the real
- * `@recursica/mantine-adapter` component it dispatches to drift apart.
+ * `@recursica/adapter-mantine-v8` component it dispatches to drift apart.
  *
  * WHY THIS EXISTS: a one-line pass-through wrapper (`export { X as default } from
- * '@recursica/mantine-adapter'`) never writes any code that reconciles Forge's prop names
+ * '@recursica/adapter-mantine-v8'`) never writes any code that reconciles Forge's prop names
  * against the real component's — so there's nothing for TypeScript to check. And even a
  * wrapper that DOES call the real component ends up spreading a pre-built props object
  * (`<Real {...props} />`) rather than writing literal attributes — and TypeScript's "you

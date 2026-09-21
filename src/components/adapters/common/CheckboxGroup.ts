@@ -16,7 +16,7 @@ export type CheckboxGroupProps = {
     required?: boolean
     optional?: boolean
     /**
-     * The real `@recursica/mantine-adapter`'s own `RecursicaCheckboxGroupProps.row` field
+     * The real `@recursica/adapter-mantine-v8`'s own `RecursicaCheckboxGroupProps.row` field
      * (the intended destination for this) is confirmed dead code — declared but never
      * destructured or read by the real `CheckboxGroup.tsx`, so it falls into `...rest` and is
      * spread onto `Mantine.Checkbox.Group`, which has no `row` prop of its own either. Filed

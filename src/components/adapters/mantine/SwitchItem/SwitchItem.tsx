@@ -3,7 +3,7 @@
  *
  * Not previously implemented for Mantine at all — no folder existed here and it was not
  * registered in registry/mantine.ts. The real adapter's Switch (from
- * @recursica/mantine-adapter) already accepts a `label` prop directly, so this is cheap to
+ * @recursica/adapter-mantine-v8) already accepts a `label` prop directly, so this is cheap to
  * wire up, but it carries the same class of bug already fixed on Checkbox: the real
  * Switch's `onChange` fires the native input event (`(event: ChangeEvent<HTMLInputElement>)
  * => void`, confirmed against @mantine/core's own Switch.d.ts — it composes
@@ -14,7 +14,7 @@
  */
 
 import React from 'react'
-import { Switch as MantineSwitch } from '@recursica/mantine-adapter'
+import { Switch as MantineSwitch } from '@recursica/adapter-mantine-v8'
 import type { SwitchItemProps } from '../../common/SwitchItem'
 import type { AssertWired } from '../../common/wiringCheck'
 

@@ -74,7 +74,7 @@
  */
 
 import React from 'react'
-import { Slider as MantineSlider } from '@recursica/mantine-adapter'
+import { Slider as MantineSlider } from '@recursica/adapter-mantine-v8'
 import type { SliderProps } from '../../common/Slider'
 import type { AssertWired } from '../../common/wiringCheck'
 

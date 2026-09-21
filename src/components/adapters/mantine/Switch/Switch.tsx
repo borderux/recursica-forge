@@ -25,7 +25,7 @@
  */
 
 import React from 'react'
-import { Switch as MantineSwitch } from '@recursica/mantine-adapter'
+import { Switch as MantineSwitch } from '@recursica/adapter-mantine-v8'
 import type { SwitchProps } from '../../common/Switch'
 import type { AssertWired } from '../../common/wiringCheck'
 

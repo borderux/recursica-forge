@@ -21,7 +21,7 @@
  */
 
 import React from 'react'
-import { NumberInput as MantineNumberInput } from '@recursica/mantine-adapter'
+import { NumberInput as MantineNumberInput } from '@recursica/adapter-mantine-v8'
 import type { NumberInputProps } from '../../common/NumberInput'
 import type { AssertWired } from '../../common/wiringCheck'
 

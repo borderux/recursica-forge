@@ -10,7 +10,7 @@
  * This file is the one place that bridges the two models.
  *
  * Also fixed here, not just renamed (verified against RecursicaFileInputProps in
- * node_modules/@recursica/mantine-adapter/dist/index.d.ts):
+ * node_modules/@recursica/adapter-mantine-v8/dist/index.d.ts):
  *   - `leadingIcon` -> the real prop is a plain `icon` slot, NOT `leftSection`/`rightSection`
  *     — those don't exist on this component at all. FIELD_CONTRACT's generic leading/
  *     trailing-icon renames (built for TextField-shaped fields) are wrong here, which is why
@@ -31,7 +31,7 @@
  */
 
 import React, { useState } from 'react'
-import { FileInput as MantineFileInput, type RecursicaFileUploadItem } from '@recursica/mantine-adapter'
+import { FileInput as MantineFileInput, type RecursicaFileUploadItem } from '@recursica/adapter-mantine-v8'
 import type { FileInputAdapterProps } from '../../common/FileInput'
 import type { AssertWired } from '../../common/wiringCheck'
 

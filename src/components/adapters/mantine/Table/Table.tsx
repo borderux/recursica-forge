@@ -11,7 +11,7 @@
  */
 
 import React from 'react'
-import { Table as MantineTable } from '@recursica/mantine-adapter'
+import { Table as MantineTable } from '@recursica/adapter-mantine-v8'
 import type { TableProps } from '../../common/Table'
 import type { AssertWired } from '../../common/wiringCheck'
 

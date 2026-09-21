@@ -3,7 +3,7 @@
  *
  * Translates Forge's shared field-label vocabulary (`editIcon`/`editIconTitle`/
  * `onEditIconClick`, declared once on `common/Label.ts` and mixed into every field
- * component's own common type) into the real `@recursica/mantine-adapter`'s actual props for
+ * component's own common type) into the real `@recursica/adapter-mantine-v8`'s actual props for
  * this: `labelActionArea`/`labelWithEditIcon`/`onLabelEditClick` (all on `RecursicaLabelProps`,
  * which `RecursicaFormControlWrapperProps` extends — so every field component built on
  * `WithReadOnlyWrapper`/`FormControlWrapper` has this same slot, not just the standalone

@@ -71,7 +71,7 @@ export function useComponent<T = any>(componentName: ComponentName): React.Compo
     const Wrapper = React.forwardRef<unknown, any>((props, ref) => {
       const { mantine, material, carbon, ...rest } = props
 
-      // Mantine is now the real published adapter (@recursica/mantine-adapter), whose prop
+      // Mantine is now the real published adapter (@recursica/adapter-mantine-v8), whose prop
       // vocabulary differs from Forge's old local implementations. applyPropContract()
       // renames what has an equivalent and drops what does not — see adapterPropContract.ts.
       //

@@ -1,7 +1,7 @@
 /**
  * Mantine Breadcrumb Adapter
  *
- * @recursica/mantine-adapter's Breadcrumb wraps Mantine's `Breadcrumbs`, which takes an array
+ * @recursica/adapter-mantine-v8's Breadcrumb wraps Mantine's `Breadcrumbs`, which takes an array
  * of link/anchor elements as `children` — it has no `items` data prop at all. The old bare
  * pass-through handed Forge's `items` straight to a component that doesn't recognize that
  * attribute, so nothing ever rendered. This wrapper composes `items` into real `Link` elements,
@@ -24,7 +24,7 @@
  */
 
 import React from 'react'
-import { Breadcrumb as MantineBreadcrumb } from '@recursica/mantine-adapter'
+import { Breadcrumb as MantineBreadcrumb } from '@recursica/adapter-mantine-v8'
 import { Link } from '../../Link'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import type { BreadcrumbProps } from '../../common/Breadcrumb'

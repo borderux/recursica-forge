@@ -12,7 +12,7 @@
  */
 
 import React from 'react'
-import { Radio as MantineRadio } from '@recursica/mantine-adapter'
+import { Radio as MantineRadio } from '@recursica/adapter-mantine-v8'
 import type { RadioButtonProps } from '../../common/RadioButton'
 import type { AssertWired } from '../../common/wiringCheck'
 

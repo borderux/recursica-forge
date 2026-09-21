@@ -8,7 +8,7 @@
  */
 
 import React from 'react'
-import { Loader as MantineLoader } from '@recursica/mantine-adapter'
+import { Loader as MantineLoader } from '@recursica/adapter-mantine-v8'
 import type { LoaderProps } from '../../common/Loader'
 import type { AssertWired } from '../../common/wiringCheck'
 

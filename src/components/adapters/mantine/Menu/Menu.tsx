@@ -1,7 +1,7 @@
 /**
  * Mantine Menu Adapter
  *
- * The real Menu is Mantine's composable Menu (confirmed via @recursica/mantine-adapter's own
+ * The real Menu is Mantine's composable Menu (confirmed via @recursica/adapter-mantine-v8's own
  * `MenuProps_2 & RecursicaMenuProps`, the latter contributing nothing beyond the Mantine
  * shape) — `children` is expected to be `Menu.Target`/`Menu.Dropdown` composition; Forge's own
  * `MenuItem` is separately registered as `Menu.Item`, confirming composition is how callers
@@ -22,7 +22,7 @@
  */
 
 import React from 'react'
-import { Menu as MantineMenu } from '@recursica/mantine-adapter'
+import { Menu as MantineMenu } from '@recursica/adapter-mantine-v8'
 import type { MenuProps } from '../../common/Menu'
 import type { AssertWired } from '../../common/wiringCheck'
 

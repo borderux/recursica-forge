@@ -1,7 +1,7 @@
 /**
  * Mantine SegmentedControl Adapter
  *
- * @recursica/mantine-adapter's SegmentedControl takes Mantine's `data` array, not Forge's
+ * @recursica/adapter-mantine-v8's SegmentedControl takes Mantine's `data` array, not Forge's
  * `items`. This wrapper is the one place that translates between the two shapes.
  *
  * `showLabel`, `componentNameForCssVars` and `selectionState` have no upstream equivalent —
@@ -26,7 +26,7 @@
  */
 
 import React from 'react'
-import { SegmentedControl as MantineSegmentedControl } from '@recursica/mantine-adapter'
+import { SegmentedControl as MantineSegmentedControl } from '@recursica/adapter-mantine-v8'
 import type { SegmentedControlAdapterProps } from '../../common/SegmentedControl'
 import type { AssertWired } from '../../common/wiringCheck'
 

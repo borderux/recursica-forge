@@ -22,7 +22,7 @@
  */
 
 import React from 'react'
-import { Button as MantineButton } from '@recursica/mantine-adapter'
+import { Button as MantineButton } from '@recursica/adapter-mantine-v8'
 import type { ButtonProps } from '../../common/Button'
 import type { AssertWired } from '../../common/wiringCheck'
 

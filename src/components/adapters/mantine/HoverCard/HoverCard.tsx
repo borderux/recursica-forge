@@ -1,7 +1,7 @@
 /**
  * Mantine HoverCard Adapter
  *
- * @recursica/mantine-adapter's HoverCard is a COMPOSITION api: it renders `HoverCard.Target`
+ * @recursica/adapter-mantine-v8's HoverCard is a COMPOSITION api: it renders `HoverCard.Target`
  * (the trigger element) and `HoverCard.Dropdown` (the panel shown on hover) as children,
  * rather than accepting Forge's flat `children`/`content` data props directly. This wrapper is
  * the one place that bridges the two.
@@ -22,7 +22,7 @@
  */
 
 import React from 'react'
-import { HoverCard as MantineHoverCard } from '@recursica/mantine-adapter'
+import { HoverCard as MantineHoverCard } from '@recursica/adapter-mantine-v8'
 import type { HoverCardProps } from '../../common/HoverCard'
 import type { AssertWired } from '../../common/wiringCheck'
 

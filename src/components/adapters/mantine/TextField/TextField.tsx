@@ -5,7 +5,7 @@
  * (`value`, `onChange`, `onKeyDown`, `onBlur`, `type`, `min`/`max`/`step`, `name`, `autoFocus`,
  * ...) already match the real TextField's own native `<input>` attrs one-for-one, since the
  * real type is built from `ComponentPropsWithoutRef<"input">` directly (confirmed against
- * @recursica/mantine-adapter's RecursicaTextFieldProps). Two real gaps, both moved in here
+ * @recursica/adapter-mantine-v8's RecursicaTextFieldProps). Two real gaps, both moved in here
  * from adapterPropContract.ts's per-component `PROP_CONTRACT['TextField']` entry:
  *
  *   - `minWidth`: GAP. The real type Omits `controlMinWidth`/`controlMaxWidth` entirely and
@@ -23,7 +23,7 @@
  */
 
 import React from 'react'
-import { TextField as MantineTextField } from '@recursica/mantine-adapter'
+import { TextField as MantineTextField } from '@recursica/adapter-mantine-v8'
 import { resolveLabelActionArea } from '../labelActionArea'
 import type { TextFieldProps } from '../../common/TextField'
 import type { AssertWired } from '../../common/wiringCheck'

@@ -21,7 +21,7 @@
  * `onUpload`/`onRemove` themselves need no reshaping at all: Forge's `onUpload(files: File[])`
  * and `onRemove(fileId: string)` already have the exact same signatures as the real
  * `onFilesAdded(files: File[])`/`onFileRemove(id: string)` — confirmed against
- * RecursicaFileUploadProps in node_modules/@recursica/mantine-adapter/dist/index.d.ts. They
+ * RecursicaFileUploadProps in node_modules/@recursica/adapter-mantine-v8/dist/index.d.ts. They
  * are still listed in `Ignore` below because they are renamed (different prop names), not
  * because their value shape changed.
  *
@@ -34,7 +34,7 @@
  */
 
 import React, { useRef } from 'react'
-import { FileUpload as MantineFileUpload, type RecursicaFileUploadItem } from '@recursica/mantine-adapter'
+import { FileUpload as MantineFileUpload, type RecursicaFileUploadItem } from '@recursica/adapter-mantine-v8'
 import type { FileUploadAdapterProps } from '../../common/FileUpload'
 import type { AssertWired } from '../../common/wiringCheck'
 

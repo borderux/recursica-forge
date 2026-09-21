@@ -313,7 +313,7 @@ export function ComponentsSidebar({
   const handleNavClick = useCallback(
     (componentName: string) => {
       const target = `/components/${componentNameToSlug(componentName)}`
-      // Only navigate on an actual change. @recursica/mantine-adapter's Tree reports its
+      // Only navigate on an actual change. @recursica/adapter-mantine-v8's Tree reports its
       // selection from an effect keyed on [tree.selectedState, onSelectedChange], so it fires
       // on mount and again whenever this callback's identity changes — not only when the user
       // picks a node. Navigating unconditionally therefore re-rendered the sidebar, which

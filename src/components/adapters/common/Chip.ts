@@ -35,7 +35,7 @@ export type ChipProps = {
   /**
    * Named `onDelete` deliberately: it already matches raw `@mui/material`'s real `Chip` prop
    * of the same name (raw `@mantine/core`'s `Chip` has no delete concept to weigh in with —
-   * it's toggle-only). The real `@recursica/mantine-adapter` calls its equivalent `onRemove`;
+   * it's toggle-only). The real `@recursica/adapter-mantine-v8` calls its equivalent `onRemove`;
    * tracked as an upstream ask, see `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md`.
    */
   onDelete?: (e: React.MouseEvent) => void

@@ -24,9 +24,9 @@ import "@mantine/core/styles.css";
 // via core/css/scopedCssEngine.ts. Note we deliberately do NOT import
 // @recursica/official-release's recursica_variables_scoped.css: that file carries
 // the published (older) token values and would mask genuine wiring gaps.
-// (mantine-adapter's style.css already bundles @recursica/adapter-common's shared
+// (adapter-mantine-v8's style.css already bundles @recursica/adapter-common's shared
 // component styles — e.g. Layer — so there's no separate adapter-common import here.)
-import "@recursica/mantine-adapter/style.css";
+import "@recursica/adapter-mantine-v8/style.css";
 import "./MantineShell.css";
 import { RadioButtonGroup } from "../../../components/adapters/RadioButtonGroup";
 import { RadioButtonItem } from "../../../components/adapters/RadioButtonItem";
@@ -465,69 +465,25 @@ export default function MantineShell({
                 </Tooltip>
 
                 {!import.meta.env.DEV && (
-                  <Tooltip label='Report a bug'>
-                    <Button
-                      variant='outline'
-                      size='small'
-                      icon={(() => {
-                        const BugIcon = iconNameToReactComponent("bug");
-                        return BugIcon ? (
-                          <BugIcon
-                            style={{
-                              width:
-                                "var(--recursica_brand_dimensions_icons_default)",
-                              height:
-                                "var(--recursica_brand_dimensions_icons_default)",
-                            }}
-                          />
-                        ) : null;
-                      })()}
-                      onClick={() => createBugReport()}
-                    />
-                  </Tooltip>
-
-                  <Tooltip label='Simulate version update (dev only)'>
-                    <Button
-                      variant='outline'
-                      size='small'
-                      icon={(() => {
-                        const VersionIcon = iconNameToReactComponent('trend-up')
-                        return VersionIcon ? (
-                          <VersionIcon
-                            style={{
-                              width: 'var(--recursica_brand_dimensions_icons_default)',
-                              height: 'var(--recursica_brand_dimensions_icons_default)',
-                            }}
-                          />
-                        ) : null
-                      })()}
-                      onClick={simulateUpdate}
-                    />
-                  </Tooltip>
-                  <Tooltip label='Auto-run CSS audit (dev only)'>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "var(--recursica_brand_dimensions_general_sm)",
-                      }}
-                    >
-                      <Switch
-                        checked={cssAuditAutoRun}
-                        onChange={(checked) => {
-                          setCssAuditAutoRunState(checked);
-                          setCssAuditAutoRun(checked);
-                          // Trigger audit immediately when enabled
-                          if (checked) {
-                            setTimeout(() => {
-                              import("../../../core/utils/runCssVarAudit").then(
-                                ({ runCssVarAudit }) => {
-                                  runCssVarAudit(false);
-                                },
-                              );
-                            }, 500); // Small delay to ensure CSS vars are ready
-                          }
-                        }}
+                  <>
+                    <Tooltip label='Report a bug'>
+                      <Button
+                        variant='outline'
+                        size='small'
+                        icon={(() => {
+                          const BugIcon = iconNameToReactComponent("bug");
+                          return BugIcon ? (
+                            <BugIcon
+                              style={{
+                                width:
+                                  "var(--recursica_brand_dimensions_icons_default)",
+                                height:
+                                  "var(--recursica_brand_dimensions_icons_default)",
+                              }}
+                            />
+                          ) : null;
+                        })()}
+                        onClick={() => createBugReport()}
                       />
                     </Tooltip>
 
@@ -573,7 +529,6 @@ export default function MantineShell({
                               }, 500); // Small delay to ensure CSS vars are ready
                             }
                           }}
-                          sizeVariant='small'
                         />
                       </div>
                     </Tooltip>
@@ -582,6 +537,8 @@ export default function MantineShell({
                 {/* Library switcher temporarily disabled — kit locked to mantine */}
               </div>
 
+              {(() => {
+              const buttonSmallIcon = getComponentCssVar('Button', 'size', 'small-icon', undefined)
               const SunIcon = iconNameToReactComponent("sun");
               const MoonIcon = iconNameToReactComponent("moon");
               const modeItems: SegmentedControlItem[] = [

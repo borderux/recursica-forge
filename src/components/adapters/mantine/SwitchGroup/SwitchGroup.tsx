@@ -4,7 +4,7 @@
  * Not previously implemented for Mantine at all — no folder existed here and it was not
  * registered in registry/mantine.ts, even though the real adapter does export a genuine
  * SwitchGroup (confirmed: `RecursicaSwitchGroupProps`/`RecursicaSwitchGroupProps_2` in
- * node_modules/@recursica/mantine-adapter/dist/index.d.ts). Shares the same field vocabulary
+ * node_modules/@recursica/adapter-mantine-v8/dist/index.d.ts). Shares the same field vocabulary
  * as CheckboxGroup/RadioButtonGroup, verified the same way against
  * `RecursicaSwitchGroupProps`/`RecursicaFormControlWrapperProps`/`RecursicaLabelProps`:
  *
@@ -21,7 +21,7 @@
  */
 
 import React from 'react'
-import { SwitchGroup as MantineSwitchGroup } from '@recursica/mantine-adapter'
+import { SwitchGroup as MantineSwitchGroup } from '@recursica/adapter-mantine-v8'
 import type { SwitchGroupProps } from '../../common/SwitchGroup'
 import type { AssertWired } from '../../common/wiringCheck'
 

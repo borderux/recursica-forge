@@ -18,7 +18,7 @@
  */
 
 import React from 'react'
-import { Badge as MantineBadge } from '@recursica/mantine-adapter'
+import { Badge as MantineBadge } from '@recursica/adapter-mantine-v8'
 import type { BadgeProps } from '../../common/Badge'
 import type { AssertWired } from '../../common/wiringCheck'
 

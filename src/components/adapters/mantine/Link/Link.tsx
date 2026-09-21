@@ -37,7 +37,7 @@
  */
 
 import React from 'react'
-import { Link as MantineLink } from '@recursica/mantine-adapter'
+import { Link as MantineLink } from '@recursica/adapter-mantine-v8'
 import type { LinkProps } from '../../common/Link'
 import type { AssertWired } from '../../common/wiringCheck'
 

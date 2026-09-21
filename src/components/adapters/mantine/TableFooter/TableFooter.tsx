@@ -13,7 +13,7 @@
  */
 
 import React from 'react'
-import { Table } from '@recursica/mantine-adapter'
+import { Table } from '@recursica/adapter-mantine-v8'
 import type { TableFooterProps } from '../../common/TableFooter'
 import type { AssertWired } from '../../common/wiringCheck'
 

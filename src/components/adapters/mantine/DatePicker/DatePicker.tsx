@@ -21,7 +21,7 @@
  */
 
 import React from 'react'
-import { DatePicker as MantineDatePicker } from '@recursica/mantine-adapter'
+import { DatePicker as MantineDatePicker } from '@recursica/adapter-mantine-v8'
 import type { DatePickerProps } from '../../common/DatePicker'
 import type { AssertWired } from '../../common/wiringCheck'
 

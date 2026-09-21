@@ -19,7 +19,7 @@
  */
 
 import React from 'react'
-import { TextArea as MantineTextarea } from '@recursica/mantine-adapter'
+import { TextArea as MantineTextarea } from '@recursica/adapter-mantine-v8'
 import { resolveLabelActionArea } from '../labelActionArea'
 import type { TextareaProps } from '../../common/Textarea'
 import type { AssertWired } from '../../common/wiringCheck'

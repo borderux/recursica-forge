@@ -33,7 +33,7 @@
  */
 
 import React from 'react'
-import { Tree as MantineTree } from '@recursica/mantine-adapter'
+import { Tree as MantineTree } from '@recursica/adapter-mantine-v8'
 import type { TreeProps } from '../../common/Tree'
 import type { AssertWired } from '../../common/wiringCheck'
 

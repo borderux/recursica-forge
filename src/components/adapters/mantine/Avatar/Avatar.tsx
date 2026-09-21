@@ -1,7 +1,7 @@
 /**
  * Mantine Avatar Adapter
  *
- * Not a 1:1 pass-through. Confirmed against @recursica/mantine-adapter's own Avatar source
+ * Not a 1:1 pass-through. Confirmed against @recursica/adapter-mantine-v8's own Avatar source
  * (its `RecursicaAvatarProps` plus the underlying Mantine `AvatarProps`, with `variant` |
  * `size` | `color` | `radius` re-declared by Recursica):
  *
@@ -25,7 +25,7 @@
  */
 
 import React from 'react'
-import { Avatar as MantineAvatar } from '@recursica/mantine-adapter'
+import { Avatar as MantineAvatar } from '@recursica/adapter-mantine-v8'
 import type { AvatarProps } from '../../common/Avatar'
 import type { AssertWired } from '../../common/wiringCheck'
 

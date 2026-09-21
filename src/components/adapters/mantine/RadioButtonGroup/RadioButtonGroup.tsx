@@ -21,7 +21,7 @@
  */
 
 import React from 'react'
-import { RadioGroup as MantineRadioGroup } from '@recursica/mantine-adapter'
+import { RadioGroup as MantineRadioGroup } from '@recursica/adapter-mantine-v8'
 import type { RadioButtonGroupProps } from '../../common/RadioButtonGroup'
 import type { AssertWired } from '../../common/wiringCheck'
 

@@ -30,7 +30,7 @@ export type SegmentedControlProps = {
    * Whole-control disable. Real and native on raw `@mantine/core`'s and raw `@mui/material`'s
    * own components, and wired straight through on the Material and Carbon kits. Was
    * synthesized on the Mantine kit (via every item's own `disabled`) because the real
-   * `@recursica/mantine-adapter`'s `SegmentedControl` explicitly forbade this prop
+   * `@recursica/adapter-mantine-v8`'s `SegmentedControl` explicitly forbade this prop
    * (`disabled: never`); upstreamed 2026-08 (see `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md`
    * #8) — the real type now has a genuine top-level `disabled?: boolean`, so the Mantine
    * wrapper passes it straight through like Material/Carbon do. (Previously removed 2026-08 on

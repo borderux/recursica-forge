@@ -9,7 +9,7 @@
  */
 
 import React from 'react'
-import { Pagination as MantinePagination } from '@recursica/mantine-adapter'
+import { Pagination as MantinePagination } from '@recursica/adapter-mantine-v8'
 import type { PaginationProps } from '../../common/Pagination'
 import type { AssertWired } from '../../common/wiringCheck'
 

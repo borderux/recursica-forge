@@ -1,7 +1,7 @@
 /**
  * Mantine Component Registry
  *
- * Registers the REAL published adapter, @recursica/mantine-adapter, as the
+ * Registers the REAL published adapter, @recursica/adapter-mantine-v8, as the
  * Mantine implementation for every component Forge previews.
  *
  * Every entry points at a local wrapper file under src/components/adapters/mantine/ — one

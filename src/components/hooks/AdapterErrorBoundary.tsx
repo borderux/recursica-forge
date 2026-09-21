@@ -1,7 +1,7 @@
 /**
  * AdapterErrorBoundary
  *
- * Wraps each component rendered from @recursica/mantine-adapter so a prop-contract
+ * Wraps each component rendered from @recursica/adapter-mantine-v8 so a prop-contract
  * mismatch degrades to a visible marker instead of unmounting the whole route.
  *
  * This matters because Forge's dispatchers were written against Forge's own local
@@ -34,7 +34,7 @@ export class AdapterErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error(
-      `[adapter] <${this.props.componentName}> from @recursica/mantine-adapter threw while rendering. ` +
+      `[adapter] <${this.props.componentName}> from @recursica/adapter-mantine-v8 threw while rendering. ` +
         `This is usually a prop-contract mismatch between Forge's dispatcher and the real adapter.`,
       error,
       info.componentStack

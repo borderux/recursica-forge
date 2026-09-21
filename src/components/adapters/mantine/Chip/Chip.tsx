@@ -25,7 +25,7 @@
  */
 
 import React from 'react'
-import { Chip as MantineChip } from '@recursica/mantine-adapter'
+import { Chip as MantineChip } from '@recursica/adapter-mantine-v8'
 import type { ChipProps } from '../../common/Chip'
 import type { AssertWired } from '../../common/wiringCheck'
 

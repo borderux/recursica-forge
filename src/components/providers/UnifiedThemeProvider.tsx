@@ -6,7 +6,7 @@
  */
 
 import { ReactNode, useState, useEffect } from 'react'
-import { RecursicaThemeProvider } from '@recursica/mantine-adapter'
+import { RecursicaThemeProvider } from '@recursica/adapter-mantine-v8'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 
 // Module-level caches: once a provider resolves, subsequent renders use it synchronously.
@@ -111,7 +111,7 @@ const CarbonProvider = ({ children }: { children: ReactNode }) => {
 }
 
 /**
- * Keeps @recursica/mantine-adapter's theme context in sync with Forge's theme mode.
+ * Keeps @recursica/adapter-mantine-v8's theme context in sync with Forge's theme mode.
  *
  * initLayer0 is false on purpose: RecursicaThemeProvider's default is to wrap
  * children in a `<Layer layer={0}>` div, but core/bootstrap.ts already sets

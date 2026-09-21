@@ -4,7 +4,7 @@
  * Not a 1:1 pass-through: Forge's `items` is an array of rich objects (label, icons, supporting
  * text, dividers, ...) but the real adapter's `data` takes `RecursicaComboboxItem`s
  * (`{ value, label?, disabled?, leadingIcon?, supportingText? }`) — a real, native slot for
- * icon + supporting text now (2026-08, `@recursica/mantine-adapter@0.49.0` — previously the
+ * icon + supporting text now (2026-08, `@recursica/adapter-mantine-v8@0.49.0` — previously the
  * adapter's own `data` had no icon/supporting-text slot at all, and this wrapper worked around
  * it with a `renderOption` callback; removed now that the adapter renders these fields itself).
  * `label` stays a real string (falls back to `value` when omitted) since it's what gets
@@ -27,7 +27,7 @@
  */
 
 import React from 'react'
-import { AutoComplete as MantineAutocomplete } from '@recursica/mantine-adapter'
+import { AutoComplete as MantineAutocomplete } from '@recursica/adapter-mantine-v8'
 import type { AutocompleteProps } from '../../common/Autocomplete'
 import type { AssertWired } from '../../common/wiringCheck'
 

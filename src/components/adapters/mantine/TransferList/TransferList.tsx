@@ -8,13 +8,13 @@
  *
  * `data`/`defaultData`/`onChange`, `sourceLabel`/`targetLabel` and `searchable`/
  * `searchPlaceholder` are genuine 1:1 matches — verified against RecursicaTransferListProps
- * in node_modules/@recursica/mantine-adapter/dist/index.d.ts, not assumed.
+ * in node_modules/@recursica/adapter-mantine-v8/dist/index.d.ts, not assumed.
  *
  * Fixed here, not just passed through:
  *   - `searchable` — a prior version of adapterPropContract.ts's `PROP_CONTRACT['TransferList']`
  *     dropped this (`searchable: null`), reasoning that the adapter's Recursica-specific
  *     surface was empty. That was STALE against the currently-installed
- *     @recursica/mantine-adapter: RecursicaTransferListProps now has a real
+ *     @recursica/adapter-mantine-v8: RecursicaTransferListProps now has a real
  *     `searchable?: boolean` field with matching semantics ("Enable per-pane search
  *     filtering. Defaults to true"). Wired as a direct pass-through now; the stale entry has
  *     been removed from the contract table.
@@ -37,7 +37,7 @@
  */
 
 import React, { type ChangeEvent } from 'react'
-import { TransferList as MantineTransferList } from '@recursica/mantine-adapter'
+import { TransferList as MantineTransferList } from '@recursica/adapter-mantine-v8'
 import type { TransferListItem, TransferListProps } from '../../common/TransferList'
 import type { AssertWired } from '../../common/wiringCheck'
 
