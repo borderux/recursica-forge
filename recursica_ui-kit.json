@@ -1,12 +1,6 @@
 {
   "ui-kit": {
     "globals": {
-      "icon": {
-        "style": {
-          "$type": "string",
-          "$value": "outline"
-        }
-      },
       "form": {
         "properties": {
           "label-field-gap-horizontal": {
@@ -1294,10 +1288,6 @@
               "value": 48,
               "unit": "px"
             }
-          },
-          "text-size": {
-            "$type": "dimension",
-            "$value": "{brand.dimensions.text-size.default}"
           },
           "elevation": {
             "$value": "{brand.elevations.elevation-0}",
