@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.28.2
+
+### Patch Changes
+
+- 0677dd9: Removed `globals_icon_style` and chip's duplicate `properties_text-size` — both were unconsumed by Forge and every adapter; chip now uses `properties_text_font-size` alone.
+
 ## 0.28.1
 
 ### Patch Changes
