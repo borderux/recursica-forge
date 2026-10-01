@@ -1,0 +1,120 @@
+{
+  "ui-kit": {
+    "components": {
+      "pagination": {
+        "properties": {
+          "active-pages": {
+            "$value": "{ui-kit.components.button}",
+            "$extensions": {
+              "recursica.component": {
+                "selected-variants": {
+                  "style": "solid",
+                  "size": "small"
+                }
+              }
+            }
+          },
+          "inactive-pages": {
+            "$value": "{ui-kit.components.button}",
+            "$extensions": {
+              "recursica.component": {
+                "selected-variants": {
+                  "style": "outline",
+                  "size": "small"
+                }
+              }
+            }
+          },
+          "navigation-controls": {
+            "$value": "{ui-kit.components.button}",
+            "$extensions": {
+              "recursica.component": {
+                "selected-variants": {
+                  "style": "text",
+                  "size": "small",
+                  "content": "icon-only"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "brand": {
+    "layout-grids": {
+      "default": {
+        "columns": {
+          "$type": "number",
+          "$value": 6
+        },
+        "row-gutter": {
+          "$type": "number",
+          "$value": "{tokens.sizes.3x}"
+        },
+        "column-gutter": {
+          "$type": "number",
+          "$value": "{tokens.sizes.2x}"
+        },
+        "margin": {
+          "$type": "number",
+          "$value": "{tokens.sizes.3x}"
+        }
+      },
+      "mobile": {
+        "max-width": {
+          "$type": "number",
+          "$value": 480
+        },
+        "columns": {
+          "$type": "number",
+          "$value": 3
+        },
+        "row-gutter": {
+          "$type": "number",
+          "$value": "{tokens.sizes.3x}"
+        },
+        "column-gutter": {
+          "$type": "number",
+          "$value": "{tokens.sizes.2x}"
+        },
+        "margin": {
+          "$type": "number",
+          "$value": "{tokens.sizes.3x}"
+        }
+      },
+      "junk": {
+        "max-width": {
+          "$type": "number",
+          "$value": 1080
+        },
+        "columns": {
+          "$type": "number",
+          "$value": 3
+        },
+        "row-gutter": {
+          "$type": "number",
+          "$value": "{tokens.sizes.3x}"
+        },
+        "column-gutter": {
+          "$type": "number",
+          "$value": "{tokens.sizes.2x}"
+        },
+        "margin": {
+          "$type": "number",
+          "$value": "{tokens.sizes.3x}"
+        },
+        "min-width": {
+          "$type": "number",
+          "$value": 481
+        }
+      }
+    }
+  },
+  "$extensions": {
+    "recursica.metadata": {
+      "exportedAt": "2026-10-01T22:54:34.861Z",
+      "version": "0.28.2"
+    }
+  }
+}
