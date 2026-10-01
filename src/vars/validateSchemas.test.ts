@@ -4,9 +4,11 @@ import addFormats from 'ajv-formats'
 import brandSchema from '../../schemas/brand.schema.json'
 import tokensSchema from '../../schemas/tokens.schema.json'
 import uikitSchema from '../../schemas/uikit.schema.json'
+import manifestSchema from '../../schemas/manifest.schema.json'
 import brandJson from '../../recursica_brand.json'
 import tokensJson from '../../recursica_tokens.json'
 import uikitJson from '../../recursica_ui-kit.json'
+import { exportManifestJson } from '../core/export/manifestExport'
 import {
   validateReferences,
   validateDtcgStructure,
@@ -723,5 +725,58 @@ describe('validateUIKitComponentExtensions', () => {
       },
     }
     expect(() => validateUIKitComponentExtensions(uikit as any)).toThrow(/is not a recognised variant category/)
+  })
+})
+
+describe('recursica_manifest.json', () => {
+  const ajv = new Ajv({ allErrors: true, strict: false })
+  addFormats(ajv)
+  const validate = ajv.compile(manifestSchema)
+  const clone = (o: unknown) => JSON.parse(JSON.stringify(o))
+
+  const build = (mutate?: (brand: any) => void) => {
+    const brand = clone(brandJson)
+    mutate?.(brand.brand)
+    return exportManifestJson(clone(tokensJson) as any, brand as any, clone(uikitJson) as any)
+  }
+
+  it('validates the manifest exported from the shipped files', () => {
+    const manifest = build()
+    expect(validate(manifest), JSON.stringify(validate.errors)).toBe(true)
+  })
+
+  it('validates a manifest carrying layout grids and breakpoint overrides', () => {
+    const manifest = build((brand) => {
+      brand['layout-grids'].mobile = {
+        'max-width': { $type: 'number', $value: 480 },
+        columns: { $type: 'number', $value: 3 },
+        margin: { $type: 'number', $value: '{tokens.sizes.3x}' },
+      }
+      brand.breakpoints = {
+        mobile: { typography: { h1: { fontSize: { $type: 'dimension', $value: '{tokens.font.sizes.4xl}' } } } },
+      }
+    }) as any
+    expect(manifest.brand['layout-grids'].mobile).toBeDefined()
+    expect(manifest.brand.breakpoints.mobile.typography.h1.fontSize).toBeDefined()
+    expect(validate(manifest), JSON.stringify(validate.errors)).toBe(true)
+  })
+
+  it('rejects an unrecognised top-level section', () => {
+    const manifest = build() as any
+    manifest.elevations = {}
+    expect(validate(manifest)).toBe(false)
+  })
+
+  it('rejects a component reference that is not a ui-kit component ref', () => {
+    const manifest = build() as any
+    const props = manifest['ui-kit'].components.pagination.properties
+    props['active-pages'].$value = '{brand.palettes.core}'
+    expect(validate(manifest)).toBe(false)
+  })
+
+  it('rejects a manifest without export metadata', () => {
+    const manifest = build() as any
+    delete manifest.$extensions
+    expect(validate(manifest)).toBe(false)
   })
 })

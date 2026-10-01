@@ -24,8 +24,10 @@ const build = (opts: { tokenBps?: any; brandBps?: any } = {}) => {
   // its own rather than depending on data the product is free to change.
   brand.brand['layout-grids'] = {
     ...(brand.brand['layout-grids'] ?? {}),
-    mobile: { 'max-width': { $type: 'number', $value: 480 }, columns: { $type: 'number', $value: 4 } },
-    tablet: { 'max-width': { $type: 'number', $value: 810 }, columns: { $type: 'number', $value: 6 } },
+    // Width only, no grid properties: a grid that carries properties is itself a breakpoint and
+    // would add a block of its own — covered in the layout-grid describe below.
+    mobile: { 'max-width': { $type: 'number', $value: 480 } },
+    tablet: { 'max-width': { $type: 'number', $value: 810 } },
   }
   if (opts.tokenBps) tokens.tokens.breakpoints = opts.tokenBps
   if (opts.brandBps) brand.brand.breakpoints = opts.brandBps
@@ -141,5 +143,73 @@ describe.each([
     const css = run(transform, input)
     expect(mediaPart(css)).toContain('@media (min-width: 1600px)')
     expect(mediaPart(css)).not.toContain('max-width')
+  })
+})
+
+describe.each([
+  ['scoped', scoped],
+  ['specific', specific],
+])('layout grids as breakpoints (%s)', (_name, transform) => {
+  const grid = (columns: number, widths: Record<string, number>) => ({
+    ...Object.fromEntries(Object.entries(widths).map(([k, v]) => [k, { $type: 'number', $value: v }])),
+    columns: { $type: 'number', $value: columns },
+    margin: { $type: 'number', $value: '{tokens.sizes.3x}' },
+  })
+  const withGrids = (grids: Record<string, unknown>) => {
+    const input = build()
+    input.brand.brand['layout-grids'] = {
+      default: { columns: { $type: 'number', $value: 6 }, margin: { $type: 'number', $value: '{tokens.sizes.3x}' } },
+      ...grids,
+    }
+    return input
+  }
+
+  it('adds nothing when only the default grid exists', () => {
+    const css = run(transform, withGrids({}))
+    expect(css).not.toContain('@media')
+    expect(css).not.toContain('--recursica_brand_layout-grids_columns')
+  })
+
+  it('declares the active grid on :root from the default grid', () => {
+    const css = run(transform, withGrids({ mobile: grid(3, { 'max-width': 480 }) }))
+    expect(basePart(css)).toContain('--recursica_brand_layout-grids_columns: var(--recursica_brand_layout-grids_default_columns);')
+    expect(basePart(css)).toContain('--recursica_brand_layout-grids_margin: var(--recursica_brand_layout-grids_default_margin);')
+  })
+
+  it('re-declares the active grid inside a media block derived from the widths', () => {
+    const css = run(transform, withGrids({ mobile: grid(3, { 'max-width': 480 }) }))
+    expect(mediaPart(css)).toContain('@media (max-width: 480px)')
+    expect(mediaPart(css)).toContain('--recursica_brand_layout-grids_columns: var(--recursica_brand_layout-grids_mobile_columns);')
+  })
+
+  it('keeps the per-grid vars declared', () => {
+    const css = run(transform, withGrids({ mobile: grid(3, { 'max-width': 480 }) }))
+    expect(basePart(css)).toContain('--recursica_brand_layout-grids_mobile_columns: 3;')
+  })
+
+  it('combines both bounds and orders blocks so the narrowest match wins', () => {
+    const css = run(transform, withGrids({
+      mobile: grid(3, { 'max-width': 480 }),
+      tablet: grid(4, { 'min-width': 481, 'max-width': 1080 }),
+    }))
+    const media = mediaPart(css)
+    expect(media).toContain('@media (min-width: 481px) and (max-width: 1080px)')
+    expect(media.indexOf('max-width: 1080px')).toBeLessThan(media.indexOf('(max-width: 480px)'))
+  })
+
+  it('shares one block with typography overrides for the same breakpoint', () => {
+    const input = withGrids({ mobile: grid(3, { 'max-width': 480 }) })
+    input.brand.brand.breakpoints = {
+      mobile: { typography: { h1: { fontSize: { $type: 'dimension', $value: '{tokens.font.sizes.4xl}' } } } },
+    }
+    const media = mediaPart(run(transform, input))
+    expect((media.match(/@media/g) || []).length).toBe(1)
+    expect(media).toContain('--recursica_brand_typography_h1_fontSize')
+    expect(media).toContain('--recursica_brand_layout-grids_columns')
+  })
+
+  it('ignores a non-default grid that declares no width', () => {
+    const css = run(transform, withGrids({ loose: grid(2, {}) }))
+    expect(css).not.toContain('@media')
   })
 })

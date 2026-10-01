@@ -74,7 +74,7 @@ function expandUIKitLayers<T>(node: T): T {
 
 const FILENAME = 'recursica_variables_scoped.css'
 const PREFIX = '--recursica_'
-const TRANSFORM_VERSION = '1.3.3'
+const TRANSFORM_VERSION = '1.4.0'
 
 /** Maps brand.typography $value keys (camelCase) to CSS property names. */
 const TYPOGRAPHY_JSON_TO_CSS_PROP: Record<string, string> = {
@@ -848,6 +848,75 @@ function layoutGridWidth(brandRoot: any, name: string, key: 'max-width' | 'min-w
 }
 
 /**
+ * Layout grids as breakpoints.
+ *
+ * In the app a breakpoint is created by adding a `brand.layout-grids.<name>` entry with a
+ * `min-width` and/or `max-width`; there is no separate `breakpoints` tree for it. This turns each
+ * such grid into a breakpoint override so the CSS switches grid on viewport instead of leaving
+ * every grid declared at once:
+ *
+ *   :root           --recursica_brand_layout-grids_columns: var(--recursica_brand_layout-grids_default_columns)
+ *   @media (...)    --recursica_brand_layout-grids_columns: var(--recursica_brand_layout-grids_mobile_columns)
+ *
+ * Consumers read one set of names and the browser picks. The per-grid vars stay declared. Nothing
+ * is added unless at least one non-default grid declares a width, so a brand with only the
+ * `default` grid exports exactly as before.
+ */
+
+const BASE_GRID = 'default'
+const WIDTH_KEYS = ['min-width', 'max-width']
+
+type CollectedBreakpoint = { trees: Array<{ prefix: string; tree: unknown }>; ext?: any }
+
+const isNode = (v: unknown): v is Record<string, any> => v !== null && typeof v === 'object'
+
+/** The properties a grid contributes to the active grid: everything but its own width bounds. */
+function gridProps(grid: Record<string, any>): string[] {
+  return Object.keys(grid).filter((k) => !k.startsWith('$') && !WIDTH_KEYS.includes(k) && isNode(grid[k]))
+}
+
+/**
+ * Adds the active-grid aliases to `base.brand` and one breakpoint entry per non-default grid with
+ * a width. Returns the (possibly new) base; the input is never mutated.
+ */
+function addLayoutGridBreakpoints(base: any, collected: Map<string, CollectedBreakpoint>): any {
+  const wrapper: any = base.brand
+  if (!isNode(wrapper)) return base
+  const wrapped = isNode(wrapper.brand)
+  const root: any = wrapped ? wrapper.brand : wrapper
+  const grids = root['layout-grids']
+  if (!isNode(grids) || !isNode(grids[BASE_GRID])) return base
+
+  const names = Object.keys(grids).filter((name) => {
+    if (name.startsWith('$') || name === BASE_GRID || !isNode(grids[name])) return false
+    return WIDTH_KEYS.some((k) => grids[name][k] !== undefined)
+  })
+  if (names.length === 0) return base
+
+  const baseProps = gridProps(grids[BASE_GRID])
+  const alias = (grid: string, prop: string) => ({
+    $type: grids[BASE_GRID][prop]?.$type ?? 'number',
+    $value: `{brand.layout-grids.${grid}.${prop}}`,
+  })
+
+  const activeGrid: Record<string, unknown> = {}
+  for (const prop of baseProps) activeGrid[prop] = alias(BASE_GRID, prop)
+  const nextRoot = { ...root, 'layout-grids': { ...grids, ...activeGrid } }
+  const nextBase = { ...base, brand: wrapped ? { ...wrapper, brand: nextRoot } : nextRoot }
+
+  for (const name of names) {
+    const overrides: Record<string, unknown> = {}
+    for (const prop of gridProps(grids[name])) overrides[prop] = alias(name, prop)
+    if (Object.keys(overrides).length === 0) continue
+    const entry = collected.get(name) ?? { trees: [] }
+    entry.trees.push({ prefix: 'brand', tree: { 'layout-grids': overrides } })
+    collected.set(name, entry)
+  }
+
+  return nextBase
+}
+
+/**
  * Splits the breakpoint groups off tokens/brand. Returns the input with those groups removed — so
  * the base output is byte-identical to a file that never had them — plus one entry per breakpoint.
  */
@@ -881,7 +950,8 @@ function extractBreakpoints(
     }
   }
 
-  const brandRoot: any = (base.brand as any)?.brand ?? base.brand
+  const withGrids = addLayoutGridBreakpoints(base, collected)
+  const brandRoot: any = (withGrids.brand as any)?.brand ?? withGrids.brand
   const breakpoints: BreakpointOverride[] = []
 
   for (const [name, { trees, ext }] of collected) {
@@ -911,7 +981,7 @@ function extractBreakpoints(
     breakpoints.push({ name, condition, width, direction, trees })
   }
 
-  return { base, breakpoints }
+  return { base: withGrids, breakpoints }
 }
 /**
  * Renders one media block per breakpoint, holding only the overridden declarations.

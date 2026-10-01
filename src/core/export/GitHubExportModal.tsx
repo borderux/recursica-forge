@@ -36,12 +36,15 @@ import {
   exportBrandJson,
   exportUIKitJson,
 } from "./jsonExport";
+import { exportManifestJson } from "./manifestExport";
+import type { JsonLike } from "../resolvers/tokens";
 import { recursicaJsonTransform as recursicaJsonTransformSpecific } from "./recursicaJsonTransformSpecific";
 import { recursicaJsonTransform as recursicaJsonTransformScoped } from "./recursicaJsonTransformScoped";
 import {
   EXPORT_FILENAME_TOKENS,
   EXPORT_FILENAME_BRAND,
   EXPORT_FILENAME_UIKIT,
+  EXPORT_FILENAME_MANIFEST,
   EXPORT_FILENAME_CSS_SPECIFIC,
   EXPORT_FILENAME_CSS_SCOPED,
 } from "./EXPORT_FILENAMES";
@@ -53,6 +56,7 @@ interface GitHubExportModalProps {
     tokens: boolean;
     brand: boolean;
     uikit: boolean;
+    manifest: boolean;
     css: boolean;
   };
   onCancel: () => void;
@@ -173,6 +177,7 @@ export function GitHubExportModal({
     if (selectedFiles.tokens) fileList.push(EXPORT_FILENAME_TOKENS);
     if (selectedFiles.brand) fileList.push(EXPORT_FILENAME_BRAND);
     if (selectedFiles.uikit) fileList.push(EXPORT_FILENAME_UIKIT);
+    if (selectedFiles.manifest) fileList.push(EXPORT_FILENAME_MANIFEST);
     if (selectedFiles.css) {
       fileList.push(EXPORT_FILENAME_CSS_SPECIFIC);
       fileList.push(EXPORT_FILENAME_CSS_SCOPED);
@@ -228,6 +233,17 @@ export function GitHubExportModal({
         files.push({
           path: EXPORT_FILENAME_UIKIT,
           content: JSON.stringify(uikit, null, 2),
+        });
+      }
+      if (selectedFiles.manifest) {
+        const manifest = exportManifestJson(
+          exportTokensJson() as JsonLike,
+          exportBrandJson() as JsonLike,
+          exportUIKitJson() as JsonLike,
+        );
+        files.push({
+          path: EXPORT_FILENAME_MANIFEST,
+          content: JSON.stringify(manifest, null, 2),
         });
       }
       if (selectedFiles.css) {

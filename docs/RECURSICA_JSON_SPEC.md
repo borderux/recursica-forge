@@ -61,6 +61,8 @@ Strict DTCG alignment would use fully qualified brand paths (including theme). I
 
 All three are valid JSON and follow the same token/group and reference rules above.
 
+A fourth, export-only file, **recursica_manifest.json**, is a pruned subset of these three for downstream tooling. It is never re-imported; see [RECURSICA_MANIFEST.md](RECURSICA_MANIFEST.md).
+
 ---
 
 ## 3. recursica_tokens.json (`tokens`)

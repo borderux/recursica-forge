@@ -21,9 +21,11 @@ import {
   EXPORT_FILENAME_TOKENS,
   EXPORT_FILENAME_BRAND,
   EXPORT_FILENAME_UIKIT,
+  EXPORT_FILENAME_MANIFEST,
 } from './EXPORT_FILENAMES'
 import { recursicaJsonTransform as recursicaJsonTransformSpecific } from './recursicaJsonTransformSpecific'
 import { recursicaJsonTransform as recursicaJsonTransformScoped } from './recursicaJsonTransformScoped'
+import { exportManifestJson } from './manifestExport'
 import JSZip from 'jszip'
 
 /**
@@ -1942,10 +1944,29 @@ export function exportCssStylesheet(options: { specific?: boolean; scoped?: bool
  *
  * Before validation, color scale keys are compacted to sequential numbering
  */
-export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean; cssSpecific?: boolean; cssScoped?: boolean } = { tokens: true, brand: true, uikit: true }): Promise<void> {
+export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean; manifest?: boolean; cssSpecific?: boolean; cssScoped?: boolean } = { tokens: true, brand: true, uikit: true }): Promise<void> {
   const rawTokens = exportTokensJson()
   const rawBrand  = exportBrandJson()
   const rawUikit  = exportUIKitJson()
+
+  // recursica_manifest.json travels with the other three and is assumed to share their
+  // version, so every file in one export call is stamped with the same exportedAt instant
+  // rather than each drifting by a few ms from its own independent Date.now().
+  const exportedAt = new Date().toISOString()
+  for (const raw of [rawTokens, rawBrand, rawUikit]) {
+    const metadata = (raw as JsonLike)?.$extensions?.['recursica.metadata']
+    if (metadata) metadata.exportedAt = exportedAt
+  }
+
+  let rawManifest: object | undefined
+  if (files.manifest) {
+    try {
+      rawManifest = exportManifestJson(rawTokens as JsonLike, rawBrand as JsonLike, rawUikit as JsonLike)
+      ;(rawManifest as JsonLike).$extensions['recursica.metadata'].exportedAt = exportedAt
+    } catch (error) {
+      throw new Error(`Cannot export manifest.json: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
 
   // Count how many files are selected
   const selectedFiles: Array<{ content: string | object; filename: string; isJson: boolean }> = []
@@ -1975,6 +1996,10 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
       throw new Error(`Cannot export uikit.json: ${error instanceof Error ? error.message : String(error)}`)
     }
     selectedFiles.push({ content: rawUikit, filename: EXPORT_FILENAME_UIKIT, isJson: true })
+  }
+
+  if (files.manifest && rawManifest) {
+    selectedFiles.push({ content: rawManifest, filename: EXPORT_FILENAME_MANIFEST, isJson: true })
   }
 
   // Export CSS files using the same normalized exports for consistency
