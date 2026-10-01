@@ -23,9 +23,9 @@ import { exportUIKitJson } from './jsonExport'
 
 interface ExportSelectionModalProps {
   show: boolean
-  onExport: (files: { tokens: boolean; brand: boolean; uikit: boolean; cssSpecific: boolean; cssScoped: boolean }) => void
+  onExport: (files: { tokens: boolean; brand: boolean; uikit: boolean; manifest: boolean; cssSpecific: boolean; cssScoped: boolean }) => void
   onCancel: () => void
-  onExportToGithub?: (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => void
+  onExportToGithub?: (files: { tokens: boolean; brand: boolean; uikit: boolean; manifest: boolean; css: boolean }) => void
 }
 
 const devTestFilesMap = import.meta.env.DEV ? import.meta.glob('../../components/test-exports/*.json') : {};
@@ -41,6 +41,7 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
     tokens: false,
     brand: false,
     uikit: false,
+    manifest: false,
     cssSpecific: false,
     cssScoped: false,
   })
@@ -126,8 +127,8 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
   }
 
   // Check if all JSON files are selected
-  const allJsonSelected = selectedFiles.tokens && selectedFiles.brand && selectedFiles.uikit
-  const someJsonSelected = selectedFiles.tokens || selectedFiles.brand || selectedFiles.uikit
+  const allJsonSelected = selectedFiles.tokens && selectedFiles.brand && selectedFiles.uikit && selectedFiles.manifest
+  const someJsonSelected = selectedFiles.tokens || selectedFiles.brand || selectedFiles.uikit || selectedFiles.manifest
   // Check if all CSS files are selected
   const allCssSelected = selectedFiles.cssSpecific && selectedFiles.cssScoped
   const someCssSelected = selectedFiles.cssSpecific || selectedFiles.cssScoped
@@ -138,6 +139,7 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
       tokens: checked,
       brand: checked,
       uikit: checked,
+      manifest: checked,
     })
   }
 
@@ -151,7 +153,7 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
 
   const handleExport = () => {
     // Ensure at least one file is selected
-    if (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.cssSpecific && !selectedFiles.cssScoped) {
+    if (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.manifest && !selectedFiles.cssSpecific && !selectedFiles.cssScoped) {
       return
     }
     onExport(selectedFiles)
@@ -160,7 +162,7 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
   const handleExportToGithub = () => {
     // Ensure at least one file is selected (CSS is independent, so check JSON files)
     const hasCss = selectedFiles.cssSpecific || selectedFiles.cssScoped
-    if (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !hasCss) {
+    if (!selectedFiles.tokens && !selectedFiles.brand && !selectedFiles.uikit && !selectedFiles.manifest && !hasCss) {
       return
     }
     if (onExportToGithub) {
@@ -168,12 +170,13 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
         tokens: selectedFiles.tokens,
         brand: selectedFiles.brand,
         uikit: selectedFiles.uikit,
+        manifest: selectedFiles.manifest,
         css: hasCss,
       })
     }
   }
 
-  const isAnyFileSelected = selectedFiles.tokens || selectedFiles.brand || selectedFiles.uikit || selectedFiles.cssSpecific || selectedFiles.cssScoped
+  const isAnyFileSelected = selectedFiles.tokens || selectedFiles.brand || selectedFiles.uikit || selectedFiles.manifest || selectedFiles.cssSpecific || selectedFiles.cssScoped
 
   const isTestMode = mode === 'test-files'
   const isExportToGithubEnabled = !!onExportToGithub && !isTestMode
@@ -245,6 +248,12 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
                   checked={selectedFiles.uikit}
                   onChange={(checked) => setSelectedFiles({ ...selectedFiles, uikit: checked })}
                   label="UI kit (components)"
+                  layer="layer-3"
+                />
+                <Checkbox
+                  checked={selectedFiles.manifest}
+                  onChange={(checked) => setSelectedFiles({ ...selectedFiles, manifest: checked })}
+                  label="Manifest (subset for tooling)"
                   layer="layer-3"
                 />
               </div>

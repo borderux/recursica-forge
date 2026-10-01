@@ -18,47 +18,6 @@
         "$extends": {}
       },
       "additionalProperties": false
-    },
-
-    "componentSlotExtension": {
-      "description": "DTCG §6 $extensions payload for a component-slot group. Declares that this group in a component's properties binds to another component and pre-selects its variants.",
-      "type": "object",
-      "required": ["recursica.component-slot"],
-      "properties": {
-        "recursica.component-slot": {
-          "type": "object",
-          "required": ["component"],
-          "properties": {
-            "component": {
-              "type": "string",
-              "description": "The name of the component being slotted (e.g. \"button\"). Must match a key in ui-kit.components."
-            },
-            "selected-variants": {
-              "type": "object",
-              "description": "Pre-selected variant values keyed by variant dimension name (e.g. { \"style\": \"solid\", \"size\": \"small\" }). Values are plain variant names, not references.",
-              "additionalProperties": { "type": "string" }
-            },
-            "selected-props": {
-              "type": "object",
-              "description": "Optional overrides for specific component property tokens within the slotted component.",
-              "additionalProperties": true
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-
-    "componentSlotGroup": {
-      "description": "A group node (no $value) that declares a component-slot via $extensions.",
-      "type": "object",
-      "required": ["$extensions"],
-      "properties": {
-        "$description": { "type": "string" },
-        "$extensions": { "$ref": "#/definitions/componentSlotExtension" }
-      },
-      "additionalProperties": false
     }
   },
 
@@ -91,7 +50,7 @@
                 },
                 "properties": {
                   "type": "object",
-                  "description": "Component-level property tokens and component-slot groups.",
+                  "description": "Component-level property tokens.",
                   "additionalProperties": true
                 },
                 "size": { "type": "object" }

@@ -12,6 +12,7 @@ import { ExportSelectionModal } from './ExportSelectionModal'
 import { ValidationErrorModal, ValidationError } from './ValidationErrorModal'
 import { downloadJsonFiles } from './jsonExport'
 import { exportTokensJson, exportBrandJson, exportUIKitJson } from './jsonExport'
+import { exportManifestJson } from './manifestExport'
 import { validateTokensJson, validateBrandJson, validateUIKitJson, validateReferences } from '../utils/validateJsonSchemas'
 import { validateCssExport } from './validateCss'
 import { GitHubExportModal } from './GitHubExportModal'
@@ -24,9 +25,9 @@ export function useJsonExport() {
   const [showValidationModal, setShowValidationModal] = useState(false)
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
   const [complianceIssues, setComplianceIssues] = useState<ReturnType<typeof checkAACompliance>>([])
-  const [pendingExportFiles, setPendingExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; cssSpecific: boolean; cssScoped: boolean } | null>(null)
+  const [pendingExportFiles, setPendingExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; manifest: boolean; cssSpecific: boolean; cssScoped: boolean } | null>(null)
   const [showGitHubModal, setShowGitHubModal] = useState(false)
-  const [githubExportFiles, setGithubExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; css: boolean } | null>(null)
+  const [githubExportFiles, setGithubExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; manifest: boolean; css: boolean } | null>(null)
   
   const handleExport = (knownIssueCount?: number) => {
     // Ensure UIKit in-memory JSON reflects any changes persisted in the CSS delta
@@ -66,7 +67,17 @@ export function useJsonExport() {
         message: error instanceof Error ? error.message : String(error)
       })
     }
-    
+
+    // Manifest self-validates in exportManifestJson (every extracted path must match its source)
+    try {
+      exportManifestJson(exportTokensJson() as JsonLike, exportBrandJson() as JsonLike, exportUIKitJson() as JsonLike)
+    } catch (error) {
+      errors.push({
+        file: 'manifest',
+        message: error instanceof Error ? error.message : String(error)
+      })
+    }
+
     // Cross-validate refs
     try {
        const uikit = exportUIKitJson()
@@ -148,7 +159,7 @@ export function useJsonExport() {
     setComplianceIssues([])
   }
 
-  const handleExportToGithub = (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => {
+  const handleExportToGithub = (files: { tokens: boolean; brand: boolean; uikit: boolean; manifest: boolean; css: boolean }) => {
     setShowSelectionModal(false)
     setGithubExportFiles(files)
     setShowGitHubModal(true)
@@ -219,9 +230,9 @@ export function ExportSelectionModalWrapper({
   onExportToGithub,
 }: {
   show: boolean
-  onConfirm: (files: { tokens: boolean; brand: boolean; uikit: boolean; cssSpecific: boolean; cssScoped: boolean }) => void
+  onConfirm: (files: { tokens: boolean; brand: boolean; uikit: boolean; manifest: boolean; cssSpecific: boolean; cssScoped: boolean }) => void
   onCancel: () => void
-  onExportToGithub?: (files: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean }) => void
+  onExportToGithub?: (files: { tokens: boolean; brand: boolean; uikit: boolean; manifest: boolean; css: boolean }) => void
 }) {
   return <ExportSelectionModal show={show} onExport={onConfirm} onCancel={onCancel} onExportToGithub={onExportToGithub} />
 }
@@ -233,7 +244,7 @@ export function GitHubExportModalWrapper({
   onSuccess,
 }: {
   show: boolean
-  selectedFiles: { tokens: boolean; brand: boolean; uikit: boolean; css: boolean } | null
+  selectedFiles: { tokens: boolean; brand: boolean; uikit: boolean; manifest: boolean; css: boolean } | null
   onCancel: () => void
   onSuccess: () => void
 }) {
