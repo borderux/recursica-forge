@@ -1,5 +1,6 @@
 import tokensImport from '../../../recursica_tokens.json'
 import brandImport from '../../../recursica_brand.json'
+import { safeGoogleFontsUrl } from '../utils/googleFontsUrl'
 
 export interface FontEntry {
     id: string // sequence role: e.g. "primary", "secondary"
@@ -147,7 +148,8 @@ export function getDefaultFonts(): FontEntry[] {
                 family = entryValue.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
             }
 
-            const url = namedEntry.$extensions?.['com.google.fonts']?.url
+            // Imported files can name any URL here; only Google Fonts stylesheets are kept.
+            const url = safeGoogleFontsUrl(namedEntry.$extensions?.['com.google.fonts']?.url)
 
             if (family) {
                 defaultFonts.push({ id: seqKey, family, url, slug: slug || fontFamilyToSlug(family), ...(category ? { category } : {}) })
@@ -223,7 +225,8 @@ export function deriveFontsFromJson(tokensData: any, brandData: any): FontEntry[
                 family = entryValue.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
             }
 
-            const url = namedEntry.$extensions?.['com.google.fonts']?.url
+            // Imported files can name any URL here; only Google Fonts stylesheets are kept.
+            const url = safeGoogleFontsUrl(namedEntry.$extensions?.['com.google.fonts']?.url)
 
             if (family) {
                 derived.push({ id: seqKey, family, url, slug: slug || fontFamilyToSlug(family), ...(category ? { category } : {}) })

@@ -11,6 +11,7 @@ import { buildTokenIndex, resolveBraceRef } from '../../core/resolvers/tokens'
 import { getVarsStore } from '../../core/store/varsStore'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { paletteCore } from '../../core/css/cssVarBuilder'
+import ntc from 'ntcjs'
 
 
 type PaletteColorSelectorProps = {
@@ -911,25 +912,9 @@ function FamilyDropdown({
   const { mode } = useThemeMode()
   const [tokenVersion, setTokenVersion] = useState(0)
 
-  let ntcReadyPromise: Promise<void> | null = null
-  function ensureNtcLoaded(): Promise<void> {
-    if ((window as any).ntc) return Promise.resolve()
-    if (ntcReadyPromise) return ntcReadyPromise
-    ntcReadyPromise = new Promise<void>((resolve, reject) => {
-      const s = document.createElement('script')
-      s.src = 'https://chir.ag/projects/ntc/ntc.js'
-      s.async = true
-      s.onload = () => resolve()
-      s.onerror = () => reject(new Error('Failed to load ntc.js'))
-      document.head.appendChild(s)
-    })
-    return ntcReadyPromise
-  }
-
-  async function getNtcName(hex: string): Promise<string | null> {
+  function getNtcName(hex: string): string | null {
     try {
-      await ensureNtcLoaded()
-      const res = (window as any).ntc?.name?.(hex)
+      const res = ntc.name(hex)
       if (Array.isArray(res) && typeof res[1] === 'string' && res[1]) return res[1]
     } catch { }
     return null

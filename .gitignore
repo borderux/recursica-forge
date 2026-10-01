@@ -23,9 +23,17 @@ debug.log
 .vscode/
 .idea/
 
-# Env files
-.env.*.local
+# Env files (copy .env.example to .env or .env.local)
+.env
+.env.*
+!.env.example
 *.local
+
+# Compiled Vite config (tsc -b output; Vite reads the .ts files directly)
+/vite.config.js
+/vite.config.d.ts
+/vite-plugins/*.js
+/vite-plugins/*.d.ts
 
 # Audit files
 *.audit.md

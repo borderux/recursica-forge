@@ -20,6 +20,7 @@ import {
   validateUIKitJson,
 } from "../utils/validateJsonSchemas";
 import type { JsonLike } from "../resolvers/tokens";
+import { MAX_IMPORT_FILE_BYTES, MAX_ZIP_JSON_ENTRIES } from './importSafety'
 import JSZip from 'jszip';
 
 export interface ImportFiles {
@@ -212,14 +213,21 @@ export async function processUploadedFilesAsync(
 
   const promises = Array.from(files).map(async (file) => {
     try {
+      // Size caps stop a huge file or a small zip bomb from freezing the tab.
+      if (file.size > MAX_IMPORT_FILE_BYTES) return
       if (file.name.endsWith('.zip') || file.type === 'application/zip') {
         // Extract JSON files from the zip archive
         const zip = await JSZip.loadAsync(file)
-        const jsonPromises = Object.values(zip.files)
+        const entries = Object.values(zip.files)
           .filter(entry => !entry.dir && entry.name.endsWith('.json'))
-          .map(async (entry) => {
+          .slice(0, MAX_ZIP_JSON_ENTRIES)
+        const jsonPromises = entries.map(async (entry) => {
             try {
+              // JSZip records the declared uncompressed size; skip entries that claim to be huge.
+              const declaredSize = (entry as unknown as { _data?: { uncompressedSize?: number } })._data?.uncompressedSize
+              if (typeof declaredSize === 'number' && declaredSize > MAX_IMPORT_FILE_BYTES) return
               const text = await entry.async('text')
+              if (text.length > MAX_IMPORT_FILE_BYTES) return
               processJson(JSON.parse(text))
             } catch { /* skip malformed entries */ }
           })

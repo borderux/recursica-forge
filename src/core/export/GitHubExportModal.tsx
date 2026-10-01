@@ -29,8 +29,7 @@ import {
   type GitHubPullRequest,
   type RepositoryOption,
 } from "./githubService";
-import { startGitHubOAuth } from "./githubOAuth";
-import { API_ENDPOINTS } from "./auth";
+import { startGitHubOAuth, getSandboxCreatePrUrl } from "./githubOAuth";
 import {
   exportTokensJson,
   exportBrandJson,
@@ -251,7 +250,7 @@ export function GitHubExportModal({
         );
         const title = generatePRTitle();
         const description = generatePRDescription();
-        const response = await fetch(API_ENDPOINTS.sandboxCreatePr, {
+        const response = await fetch(getSandboxCreatePrUrl(), {
           method: "POST",
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -516,7 +515,7 @@ export function GitHubExportModal({
                     <Button
                       variant='outline'
                       onClick={() => {
-                        window.open(createdPr.html_url, "_blank");
+                        window.open(createdPr.html_url, "_blank", "noopener,noreferrer");
                         if (onSuccess) onSuccess(createdPr.html_url);
                       }}
                     >
@@ -556,7 +555,9 @@ export function GitHubExportModal({
               <div style={{ textAlign: "center", marginTop: "20px" }}>
                 <Button
                   variant='outline'
-                  onClick={() => window.open(createdPr.html_url, "_blank")}
+                  onClick={() =>
+                    window.open(createdPr.html_url, "_blank", "noopener,noreferrer")
+                  }
                 >
                   View Pull Request →
                 </Button>

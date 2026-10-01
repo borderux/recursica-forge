@@ -13,6 +13,7 @@ import type { JsonLike } from "../resolvers/tokens";
 import { validateBrandJson, validateTokensJson, validateUIKitJson } from "../utils/validateJsonSchemas";
 import { validateImportedReferences } from "./importHydration";
 import { migrateImportedJson, reconcileUikitFontRefs } from "./migrateImportedJson";
+import { assertSafeImport } from "./importSafety";
 
 /**
  * Clears CSS variables based on what's being imported
@@ -137,6 +138,12 @@ export function importJsonFiles(files: {
   brand?: object;
   uikit?: object;
 }): void {
+  // Reject names and values that would inject CSS, and strip __proto__-style keys, before
+  // anything is cleared or stored.
+  if (files.tokens) assertSafeImport(files.tokens, "Tokens file");
+  if (files.brand) assertSafeImport(files.brand, "Brand file");
+  if (files.uikit) assertSafeImport(files.uikit, "UI kit file");
+
   // Clear running CSS variables for the files being imported
   clearCssVarsForImport(files);
 

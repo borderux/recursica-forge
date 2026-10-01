@@ -1,19 +1,39 @@
 import { defineConfig, configDefaults } from 'vitest/config'
+import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 import { watchToolbarIcons } from './vite-plugins/watch-toolbar-icons'
 import { copy404Html } from './vite-plugins/copy-404'
 import { copyUIKit } from './vite-plugins/copy-uikit'
+import { contentSecurityPolicy } from './vite-plugins/csp'
+import { schemaValidators } from './vite-plugins/schema-validators'
+
+/** Origins of the Recursica API the app may call, for the Content-Security-Policy. */
+function recursicaApiOrigins(mode: string): string[] {
+  const configured = loadEnv(mode, process.cwd(), 'VITE_').VITE_RECURSICA_API_URL
+  const origins = ['https://api.recursica.com']
+  if (configured) {
+    try {
+      origins.push(new URL(configured).origin)
+    } catch {
+      // An invalid URL fails at runtime anyway; leave it out of the policy.
+    }
+  }
+  return origins
+}
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: '/', // Custom domain, so base is root
-  plugins: [react(), vanillaExtractPlugin(), watchToolbarIcons(), copy404Html(), copyUIKit()],
-  optimizeDeps: {
-    // Exclude phosphor-react from pre-bundling to avoid timeout issues
-    // Individual icon imports will still work fine
-    exclude: ['phosphor-react'],
-  },
+  plugins: [
+    react(),
+    vanillaExtractPlugin(),
+    schemaValidators(),
+    watchToolbarIcons(),
+    contentSecurityPolicy({ apiOrigins: recursicaApiOrigins(mode) }),
+    copy404Html(),
+    copyUIKit(),
+  ],
   esbuild: {
     drop: process.env.NODE_ENV === 'production' && !process.env.VITEST ? ['console', 'debugger'] as any : [],
   },
@@ -39,7 +59,8 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
-    sourcemap: true,
+    // The repo is public, but there is no need to publish maps; build locally to debug.
+    sourcemap: false,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
@@ -86,4 +107,4 @@ export default defineConfig({
     },
   },
 
-})
+}))

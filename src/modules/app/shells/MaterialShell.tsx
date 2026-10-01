@@ -50,6 +50,7 @@ import {
 import { genericLayerText, genericLayerProperty } from "../../../core/css/cssVarBuilder";
 import { useSaveReminder } from '../../../core/hooks/useSaveReminder';
 import { useVersionCheck } from '../../../core/hooks/useVersionCheck';
+import { sameOriginPath } from "../utils/sameOriginPath";
 
 export default function MaterialShell({
   children,
@@ -122,7 +123,7 @@ export default function MaterialShell({
     if (urlMode) {
       params.delete("mode");
       const cleanSearch = params.toString();
-      navigate(location.pathname + (cleanSearch ? `?${cleanSearch}` : ""), {
+      navigate(sameOriginPath(location.pathname) + (cleanSearch ? `?${cleanSearch}` : ""), {
         replace: true,
       });
     }
@@ -132,7 +133,7 @@ export default function MaterialShell({
       setShowRandomizeModal(true);
       const newState = { ...location.state } as any;
       delete newState.showRandom;
-      navigate(location.pathname + location.search, { replace: true, state: Object.keys(newState).length > 0 ? newState : undefined });
+      navigate(sameOriginPath(location.pathname) + location.search, { replace: true, state: Object.keys(newState).length > 0 ? newState : undefined });
     }
   }, [location.search, location.state, location.pathname, mode, navigate, setMode]);
 

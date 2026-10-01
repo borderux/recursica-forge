@@ -7,15 +7,18 @@
 # 2. Release Creation: When the version PR is merged, creates git tags and GitHub releases
 # 3. Deployment: After a release is created, deploys the application to GitHub Pages
 #
-# How it works:
-# 1. Builds the application (verifies compilation in version mode, prepares for deployment in publish mode)
-# 2. Runs Changesets Action which operates in two modes:
+# How it works (three jobs, each with only the permissions it needs):
+# 1. build: installs dependencies and builds with a read-only token. This is the only job that runs
+#    package install scripts and build plugins, so a compromised dependency cannot push or deploy.
+# 2. release: runs the Changesets Action (dependencies installed with --ignore-scripts) in two modes:
 #    - Version mode (changesets exist): Creates a "Version Packages" pull request with version bumps and changelog
 #    - Publish mode (no changesets): Runs `npm run release` which executes `changeset publish` to:
 #      * Create a git tag for the release version
 #      * Create a GitHub release with changelog (using @changesets/changelog-github)
 #      * Set the `published` output to `true` when successful
-# 3. If publishing occurred (`published == true`), deploys the built application to GitHub Pages
+# 3. deploy: if publishing occurred (`published == true`), deploys the build from job 1 to GitHub Pages
+#
+# Actions are pinned to commit SHAs (tags can be moved); Dependabot keeps the pins up to date.
 #
 # This workflow runs on every push to main and can be manually triggered via workflow_dispatch.
 # The Changesets Action automatically determines which mode to use based on the presence of changeset files.
@@ -28,103 +31,115 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-  pages: write
-  id-token: write
+# Each job asks for what it needs; nothing by default.
+permissions: {}
 
 concurrency:
   group: github-pages
   cancel-in-progress: false
 
+env:
+  # Carbon and IBM Plex packages send usage telemetry from their install scripts.
+  IBM_TELEMETRY_DISABLED: 'true'
+
 jobs:
-  changesets:
-    name: Version, Release, and Deploy
+  build:
+    name: Build
     runs-on: ubuntu-latest
-    # Fail fast instead of hanging to the 6-hour job cap on a stuck build/publish.
     timeout-minutes: 30
+    permissions:
+      contents: read
     env:
-      # Headroom for the production build (large module graph + sourcemaps) so it
-      # isn't OOM-killed on the runner.
+      # Headroom for the production build (large module graph) so it isn't OOM-killed on the runner.
       NODE_OPTIONS: --max-old-space-size=6144
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install Dependencies
         run: npm ci
 
-      # Build the application
-      # Always builds to:
-      # - Verify compilation succeeds before creating version PR (version mode)
-      # - Prepare the production build for deployment (publish mode)
+      # Always builds, to verify compilation before a version PR and to produce the Pages artifact.
       - name: Build
         run: npm run build
         env:
           VITE_RECURSICA_API_URL: ${{ vars.VITE_RECURSICA_API_URL }}
           VITE_RECURSICA_UI_URL: ${{ vars.VITE_RECURSICA_UI_URL }}
-          VITE_PLUGIN_PHRASE: ${{ secrets.PLUGIN_PHRASE }}
 
-      # Changesets Action - The Core of Our Release System
-      #
-      # This action automatically operates in one of two modes:
-      #
-      # Version Mode (changesets exist):
-      # - Creates a "Version Packages" pull request
-      # - The PR includes version bumps in package.json and updated CHANGELOG.md
-      # - After the PR is merged, the workflow runs again in publish mode
-      #
-      # Publish Mode (no changesets, version PR was merged):
-      # - Runs the `publish` command: `npm run release`
-      # - Which executes: `changeset publish`
-      # - This creates:
-      #   * A git tag for the release version (e.g., v1.2.3)
-      #   * A GitHub release with changelog (using @changesets/changelog-github for PR/commit links)
-      #   * Sets the `published` output to `true` when successful
-      #
-      # Note: Since this package is marked `private: true` in package.json, it won't publish to npm.
-      - name: Create Release Pull Request or Publish
-        id: changesets-action
-        uses: changesets/action@v1
-        with:
-          publish: npm run release
-        env:
-          GITHUB_TOKEN: ${{ secrets.CHANGESETS_RELEASE_PAT }}
-
-      # Deploy to GitHub Pages (only after a release is created)
-      #
-      # These steps only run when the Changesets Action successfully published a release
-      # (i.e., `steps.changesets-action.outputs.published == 'true'`).
-      # This ensures we only deploy after:
-      # 1. The version PR has been merged
-      # 2. A git tag and GitHub release have been created
-      # 3. The release is ready for deployment
-      #
-      # Configure GitHub Pages deployment settings
-      - name: Setup Pages
-        if: steps.changesets-action.outputs.published == 'true'
-        uses: actions/configure-pages@v6
-
-      # Upload the built dist folder as a Pages artifact
-      # The build from earlier in the workflow is reused here
+      # Uploaded on every run; the deploy job only uses it when a release was published.
       - name: Upload artifact
-        if: steps.changesets-action.outputs.published == 'true'
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: './dist'
 
-      # Deploy the uploaded artifact to GitHub Pages
-      # Makes the application available at the repository's GitHub Pages URL
+  # Changesets Action - The Core of Our Release System
+  #
+  # Version Mode (changesets exist):
+  # - Creates a "Version Packages" pull request with version bumps and updated CHANGELOG.md
+  # - After the PR is merged, the workflow runs again in publish mode
+  #
+  # Publish Mode (no changesets, version PR was merged):
+  # - Runs `npm run release` (`changeset publish`), which creates a git tag and a GitHub release
+  #   (using @changesets/changelog-github) and sets the `published` output to `true`
+  #
+  # Since this package is marked `private: true` in package.json, it won't publish to npm.
+  release:
+    name: Version and Release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      published: ${{ steps.changesets-action.outputs.published }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # The release PAT is in this job, so no package install scripts run here.
+      - name: Install Dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Create Release Pull Request or Publish
+        id: changesets-action
+        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+        with:
+          publish: npm run release
+        env:
+          # Use a fine-grained token limited to this repository (contents + pull requests).
+          GITHUB_TOKEN: ${{ secrets.CHANGESETS_RELEASE_PAT }}
+
+  # Deploy to GitHub Pages, only after a release was created.
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: [build, release]
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
       - name: Deploy to GitHub Pages
-        if: steps.changesets-action.outputs.published == 'true'
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

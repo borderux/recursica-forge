@@ -97,6 +97,8 @@ function classifyVar(specificName: string): {
   return null
 }
 
+const SAFE_CSS_VAR_NAME = /^--[\p{L}\p{N}_-]+$/u
+
 /**
  * Generates the CSS text for scoped alias blocks.
  */
@@ -106,6 +108,9 @@ function generateScopedCss(allSpecificVars: CssVarMap): string {
   const themePlusLayer: Map<string, ScopedAlias[]> = new Map()
 
   for (const specificName of Object.keys(allSpecificVars)) {
+    // Names come from JSON keys and are pasted into CSS text below, so anything outside a plain
+    // custom-property name is skipped rather than allowed to end the rule and start a new one.
+    if (!SAFE_CSS_VAR_NAME.test(specificName)) continue
     const info = classifyVar(specificName)
     if (!info) continue
 
