@@ -891,8 +891,6 @@ function addLayoutGridBreakpoints(base: any, collected: Map<string, CollectedBre
     if (name.startsWith('$') || name === BASE_GRID || !isNode(grids[name])) return false
     return WIDTH_KEYS.some((k) => grids[name][k] !== undefined)
   })
-  if (names.length === 0) return base
-
   const baseProps = gridProps(grids[BASE_GRID])
   const alias = (grid: string, prop: string) => ({
     $type: grids[BASE_GRID][prop]?.$type ?? 'number',
