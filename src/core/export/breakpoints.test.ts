@@ -164,10 +164,11 @@ describe.each([
     return input
   }
 
-  it('adds nothing when only the default grid exists', () => {
+  it('emits the active-grid aliases but no @media when only the default grid exists', () => {
     const css = run(transform, withGrids({}))
     expect(css).not.toContain('@media')
-    expect(css).not.toContain('--recursica_brand_layout-grids_columns')
+    expect(basePart(css)).toContain('--recursica_brand_layout-grids_columns: var(--recursica_brand_layout-grids_default_columns);')
+    expect(basePart(css)).toContain('--recursica_brand_layout-grids_margin: var(--recursica_brand_layout-grids_default_margin);')
   })
 
   it('declares the active grid on :root from the default grid', () => {
