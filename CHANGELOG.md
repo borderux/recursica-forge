@@ -1,5 +1,16 @@
 # recursica-forge
 
+## 0.29.0
+
+### Minor Changes
+
+- 6a4d6d0: Added the `recursica_manifest.json` export (component variant references, layout grids and breakpoints) with its own schema and docs.
+  The CSS exports now emit layout-grid `@media` blocks over active-grid vars like `--recursica_brand_layout-grids_columns` (transform 1.4.0).
+
+### Patch Changes
+
+- 2e7798e: Fix to grid css output
+
 ## 0.28.2
 
 ### Patch Changes
