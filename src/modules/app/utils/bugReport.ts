@@ -38,7 +38,6 @@ function interceptConsole() {
       // Filter out known noisy logs
       const message = args.map(arg => String(arg)).join(' ')
       if (message.includes('Download the React DevTools') ||
-        message.includes('React Router Future Flag Warning') ||
         message.includes('A listener indicated an asynchronous response')) {
         return
       }
@@ -97,6 +96,18 @@ function formatConsoleLogs(): string {
 }
 
 /**
+ * Masks things that look like credentials. The issue is public, so a token that ends up in a
+ * console log must not be copied into it.
+ */
+export function redactSecrets(text: string): string {
+  return text
+    .replace(/\b(gh[pousr]_|github_pat_)[A-Za-z0-9_]+/g, '$1[REDACTED]')
+    .replace(/(access_token|refresh_token|id_token|token|code|state)=[^&\s"'#]+/gi, '$1=[REDACTED]')
+    .replace(/("?(?:access_?token|accessToken|authorization|password|secret)"?\s*[:=]\s*"?)(?:Bearer\s+)?[^"\s,}&]+/gi, '$1[REDACTED]')
+    .replace(/\bBearer\s+[A-Za-z0-9._~+/=-]+/g, 'Bearer [REDACTED]')
+}
+
+/**
  * Create GitHub issue URL with pre-filled data
  */
 function createGitHubIssueUrl(title: string, body: string): string {
@@ -118,7 +129,8 @@ export function createBugReport(extraInfo?: string) {
 
   // Get environment info
   const envInfo = {
-    url: window.location.href,
+    // Origin and path only: query strings and hashes can carry tokens.
+    url: window.location.origin + window.location.pathname,
     userAgent: navigator.userAgent,
     viewport: {
       width: window.innerWidth,
@@ -130,6 +142,7 @@ export function createBugReport(extraInfo?: string) {
   // Format issue body
   const body = [
     '## Bug Report',
+    '<!-- This issue will be public. Check the logs below for anything private before submitting. -->',
     '',
     '### Description',
     '<!-- Please describe the bug you encountered -->',
@@ -150,10 +163,11 @@ export function createBugReport(extraInfo?: string) {
     '',
     formatConsoleLogs(),
   ].join('\n')
+  const safeBody = redactSecrets(body)
 
   const title = `Bug Report - ${new Date().toLocaleDateString()}`
 
   // Open GitHub issue creation page
-  const issueUrl = createGitHubIssueUrl(title, body)
-  window.open(issueUrl, '_blank')
+  const issueUrl = createGitHubIssueUrl(title, safeBody)
+  window.open(issueUrl, '_blank', 'noopener,noreferrer')
 }

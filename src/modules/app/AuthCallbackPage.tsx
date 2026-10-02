@@ -1,19 +1,41 @@
 /**
  * GitHub OAuth callback page.
  * Handles redirect from the Recursica server after GitHub OAuth with ?access_token=... or ?error=...
+ * public/auth-callback.js has already moved the token out of the URL into sessionStorage.
  * See RECURSICA_API_GITHUB_OAUTH.md.
  */
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { storeAuth } from '../../core/export/githubService'
-import { getOAuthErrorMessage } from '../../core/export/githubOAuth'
+import {
+  getOAuthErrorMessage,
+  consumeOAuthPending,
+  takeCallbackToken,
+  GITHUB_OAUTH_ERROR,
+} from '../../core/export/githubOAuth'
+
+type CallbackResult = { accessToken: string | null; rejected: boolean }
+let callbackResult: CallbackResult | null = null
+
+/**
+ * Reads the token once per page load (cached, because StrictMode runs initializers twice and the
+ * read clears sessionStorage) and only accepts it when this tab started the sign-in.
+ */
+function readCallback(): CallbackResult {
+  if (callbackResult) return callbackResult
+  const accessToken = takeCallbackToken()
+  if (!accessToken) callbackResult = { accessToken: null, rejected: false }
+  else if (!consumeOAuthPending()) callbackResult = { accessToken: null, rejected: true }
+  else callbackResult = { accessToken, rejected: false }
+  return callbackResult
+}
 
 export function AuthCallbackPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
-  const accessToken = searchParams.get('access_token')
-  const errorCode = searchParams.get('error')
+  const [{ accessToken, rejected }] = useState(readCallback)
+  const errorCode = rejected ? GITHUB_OAUTH_ERROR.NOT_STARTED_HERE : searchParams.get('error')
 
   useEffect(() => {
     if (accessToken) {

@@ -15,6 +15,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # Carbon and IBM Plex packages send usage telemetry from their install scripts.
+  IBM_TELEMETRY_DISABLED: 'true'
+
 jobs:
   browser-tests:
     name: Browser Component Tests
@@ -24,12 +28,14 @@ jobs:
       NODE_OPTIONS: --max-old-space-size=6144
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install Dependencies
@@ -43,4 +49,3 @@ jobs:
         env:
           VITE_RECURSICA_API_URL: ${{ vars.VITE_RECURSICA_API_URL || '' }}
           VITE_RECURSICA_UI_URL: ${{ vars.VITE_RECURSICA_UI_URL || '' }}
-          VITE_PLUGIN_PHRASE: ${{ secrets.PLUGIN_PHRASE || '' }}

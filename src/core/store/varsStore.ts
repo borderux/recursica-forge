@@ -28,6 +28,7 @@ import { compare, applyPatch, type Operation } from 'fast-json-patch'
 import tokensImport from '../../../recursica_tokens.json'
 import themeImport from '../../../recursica_brand.json'
 import uikitImport from '../../../recursica_ui-kit.json'
+import { isGoogleFontsCssUrl } from '../utils/googleFontsUrl'
 // Note: Override system removed - tokens are now the single source of truth
 
 type PaletteStore = {
@@ -467,7 +468,7 @@ class VarsStore {
               // Access com.google.fonts as a single key, not nested properties
               const googleFontsExt = rec?.$extensions?.['com.google.fonts'] || rec?.$extensions?.com?.google?.fonts
               const url = googleFontsExt?.url
-              if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
+              if (isGoogleFontsCssUrl(url)) {
                 urlMap.set(cleanVal, url)
                 if (val !== cleanVal) {
                   urlMap.set(val, url)

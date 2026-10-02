@@ -122,7 +122,7 @@ export function readRawCssVar(cssVarName: string, fallback?: string): string | u
       
       // Simple regex to find the variable assignment
       // Matches: --var-name: some-value; or --var-name: var(--other-var) /* comment */;
-      const regex = new RegExp(`${cssVarName}\\s*:\\s*([^;}]+)`, 'g')
+      const regex = new RegExp(`${cssVarName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:\\s*([^;}]+)`, 'g')
       let match
       let lastMatch
       

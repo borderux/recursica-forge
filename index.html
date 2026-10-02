@@ -10,15 +10,11 @@
     <meta name="keywords" content="Recursica, design system, theme forge, UI components, design tokens, theme customization, open source" />
     <meta name="author" content="Recursica" />
     
+    <!-- Removes the GitHub token from the URL before analytics can record it -->
+    <script src="/auth-callback.js"></script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-9FCDTBKPGV"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-9FCDTBKPGV');
-    </script>
+    <script src="/gtag-init.js"></script>
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />

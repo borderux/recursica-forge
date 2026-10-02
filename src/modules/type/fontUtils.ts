@@ -2,6 +2,7 @@
  * Utility functions for handling custom fonts
  */
 import { getStoredFonts } from '../../core/store/fontStore'
+import { isGoogleFontsCssUrl, safeGoogleFontsUrl } from '../../core/utils/googleFontsUrl'
 
 /**
  * Cache mapping user-friendly font names to actual CSS font-family names
@@ -207,9 +208,9 @@ export async function getActualFontFamilyName(fontName: string): Promise<string>
 
     // Check for link with any of these encodings or by ID
     const googleFontsLink = document.querySelector(
-      `link[href*="fonts.googleapis.com/css2"][href*="${encodedName}"], ` +
-      `link[href*="fonts.googleapis.com/css2"][href*="${plusEncodedName}"], ` +
-      `link[href*="fonts.googleapis.com/css2"][href*="${spaceEncodedName}"]`
+      `link[href*="fonts.googleapis.com/css2"][href*="${CSS.escape(encodedName)}"], ` +
+      `link[href*="fonts.googleapis.com/css2"][href*="${CSS.escape(plusEncodedName)}"], ` +
+      `link[href*="fonts.googleapis.com/css2"][href*="${CSS.escape(spaceEncodedName)}"]`
     ) || document.getElementById(linkId)
 
     if (googleFontsLink) {
@@ -248,7 +249,12 @@ export async function getActualFontFamilyName(fontName: string): Promise<string>
  * @param npmPackage - The npm package name (e.g., @fontsource/inter)
  * @returns Promise that resolves with the font family name
  */
+const NPM_PACKAGE_NAME = /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/
+
 export async function loadFontFromNpm(fontName: string, npmPackage: string): Promise<string> {
+  if (!NPM_PACKAGE_NAME.test(npmPackage)) {
+    throw new Error(`Invalid npm package name: ${npmPackage}`)
+  }
   try {
     // Try to load the package's CSS file from unpkg
     // Most font packages expose a CSS file at the root
@@ -308,12 +314,16 @@ export async function loadFontFromGit(fontName: string, repoUrl: string, fontPat
   try {
     // Parse git URL to extract user/repo
     // Supports: https://github.com/user/repo or https://gitlab.com/user/repo
-    const urlMatch = repoUrl.match(/https?:\/\/(?:www\.)?(github|gitlab)\.com\/([\w.-]+)\/([\w.-]+)/)
+    const urlMatch = repoUrl.match(/^https?:\/\/(?:www\.)?(github|gitlab)\.com\/([\w-][\w.-]*)\/([\w-][\w.-]*)/)
     if (!urlMatch) {
       throw new Error('Invalid git repository URL')
     }
 
     const [, platform, user, repo] = urlMatch
+    // The path comes from user input after '#'; keep it to plain folder names on the CDN.
+    if (!/^[\w-]+(\/[\w-]+)*$/.test(fontPath)) {
+      throw new Error('Invalid font path')
+    }
 
     // Use jsdelivr.com CDN for GitHub/GitLab repos
     // Format: https://cdn.jsdelivr.net/gh/user/repo@latest/path or /npm/package@latest/path
@@ -402,7 +412,7 @@ export function createFontFaceFromFile(fontName: string, fontFile: File): Promis
       const fontFaceId = `custom-font-${fontName.replace(/\s+/g, '-').toLowerCase()}`
       const fontFaceRule = `
 @font-face {
-  font-family: '${fontName}';
+  font-family: '${fontName.replace(/['"\\\n\r<>;{}]/g, '')}';
   src: url(data:font/${format};base64,${base64}) format('${format}');
   font-display: swap;
 }`
@@ -559,7 +569,7 @@ export async function ensureFontLoaded(fontName: string, fontUrl?: string): Prom
     const windowMap = typeof window !== 'undefined' ? (window as any).__fontUrlMap as Map<string, string> | undefined : undefined
     const customUrl = fontUrl || fontUrlMap.get(cleanName) || fontUrlMap.get(trimmedName) ||
       windowMap?.get(cleanName) || windowMap?.get(trimmedName)
-    const href = customUrl || `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanName).replace(/%20/g, '+')}:wght@100..900&display=swap`
+    const href = safeGoogleFontsUrl(customUrl) || `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanName).replace(/%20/g, '+')}:wght@100..900&display=swap`
 
     const existingLink = document.getElementById(id) as HTMLLinkElement | null
     if (existingLink) {
@@ -644,7 +654,7 @@ export function populateFontUrlMapFromTokens(tokens: any): void {
         // Access com.google.fonts as a single key (not nested properties)
         const googleFontsExt = rec?.$extensions?.['com.google.fonts']
         const url = googleFontsExt?.url
-        if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
+        if (isGoogleFontsCssUrl(url)) {
           // Store the URL mapping for this font name (use clean value for consistent lookup)
           fontUrlMap.set(cleanVal, url)
           if (val !== cleanVal) {
