@@ -9,12 +9,14 @@
 import { Suspense, ReactNode } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { TimelineItemData, TimelineProps } from './common/Timeline'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Timeline as LocalTimeline } from './local/dispatch/Timeline'
 
 // Re-exported so existing `import type { TimelineItemData } from '.../adapters/Timeline'`
 // call sites keep working — the types now live in common/Timeline.ts.
 export type { TimelineItemData, TimelineProps } from './common/Timeline'
 
-export function Timeline({
+function SharedTimeline({
     active = 1,
     align = 'left',
     layer,
@@ -46,3 +48,6 @@ export function Timeline({
         </Suspense>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Timeline = (isLocalAdapter ? LocalTimeline : SharedTimeline) as typeof SharedTimeline

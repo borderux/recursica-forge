@@ -10,12 +10,14 @@
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { PaginationProps } from './common/Pagination'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Pagination as LocalPagination } from './local/dispatch/Pagination'
 
 // Re-exported so existing `import type { PaginationProps } from '.../adapters/Pagination'`
 // call sites keep working — the types now live in common/Pagination.ts.
 export type { PaginationProps } from './common/Pagination'
 
-export function Pagination({
+function SharedPagination({
   total,
   value,
   defaultValue,
@@ -56,3 +58,6 @@ export function Pagination({
     </Suspense>
   )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Pagination = (isLocalAdapter ? LocalPagination : SharedPagination) as typeof SharedPagination

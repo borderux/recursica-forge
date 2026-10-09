@@ -11,12 +11,14 @@ import { Suspense, useState } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { buildComponentCssVarPath } from '../utils/cssVarNames'
 import type { FileInputProps } from './common/FileInput'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { FileInput as LocalFileInput } from './local/dispatch/FileInput'
 
 // Re-exported so existing `import type { FileInputProps } from '.../adapters/FileInput'`
 // call sites keep working — the types now live in common/FileInput.ts.
 export type { FileInputProps } from './common/FileInput'
 
-export function FileInput({
+function SharedFileInput({
     value,
     defaultValue,
     onChange,
@@ -101,3 +103,6 @@ export function FileInput({
         </div>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const FileInput = (isLocalAdapter ? LocalFileInput : SharedFileInput) as typeof SharedFileInput

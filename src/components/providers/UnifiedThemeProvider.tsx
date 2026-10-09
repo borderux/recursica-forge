@@ -7,6 +7,7 @@
 
 import { ReactNode, useState, useEffect } from 'react'
 import { RecursicaThemeProvider } from '@recursica/adapter-mantine-v8'
+import { isLocalAdapter } from '../registry/activeAdapter'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 
 // Module-level caches: once a provider resolves, subsequent renders use it synchronously.
@@ -135,9 +136,7 @@ export function UnifiedThemeProvider({ children }: { children: ReactNode }) {
     <MantineProvider>
       <MaterialProvider>
         <CarbonProvider>
-          <RecursicaProvider>
-            {children}
-          </RecursicaProvider>
+          {isLocalAdapter ? children : <RecursicaProvider>{children}</RecursicaProvider>}
         </CarbonProvider>
       </MaterialProvider>
     </MantineProvider>

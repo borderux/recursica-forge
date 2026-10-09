@@ -12,12 +12,14 @@ import { buildComponentCssVarPath, getFormCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { NumberInputProps } from './common/NumberInput'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { NumberInput as LocalNumberInput } from './local/dispatch/NumberInput'
 
 // Re-exported so existing `import type { NumberInputProps } from '.../adapters/NumberInput'`
 // call sites keep working — the types now live in common/NumberInput.ts.
 export type { NumberInputProps } from './common/NumberInput'
 
-export function NumberInput({
+function SharedNumberInput({
     value,
     defaultValue,
     onChange,
@@ -112,3 +114,6 @@ export function NumberInput({
         </div>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const NumberInput = (isLocalAdapter ? LocalNumberInput : SharedNumberInput) as typeof SharedNumberInput

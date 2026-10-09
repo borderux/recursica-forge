@@ -1,0 +1,30 @@
+/* Mantine Card CSS Overrides */
+
+/* Root card element */
+.recursica-card.mantine-Card-root {
+    background: var(--card-bg) !important;
+    border-radius: var(--card-border-radius) !important;
+    overflow: hidden !important;
+}
+
+/* Card header section */
+.recursica-card .recursica-card-header.mantine-Card-section {
+    background: var(--card-header-bg) !important;
+    padding: var(--card-header-padding) !important;
+    border-bottom-color: var(--card-divider-color) !important;
+    border-bottom-width: var(--card-divider-size) !important;
+}
+
+/* Card body */
+.recursica-card .recursica-card-body {
+    color: var(--card-content-color) !important;
+    padding: var(--card-padding) !important;
+}
+
+/* Card footer section */
+.recursica-card .recursica-card-footer.mantine-Card-section {
+    background: var(--card-footer-bg) !important;
+    padding: var(--card-footer-padding) !important;
+    border-top-color: var(--card-divider-color) !important;
+    border-top-width: var(--card-divider-size) !important;
+}

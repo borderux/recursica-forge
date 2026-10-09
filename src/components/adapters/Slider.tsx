@@ -19,12 +19,14 @@ import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { buildComponentCssVarPath } from '../utils/cssVarNames'
 import type { SliderProps } from './common/Slider'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Slider as LocalSlider } from './local/dispatch/Slider'
 
 // Re-exported so existing `import type { SliderProps } from '.../adapters/Slider'`
 // call sites keep working — the types now live in common/Slider.ts.
 export type { SliderProps } from './common/Slider'
 
-export function Slider({
+function SharedSlider({
   value,
   onChange,
   onChangeCommitted,
@@ -109,3 +111,6 @@ export function Slider({
     </div>
   )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Slider = (isLocalAdapter ? LocalSlider : SharedSlider) as typeof SharedSlider

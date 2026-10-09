@@ -11,12 +11,14 @@ import { useComponent } from '../hooks/useComponent'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import { Label } from './Label'
 import type { ReadOnlyFieldProps } from './common/ReadOnlyField'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { ReadOnlyField as LocalReadOnlyField } from './local/dispatch/ReadOnlyField'
 
 // Re-exported so existing `import type { ReadOnlyFieldProps } from '.../adapters/ReadOnlyField'`
 // call sites keep working — the types now live in common/ReadOnlyField.ts.
 export type { ReadOnlyFieldProps } from './common/ReadOnlyField'
 
-export function ReadOnlyField({
+function SharedReadOnlyField({
     value,
     label,
     layout = 'stacked',
@@ -111,3 +113,6 @@ export function ReadOnlyField({
         </div>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const ReadOnlyField = (isLocalAdapter ? LocalReadOnlyField : SharedReadOnlyField) as typeof SharedReadOnlyField

@@ -8,12 +8,14 @@
 import { Suspense, useState, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { SwitchGroupProps } from './common/SwitchGroup'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { SwitchGroup as LocalSwitchGroup } from './local/dispatch/SwitchGroup'
 
 // Re-exported so existing `import type { SwitchGroupProps } from '.../adapters/SwitchGroup'`
 // call sites keep working — the types now live in common/SwitchGroup.ts.
 export type { SwitchGroupProps } from './common/SwitchGroup'
 
-export function SwitchGroup(props: SwitchGroupProps) {
+function SharedSwitchGroup(props: SwitchGroupProps) {
     const Component = useComponent('SwitchGroup')
 
     const {
@@ -63,3 +65,6 @@ export function SwitchGroup(props: SwitchGroupProps) {
         </Suspense>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const SwitchGroup = (isLocalAdapter ? LocalSwitchGroup : SharedSwitchGroup) as typeof SharedSwitchGroup

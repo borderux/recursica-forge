@@ -27,6 +27,9 @@
 
 import { registerComponent } from './index'
 
+// The real adapter's stylesheet is loaded by MantineShell.tsx (after Mantine core styles, so
+// its overrides win the cascade) and only when this adapter is active.
+
 // ─── Structural mismatches ───────────────────────────────────────────────────
 // Forge's shape differs structurally from the adapter's, so the wrapper does real
 // translation (composition API, `items` → `data`, etc.) — see each file for its case.

@@ -15,12 +15,14 @@ import { Suspense, useState } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { buildComponentCssVarPath } from '../utils/cssVarNames'
 import type { DropdownAdapterProps, DropdownProps } from './common/Dropdown'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Dropdown as LocalDropdown } from './local/dispatch/Dropdown'
 
 // Re-exported so existing `import type { DropdownItem } from '.../adapters/Dropdown'`
 // call sites keep working — the types now live in common/Dropdown.ts.
 export type { DropdownItem, DropdownProps } from './common/Dropdown'
 
-export function Dropdown({
+function SharedDropdown({
     items,
     value: controlledValue,
     defaultValue,
@@ -120,3 +122,6 @@ export function Dropdown({
         </div>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Dropdown = (isLocalAdapter ? LocalDropdown : SharedDropdown) as typeof SharedDropdown

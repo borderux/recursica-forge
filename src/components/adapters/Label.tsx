@@ -12,12 +12,14 @@ import { getComponentLevelCssVar, buildComponentCssVarPath } from '../utils/cssV
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 import type { LabelProps } from './common/Label'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Label as LocalLabel } from './local/dispatch/Label'
 
 // Re-exported so existing `import type { LabelProps } from '.../adapters/Label'`
 // call sites keep working — the types now live in common/Label.ts.
 export type { LabelProps } from './common/Label'
 
-export function Label({
+function SharedLabel({
   children,
   htmlFor,
   variant = 'default',
@@ -120,3 +122,5 @@ export function Label({
   )
 }
 
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Label = (isLocalAdapter ? LocalLabel : SharedLabel) as typeof SharedLabel

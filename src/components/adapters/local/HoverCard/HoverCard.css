@@ -1,0 +1,35 @@
+/* Mantine HoverCard / Popover Overrides */
+
+.recursica-hcp-dropdown {
+    background-color: var(--hcp-bg) !important;
+    color: var(--hcp-content-color) !important;
+    border-radius: var(--hcp-border-radius) !important;
+    border: var(--hcp-border-size) solid var(--hcp-border-color) !important;
+    padding: var(--hcp-padding-y) var(--hcp-padding-x) !important;
+    min-width: var(--hcp-min-width) !important;
+    max-width: var(--hcp-max-width) !important;
+
+    /* Typography */
+    font-family: var(--hcp-content-font-family) !important;
+    font-size: var(--hcp-content-font-size) !important;
+    font-weight: var(--hcp-content-font-weight) !important;
+    letter-spacing: var(--hcp-content-letter-spacing) !important;
+    line-height: var(--hcp-content-line-height) !important;
+    font-style: var(--hcp-content-font-style) !important;
+    text-decoration: var(--hcp-content-text-decoration) !important;
+    text-transform: var(--hcp-content-text-transform) !important;
+}
+
+/* Beak (arrow) styling */
+.recursica-hcp-dropdown .mantine-HoverCard-arrow,
+.recursica-hcp-dropdown .mantine-Popover-arrow {
+    background-color: var(--hcp-bg) !important;
+    border: var(--hcp-border-size) solid var(--hcp-border-color) !important;
+    box-sizing: border-box;
+}
+
+/* Elevation — filter: drop-shadow wraps the arrow too */
+.recursica-hcp-dropdown {
+    filter: drop-shadow(var(--hcp-shadow-params)) !important;
+    box-shadow: none !important;
+}

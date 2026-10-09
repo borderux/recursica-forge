@@ -10,6 +10,9 @@ import type { UiKit } from '../../modules/uikit/UiKitContext'
 
 export type { UiKit }
 
+/** A key into the component registries: a UI kit, or the `local` Mantine-based adapter. */
+export type AdapterKey = UiKit | 'local'
+
 export type ComponentName =
   | 'Button'
   | 'Card'

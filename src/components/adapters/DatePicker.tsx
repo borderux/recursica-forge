@@ -13,12 +13,14 @@ import { buildComponentCssVarPath, getFormCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { DatePickerProps } from './common/DatePicker'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { DatePicker as LocalDatePicker } from './local/dispatch/DatePicker'
 
 // Re-exported so existing `import type { DatePickerProps } from '.../adapters/DatePicker'`
 // call sites keep working — the types now live in common/DatePicker.ts.
 export type { DatePickerProps } from './common/DatePicker'
 
-export function DatePicker({
+function SharedDatePicker({
     value,
     defaultValue,
     onChange,
@@ -95,3 +97,6 @@ export function DatePicker({
         </div>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const DatePicker = (isLocalAdapter ? LocalDatePicker : SharedDatePicker) as typeof SharedDatePicker

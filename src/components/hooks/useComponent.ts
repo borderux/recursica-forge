@@ -13,6 +13,7 @@ import { LayerScope } from './LayerScope'
 import { applyPropContract } from './adapterPropContract'
 import { useUiKit } from '../../modules/uikit/UiKitContext'
 import { getComponent } from '../registry'
+import { isLocalAdapter } from '../registry/activeAdapter'
 import { NoAdapterImplementation } from '../adapters/NoAdapterImplementation'
 import type { ComponentName } from '../registry/types'
 
@@ -49,9 +50,11 @@ function toWrapperLayer(layer: unknown): 1 | 2 | 3 | null {
 
 export function useComponent<T = any>(componentName: ComponentName): React.ComponentType<T> {
   const { kit } = useUiKit()
+  // The Mantine shell renders either the local adapter or the real published one (fixed per page load).
+  const adapter = kit === 'mantine' && isLocalAdapter ? 'local' : kit
 
   return useMemo(() => {
-    const Component = getComponent(kit, componentName)
+    const Component = getComponent(adapter, componentName)
     if (!Component) {
       // Ignore whatever props/children a dispatcher passes through — there's no real
       // component underneath to receive them, just the "not implemented" box.
@@ -70,6 +73,13 @@ export function useComponent<T = any>(componentName: ComponentName): React.Compo
     // them and warn ("Function components cannot be given refs").
     const Wrapper = React.forwardRef<unknown, any>((props, ref) => {
       const { mantine, material, carbon, ...rest } = props
+
+      if (adapter === 'local') {
+        // Local adapter keeps the original contract: its own implementations take Forge's props
+        // as-is, plus the `mantine` pass-through object.
+        const localProps: any = mantine !== undefined ? { ...rest, mantine } : rest
+        return React.createElement(Component as any, { ...localProps, ref })
+      }
 
       // Mantine is now the real published adapter (@recursica/adapter-mantine-v8), whose prop
       // vocabulary differs from Forge's old local implementations. applyPropContract()
@@ -123,5 +133,5 @@ export function useComponent<T = any>(componentName: ComponentName): React.Compo
     }
 
     return Wrapper as unknown as React.ComponentType<T>
-  }, [kit, componentName])
+  }, [kit, adapter, componentName])
 }

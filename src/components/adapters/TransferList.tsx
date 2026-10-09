@@ -18,12 +18,14 @@ import { Badge } from './Badge'
 import { Button } from './Button'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 import type { TransferListItem, TransferListData, TransferListProps } from './common/TransferList'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { TransferList as LocalTransferList } from './local/dispatch/TransferList'
 
 // Re-exported so existing `import type { TransferListItem } from '.../adapters/TransferList'`
 // call sites keep working — the types now live in common/TransferList.ts.
 export type { TransferListItem, TransferListData, TransferListProps } from './common/TransferList'
 
-export function TransferList({
+function SharedTransferList({
     data: controlledData,
     defaultData,
     onChange,
@@ -492,3 +494,6 @@ export function TransferList({
         </div>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const TransferList = (isLocalAdapter ? LocalTransferList : SharedTransferList) as typeof SharedTransferList

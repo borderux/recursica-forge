@@ -8,12 +8,14 @@
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { TableCellProps } from './common/TableCell'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { TableCell as LocalTableCell } from './local/dispatch/TableCell'
 
 // Re-exported so existing `import type { TableCellProps } from '.../adapters/TableCell'`
 // call sites keep working — the types now live in common/TableCell.ts.
 export type { TableCellProps } from './common/TableCell'
 
-export function TableCell({
+function SharedTableCell({
   children,
   variant,
   layer = 'layer-0',
@@ -47,3 +49,6 @@ export function TableCell({
     </Suspense>
   )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const TableCell = (isLocalAdapter ? LocalTableCell : SharedTableCell) as typeof SharedTableCell

@@ -11,12 +11,14 @@ import { getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVar
 import { parseElevationValue } from '../utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ModalProps } from './common/Modal'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Modal as LocalModal } from './local/dispatch/Modal'
 
 // Re-exported so existing `import type { ModalProps } from '.../adapters/Modal'`
 // call sites keep working — the types now live in common/Modal.ts.
 export type { ModalProps } from './common/Modal'
 
-export function Modal({
+function SharedModal({
     children,
     content,
     isOpen,
@@ -169,3 +171,6 @@ export function Modal({
         </Suspense>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Modal = (isLocalAdapter ? LocalModal : SharedModal) as typeof SharedModal

@@ -14,12 +14,14 @@ import { useCssVar } from '../hooks/useCssVar'
 import type { LinkProps } from './common/Link'
 
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Link as LocalLink } from './local/dispatch/Link'
 
 // Re-exported so existing `import type { LinkProps } from '.../adapters/Link'`
 // call sites keep working — the types now live in common/Link.ts.
 export type { LinkProps } from './common/Link'
 
-export function Link({
+function SharedLink({
   children,
   href,
   target,
@@ -222,3 +224,6 @@ function mapLinkProps(props: LinkProps): any {
     ...(carbon && { carbon }),
   }
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Link = (isLocalAdapter ? LocalLink : SharedLink) as typeof SharedLink

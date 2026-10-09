@@ -8,12 +8,14 @@
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { CheckboxItemProps } from './common/CheckboxItem'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { CheckboxItem as LocalCheckboxItem } from './local/dispatch/CheckboxItem'
 
 // Re-exported so existing `import type { CheckboxItemProps } from '.../adapters/CheckboxItem'`
 // call sites keep working — the types now live in common/CheckboxItem.ts.
 export type { CheckboxItemProps } from './common/CheckboxItem'
 
-export function CheckboxItem(props: CheckboxItemProps) {
+function SharedCheckboxItem(props: CheckboxItemProps) {
   const Component = useComponent('CheckboxItem')
 
   return (
@@ -22,3 +24,6 @@ export function CheckboxItem(props: CheckboxItemProps) {
     </Suspense>
   )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const CheckboxItem = (isLocalAdapter ? LocalCheckboxItem : SharedCheckboxItem) as typeof SharedCheckboxItem

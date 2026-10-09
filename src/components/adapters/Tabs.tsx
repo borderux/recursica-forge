@@ -14,13 +14,15 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Tabs as LocalTabs } from './local/dispatch/Tabs'
 import type { TabsProps, TabsListProps, TabsTabProps, TabsPanelProps } from './common/Tabs'
 
 // Re-exported so existing `import type { TabsProps, TabsListProps, TabsTabProps, TabsPanelProps }
 // from '.../adapters/Tabs'` call sites keep working — the types now live in common/Tabs.ts.
 export type { TabsProps, TabsListProps, TabsTabProps, TabsPanelProps } from './common/Tabs'
 
-export function Tabs({
+function SharedTabs({
   value,
   defaultValue,
   onChange,
@@ -63,7 +65,7 @@ export function Tabs({
   )
 }
 
-Tabs.List = function TabsList({ children, style, className }: TabsListProps) {
+SharedTabs.List = function TabsList({ children, style, className }: TabsListProps) {
   const Component = useComponent('TabsList')
   return (
     <Suspense fallback={<span />}>
@@ -72,7 +74,7 @@ Tabs.List = function TabsList({ children, style, className }: TabsListProps) {
   )
 }
 
-Tabs.Tab = function TabsTab({ value, children, leftSection, rightSection, disabled, style, className }: TabsTabProps) {
+SharedTabs.Tab = function TabsTab({ value, children, leftSection, rightSection, disabled, style, className }: TabsTabProps) {
   const Component = useComponent('TabsTab')
   return (
     <Suspense fallback={<span />}>
@@ -83,7 +85,7 @@ Tabs.Tab = function TabsTab({ value, children, leftSection, rightSection, disabl
   )
 }
 
-Tabs.Panel = function TabsPanel({ value, children, style, className }: TabsPanelProps) {
+SharedTabs.Panel = function TabsPanel({ value, children, style, className }: TabsPanelProps) {
   const Component = useComponent('TabsPanel')
   return (
     <Suspense fallback={<span />}>
@@ -91,3 +93,6 @@ Tabs.Panel = function TabsPanel({ value, children, style, className }: TabsPanel
     </Suspense>
   )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Tabs = (isLocalAdapter ? LocalTabs : SharedTabs) as typeof SharedTabs

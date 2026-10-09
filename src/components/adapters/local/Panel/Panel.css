@@ -1,0 +1,44 @@
+/**
+ * Mantine Panel CSS Overrides
+ * 
+ * CSS overrides for the Panel component using Mantine Paper.
+ * Panel is edge-attached, full height with border on one side only.
+ */
+
+.recursica-panel {
+    background-color: var(--panel-bg) !important;
+    min-width: var(--panel-min-width) !important;
+    max-width: var(--panel-max-width) !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 0 !important;
+}
+
+.recursica-panel--right {
+    border-left: var(--panel-border-size) solid var(--panel-border-color) !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+}
+
+.recursica-panel--left {
+    border-right: var(--panel-border-size) solid var(--panel-border-color) !important;
+    border-left: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+}
+
+.recursica-panel-header {
+    flex-shrink: 0;
+}
+
+.recursica-panel-body {
+    color: var(--panel-content-color);
+    flex: 1;
+    overflow-y: auto;
+}
+
+.recursica-panel-footer {
+    flex-shrink: 0;
+}

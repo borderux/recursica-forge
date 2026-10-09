@@ -12,12 +12,14 @@ import { getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVar
 import { parseElevationValue } from '../utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { PopoverProps } from './common/Popover'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Popover as LocalPopover } from './local/dispatch/Popover'
 
 // Re-exported so existing `import type { PopoverProps } from '.../adapters/Popover'`
 // call sites keep working — the types now live in common/Popover.ts.
 export type { PopoverProps } from './common/Popover'
 
-export function Popover({
+function SharedPopover({
     children,
     content,
     isOpen,
@@ -122,3 +124,6 @@ export function Popover({
         </Suspense>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Popover = (isLocalAdapter ? LocalPopover : SharedPopover) as typeof SharedPopover

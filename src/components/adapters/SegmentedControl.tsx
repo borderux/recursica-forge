@@ -13,12 +13,14 @@
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { SegmentedControlProps } from './common/SegmentedControl'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { SegmentedControl as LocalSegmentedControl } from './local/dispatch/SegmentedControl'
 
 // Re-exported so existing `import type { SegmentedControlItem } from '.../adapters/SegmentedControl'`
 // call sites keep working — the types now live in common/SegmentedControl.ts.
 export type { SegmentedControlItem, SegmentedControlProps } from './common/SegmentedControl'
 
-export function SegmentedControl(props: SegmentedControlProps) {
+function SharedSegmentedControl(props: SegmentedControlProps) {
   const Component = useComponent('SegmentedControl')
 
   return (
@@ -27,3 +29,6 @@ export function SegmentedControl(props: SegmentedControlProps) {
     </Suspense>
   )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const SegmentedControl = (isLocalAdapter ? LocalSegmentedControl : SharedSegmentedControl) as typeof SharedSegmentedControl

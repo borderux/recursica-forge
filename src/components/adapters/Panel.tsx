@@ -18,12 +18,14 @@
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { PanelProps } from './common/Panel'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Panel as LocalPanel } from './local/dispatch/Panel'
 
 // Re-exported so existing `import type { PanelPosition } from '.../adapters/Panel'`
 // call sites keep working — the types now live in common/Panel.ts.
 export type { PanelPosition, PanelProps } from './common/Panel'
 
-export function Panel(props: PanelProps) {
+function SharedPanel(props: PanelProps) {
     const Component = useComponent('Panel')
 
     return (
@@ -32,3 +34,6 @@ export function Panel(props: PanelProps) {
         </Suspense>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Panel = (isLocalAdapter ? LocalPanel : SharedPanel) as typeof SharedPanel

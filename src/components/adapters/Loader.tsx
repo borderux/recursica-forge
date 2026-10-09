@@ -9,12 +9,14 @@
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { LoaderProps } from './common/Loader'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Loader as LocalLoader } from './local/dispatch/Loader'
 
 // Re-exported so existing `import type { LoaderProps } from '.../adapters/Loader'`
 // call sites keep working — the types now live in common/Loader.ts.
 export type { LoaderProps } from './common/Loader'
 
-export function Loader({
+function SharedLoader({
     size = 'default',
     className,
     style,
@@ -37,3 +39,6 @@ export function Loader({
         </Suspense>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Loader = (isLocalAdapter ? LocalLoader : SharedLoader) as typeof SharedLoader

@@ -8,12 +8,14 @@
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { RadioButtonItemProps } from './common/RadioButtonItem'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { RadioButtonItem as LocalRadioButtonItem } from './local/dispatch/RadioButtonItem'
 
 // Re-exported so existing `import type { RadioButtonItemProps } from '.../adapters/RadioButtonItem'`
 // call sites keep working — the types now live in common/RadioButtonItem.ts.
 export type { RadioButtonItemProps } from './common/RadioButtonItem'
 
-export function RadioButtonItem(props: RadioButtonItemProps) {
+function SharedRadioButtonItem(props: RadioButtonItemProps) {
     const Component = useComponent('RadioButtonItem')
 
     return (
@@ -22,3 +24,6 @@ export function RadioButtonItem(props: RadioButtonItemProps) {
         </Suspense>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const RadioButtonItem = (isLocalAdapter ? LocalRadioButtonItem : SharedRadioButtonItem) as typeof SharedRadioButtonItem

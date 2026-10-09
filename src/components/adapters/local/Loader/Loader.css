@@ -1,0 +1,36 @@
+/* Mantine Loader CSS Overrides
+ * 
+ * Targets Mantine v7's hashed class names to apply stroke-thickness
+ * and border-radius from the design system.
+ *
+ * Mantine class mapping (from Loader.module.css.mjs):
+ *   .m_b34414df = ovalLoader (root span, animates via ::after)
+ *   .m_870bb79  = bar (individual bar span)
+ *   .m_870c4af  = dot (individual dot span)
+ *   .m_7a2bd4cd = barsLoader (container)
+ *   .m_4e3f22d7 = dotsLoader (container)
+ */
+
+/* ---- OVAL LOADER ---- */
+/* The oval spinner is created by ::after with border-width: calc(var(--loader-size) / 8) */
+/* Override to use our stroke thickness and border radius */
+.recursica-loader-oval .m_b34414df::after {
+    border-width: var(--rl-stroke, calc(var(--loader-size) / 8)) !important;
+    border-radius: var(--rl-border-radius, 10000px) !important;
+}
+
+/* ---- BARS LOADER ---- */
+/* Bars use flex:1 by default — override to use stroke thickness for width */
+.recursica-loader-bars .m_870bb79 {
+    flex: none !important;
+    width: var(--rl-stroke, 4px) !important;
+    border-radius: var(--rl-border-radius, 2px) !important;
+}
+
+/* ---- DOTS LOADER ---- */
+/* Each dot uses thickness for both width and height */
+.recursica-loader-dots .m_870c4af {
+    width: var(--rl-stroke, calc(var(--loader-size) / 3 - var(--loader-size) / 15)) !important;
+    height: var(--rl-stroke, calc(var(--loader-size) / 3 - var(--loader-size) / 15)) !important;
+    border-radius: var(--rl-border-radius, 50%) !important;
+}

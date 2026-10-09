@@ -13,12 +13,14 @@ import { readCssVar } from '../../core/css/readCssVar'
 import { parseElevationValue } from '../utils/brandCssVars'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 import type { AvatarProps } from './common/Avatar'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Avatar as LocalAvatar } from './local/dispatch/Avatar'
 
 // Re-exported so existing `import type { AvatarProps } from '.../adapters/Avatar'`
 // call sites keep working — the types now live in common/Avatar.ts.
 export type { AvatarProps } from './common/Avatar'
 
-export function Avatar({
+function SharedAvatar({
   src,
   alt,
   fallback,
@@ -129,3 +131,5 @@ export function Avatar({
   )
 }
 
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Avatar = (isLocalAdapter ? LocalAvatar : SharedAvatar) as typeof SharedAvatar

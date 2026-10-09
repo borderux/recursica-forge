@@ -11,12 +11,14 @@ import { Suspense, useState } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { buildComponentCssVarPath } from '../utils/cssVarNames'
 import type { AutocompleteProps } from './common/Autocomplete'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Autocomplete as LocalAutocomplete } from './local/dispatch/Autocomplete'
 
 // Re-exported so existing `import type { AutocompleteItem } from '.../adapters/Autocomplete'`
 // call sites keep working — the types now live in common/Autocomplete.ts.
 export type { AutocompleteItem, AutocompleteProps } from './common/Autocomplete'
 
-export function Autocomplete({
+function SharedAutocomplete({
     items,
     value: controlledValue,
     defaultValue,
@@ -104,3 +106,6 @@ export function Autocomplete({
         </div>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Autocomplete = (isLocalAdapter ? LocalAutocomplete : SharedAutocomplete) as typeof SharedAutocomplete

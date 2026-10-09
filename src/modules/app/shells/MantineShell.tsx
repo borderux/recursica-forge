@@ -18,16 +18,8 @@ import { Tabs } from "../../../components/adapters/Tabs";
 import { Dropdown } from "../../../components/adapters/Dropdown";
 import { Modal } from "../../../components/adapters/Modal";
 import "@mantine/core/styles.css";
-// Real Recursica adapter styles — MUST load after Mantine core styles so the
-// adapter's :global(.mantine-*) overrides win. The adapter styles components
-// purely through --recursica_* custom properties, which Forge emits at runtime
-// via core/css/scopedCssEngine.ts. Note we deliberately do NOT import
-// @recursica/official-release's recursica_variables_scoped.css: that file carries
-// the published (older) token values and would mask genuine wiring gaps.
-// (adapter-mantine-v8's style.css already bundles @recursica/adapter-common's shared
-// component styles — e.g. Layer — so there's no separate adapter-common import here.)
-import "@recursica/adapter-mantine-v8/style.css";
 import "./MantineShell.css";
+import { isLocalAdapter } from "../../../components/registry/activeAdapter";
 import { RadioButtonGroup } from "../../../components/adapters/RadioButtonGroup";
 import { RadioButtonItem } from "../../../components/adapters/RadioButtonItem";
 import { iconNameToReactComponent } from "../../components/iconUtils";
@@ -75,6 +67,15 @@ import {
 
 import { useSaveReminder } from '../../../core/hooks/useSaveReminder';
 import { useVersionCheck } from '../../../core/hooks/useVersionCheck';
+
+// The real Recursica adapter's stylesheet is loaded only when that adapter is active, and here
+// (after the static core styles above) so its :global(.mantine-*) overrides come later in the
+// cascade and win — loading it from the registry put it BEFORE core styles, so Mantine's own
+// Anchor/Button colours beat the adapter's tokens (blue links).
+if (!isLocalAdapter) {
+  void import("@recursica/adapter-mantine-v8/style.css");
+}
+
 
 export default function MantineShell({
   children,

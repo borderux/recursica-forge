@@ -8,12 +8,14 @@
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { BadgeProps } from './common/Badge'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Badge as LocalBadge } from './local/dispatch/Badge'
 
 // Re-exported so existing `import type { BadgeProps } from '.../adapters/Badge'`
 // call sites keep working — the types now live in common/Badge.ts.
 export type { BadgeProps } from './common/Badge'
 
-export function Badge({
+function SharedBadge({
   children,
   variant = 'primary-color',
   size,
@@ -46,3 +48,5 @@ export function Badge({
   )
 }
 
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Badge = (isLocalAdapter ? LocalBadge : SharedBadge) as typeof SharedBadge

@@ -11,12 +11,14 @@ import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVa
 import { parseElevationValue } from '../utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ChipProps } from './common/Chip'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Chip as LocalChip } from './local/dispatch/Chip'
 
 // Re-exported so existing `import type { ChipProps } from '.../adapters/Chip'`
 // call sites keep working — the types now live in common/Chip.ts.
 export type { ChipProps } from './common/Chip'
 
-export function Chip({
+function SharedChip({
   children,
   checked,
   error,
@@ -156,3 +158,5 @@ function mapChipProps(props: ChipProps & { elevation?: string }): any {
   }
 }
 
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Chip = (isLocalAdapter ? LocalChip : SharedChip) as typeof SharedChip

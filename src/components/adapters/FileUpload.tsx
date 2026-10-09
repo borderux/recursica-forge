@@ -10,12 +10,14 @@ import { useComponent } from '../hooks/useComponent'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
 import { iconNameToReactComponent, iconNameToReactComponent as getIcon } from '../../modules/components/iconUtils'
 import type { FileUploadItem, FileUploadProps } from './common/FileUpload'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { FileUpload as LocalFileUpload } from './local/dispatch/FileUpload'
 
 // Re-exported so existing `import type { FileUploadItem, FileUploadProps } from '.../adapters/FileUpload'`
 // call sites keep working — the types now live in common/FileUpload.ts.
 export type { FileUploadItem, FileUploadProps } from './common/FileUpload'
 
-export function FileUpload({
+function SharedFileUpload({
     files = [],
     onUpload,
     onRemove,
@@ -90,3 +92,6 @@ export function FileUpload({
         </div>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const FileUpload = (isLocalAdapter ? LocalFileUpload : SharedFileUpload) as typeof SharedFileUpload

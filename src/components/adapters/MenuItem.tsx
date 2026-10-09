@@ -8,12 +8,14 @@
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { MenuItemProps } from './common/MenuItem'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { MenuItem as LocalMenuItem } from './local/dispatch/MenuItem'
 
 // Re-exported so existing `import type { MenuItemProps } from '.../adapters/MenuItem'`
 // call sites keep working — the types now live in common/MenuItem.ts.
 export type { MenuItemProps } from './common/MenuItem'
 
-export function MenuItem({
+function SharedMenuItem({
   children,
   variant = 'default',
   layer = 'layer-0',
@@ -73,3 +75,5 @@ export function MenuItem({
   )
 }
 
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const MenuItem = (isLocalAdapter ? LocalMenuItem : SharedMenuItem) as typeof SharedMenuItem

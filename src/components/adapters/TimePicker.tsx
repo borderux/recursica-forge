@@ -16,12 +16,14 @@ import { Label } from './Label'
 import { AssistiveElement } from './AssistiveElement'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 import type { TimePickerProps } from './common/TimePicker'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { TimePicker as LocalTimePicker } from './local/dispatch/TimePicker'
 
 // Re-exported so existing `import type { TimePickerProps } from '.../adapters/TimePicker'`
 // call sites keep working — the types now live in common/TimePicker.ts.
 export type { TimePickerProps } from './common/TimePicker'
 
-export function TimePicker({
+function SharedTimePicker({
     value,
     defaultValue,
     onChange,
@@ -119,3 +121,6 @@ export function TimePicker({
         </div>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const TimePicker = (isLocalAdapter ? LocalTimePicker : SharedTimePicker) as typeof SharedTimePicker

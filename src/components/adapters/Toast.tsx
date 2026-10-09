@@ -12,12 +12,14 @@ import { parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ToastProps } from './common/Toast'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Toast as LocalToast } from './local/dispatch/Toast'
 
 // Re-exported so existing `import type { ToastProps } from '.../adapters/Toast'`
 // call sites keep working — the types now live in common/Toast.ts.
 export type { ToastProps } from './common/Toast'
 
-export function Toast({
+function SharedToast({
   children,
   variant = 'default',
   layer = 'layer-0',
@@ -102,3 +104,6 @@ function mapToastProps(props: ToastProps & { elevation?: string }): any {
     ...(carbon && { carbon }),
   }
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Toast = (isLocalAdapter ? LocalToast : SharedToast) as typeof SharedToast

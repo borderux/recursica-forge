@@ -12,12 +12,14 @@ import { buildComponentCssVarPath, getFormCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { TextFieldProps } from './common/TextField'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { TextField as LocalTextField } from './local/dispatch/TextField'
 
 // Re-exported so existing `import type { TextFieldProps } from '.../adapters/TextField'`
 // call sites keep working — the types now live in common/TextField.ts.
 export type { TextFieldProps } from './common/TextField'
 
-export function TextField({
+function SharedTextField({
   value,
   defaultValue,
   onChange,
@@ -124,3 +126,6 @@ export function TextField({
     </div>
   )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const TextField = (isLocalAdapter ? LocalTextField : SharedTextField) as typeof SharedTextField

@@ -12,12 +12,14 @@ import { parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { TooltipProps } from './common/Tooltip'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Tooltip as LocalTooltip } from './local/dispatch/Tooltip'
 
 // Re-exported so existing `import type { TooltipProps } from '.../adapters/Tooltip'`
 // call sites keep working — the types now live in common/Tooltip.ts.
 export type { TooltipProps } from './common/Tooltip'
 
-export function Tooltip({
+function SharedTooltip({
   children,
   label,
   position = 'top',
@@ -139,3 +141,6 @@ export function Tooltip({
     </Suspense>
   )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Tooltip = (isLocalAdapter ? LocalTooltip : SharedTooltip) as typeof SharedTooltip

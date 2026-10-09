@@ -19,6 +19,8 @@ import { getLayerElevationBoxShadow } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import type { ComponentLayer } from '../registry/types'
 import type { CardProps } from './common/Card'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Card as LocalCard } from './local/dispatch/Card'
 
 // Re-exported so existing `import type { CardProps } from '.../adapters/Card'`
 // call sites keep working — the types now live in common/Card.ts.
@@ -33,7 +35,7 @@ export function getCardElevationLayer(containerLayer: ComponentLayer): Component
     return LAYERS[Math.min(idx + 1, LAYERS.length - 1)]
 }
 
-export function Card({
+function SharedCard({
     children,
     title,
     footer,
@@ -100,3 +102,6 @@ export function Card({
         </Suspense>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Card = (isLocalAdapter ? LocalCard : SharedCard) as typeof SharedCard

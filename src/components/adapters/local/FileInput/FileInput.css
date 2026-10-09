@@ -1,0 +1,13 @@
+/* Mantine FileInput CSS Overrides */
+
+.recursica-file-input {
+    box-sizing: border-box;
+}
+
+.recursica-file-input-wrapper {
+    box-sizing: border-box;
+}
+
+.recursica-file-input-wrapper * {
+    box-sizing: border-box;
+}

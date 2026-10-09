@@ -12,12 +12,14 @@ import { getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVar
 import { parseElevationValue } from '../utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { HoverCardProps } from './common/HoverCard'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { HoverCard as LocalHoverCard } from './local/dispatch/HoverCard'
 
 // Re-exported so existing `import type { HoverCardProps } from '.../adapters/HoverCard'`
 // call sites keep working — the types now live in common/HoverCard.ts.
 export type { HoverCardProps } from './common/HoverCard'
 
-export function HoverCard({
+function SharedHoverCard({
     children,
     content,
     isOpen,
@@ -120,3 +122,6 @@ export function HoverCard({
         </Suspense>
     )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const HoverCard = (isLocalAdapter ? LocalHoverCard : SharedHoverCard) as typeof SharedHoverCard

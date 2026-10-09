@@ -14,12 +14,14 @@
 import { Suspense, useMemo, useRef, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { AccordionAdapterProps, AccordionProps } from './common/Accordion'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Accordion as LocalAccordion } from './local/dispatch/Accordion'
 
 // Re-exported so existing `import type { AccordionItem } from '.../adapters/Accordion'`
 // call sites keep working — the types now live in common/Accordion.ts.
 export type { AccordionItem, AccordionProps } from './common/Accordion'
 
-export function Accordion({
+function SharedAccordion({
   items,
   layer = 'layer-0',
   allowMultiple = false,
@@ -121,3 +123,6 @@ export function Accordion({
     </Suspense>
   )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Accordion = (isLocalAdapter ? LocalAccordion : SharedAccordion) as typeof SharedAccordion
