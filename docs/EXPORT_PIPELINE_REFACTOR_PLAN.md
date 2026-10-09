@@ -22,7 +22,7 @@ The exported CSS is **not** tied to Forge's internal naming. It is a clean, new 
 5. **Layer-specific ui-kit (authoring rule)**: Any layer-specific ui-kit variable (path contains `.layer-N.` for N = 0,1,2,3) must be **defined for every layer** in the JSON. The same canonical property (e.g. `border-color`) must appear under `layer-0`, `layer-1`, `layer-2`, and `layer-3` with explicit values. If a layer has no visible effect (e.g. no border in layer-0), set an explicit value such as `transparent` or the appropriate token—do not omit the key. The scoped transform validates this and fails with clear errors if a canonical name appears in only some layers.
 
    **When to use layer blocks vs not (JSON structure):**
-   - **Brand**: Put tokens under `brand.themes.{light|dark}.layers.layer-N.*` only when the value **varies by elevation layer** (layer 0 = base surface, 1–3 = raised surfaces). Examples: surface color, border-color, elements.text.color, elements.interactive.tone — each layer has its own. Theme-level tokens that don’t depend on elevation (e.g. palettes, elevation definitions, typography, dimensions) stay **outside** layer blocks: `brand.themes.{light|dark}.palettes.*`, `brand.typography.*`, `brand.dimensions.*`.
+   - **Brand**: Put tokens under `brand.modes.{light|dark}.layers.layer-N.*` only when the value **varies by elevation layer** (layer 0 = base surface, 1–3 = raised surfaces). Examples: surface color, border-color, elements.text.color, elements.interactive.tone — each layer has its own. Theme-level tokens that don’t depend on elevation (e.g. palettes, elevation definitions, typography, dimensions) stay **outside** layer blocks: `brand.modes.{light|dark}.palettes.*`, `brand.typography.*`, `brand.dimensions.*`.
    - **UIKit**: Put a property inside a `layer-0` … `layer-3` group when it **references `brand.layers.layer-N.*`** or when its value should **differ by elevation layer**. Examples: button background (refs `brand.layers.layer-0.elements.interactive.tone` in layer-0, etc.) → use layer blocks; form field background, icon, text-valued (ref surface/text per layer) → use layer blocks. Keep properties **outside** layer blocks when they are the same for all layers or don’t depend on elevation: e.g. `border-size`, dimensions, typography, or refs to `brand.palettes.*`, `brand.dimensions.*`, `tokens.*`.
    - **Rule of thumb**: If the token’s value or ref changes when the component is on layer-0 vs layer-1 vs layer-2 vs layer-3, it belongs in a layer block. If it’s the same regardless of layer, it doesn’t.
 
@@ -75,7 +75,7 @@ Each transform file:
 
 2. **Path → var name** — `path` → `--recursica_` + segments joined by `_`. Segments may contain dashes (e.g. `scale-02`).
 
-3. **Value formatting** — Literals (hex, number, string) formatted for CSS. References `{path.to.thing}` → `var(--recursica_path_to_thing)`. Context-aware expansion for theme-relative refs (e.g. `brand.palettes.X` in light context → `brand.themes.light.palettes.X`).
+3. **Value formatting** — Literals (hex, number, string) formatted for CSS. References `{path.to.thing}` → `var(--recursica_path_to_thing)`. Context-aware expansion for theme-relative refs (e.g. `brand.palettes.X` in light context → `brand.modes.light.palettes.X`).
 
 4. **Validation** — Before output: every reference targets an emitted var; every value is valid for its type. Collect all errors; throw once with `{ path, message }[]`.
 
@@ -98,7 +98,7 @@ Each transform file:
 On validation failure, throw an error whose message includes all collected errors:
 ```
 Transform validation failed (N errors):
-  brand.themes.light.layers.layer-0.elements.interactive.tone: Reference '{brand.palettes.foo}' targets non-existent var --recursica_brand_palettes_foo
+  brand.modes.light.layers.layer-0.elements.interactive.tone: Reference '{brand.palettes.foo}' targets non-existent var --recursica_brand_palettes_foo
   tokens.colors.scale-99.500: Invalid color value
 ```
 

@@ -58,11 +58,11 @@
             },
             {
               "label": "Subtitle",
-              "value": "{brand.typography.subtitle}"
+              "value": "{brand.typography.body}"
             },
             {
               "label": "Subtitle (small)",
-              "value": "{brand.typography.subtitle-small}"
+              "value": "{brand.typography.body}"
             },
             {
               "label": "Body",
@@ -70,7 +70,7 @@
             },
             {
               "label": "Body (small)",
-              "value": "{brand.typography.body-small}"
+              "value": "{brand.typography.caption}"
             },
             {
               "label": "Caption",

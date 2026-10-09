@@ -36,11 +36,11 @@ function getOpacityValue(opacityVar: string | undefined, tokenIndex: { get: (pat
 function parseCoreTokenRef(name: 'interactive' | 'alert' | 'warning' | 'success', theme: any, mode: 'light' | 'dark' = 'light'): { family: string; level: string } | null {
   try {
     const root: any = theme?.brand ? theme.brand : theme
-    // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-    const themes = root?.themes || root
+    // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+    const modes = root?.modes || root
     const core: any =
-      themes?.[mode]?.palettes?.['core']?.['$value'] || themes?.[mode]?.palettes?.['core'] ||
-      themes?.[mode]?.palettes?.['core-colors']?.['$value'] || themes?.[mode]?.palettes?.['core-colors'] ||
+      modes?.[mode]?.palettes?.['core']?.['$value'] || modes?.[mode]?.palettes?.['core'] ||
+      modes?.[mode]?.palettes?.['core-colors']?.['$value'] || modes?.[mode]?.palettes?.['core-colors'] ||
       root?.[mode]?.palettes?.['core']?.['$value'] || root?.[mode]?.palettes?.['core'] ||
       root?.[mode]?.palettes?.['core-colors']?.['$value'] || root?.[mode]?.palettes?.['core-colors'] ||
       root?.[mode]?.palettes?.core?.['$value'] || root?.[mode]?.palettes?.core || {}
@@ -77,8 +77,8 @@ export class AAComplianceWatcher {
    * Call this explicitly when a palette tone color changes
    */
   public updatePaletteOnTone(paletteKey: string, level: string, mode: 'light' | 'dark') {
-    const toneVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_tone`
-    const onToneVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
+    const toneVar = `--recursica_brand_modes_${mode}_palettes_${paletteKey}_${level}_color_tone`
+    const onToneVar = `--recursica_brand_modes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
 
     const toneValue = readCssVar(toneVar)
 
@@ -93,8 +93,8 @@ export class AAComplianceWatcher {
     if (currentOnToneValue) {
       const currentOnToneHex = resolveCssVarToHex(currentOnToneValue, this.tokenIndex)
       if (currentOnToneHex) {
-        const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${mode}_text-emphasis_high`)
-        const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${mode}_text-emphasis_low`)
+        const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_modes_${mode}_text-emphasis_high`)
+        const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_modes_${mode}_text-emphasis_low`)
         const AA = 4.5
 
         const highBlended = blendHexWithOpacity(currentOnToneHex, toneHex, highEmphasisOpacity)
@@ -110,8 +110,8 @@ export class AAComplianceWatcher {
     }
 
     // Read actual core black and white colors from CSS variables (not hardcoded)
-    const coreBlackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast_tone`
-    const coreWhiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone`
+    const coreBlackVar = `--recursica_brand_modes_${mode}_palettes_core-colors_high-contrast_tone`
+    const coreWhiteVar = `--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast_tone`
     const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
     const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
 
@@ -124,8 +124,8 @@ export class AAComplianceWatcher {
     const blackBaseContrast = contrastRatio(toneHex, black)
 
     // Get emphasis opacity values from CSS variables
-    const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${mode}_text-emphasis_high`)
-    const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${mode}_text-emphasis_low`)
+    const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_modes_${mode}_text-emphasis_high`)
+    const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_modes_${mode}_text-emphasis_low`)
 
     // Blend white and black with tone using both opacity values
     const whiteHighBlended = blendHexWithOpacity(white, toneHex, highEmphasisOpacity)
@@ -190,8 +190,8 @@ export class AAComplianceWatcher {
     }
 
     const onToneValue = chosen === 'low-contrast'
-      ? `var(--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast)`
-      : `var(--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast)`
+      ? `var(--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast)`
+      : `var(--recursica_brand_modes_${mode}_palettes_core-colors_high-contrast)`
 
     // Pass tokens to updateCssVar for validation
     updateCssVar(onToneVar, onToneValue, this.tokens)
@@ -214,7 +214,7 @@ export class AAComplianceWatcher {
 
     // Update asterisk color for each layer (0-3)
     for (let layer = 0; layer <= 3; layer++) {
-      const surfaceCssVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_properties_surface`
+      const surfaceCssVar = `--recursica_brand_modes_${mode}_layers_layer-${layer}_properties_surface`
       const surfaceValue = readCssVar(surfaceCssVar)
 
       if (!surfaceValue) continue
@@ -250,7 +250,7 @@ export class AAComplianceWatcher {
    */
   public updateComponentAsteriskColors(mode: 'light' | 'dark' = 'light') {
     // Get the alert core color
-    const alertCoreVar = `--recursica_brand_themes_${mode}_palettes_core-colors_alert_tone`
+    const alertCoreVar = `--recursica_brand_modes_${mode}_palettes_core-colors_alert_tone`
     const alertCoreValue = readCssVar(alertCoreVar)
 
     if (!alertCoreValue) return
@@ -263,7 +263,7 @@ export class AAComplianceWatcher {
 
     // Update asterisk color for each layer (0-3)
     for (let layer = 0; layer <= 3; layer++) {
-      const surfaceCssVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_properties_surface`
+      const surfaceCssVar = `--recursica_brand_modes_${mode}_layers_layer-${layer}_properties_surface`
       const surfaceValue = readCssVar(surfaceCssVar)
 
       if (!surfaceValue) continue
@@ -275,7 +275,7 @@ export class AAComplianceWatcher {
       const asteriskColorVar = `--recursica_ui-kit_components_label_properties_colors_layer_${layer}-asterisk`
 
       // Get opacity for text high emphasis
-      const opacityVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_elements_text-high-emphasis`
+      const opacityVar = `--recursica_brand_modes_${mode}_layers_layer-${layer}_elements_text-high-emphasis`
       const opacityValue = readCssVar(opacityVar)
       const opacity = getOpacityValue(opacityValue, this.tokenIndex)
 
@@ -311,8 +311,8 @@ export class AAComplianceWatcher {
    * Call this explicitly when a layer's surface color changes
    */
   public updateLayerElementColors(layerNumber: number, mode: 'light' | 'dark' = 'light') {
-    // Use the correct format with "themes" in the path
-    const surfaceCssVar = `--recursica_brand_themes_${mode}_layers_layer-${layerNumber}_properties_surface`
+    // Use the correct format with "modes" in the path
+    const surfaceCssVar = `--recursica_brand_modes_${mode}_layers_layer-${layerNumber}_properties_surface`
     const surfaceValue = readCssVar(surfaceCssVar)
 
     if (!surfaceValue) return
@@ -320,7 +320,7 @@ export class AAComplianceWatcher {
     const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
     if (!surfaceHex) return
 
-    const brandBase = `--recursica_brand_themes_${mode}_layers_layer-${layerNumber}_`
+    const brandBase = `--recursica_brand_modes_${mode}_layers_layer-${layerNumber}_`
 
     // Update each element type
     const elements = [
@@ -401,13 +401,13 @@ export class AAComplianceWatcher {
 
     if (elementName === 'text-color') {
       // Try to extract palette key and level from surface value
-      // Format: var(--recursica_brand_themes_{mode}-palettes-{paletteKey}-{level}-tone)
+      // Format: var(--recursica_brand_modes_{mode}-palettes-{paletteKey}-{level}-tone)
       if (surfaceValue && surfaceValue.includes('palettes-')) {
         const paletteMatch = surfaceValue.match(/palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
         if (paletteMatch) {
           const [, paletteKey, level] = paletteMatch
           // Get the on-tone value for this palette/level
-          const onToneVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
+          const onToneVar = `--recursica_brand_modes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
           const onToneValue = readCssVar(onToneVar)
 
           if (onToneValue) {
@@ -461,9 +461,9 @@ export class AAComplianceWatcher {
       }
     } else if (elementName === 'interactive-tone') {
       // Use stepping logic for interactive tone colors (background)
-      const coreInteractiveVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`
+      const coreInteractiveVar = `var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone)`
       const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex) ||
-        resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive)`, this.tokenIndex)
+        resolveCssVarToHex(`var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive)`, this.tokenIndex)
 
       if (coreInteractiveHex) {
         // Step until AA compliant
@@ -474,9 +474,9 @@ export class AAComplianceWatcher {
       return
     } else if (elementName === 'interactive-color') {
       // Use stepping logic for interactive color (text/foreground on surface)
-      const coreInteractiveVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`
+      const coreInteractiveVar = `var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone)`
       const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex) ||
-        resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive)`, this.tokenIndex)
+        resolveCssVarToHex(`var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive)`, this.tokenIndex)
 
       if (coreInteractiveHex) {
         // Step until AA compliant against surface
@@ -487,7 +487,7 @@ export class AAComplianceWatcher {
       return
     } else if (elementName === 'interactive-tone-hover') {
       // Use stepping logic for interactive tone hover colors (background hover)
-      const coreInteractiveVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`
+      const coreInteractiveVar = `var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone)`
       const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex)
 
       if (coreInteractiveHex) {
@@ -505,11 +505,11 @@ export class AAComplianceWatcher {
       const interactiveToneValue = readCssVar(interactiveToneVar)
       const interactiveToneHex = interactiveToneValue
         ? resolveCssVarToHex(interactiveToneValue, this.tokenIndex)
-        : resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`, this.tokenIndex)
+        : resolveCssVarToHex(`var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone)`, this.tokenIndex)
 
       if (interactiveToneHex) {
         // Text should contrast with the interactive tone, not the surface
-        const coreOnToneVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_on-tone)`
+        const coreOnToneVar = `var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive_on-tone)`
         const coreOnToneHex = resolveCssVarToHex(coreOnToneVar, this.tokenIndex)
 
         if (coreOnToneHex) {
@@ -528,11 +528,11 @@ export class AAComplianceWatcher {
       const interactiveToneHoverValue = readCssVar(interactiveToneHoverVar)
       const interactiveToneHoverHex = interactiveToneHoverValue
         ? resolveCssVarToHex(interactiveToneHoverValue, this.tokenIndex)
-        : resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`, this.tokenIndex)
+        : resolveCssVarToHex(`var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive_tone)`, this.tokenIndex)
 
       if (interactiveToneHoverHex) {
         // Text should contrast with the interactive hover tone, not the surface
-        const coreOnToneVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_on-tone)`
+        const coreOnToneVar = `var(--recursica_brand_modes_${mode}_palettes_core-colors_interactive_on-tone)`
         const coreOnToneHex = resolveCssVarToHex(coreOnToneVar, this.tokenIndex)
 
         if (coreOnToneHex) {
@@ -557,7 +557,7 @@ export class AAComplianceWatcher {
 
       // If token lookup fails, try to get the core color directly from CSS var
       if (typeof coreColorHex !== 'string') {
-        const coreColorVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${elementName}_tone`
+        const coreColorVar = `--recursica_brand_modes_${mode}_palettes_core-colors_${elementName}_tone`
         const coreColorValue = readCssVar(coreColorVar)
         if (coreColorValue) {
           coreColorHex = resolveCssVarToHex(coreColorValue, this.tokenIndex)
@@ -655,7 +655,7 @@ export class AAComplianceWatcher {
     } else {
       // If coreToken is null, try to get the core color from CSS var and update it
       // This handles cases where parseCoreTokenRef fails
-      const coreColorVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${elementName}_tone`
+      const coreColorVar = `--recursica_brand_modes_${mode}_palettes_core-colors_${elementName}_tone`
       const coreColorValue = readCssVar(coreColorVar)
       if (coreColorValue) {
         const coreColorHex = resolveCssVarToHex(coreColorValue, this.tokenIndex)
@@ -767,13 +767,13 @@ export class AAComplianceWatcher {
     // Get all palettes from theme and check all their on-tone variables
     try {
       const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
-      const themes = root?.themes || root
+      const modes = root?.modes || root
       // Include all standard levels including 1000 and 000
       const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
 
       // Check both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
-        const pal: any = themes?.[mode]?.palettes || {}
+        const pal: any = modes?.[mode]?.palettes || {}
         Object.keys(pal).forEach((paletteKey) => {
           if (paletteKey === 'core' || paletteKey === 'core-colors') return
           levels.forEach((level) => {
@@ -855,29 +855,29 @@ export class AAComplianceWatcher {
   public fixPaletteOnTonesInMap(allVars: Record<string, string>) {
     try {
       const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
-      const themes = root?.themes || root
+      const modes = root?.modes || root
       const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
 
       for (const mode of ['light', 'dark'] as const) {
-        const pal: any = themes?.[mode]?.palettes || {}
+        const pal: any = modes?.[mode]?.palettes || {}
 
         // Read core black/white from allVars
-        const coreBlackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast_tone`
-        const coreWhiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone`
+        const coreBlackVar = `--recursica_brand_modes_${mode}_palettes_core-colors_high-contrast_tone`
+        const coreWhiteVar = `--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast_tone`
         const blackHex = this.resolveValueToHex(allVars[coreBlackVar] || '', allVars) || '#000000'
         const whiteHex = this.resolveValueToHex(allVars[coreWhiteVar] || '', allVars) || '#ffffff'
         const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
         const white = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
 
         // Read emphasis opacities from allVars
-        const highEmphasisOpacity = this.readNumberFromMap(`--recursica_brand_themes_${mode}_text-emphasis_high`, allVars, 1)
-        const lowEmphasisOpacity = this.readNumberFromMap(`--recursica_brand_themes_${mode}_text-emphasis_low`, allVars, 0.6)
+        const highEmphasisOpacity = this.readNumberFromMap(`--recursica_brand_modes_${mode}_text-emphasis_high`, allVars, 1)
+        const lowEmphasisOpacity = this.readNumberFromMap(`--recursica_brand_modes_${mode}_text-emphasis_low`, allVars, 0.6)
 
         Object.keys(pal).forEach((paletteKey) => {
           if (paletteKey === 'core' || paletteKey === 'core-colors') return
           levels.forEach((level) => {
-            const toneVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_tone`
-            const onToneVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
+            const toneVar = `--recursica_brand_modes_${mode}_palettes_${paletteKey}_${level}_color_tone`
+            const onToneVar = `--recursica_brand_modes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
 
             const toneValue = allVars[toneVar]
             if (!toneValue) return
@@ -928,8 +928,8 @@ export class AAComplianceWatcher {
               }
 
               allVars[onToneVar] = chosen === 'low-contrast'
-                ? `var(--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast)`
-                : `var(--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast)`
+                ? `var(--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast)`
+                : `var(--recursica_brand_modes_${mode}_palettes_core-colors_high-contrast)`
             } else {
               // Neither core-black nor core-white passes at both emphasis levels.
               // Use findAaCompliantInMap to step through the black/white tone scales.
@@ -962,16 +962,16 @@ export class AAComplianceWatcher {
   public fixCoreColorOnTonesInMap(allVars: Record<string, string>) {
     try {
       const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
-      const themes = root?.themes || root
+      const modes = root?.modes || root
       const coreColors = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success']
 
       for (const mode of ['light', 'dark'] as const) {
-        const coreColorsObj = themes?.[mode]?.palettes?.['core-colors'] || themes?.[mode]?.palettes?.core || {}
+        const coreColorsObj = modes?.[mode]?.palettes?.['core-colors'] || modes?.[mode]?.palettes?.core || {}
         const core = coreColorsObj?.$value || coreColorsObj || {}
 
         for (const colorName of coreColors) {
-          const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_on-tone`
-          const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_tone`
+          const onToneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_${colorName}_on-tone`
+          const toneVar = `--recursica_brand_modes_${mode}_palettes_core-colors_${colorName}_tone`
 
           const toneValue = allVars[toneVar]
           if (!toneValue) continue
@@ -980,7 +980,7 @@ export class AAComplianceWatcher {
           if (!toneHex || toneHex === '#000000') continue
 
           const highEmphasisOpacity = this.readNumberFromMap(
-            `--recursica_brand_themes_${mode}_text-emphasis_high`, allVars, 1
+            `--recursica_brand_modes_${mode}_text-emphasis_high`, allVars, 1
           )
 
           // Check if current on-tone passes
@@ -1038,8 +1038,8 @@ export class AAComplianceWatcher {
   private getCoreToneRefFromTheme(coreColor: 'high-contrast' | 'low-contrast', mode: 'light' | 'dark'): { family: string; level: string } | null {
     try {
       const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
-      const themes = root?.themes || root
-      const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors'] || {}
+      const modes = root?.modes || root
+      const coreColors = modes?.[mode]?.palettes?.['core-colors']?.$value || modes?.[mode]?.palettes?.['core-colors'] || {}
       const colorDef = coreColors[coreColor]
       if (!colorDef) return null
 
@@ -1115,9 +1115,9 @@ export class AAComplianceWatcher {
     let coreVarName: string
     if (elementType === 'interactive' || elementType === 'interactive-hover') {
       const variant = elementType === 'interactive-hover' ? 'hover' : 'default'
-      coreVarName = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_tone`
+      coreVarName = `--recursica_brand_modes_${mode}_palettes_core-colors_interactive_${variant}_tone`
     } else {
-      coreVarName = `--recursica_brand_themes_${mode}_palettes_core-colors_${elementType}`
+      coreVarName = `--recursica_brand_modes_${mode}_palettes_core-colors_${elementType}`
     }
 
     const coreValue = allVars[coreVarName]

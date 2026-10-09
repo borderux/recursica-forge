@@ -66,9 +66,9 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
          const newPaletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} };
          const newColorTokens: Record<string, string> = {};
          
-         if (modifiedTheme?.brand?.themes) {
+         if (modifiedTheme?.brand?.modes) {
             for (const mode of ['light', 'dark'] as const) {
-               const els = modifiedTheme.brand.themes[mode]?.elevations || {};
+               const els = modifiedTheme.brand.modes[mode]?.elevations || {};
                for (let i = 1; i <= 4; i++) {
                   const key = `elevation-${i}`;
                   const colorRef = els[key]?.$value?.color?.$value;
@@ -100,10 +100,10 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
              for (let lvl = 1; lvl <= 4; lvl++) {
                  // Clear generic themed variables
                  for (const mode of ['light', 'dark']) {
-                    removeCssVar(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_shadow-color`);
+                    removeCssVar(`--recursica_brand_modes_${mode}_elevations_elevation-${lvl}_shadow-color`);
                     const propNames = ['blur', 'spread', 'x-axis', 'y-axis'] as const;
                     propNames.forEach((prop) => {
-                      removeCssVar(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_${prop}`);
+                      removeCssVar(`--recursica_brand_modes_${mode}_elevations_elevation-${lvl}_${prop}`);
                     });
                  }
                  // Clear scoped overlay parameters
@@ -125,13 +125,13 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
                  const allTextProperties = ['color', 'high-emphasis', 'low-emphasis'];
 
                  for (const mode of ['light', 'dark']) {
-                    allLayerProperties.forEach(prop => removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_properties_${prop}`));
-                    allTextProperties.forEach(prop => removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_elements_text-${prop}`));
+                    allLayerProperties.forEach(prop => removeCssVar(`--recursica_brand_modes_${mode}_layers_layer-${lvl}_properties_${prop}`));
+                    allTextProperties.forEach(prop => removeCssVar(`--recursica_brand_modes_${mode}_layers_layer-${lvl}_elements_text-${prop}`));
                     // Interactive tones
-                    removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_elements_interactive_tone`);
-                    removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_elements_interactive_tone-hover`);
-                    removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_elements_interactive_on-tone`);
-                    removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_elements_interactive_on-tone-hover`);
+                    removeCssVar(`--recursica_brand_modes_${mode}_layers_layer-${lvl}_elements_interactive_tone`);
+                    removeCssVar(`--recursica_brand_modes_${mode}_layers_layer-${lvl}_elements_interactive_tone-hover`);
+                    removeCssVar(`--recursica_brand_modes_${mode}_layers_layer-${lvl}_elements_interactive_on-tone`);
+                    removeCssVar(`--recursica_brand_modes_${mode}_layers_layer-${lvl}_elements_interactive_on-tone-hover`);
                  }
                  // Clear scoped properties
                  allLayerProperties.forEach(prop => removeCssVar(`--recursica_brand_layer_${lvl}_properties_${prop}`));

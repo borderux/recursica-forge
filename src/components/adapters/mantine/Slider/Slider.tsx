@@ -99,6 +99,7 @@ export default React.forwardRef<any, SliderProps>(function Slider({
     showMinMaxLabels,
     type,
     valueLabel,
+    tooltipText,
     minLabel,
     maxLabel,
     minIcon,
@@ -132,7 +133,7 @@ export default React.forwardRef<any, SliderProps>(function Slider({
             showInput={showInput}
             showMinMaxLabels={showMinMaxLabels}
             marks={marks}
-            tooltipLabel={valueLabel}
+            tooltipLabel={tooltipText ?? valueLabel}
             minLabel={minLabel}
             maxLabel={maxLabel}
             icon={minIcon}
@@ -160,7 +161,8 @@ export default React.forwardRef<any, SliderProps>(function Slider({
 // has no destination on this kit at all (see header) rather than being unwired by omission —
 // checking its untranslated shape here would be a false positive on a prop this wrapper
 // intentionally doesn't forward. `minLabel`/`maxLabel` match the real prop names directly, so
-// need no entry in either list.
+// need no entry in either list. `tooltipText` is excluded: it shares `valueLabel`'s destination
+// (`tooltipLabel`) and wins when both are given, so the literal attribute above is what's checked.
 type _Wiring = AssertWired<
     SliderProps,
     typeof MantineSlider,
@@ -177,6 +179,7 @@ type _Wiring = AssertWired<
     | 'type'
     | 'iconSize'
     | 'showValueLabel'
+    | 'tooltipText'
     | 'showMinMaxInput',
     { onChangeCommitted: 'onChangeEnd'; valueLabel: 'tooltipLabel'; minIcon: 'icon'; maxIcon: 'trailingIcon' }
 >

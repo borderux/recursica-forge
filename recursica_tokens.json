@@ -408,117 +408,6 @@
       },
       "typefaces": {
         "$type": "fontFamily",
-        "lexend": {
-          "$type": "fontFamily",
-          "$value": [
-            "Lexend",
-            "sans-serif"
-          ],
-          "$extensions": {
-            "com.google.fonts": {
-              "url": "https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap",
-              "opticalSizing": "auto"
-            },
-            "variants": [
-              {
-                "weight": "{tokens.font.weights.thin}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.extra-light}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.light}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.regular}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.medium}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.semi-bold}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.bold}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.extra-bold}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.black}",
-                "style": "{tokens.font.styles.normal}"
-              }
-            ]
-          }
-        },
-        "bellota-text": {
-          "$type": "fontFamily",
-          "$value": [
-            "Bellota Text",
-            "sans-serif"
-          ],
-          "$extensions": {
-            "com.google.fonts": {
-              "url": "https://fonts.googleapis.com/css2?family=Bellota+Text&display=swap"
-            },
-            "variants": [
-              {
-                "weight": "{tokens.font.weights.light}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.light}",
-                "style": "{tokens.font.styles.italic}"
-              },
-              {
-                "weight": "{tokens.font.weights.regular}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.regular}",
-                "style": "{tokens.font.styles.italic}"
-              },
-              {
-                "weight": "{tokens.font.weights.bold}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.bold}",
-                "style": "{tokens.font.styles.italic}"
-              }
-            ]
-          }
-        },
-        "quattrocento": {
-          "$type": "fontFamily",
-          "$value": [
-            "Quattrocento",
-            "serif"
-          ],
-          "$extensions": {
-            "com.google.fonts": {
-              "url": "https://fonts.googleapis.com/css2?family=Quattrocento&display=swap"
-            },
-            "variants": [
-              {
-                "weight": "{tokens.font.weights.regular}",
-                "style": "{tokens.font.styles.normal}"
-              },
-              {
-                "weight": "{tokens.font.weights.bold}",
-                "style": "{tokens.font.styles.normal}"
-              }
-            ]
-          }
-        },
         "dongle": {
           "$type": "fontFamily",
           "$value": [
@@ -873,8 +762,8 @@
   },
   "$extensions": {
     "recursica.metadata": {
-      "exportedAt": "2026-08-31T17:40:40.300Z",
-      "version": "0.26.2"
+      "exportedAt": "2026-09-16T16:17:14.403450Z",
+      "version": "0.28.0"
     }
   }
 }

@@ -162,8 +162,8 @@ export function formatSiblingList(siblings: OnToneSibling[]): string {
  * return the parent CSS var prefix for the layer-N group (so we can build
  * sibling CSS var names by appending the sibling key).
  *
- * e.g. '--recursica_ui-kit_themes_light_components_button_variants_styles_solid_properties_colors_layer-0_background'
- *   → { prefix: '--recursica_ui-kit_themes_light_components_button_variants_styles_solid_properties_colors_layer-0_',
+ * e.g. '--recursica_ui-kit_modes_light_components_button_variants_styles_solid_properties_colors_layer-0_background'
+ *   → { prefix: '--recursica_ui-kit_modes_light_components_button_variants_styles_solid_properties_colors_layer-0_',
  *       layerKey: 'layer-0',
  *       propKey: 'background-color' }
  */

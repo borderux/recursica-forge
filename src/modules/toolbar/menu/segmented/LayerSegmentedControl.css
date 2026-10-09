@@ -8,25 +8,25 @@
 .layer-segmented-control-icon {
   width: 16px;
   height: 16px;
-  color: var(--recursica_brand_themes_light_layers_layer-0_elements_text-color);
-  opacity: var(--recursica_brand_themes_light_layers_layer-0_elements_text-low-emphasis);
+  color: var(--recursica_brand_modes_light_layers_layer-0_elements_text-color);
+  opacity: var(--recursica_brand_modes_light_layers_layer-0_elements_text-low-emphasis);
   flex-shrink: 0;
 }
 
 html[data-theme-mode="dark"] .layer-segmented-control-icon {
-  color: var(--recursica_brand_themes_dark_layers_layer-0_elements_text-color);
-  opacity: var(--recursica_brand_themes_dark_layers_layer-0_elements_text-low-emphasis);
+  color: var(--recursica_brand_modes_dark_layers_layer-0_elements_text-color);
+  opacity: var(--recursica_brand_modes_dark_layers_layer-0_elements_text-low-emphasis);
 }
 
 .layer-segmented-control-label {
   font-weight: 600;
   font-size: 13px;
-  color: var(--recursica_brand_themes_light_layers_layer-0_elements_text-color);
+  color: var(--recursica_brand_modes_light_layers_layer-0_elements_text-color);
   flex-shrink: 0;
 }
 
 html[data-theme-mode="dark"] .layer-segmented-control-label {
-  color: var(--recursica_brand_themes_dark_layers_layer-0_elements_text-color);
+  color: var(--recursica_brand_modes_dark_layers_layer-0_elements_text-color);
 }
 
 .layer-segmented-control-buttons {
@@ -38,7 +38,7 @@ html[data-theme-mode="dark"] .layer-segmented-control-label {
 .layer-segmented-control-button {
   padding: var(--recursica_brand_dimensions_general_default) var(--recursica_brand_dimensions_general_sm);
   border: none;
-  border-right: 1px solid var(--recursica_brand_themes_light_layers_layer-0_properties_border-color);
+  border-right: 1px solid var(--recursica_brand_modes_light_layers_layer-0_properties_border-color);
   cursor: pointer;
   font-size: 13px;
   transition: background-color 0.2s;
@@ -47,7 +47,7 @@ html[data-theme-mode="dark"] .layer-segmented-control-label {
 }
 
 html[data-theme-mode="dark"] .layer-segmented-control-button {
-  border-right-color: var(--recursica_brand_themes_dark_layers_layer-0_properties_border-color);
+  border-right-color: var(--recursica_brand_modes_dark_layers_layer-0_properties_border-color);
 }
 
 .layer-segmented-control-button:last-child {

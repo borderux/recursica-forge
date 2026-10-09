@@ -7,9 +7,9 @@
   "properties": {
     "brand": {
       "type": "object",
-      "required": ["themes"],
+      "required": ["modes"],
       "properties": {
-        "themes": {
+        "modes": {
           "type": "object",
           "required": ["light"],
           "properties": {

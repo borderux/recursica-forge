@@ -42,6 +42,7 @@ export function Slider({
   showMinMaxInput = false,
   showValueLabel = false,
   valueLabel,
+  tooltipText,
   minLabel,
   maxLabel,
   showMinMaxLabels,
@@ -91,6 +92,7 @@ export function Slider({
           showInput={finalShowInput}
           showValueLabel={finalShowValueLabel}
           valueLabel={valueLabel}
+          tooltipText={tooltipText}
           minLabel={minLabel}
           maxLabel={maxLabel}
           showMinMaxLabels={finalShowMinMaxLabels}

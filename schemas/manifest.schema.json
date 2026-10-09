@@ -1,0 +1,160 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Manifest JSON Schema",
+  "description": "Schema for recursica_manifest.json: an export-only, pruned subset of tokens/brand/ui-kit for downstream tooling. Never re-imported. See docs/RECURSICA_MANIFEST.md.",
+  "type": "object",
+  "properties": {
+    "tokens": {
+      "description": "Only `breakpoints` is ever present.",
+      "type": "object",
+      "properties": {
+        "breakpoints": { "$ref": "#/definitions/breakpointGroup" }
+      },
+      "additionalProperties": false
+    },
+    "brand": {
+      "description": "Only `layout-grids` and `breakpoints` are ever present.",
+      "type": "object",
+      "properties": {
+        "layout-grids": {
+          "type": "object",
+          "patternProperties": {
+            "^[^$]": { "$ref": "#/definitions/layoutGrid" }
+          },
+          "additionalProperties": false
+        },
+        "breakpoints": { "$ref": "#/definitions/breakpointGroup" }
+      },
+      "additionalProperties": false
+    },
+    "ui-kit": {
+      "description": "Only `components` is ever present, pruned to component-reference tokens.",
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "object",
+          "patternProperties": {
+            "^[^$]": { "$ref": "#/definitions/componentNode" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "$extensions": {
+      "type": "object",
+      "properties": {
+        "recursica.metadata": {
+          "type": "object",
+          "required": ["exportedAt", "version"],
+          "properties": {
+            "exportedAt": { "type": "string", "format": "date-time" },
+            "version": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["recursica.metadata"]
+    }
+  },
+  "required": ["$extensions"],
+  "additionalProperties": false,
+  "definitions": {
+    "token": {
+      "description": "A DTCG token: an object with $value.",
+      "type": "object",
+      "required": ["$value"],
+      "properties": {
+        "$value": {},
+        "$type": { "type": "string" },
+        "$description": { "type": "string" },
+        "$extensions": { "type": "object" }
+      }
+    },
+    "tokenTree": {
+      "description": "A sparse subtree copied verbatim from a source file: tokens and groups, to any depth.",
+      "type": "object",
+      "properties": {
+        "$extensions": { "type": "object" },
+        "$type": { "type": "string" },
+        "$description": { "type": "string" }
+      },
+      "patternProperties": {
+        "^[^$]": {
+          "anyOf": [
+            { "$ref": "#/definitions/token" },
+            { "$ref": "#/definitions/tokenTree" }
+          ]
+        }
+      }
+    },
+    "numberToken": {
+      "type": "object",
+      "required": ["$value"],
+      "properties": {
+        "$type": { "type": "string", "enum": ["number"] },
+        "$value": {
+          "description": "A number, or a reference such as {tokens.sizes.3x}.",
+          "oneOf": [{ "type": "number" }, { "type": "string", "pattern": "^\\{.+\\}$" }]
+        }
+      }
+    },
+    "layoutGrid": {
+      "description": "One brand.layout-grids entry. A non-default grid with a min-width and/or max-width is a breakpoint.",
+      "type": "object",
+      "properties": {
+        "columns": { "$ref": "#/definitions/numberToken" },
+        "row-gutter": { "$ref": "#/definitions/numberToken" },
+        "column-gutter": { "$ref": "#/definitions/numberToken" },
+        "margin": { "$ref": "#/definitions/numberToken" },
+        "min-width": { "$ref": "#/definitions/numberToken" },
+        "max-width": { "$ref": "#/definitions/numberToken" }
+      }
+    },
+    "breakpointGroup": {
+      "description": "tokens.breakpoints / brand.breakpoints: one sparse override tree per breakpoint name.",
+      "type": "object",
+      "patternProperties": {
+        "^[^$]": { "$ref": "#/definitions/tokenTree" }
+      }
+    },
+    "componentReference": {
+      "description": "A property whose $value references another component's group, with selected-variants pinning which variants to use.",
+      "type": "object",
+      "required": ["$value", "$extensions"],
+      "properties": {
+        "$value": { "type": "string", "pattern": "^\\{ui-kit\\.components\\..+\\}$" },
+        "$extensions": {
+          "type": "object",
+          "required": ["recursica.component"],
+          "properties": {
+            "recursica.component": {
+              "type": "object",
+              "properties": {
+                "selected-variants": {
+                  "description": "Variant group -> variant name, reduced to the last path segment (e.g. style: solid).",
+                  "type": "object",
+                  "additionalProperties": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "componentNode": {
+      "description": "A component or group on the path to a componentReference.",
+      "oneOf": [
+        { "$ref": "#/definitions/componentReference" },
+        {
+          "type": "object",
+          "not": { "required": ["$value"] },
+          "patternProperties": {
+            "^[^$]": { "$ref": "#/definitions/componentNode" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

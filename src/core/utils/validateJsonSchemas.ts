@@ -9,6 +9,7 @@
  *  - No non-standard $type values (custom types use $extensions.recursica.type + a DTCG base type or no $type)
  */
 
+import { expandLayers } from '../uikit/expandLayers'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 import brandSchema from '../../../schemas/brand.schema.json'
@@ -184,7 +185,7 @@ function findThemeReferences(
 
       if (key === '$value' && typeof value === 'string') {
         // Check if the value contains a token reference with theme
-        const themePattern = /\{brand\.themes\.(light|dark)\.[^}]+\}/g
+        const themePattern = /\{brand\.modes\.(light|dark)\.[^}]+\}/g
         const matches = value.match(themePattern)
 
         if (matches) {
@@ -462,7 +463,7 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
 
     throw new Error(
       `recursica_ui-kit.json validation failed: Found ${themeRefs.length} theme reference(s). ` +
-      `All token references must be theme-agnostic (use {brand.*} instead of {brand.themes.light.*} or {brand.themes.dark.*}).\n` +
+      `All token references must be theme-agnostic (use {brand.*} instead of {brand.modes.light.*} or {brand.modes.dark.*}).\n` +
       `Theme references found:\n${errorMessages}`
     )
   }
@@ -559,7 +560,7 @@ function collectRefs(
 export const REF_WORKAROUND_IDS = [
   'typography-kebab→camelCase',
   'palette-default→indirection',
-  'brand-theme-agnostic→themes.light|dark',
+  'brand-theme-agnostic→modes.light|dark',
   'typography-composite-subproperty',
   'variant-group-reference',
   'recursica-component-token',
@@ -607,16 +608,16 @@ function resolveRefToToken(
     }
   }
 
-  if (root === 'brand' && allowedWorkarounds.has('brand-theme-agnostic→themes.light|dark')) {
-    if (!path.includes('.themes.')) {
+  if (root === 'brand' && allowedWorkarounds.has('brand-theme-agnostic→modes.light|dark')) {
+    if (!path.includes('.modes.')) {
       const rest = path.replace(/^brand\./, '')
       const themeAgnosticPrefixes = ['layers.', 'palettes.', 'elevations.', 'states.', 'text-emphasis.']
       if (themeAgnosticPrefixes.some((p) => rest.startsWith(p))) {
         for (const theme of ['light', 'dark'] as const) {
-          const alt = `brand.themes.${theme}.${rest}`
-          if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'brand-theme-agnostic→themes.light|dark' }
+          const alt = `brand.modes.${theme}.${rest}`
+          if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'brand-theme-agnostic→modes.light|dark' }
           if (allowedWorkarounds.has('palette-default→indirection') && /^palettes\.([a-z][a-z0-9-]*)\.default\.color\.(tone|on-tone)$/.test(rest)) {
-            const defaultTonePath = `brand.themes.${theme}.${rest.replace(/\.(tone|on-tone)$/, '.tone')}`
+            const defaultTonePath = `brand.modes.${theme}.${rest.replace(/\.(tone|on-tone)$/, '.tone')}`
             const defaultToneToken = getAtPath(combined, defaultTonePath)
             if (isToken(defaultToneToken)) {
               const stepRef = (defaultToneToken as Record<string, unknown>).$value
@@ -625,7 +626,7 @@ function resolveRefToToken(
                 const wantOnTone = rest.endsWith('on-tone')
                 const stepLeaf = stepPath.replace(/\.color\.tone$/, wantOnTone ? '.color.on-tone' : '.color.tone')
                 if (stepPath !== stepLeaf || !wantOnTone) {
-                  if (isToken(getAtPath(combined, stepLeaf))) return { resolved: true, workaround: 'brand-theme-agnostic→themes.light|dark' }
+                  if (isToken(getAtPath(combined, stepLeaf))) return { resolved: true, workaround: 'brand-theme-agnostic→modes.light|dark' }
                 }
               }
             }
@@ -656,15 +657,15 @@ function resolveRefToToken(
   }
 
   if (root === 'brand' && allowedWorkarounds.has('palette-default→indirection')) {
-    const defaultMatch = path.match(/^brand\.themes\.(light|dark)\.palettes\.([a-z][a-z0-9-]*)\.default\.(.*)$/)
+    const defaultMatch = path.match(/^brand\.modes\.(light|dark)\.palettes\.([a-z][a-z0-9-]*)\.default\.(.*)$/)
     if (defaultMatch) {
       const [, theme, palette, rest] = defaultMatch
-      const defaultNode = getAtPath(combined, `brand.themes.${theme}.palettes.${palette}.default`)
+      const defaultNode = getAtPath(combined, `brand.modes.${theme}.palettes.${palette}.default`)
       if (defaultNode && typeof defaultNode === 'object') {
         const defaultVal = (defaultNode as Record<string, unknown>).$value
         const refToStep = typeof defaultVal === 'string' && isReferenceString(defaultVal) ? extractRefPath(defaultVal) : null
         if (refToStep) {
-          const stepPath = refToStep.startsWith('brand.') ? refToStep : `brand.themes.${theme}.${refToStep.replace(/^brand\./, '')}`
+          const stepPath = refToStep.startsWith('brand.') ? refToStep : `brand.modes.${theme}.${refToStep.replace(/^brand\./, '')}`
           const fullPath = rest ? `${stepPath}.${rest}` : stepPath
           const withLeaf = fullPath.includes('.color.') ? fullPath : `${fullPath}.color.tone`
           if (isToken(getAtPath(combined, withLeaf))) return { resolved: true, workaround: 'palette-default→indirection' }
@@ -763,6 +764,11 @@ export function validateReferences(
   uikitJson: JsonLike,
   allowedWorkarounds: ReadonlySet<RefWorkaroundId> = DEFAULT_ALLOWED_REF_WORKAROUNDS
 ): RefValidationResult[] {
+  // A ui-kit written in the short layer form names only `layer-0` explicitly. Expanding here keeps
+  // the rule identical — every layer must still resolve — and means validation can never
+  // accidentally run against a file where three of the four layers are implied.
+  uikitJson = expandLayers(uikitJson)
+
   const combined: Record<string, unknown> = {
     brand: (brandJson as Record<string, unknown>)?.brand ?? brandJson,
     tokens: (tokensJson as Record<string, unknown>)?.tokens ?? tokensJson,

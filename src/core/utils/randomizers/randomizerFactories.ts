@@ -48,7 +48,7 @@ export function getConstants() {
   const state = getVarsStore().getState();
   
   // Extract available palettes dynamically
-  const lightPalettes = state.theme?.brand?.themes?.light?.palettes || state.theme?.themes?.light?.palettes || state.theme?.palettes || {};
+  const lightPalettes = state.theme?.brand?.modes?.light?.palettes || state.theme?.modes?.light?.palettes || state.theme?.palettes || {};
   let paletteNames = Object.keys(lightPalettes).filter(k => k !== 'core-colors');
   if (!paletteNames.includes('neutral')) paletteNames.push('neutral');
   if (!paletteNames.includes('core-colors')) paletteNames.push('core-colors');
@@ -121,39 +121,39 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{brand.fonts.${shiftValue(brandFontMatch[1], ['primary', 'secondary', 'tertiary'])}}`;
     }
     
-    // Brand Elevatons: {brand.elevations.elevation-1} or {brand.themes.light.elevations.elevation-1}
-    const elevationMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?elevations\.([a-z0-9-]+)$/);
+    // Brand Elevatons: {brand.elevations.elevation-1} or {brand.modes.light.elevations.elevation-1}
+    const elevationMatch = content.match(/^brand\.(?:modes\.(?:light|dark)\.)?elevations\.([a-z0-9-]+)$/);
     if (elevationMatch) {
         return `{brand.elevations.${shiftValue(elevationMatch[1], CONSTANTS.elevations)}}`;
     }
     
     // Brand Border Radii: {brand.dimensions.border-radii.default}
-    const radiiMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?dimensions\.border-radii\.([a-z0-9-]+)$/);
+    const radiiMatch = content.match(/^brand\.(?:modes\.(?:light|dark)\.)?dimensions\.border-radii\.([a-z0-9-]+)$/);
     if (radiiMatch) {
         return `{brand.dimensions.border-radii.${shiftValue(radiiMatch[1], CONSTANTS.borderRadii)}}`;
     }
     
     // Brand Dimensions Icons: {brand.dimensions.icons.sm}
-    const iconDimMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?dimensions\.icons\.([a-z0-9-]+)$/);
+    const iconDimMatch = content.match(/^brand\.(?:modes\.(?:light|dark)\.)?dimensions\.icons\.([a-z0-9-]+)$/);
     if (iconDimMatch) {
         return `{brand.dimensions.icons.${shiftValue(iconDimMatch[1], CONSTANTS.iconSizes)}}`;
     }
 
     // Brand Dimension General: {brand.dimensions.general.md}
-    const dimMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?dimensions\.general\.([a-z0-9-]+)$/);
+    const dimMatch = content.match(/^brand\.(?:modes\.(?:light|dark)\.)?dimensions\.general\.([a-z0-9-]+)$/);
     if (dimMatch) {
         return `{brand.dimensions.general.${shiftValue(dimMatch[1], CONSTANTS.dimensionGeneral)}}`;
     }
 
     // Brand Dimension Gutters: {brand.dimensions.gutters.vertical} -> map to general
-    const gutterMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?dimensions\.gutters\.([a-z0-9-]+)$/);
+    const gutterMatch = content.match(/^brand\.(?:modes\.(?:light|dark)\.)?dimensions\.gutters\.([a-z0-9-]+)$/);
     if (gutterMatch) {
         const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
         return `{brand.dimensions.general.${randomGeneral}}`;
     }
 
     // Brand Dimension Text Size: {brand.dimensions.text-size.md}
-    const textDimMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?dimensions\.text-size\.([a-z0-9-]+)$/);
+    const textDimMatch = content.match(/^brand\.(?:modes\.(?:light|dark)\.)?dimensions\.text-size\.([a-z0-9-]+)$/);
     if (textDimMatch) {
         return `{brand.dimensions.text-size.${shiftValue(textDimMatch[1], CONSTANTS.textSizes)}}`;
     }
@@ -177,8 +177,8 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return Math.random() < 0.5 ? '{brand.palettes.high-contrast}' : '{brand.palettes.low-contrast}';
     }
 
-    // Brand Color Palette: {brand.themes.light.palettes.neutral.100.color.tone} or ...neutral.default.color.tone
-    const paletteMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?palettes\.([a-z0-9-]+)\.([a-z0-9-]+)\.color\.(tone|on-tone)$/);
+    // Brand Color Palette: {brand.modes.light.palettes.neutral.100.color.tone} or ...neutral.default.color.tone
+    const paletteMatch = content.match(/^brand\.(?:modes\.(?:light|dark)\.)?palettes\.([a-z0-9-]+)\.([a-z0-9-]+)\.color\.(tone|on-tone)$/);
     if (paletteMatch) {
         const [, palette, level, tone] = paletteMatch;
         // Shift level slightly
@@ -188,8 +188,8 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{brand.palettes.${newPalette}.${newLevel}.color.${tone}}`;
     }
     
-    // Core Colors: {brand.themes.light.palettes.core-colors.interactive.default.tone}
-    const coreColorMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?palettes\.core-colors\.([a-z-]+)(?:\.([a-z-]+))?(?:\.tone|(?:\.on-tone(?:-hover)?))?$/);
+    // Core Colors: {brand.modes.light.palettes.core-colors.interactive.default.tone}
+    const coreColorMatch = content.match(/^brand\.(?:modes\.(?:light|dark)\.)?palettes\.core-colors\.([a-z-]+)(?:\.([a-z-]+))?(?:\.tone|(?:\.on-tone(?:-hover)?))?$/);
     if (coreColorMatch) {
         const palettes = CONSTANTS.paletteNames.filter(p => p !== 'core-colors');
         const randomPalette = palettes[Math.floor(Math.random() * palettes.length)] || 'neutral';
@@ -206,8 +206,8 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
     }
 
-    // Text Emphasis: {brand.text-emphasis.low} or {brand.themes.light.text-emphasis.low}
-    const emphasisMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?text-emphasis\.([a-z0-9-]+)$/);
+    // Text Emphasis: {brand.text-emphasis.low} or {brand.modes.light.text-emphasis.low}
+    const emphasisMatch = content.match(/^brand\.(?:modes\.(?:light|dark)\.)?text-emphasis\.([a-z0-9-]+)$/);
     if (emphasisMatch) {
         return `{brand.text-emphasis.${shiftValue(emphasisMatch[1], ['low', 'high'])}}`;
     }
@@ -236,8 +236,8 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{tokens.font.styles.${shiftValue(styleMatch[1], ['normal', 'italic'])}}`;
     }
 
-    // Layers: {brand.themes.light.layers.layer-1.elements.interactive.tone} or {brand.layers.layer-1.properties.border-color}
-    const layerMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?layers\.(layer-[0-3])\.(elements|properties)\.([a-z0-9-]+)(?:\.([a-z0-9-]+(?:\.[a-z0-9-]+)*))?$/);
+    // Layers: {brand.modes.light.layers.layer-1.elements.interactive.tone} or {brand.layers.layer-1.properties.border-color}
+    const layerMatch = content.match(/^brand\.(?:modes\.(?:light|dark)\.)?layers\.(layer-[0-3])\.(elements|properties)\.([a-z0-9-]+)(?:\.([a-z0-9-]+(?:\.[a-z0-9-]+)*))?$/);
     if (layerMatch) {
        const [, layerNum, scope, prop] = layerMatch;
        if (prop.includes('icon') && prop.includes('size') && !prop.includes('gap')) {
@@ -259,7 +259,7 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     }
 
     // States: {brand.states.disabled}
-    const stateMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?states\.([a-z0-9-]+)$/);
+    const stateMatch = content.match(/^brand\.(?:modes\.(?:light|dark)\.)?states\.([a-z0-9-]+)$/);
     if (stateMatch) {
         const randomOpacity = CONSTANTS.opacities[Math.floor(Math.random() * CONSTANTS.opacities.length)];
         return `{tokens.opacities.${randomOpacity}}`;
@@ -345,7 +345,7 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     const typographyMatch = content.match(/^brand\.typography\.([a-z0-9-]+)(?:\.([a-zA-Z]+))?$/);
     if (typographyMatch) {
        const [, level, prop] = typographyMatch;
-       const levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline'];
+       const levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body', 'caption', 'overline'];
        const newLevel = shiftValue(level, levels);
        return prop ? `{brand.typography.${newLevel}.${prop}}` : `{brand.typography.${newLevel}}`;
     }

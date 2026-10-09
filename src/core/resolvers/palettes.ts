@@ -19,14 +19,14 @@ function buildThemeIndex(theme: JsonLike) {
     Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
   }
   const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-  // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-  const themes = root?.themes || root
+  // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+  const modes = root?.modes || root
   // Support both singular "palette" and plural "palettes" in theme JSON.
   // Always index under "palette/*" to match resolver lookups.
-  if (themes?.light?.palette) visit(themes.light.palette, 'palette', 'Light')
-  if (themes?.dark?.palette) visit(themes.dark.palette, 'palette', 'Dark')
-  if (themes?.light?.palettes) visit(themes.light.palettes, 'palette', 'Light')
-  if (themes?.dark?.palettes) visit(themes.dark.palettes, 'palette', 'Dark')
+  if (modes?.light?.palette) visit(modes.light.palette, 'palette', 'Light')
+  if (modes?.dark?.palette) visit(modes.dark.palette, 'palette', 'Dark')
+  if (modes?.light?.palettes) visit(modes.light.palettes, 'palette', 'Light')
+  if (modes?.dark?.palettes) visit(modes.dark.palettes, 'palette', 'Dark')
   return out
 }
 
@@ -38,9 +38,9 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
   const palettes = (() => {
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-      const themes = root?.themes || root
-      const lightPal: any = themes?.light?.palettes || {}
+      // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+      const modes = root?.modes || root
+      const lightPal: any = modes?.light?.palettes || {}
       return Object.keys(lightPal).filter((k) => k !== 'core' && k !== 'core-colors')
     } catch {
       return []
@@ -100,8 +100,8 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
   // Read brand-level text emphasis from Brand JSON and emit brand vars
   try {
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-    const themes = root?.themes || root
-    const text: any = (mode === 'Light' ? themes?.light?.['text-emphasis'] : themes?.dark?.['text-emphasis']) || {}
+    const modes = root?.modes || root
+    const text: any = (mode === 'Light' ? modes?.light?.['text-emphasis'] : modes?.dark?.['text-emphasis']) || {}
     const high = getOpacityVar(text['high'])
     const low = getOpacityVar(text['low'])
     vars[textEmphasisVar(modeLower, 'high')] = high
@@ -139,8 +139,8 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
             // Resolve to the actual tone value from core-colors, not to the CSS var itself
             try {
               const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-              const themes = root?.themes || root
-              const coreColorsRaw: any = (refMode === 'light' ? themes?.light?.palettes?.['core-colors'] : themes?.dark?.palettes?.['core-colors']) || {}
+              const modes = root?.modes || root
+              const coreColorsRaw: any = (refMode === 'light' ? modes?.light?.palettes?.['core-colors'] : modes?.dark?.palettes?.['core-colors']) || {}
               const coreColors: any = coreColorsRaw?.$value || coreColorsRaw
               const colorDef: any = coreColors?.[color]
               if (colorDef?.tone) {
@@ -176,9 +176,9 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
   // Read brand-level state from Brand JSON and emit brand vars
   try {
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-    // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-    const themes = root?.themes || root
-    const state: any = (mode === 'Light' ? themes?.light?.states : themes?.dark?.states) || {}
+    // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+    const modes = root?.modes || root
+    const state: any = (mode === 'Light' ? modes?.light?.states : modes?.dark?.states) || {}
     // Resolve a px/dimension value that may be either a token reference string
     // or an object of shape { value, unit } (e.g. focus margin).
     const getPxVar = (v: any): string => {
@@ -259,9 +259,9 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const paletteLevels = (() => {
       try {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-        // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-        const themes = root?.themes || root
-        const palette: any = themes?.[mode.toLowerCase()]?.palettes?.[pk]
+        // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+        const modes = root?.modes || root
+        const palette: any = modes?.[mode.toLowerCase()]?.palettes?.[pk]
         if (!palette) return []
         // Get all level keys (excluding $type, $value, etc.)
         // Include both 'primary' and 'default' - 'default' will be mapped to 'primary' for CSS vars
@@ -548,8 +548,8 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
   // Also process other core-colors (alert, warning, success, black, white)
   try {
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-    const themes = root?.themes || root
-    const coreColorsRaw: any = (mode === 'Light' ? themes?.light?.palettes?.['core-colors'] : themes?.dark?.palettes?.['core-colors']) || {}
+    const modes = root?.modes || root
+    const coreColorsRaw: any = (mode === 'Light' ? modes?.light?.palettes?.['core-colors'] : modes?.dark?.palettes?.['core-colors']) || {}
     // Handle $value wrapper: core-colors may be { $type: "color", $value: { black: {...}, interactive: {...} } }
     const coreColors: any = coreColorsRaw?.$value || coreColorsRaw
 

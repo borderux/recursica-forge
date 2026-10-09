@@ -1,5 +1,66 @@
 # recursica-forge
 
+## 0.29.0
+
+### Minor Changes
+
+- 6a4d6d0: Added the `recursica_manifest.json` export (component variant references, layout grids and breakpoints) with its own schema and docs.
+  The CSS exports now emit layout-grid `@media` blocks over active-grid vars like `--recursica_brand_layout-grids_columns` (transform 1.4.0).
+
+### Patch Changes
+
+- 2e7798e: Fix to grid css output
+
+## 0.28.2
+
+### Patch Changes
+
+- 0677dd9: Removed `globals_icon_style` and chip's duplicate `properties_text-size` — both were unconsumed by Forge and every adapter; chip now uses `properties_text_font-size` alone.
+
+## 0.28.1
+
+### Patch Changes
+
+- 2f00cc2: - **Scoped CSS Header & Variable Guidance**:
+
+  - Corrected generic brand layer variable examples in the Scoped CSS export header comment (`formatScopedCss`) to reference the layer-agnostic form `--recursica_brand_layer_properties_surface` instead of the pinned `--recursica_brand_layer_0_properties_surface`.
+  - Documented the distinction between layer-agnostic variables that dynamically adapt to ancestor layer contexts and pinned layer-specific variables (`--recursica_brand_layer_N_*`).
+
+  - **Documentation Variable Name & Path Validation**:
+
+    - Added `docsVarNames.test.ts` to ensure all markdown documentation, component guides, and agent instructions reference valid CSS variable names according to current export and in-app naming schemes.
+    - Added automated checks ensuring documentation links point to existing files and do not recommend deprecated utilities (`getComponentCssVar`).
+    - Added snapshot notices to historical component adapter audit documents.
+
+  - **Layer Cascade Test Coverage**:
+    - Added tests in `layerCascade.test.ts` verifying that layer-agnostic brand variable names correctly track active cascading layers and default to layer 0 on elements with a theme/mode set without an explicit layer attribute.
+
+## 0.28.0
+
+### Minor Changes
+
+- d044462: - **Brand Modes Architecture (`themes` → `modes`)**:
+
+  - Renamed `brand.themes` to `brand.modes` (`modes.light`, `modes.dark`) across `recursica_brand.json`, schema definitions, variable resolvers, CSS builders, compliance watchers, and UI panels.
+  - Added automatic migration in `migrateImportedJson` to seamlessly upgrade imported files using legacy `brand.themes` structures to `brand.modes`.
+
+  - **Responsive Breakpoints & Typography Rework**:
+
+    - Replaced the standalone typography page with a unified `TypeAndBreakpointsPage`, featuring real-time responsive viewport simulation, container grid overlays, and breakpoint configuration panels.
+    - Added responsive typography utilities and export coverage for breakpoint-dependent typography styles and layout settings.
+    - Standardized slider adapter controls across Carbon, Mantine, and Material component implementations.
+
+  - **UI Kit Layer Reduction & Layer Cascading**:
+
+    - Compressed `recursica_ui-kit.json` by eliminating redundant layer duplications across components.
+    - Implemented `expandLayers` hydration logic so `layer-0` serves as the base layer, with upper layers carrying only sparse overrides and automatically shifting relative layer token references.
+    - Optimized Scoped and Specific CSS export transforms to omit duplicate declarations for layer-invariant component properties, significantly reducing emitted CSS variable output.
+    - Fixed root CSS variable generation in scoped export transformations to prevent duplicate `ui-kit_` prefixes.
+
+  - **Typeface & Token Export Cleanup**:
+    - Removed unused font token declarations from `recursica_tokens.json`.
+    - Updated typeface export logic so only active fonts referenced by brand typography roles are included in export bundles, preventing orphaned fonts from persisting.
+
 ## 0.27.1
 
 ### Patch Changes

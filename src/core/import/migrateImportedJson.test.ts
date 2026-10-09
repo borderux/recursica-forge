@@ -6,6 +6,7 @@ import {
   repointInteractiveRefsTo2_1,
   reconcileUikitFontRefs,
   repairCorruptedGoogleFontsUrls,
+  renameBrandThemesToModes,
 } from './migrateImportedJson'
 import { validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
 import brandJson from '../../../recursica_brand.json'
@@ -93,13 +94,13 @@ describe('migrateImportedJson', () => {
 describe('migrateImportedJson — brand 1.x → 2.x states', () => {
   const brand1x = () => ({
     brand: {
-      themes: {
+      modes: {
         light: {
           states: {
             disabled: { $type: 'number', $value: '{tokens.opacities.ghost}' },
             hover: { $type: 'number', $value: '{tokens.opacities.mist}' },
             overlay: {
-              color: { $type: 'color', $value: '{brand.themes.light.palettes.core-colors.high-contrast.tone}' },
+              color: { $type: 'color', $value: '{brand.modes.light.palettes.core-colors.high-contrast.tone}' },
               opacity: { $type: 'number', $value: '{tokens.opacities.ghost}' },
             },
           },
@@ -116,18 +117,18 @@ describe('migrateImportedJson — brand 1.x → 2.x states', () => {
 
   it('reshapes bare-number hover into { color, opacity }, preserving the old opacity', () => {
     const out = migrateImportedJson(brand1x(), 'brand')
-    const hover = out.brand.themes.light.states.hover
+    const hover = out.brand.modes.light.states.hover
     expect(hover.opacity).toEqual({ $type: 'number', $value: '{tokens.opacities.mist}' })
     expect(hover.color.$type).toBe('color')
-    expect(hover.color.$value).toBe('{brand.themes.light.palettes.neutral.400.color.tone}')
+    expect(hover.color.$value).toBe('{brand.modes.light.palettes.neutral.400.color.tone}')
     // dark keeps its own opacity value
-    expect(out.brand.themes.dark.states.hover.opacity.$value).toBe('{tokens.opacities.veil}')
+    expect(out.brand.modes.dark.states.hover.opacity.$value).toBe('{tokens.opacities.veil}')
   })
 
   it('adds focus and link blocks with 2.x defaults, scoped to each mode', () => {
     const out = migrateImportedJson(brand1x(), 'brand')
-    const light = out.brand.themes.light.states
-    expect(light.focus.color.$value).toBe('{brand.themes.light.palettes.core-colors.interactive.tone}')
+    const light = out.brand.modes.light.states
+    expect(light.focus.color.$value).toBe('{brand.modes.light.palettes.core-colors.interactive.tone}')
     expect(light.focus['border-size'].$value).toEqual({ value: 1, unit: 'px' })
     expect(light.focus.margin.$value).toEqual({ value: 2, unit: 'px' })
     expect(light.focus.blur.$value).toEqual({ value: 4, unit: 'px' })
@@ -136,15 +137,15 @@ describe('migrateImportedJson — brand 1.x → 2.x states', () => {
       style: { $type: 'string', $value: 'normal' },
       weight: { $type: 'string', $value: '400' },
     })
-    expect(out.brand.themes.dark.states.focus.color.$value)
-      .toBe('{brand.themes.dark.palettes.core-colors.interactive.tone}')
+    expect(out.brand.modes.dark.states.focus.color.$value)
+      .toBe('{brand.modes.dark.palettes.core-colors.interactive.tone}')
   })
 
   it('preserves disabled and overlay untouched', () => {
     const out = migrateImportedJson(brand1x(), 'brand')
-    expect(out.brand.themes.light.states.disabled).toEqual({ $type: 'number', $value: '{tokens.opacities.ghost}' })
-    expect(out.brand.themes.light.states.overlay.color.$value)
-      .toBe('{brand.themes.light.palettes.core-colors.high-contrast.tone}')
+    expect(out.brand.modes.light.states.disabled).toEqual({ $type: 'number', $value: '{tokens.opacities.ghost}' })
+    expect(out.brand.modes.light.states.overlay.color.$value)
+      .toBe('{brand.modes.light.palettes.core-colors.high-contrast.tone}')
   })
 
   it('stamps the current structure version', () => {
@@ -155,7 +156,7 @@ describe('migrateImportedJson — brand 1.x → 2.x states', () => {
   it('is idempotent — a 2.x brand is left unchanged', () => {
     const once = migrateImportedJson(brand1x(), 'brand')
     const twice = migrateImportedJson(JSON.parse(JSON.stringify(once)), 'brand')
-    expect(twice.brand.themes.light.states).toEqual(once.brand.themes.light.states)
+    expect(twice.brand.modes.light.states).toEqual(once.brand.modes.light.states)
   })
 
   // Regression: a real user exported from 1.x (bare-number `hover`, no `focus`/`link`) and the
@@ -164,7 +165,7 @@ describe('migrateImportedJson — brand 1.x → 2.x states', () => {
   it('a migrated 1.x brand passes current schema validation', () => {
     const brand = JSON.parse(JSON.stringify(brandJson)) as any
     for (const mode of ['light', 'dark'] as const) {
-      const states = brand.brand.themes[mode].states
+      const states = brand.brand.modes[mode].states
       states.hover = { $type: 'number', $value: '{tokens.opacities.mist}' }
       delete states.focus
       delete states.link
@@ -630,14 +631,14 @@ describe('migrateImportedJson — 1.x uikit overlays onto the current structure'
 
 describe('2.0.x → 2.1.0: interactive fill vs readable interactive colour', () => {
   const leaf = (v: string) => ({ $type: 'color', $value: v })
-  const CORE_TONE = '{brand.themes.light.palettes.core-colors.interactive.tone}'
+  const CORE_TONE = '{brand.modes.light.palettes.core-colors.interactive.tone}'
   const STEPPED = '{tokens.colors.scale-06.100}'
 
   describe('migrateInteractiveElementTo2_1 (brand)', () => {
     const brand = (interactive: any) => ({
-      brand: { themes: { light: { layers: { 'layer-0': { elements: { interactive } } } } } },
+      brand: { modes: { light: { layers: { 'layer-0': { elements: { interactive } } } } } },
     })
-    const inter = (b: any) => b.brand.themes.light.layers['layer-0'].elements.interactive
+    const inter = (b: any) => b.brand.modes.light.layers['layer-0'].elements.interactive
 
     it('renames interactive.tone to interactive.color, preserving the value', () => {
       const out = migrateInteractiveElementTo2_1(brand({ tone: leaf(CORE_TONE) }))
@@ -981,5 +982,71 @@ describe('migrateImportedJson — table enabled/disabled colours', () => {
     const once = migrateImportedJson(table1x(), 'uikit')
     const twice = migrateImportedJson(JSON.parse(JSON.stringify(once)), 'uikit')
     expect(twice).toEqual(once)
+  })
+})
+
+// The brand's per-mode container was renamed `themes` → `modes`. Every export published before
+// the rename carries the old key and the old refs, and ui-kit files carry refs into the brand
+// too, so both file types have to migrate.
+describe('brand.themes → brand.modes', () => {
+  const oldBrand = () => ({
+    brand: {
+      themes: {
+        light: { palettes: { neutral: { '100': { color: { tone: { $type: 'color', $value: '{tokens.colors.scale-01.100}' } } } } } },
+        dark: { palettes: { neutral: { '100': { color: { tone: { $type: 'color', $value: '{tokens.colors.scale-01.800}' } } } } } },
+      },
+      dimensions: { general: { md: { $type: 'dimension', $value: '{tokens.sizes.2x}' } } },
+      fonts: { primary: { $type: 'fontFamily', $value: '{tokens.font.typefaces.lexend}' } },
+    },
+  })
+
+  it('renames the key and keeps its position in the object', () => {
+    const out = renameBrandThemesToModes(oldBrand())
+    expect(Object.keys(out.brand)).toEqual(['modes', 'dimensions', 'fonts'])
+    expect(out.brand.themes).toBeUndefined()
+    expect(Object.keys(out.brand.modes)).toEqual(['light', 'dark'])
+  })
+
+  it('rewrites brand refs through the full brand import path', () => {
+    const input: any = oldBrand()
+    input.brand.themes.light.surface = { $type: 'color', $value: '{brand.themes.light.palettes.neutral.100.color.tone}' }
+    const out = migrateImportedJson(input, 'brand')
+    expect(out.brand.modes.light.surface.$value).toBe('{brand.modes.light.palettes.neutral.100.color.tone}')
+    expect(JSON.stringify(out)).not.toContain('brand.themes.')
+  })
+
+  it('rewrites brand refs that live in a ui-kit file', () => {
+    const uikit = {
+      'ui-kit': {
+        components: {
+          button: { properties: { colors: { 'layer-0': { 'text-color': { $type: 'color', $value: '{brand.themes.light.layers.layer-0.elements.text.color}' } } } } },
+        },
+      },
+    }
+    const out = migrateImportedJson(uikit, 'uikit')
+    expect(JSON.stringify(out)).toContain('{brand.modes.light.layers.layer-0.elements.text.color}')
+    expect(JSON.stringify(out)).not.toContain('brand.themes.')
+  })
+
+  it('rewrites a leaked CSS variable that still names the old segment', () => {
+    const input: any = oldBrand()
+    input.brand.themes.light.surface = { $type: 'color', $value: 'var(--recursica_brand_themes_light_palettes_neutral_100_color_tone)' }
+    const out = migrateImportedJson(input, 'brand')
+    expect(out.brand.modes.light.surface.$value).toBe('var(--recursica_brand_modes_light_palettes_neutral_100_color_tone)')
+  })
+
+  it('leaves an already-migrated file untouched and is idempotent', () => {
+    const already = migrateImportedJson(oldBrand(), 'brand')
+    const twice = migrateImportedJson(JSON.parse(JSON.stringify(already)), 'brand')
+    expect(twice).toEqual(already)
+    expect(Object.keys(twice.brand)).toEqual(['modes', 'dimensions', 'fonts'])
+  })
+
+  it('prefers the new key when a file somehow carries both', () => {
+    const both: any = oldBrand()
+    both.brand.modes = { light: { marker: 'new' } }
+    const out = renameBrandThemesToModes(both)
+    expect(out.brand.themes).toBeUndefined()
+    expect(out.brand.modes.light.marker).toBe('new')
   })
 })

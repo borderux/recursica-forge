@@ -87,7 +87,7 @@
 .compliance-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: var(--recursica_brand_typography_body-small-font-size, 13px);
+    font-size: var(--recursica_brand_typography_caption-font-size, 13px);
 }
 
 .compliance-table thead tr {
@@ -99,11 +99,11 @@
     padding: 8px 12px;
     white-space: nowrap;
     /* Use subtitle-small type style */
-    font-size: var(--recursica_brand_typography_subtitle-small-font-size);
-    font-weight: var(--recursica_brand_typography_subtitle-small-font-weight);
-    font-family: var(--recursica_brand_typography_subtitle-small-font-family);
-    letter-spacing: var(--recursica_brand_typography_subtitle-small-font-letter-spacing);
-    line-height: var(--recursica_brand_typography_subtitle-small-line-height);
+    font-size: var(--recursica_brand_typography_body-font-size);
+    font-weight: var(--recursica_brand_typography_body-font-weight);
+    font-family: var(--recursica_brand_typography_body-font-family);
+    letter-spacing: var(--recursica_brand_typography_body-font-letter-spacing);
+    line-height: var(--recursica_brand_typography_body-line-height);
 }
 
 .compliance-table__th-center {

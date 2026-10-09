@@ -25,9 +25,9 @@ const COMPONENT_INSTANCE_VARS = new Set([
  */
 const COMPONENT_INSTANCE_VAR_PATTERNS = [
   /^--recursica_ui-kit_components_menu_item_variants_styles_(hover|selected|focused)-properties-colors-layer-\d+-background$/,
-  /^--recursica_brand_themes_(light|dark)_palettes_[a-z0-9-]+_interactive_(hover|default)_(tone|on-tone)$/,
-  /^--recursica_brand_themes_(light|dark)_palettes_[a-z0-9-]+_interactive_hover_on-tone$/,
-  /^--recursica_brand_themes_(light|dark)_palettes_[a-z0-9-]+_interactive_default_on-tone$/
+  /^--recursica_brand_modes_(light|dark)_palettes_[a-z0-9-]+_interactive_(hover|default)_(tone|on-tone)$/,
+  /^--recursica_brand_modes_(light|dark)_palettes_[a-z0-9-]+_interactive_hover_on-tone$/,
+  /^--recursica_brand_modes_(light|dark)_palettes_[a-z0-9-]+_interactive_default_on-tone$/
 ]
 
 /**
@@ -1238,7 +1238,7 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
             }
 
             // Check if it's a scoped variable issue
-            if (varRef.includes('-themes-') && !isDefined) {
+            if (varRef.includes('-modes-') && !isDefined) {
               // Check if element has theme class
               const hasThemeClass = el.classList.toString().includes('recursica-theme-')
               if (!hasThemeClass) {

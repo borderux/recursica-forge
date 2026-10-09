@@ -287,7 +287,7 @@ export default React.forwardRef<any, AdapterSliderProps>(function Slider({
             disableTopBottomMargin={true}
             className="recursica-slider-number-input"
             style={{
-              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+              fontSize: 'var(--recursica_brand_typography_caption-font-size)',
               [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'background-color')]: `var(${inputBackgroundVar})`,
               [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'text')]: `var(${inputTextVar})`,
               [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'border-color')]: `var(${inputBorderColorVar})`,
@@ -518,7 +518,7 @@ export default React.forwardRef<any, AdapterSliderProps>(function Slider({
             disableTopBottomMargin={true}
             className="recursica-slider-number-input"
             style={{
-              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+              fontSize: 'var(--recursica_brand_typography_caption-font-size)',
               [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'background-color')]: `var(${inputBackgroundVar})`,
               [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'text')]: `var(${inputTextVar})`,
               [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'border-color')]: `var(${inputBorderColorVar})`,

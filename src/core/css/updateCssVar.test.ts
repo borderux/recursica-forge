@@ -47,16 +47,16 @@ describe('updateCssVar', { timeout: 60000 }, () => {
 
   it('should update brand CSS variable with valid token reference', () => {
     const result = updateCssVar(
-      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
+      '--recursica_brand_modes_light_palettes_core-colors_high-contrast',
       'var(--recursica_tokens_color_gray_1000)'
     )
     expect(result).toBe(true)
-    expect(readCssVar('--recursica_brand_themes_light_palettes_core-colors_high-contrast')).toBe('var(--recursica_tokens_color_gray_1000)')
+    expect(readCssVar('--recursica_brand_modes_light_palettes_core-colors_high-contrast')).toBe('var(--recursica_tokens_color_gray_1000)')
   })
 
   it('should reject brand CSS variable with hardcoded hex value', () => {
     const result = updateCssVar(
-      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
+      '--recursica_brand_modes_light_palettes_core-colors_high-contrast',
       '#000000'
     )
     expect(result).toBe(false)
@@ -75,13 +75,13 @@ describe('updateCssVar', { timeout: 60000 }, () => {
     }
     
     const result = updateCssVar(
-      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
+      '--recursica_brand_modes_light_palettes_core-colors_high-contrast',
       '#000000',
       tokens
     )
     
     expect(result).toBe(true)
-    const updatedValue = readCssVar('--recursica_brand_themes_light_palettes_core-colors_high-contrast')
+    const updatedValue = readCssVar('--recursica_brand_modes_light_palettes_core-colors_high-contrast')
     // The function may generate either old format (color-gray-900) or new format (colors-scale-XX-900)
     // Both are valid, so check for either
     expect(updatedValue).toMatch(/var\(--recursica_tokens_(color_gray_900|colors_scale-\d+_900)\)/)
@@ -89,7 +89,7 @@ describe('updateCssVar', { timeout: 60000 }, () => {
 
   it('should accept color-mix() with token references for brand vars', () => {
     const result = updateCssVar(
-      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
+      '--recursica_brand_modes_light_palettes_core-colors_high-contrast',
       'color-mix(in srgb, var(--recursica_tokens_color_gray_1000) 80%, transparent)'
     )
     expect(result).toBe(true)
@@ -97,7 +97,7 @@ describe('updateCssVar', { timeout: 60000 }, () => {
 
   it('should accept var() references with unprefixed tokens', () => {
     const result = updateCssVar(
-      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
+      '--recursica_brand_modes_light_palettes_core-colors_high-contrast',
       'var(--tokens-color-gray-1000)'
     )
     expect(result).toBe(true)
@@ -168,12 +168,12 @@ describe('removeCssVar', () => {
   })
 })
 
-// brand.themes.<mode>.layers.layer-N.properties.{padding,border-radius,border-size} holds the same
+// brand.modes.<mode>.layers.layer-N.properties.{padding,border-radius,border-size} holds the same
 // value in light and dark by design, but the Layers page writes only the mode being viewed, so an
 // edit used to leave the other mode stale in the exported brand JSON.
 describe('modeIndependentLayerCounterpart', () => {
   const V = (mode: string, layer: number, prop: string) =>
-    `--recursica_brand_themes_${mode}_layers_layer-${layer}_properties_${prop}`
+    `--recursica_brand_modes_${mode}_layers_layer-${layer}_properties_${prop}`
 
   it('pairs layer geometry across the two modes, both directions', () => {
     for (const prop of ['padding', 'border-radius', 'border-size']) {
@@ -195,7 +195,7 @@ describe('modeIndependentLayerCounterpart', () => {
     expect(modeIndependentLayerCounterpart(
       '--recursica_ui-kit_components_button_properties_border-radius')).toBeNull()
     expect(modeIndependentLayerCounterpart(
-      '--recursica_brand_themes_light_layers_layer-0_elements_text-color')).toBeNull()
+      '--recursica_brand_modes_light_layers_layer-0_elements_text-color')).toBeNull()
   })
 
   it('is symmetric — applying it twice returns the original', () => {

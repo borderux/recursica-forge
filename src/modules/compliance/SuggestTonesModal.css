@@ -87,7 +87,7 @@
 }
 
 .suggest-tones__label {
-    font-size: var(--recursica_brand_typography_body-small-font-size, 13px);
+    font-size: var(--recursica_brand_typography_caption-font-size, 13px);
     font-weight: 600;
     white-space: nowrap;
 }

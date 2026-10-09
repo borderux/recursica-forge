@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import config from '../TransferList.toolbar.json'
-import uikitJson from '../../../../../recursica_ui-kit.json'
+import uikitRaw from '../../../../../recursica_ui-kit.json'
+import { expandLayers } from '../../../../core/uikit/expandLayers'
+
+// The ui-kit ships in the short layer form; these checks walk full paths.
+const uikitJson = expandLayers(uikitRaw) as typeof uikitRaw
 
 describe('TransferList Toolbar Config', () => {
     it('should have valid JSON structure', () => {

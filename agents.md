@@ -34,5 +34,7 @@ Recursica Forge is a design system and UI component builder. It uses a token-bas
 
 ## Code Standards
 - **TypeScript:** Use strict TypeScript. Define interfaces for props and state.
-- **CSS Variables:** Favor CSS variables for theming. Use `getComponentCssVar` and related helpers from `src/utils/cssVarNames.ts`.
+- **CSS Variables:** Favor CSS variables for theming. Build names with `buildComponentCssVarPath` from `src/components/utils/cssVarNames.ts`, passing explicit path segments. `getComponentCssVar` in the same file is deprecated — it guesses variant names out of the property string — so do not reach for it in new code.
+- **Variable naming:** Segments are separated with underscores, e.g. `--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_layer-0_background-color`. Hyphens appear only inside a single segment (`background-color`, `layer-0`) and in the handful of local helper variables in `src/styles/interactive-states.css`. A name spelled `--recursica-ui-kit-...` throughout does not exist.
+- **Two name sets — do not mix them.** The app resolves its own variables at runtime; the export transform writes consumer CSS in a deliberately different scheme. In-app code uses the runtime form (`..._colors_layer-0_background-color`, `--recursica_brand_typography_body-font-weight`); the exported file uses the tidier one (`..._colors_background-color`, `--recursica_brand_typography_body_fontWeight`). Copying a name from an exported stylesheet into component code yields a variable that silently does not resolve. See the CSS Variable Guidelines in `src/components/COMPONENT_DEVELOPMENT_GUIDE.md`.
 - **Patterns:** Prefer documented patterns from Knowledge Items (KIs) and existing codebase.

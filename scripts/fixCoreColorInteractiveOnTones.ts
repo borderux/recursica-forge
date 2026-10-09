@@ -116,7 +116,7 @@ function findAccessibleColor(
   }
   
   // Try white
-  const whiteRef = `{brand.themes.${mode}.palettes.core-colors.white}`
+  const whiteRef = `{brand.modes.${mode}.palettes.core-colors.white}`
   const whiteHex = resolveRefToHex(whiteRef, tokens, brand, mode) || '#ffffff'
   const whiteContrast = contrastRatio(toneHex, whiteHex)
   if (whiteContrast >= AA_THRESHOLD) {
@@ -124,7 +124,7 @@ function findAccessibleColor(
   }
   
   // Try black
-  const blackRef = `{brand.themes.${mode}.palettes.core-colors.black}`
+  const blackRef = `{brand.modes.${mode}.palettes.core-colors.black}`
   const blackHex = resolveRefToHex(blackRef, tokens, brand, mode) || '#000000'
   const blackContrast = contrastRatio(toneHex, blackHex)
   if (blackContrast >= AA_THRESHOLD) {
@@ -146,14 +146,14 @@ function findBrandJsonRefForHex(hex: string, tokens: JsonLike, brand: JsonLike, 
   // Check if it's white or black
   const normalizedHex = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
   if (normalizedHex === '#ffffff' || normalizedHex === '#fff') {
-    return `{brand.themes.${mode}.palettes.core-colors.white}`
+    return `{brand.modes.${mode}.palettes.core-colors.white}`
   }
   if (normalizedHex === '#000000' || normalizedHex === '#000') {
-    return `{brand.themes.${mode}.palettes.core-colors.black}`
+    return `{brand.modes.${mode}.palettes.core-colors.black}`
   }
   
   // Default to white
-  return `{brand.themes.${mode}.palettes.core-colors.white}`
+  return `{brand.modes.${mode}.palettes.core-colors.white}`
 }
 
 // Find color family and level for a hex
@@ -188,7 +188,7 @@ function main() {
   const modes: Array<'light' | 'dark'> = ['light', 'dark']
   
   for (const mode of modes) {
-    const coreColorsPath = brandJson.brand?.themes?.[mode]?.palettes?.['core-colors']?.$value
+    const coreColorsPath = brandJson.brand?.modes?.[mode]?.palettes?.['core-colors']?.$value
     if (!coreColorsPath) continue
     
     for (const colorName of coreColors) {
@@ -211,7 +211,7 @@ function main() {
       // Try direct path first
       let interactiveToneHex: string | null = null
       try {
-        const interactiveTonePath = brandJson.brand?.themes?.[mode]?.palettes?.['core-colors']?.$value?.interactive?.default?.tone?.$value
+        const interactiveTonePath = brandJson.brand?.modes?.[mode]?.palettes?.['core-colors']?.$value?.interactive?.default?.tone?.$value
         if (interactiveTonePath) {
           interactiveToneHex = resolveRefToHex(interactiveTonePath, tokensJson, brandJson, mode)
         }
@@ -220,7 +220,7 @@ function main() {
       }
       
       if (!interactiveToneHex) {
-        const interactiveToneRef = `{brand.themes.${mode}.palettes.core-colors.interactive.default.tone}`
+        const interactiveToneRef = `{brand.modes.${mode}.palettes.core-colors.interactive.default.tone}`
         interactiveToneHex = resolveRefToHex(interactiveToneRef, tokensJson, brandJson, mode)
       }
       

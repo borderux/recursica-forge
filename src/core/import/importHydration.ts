@@ -45,8 +45,8 @@ export function validateImportedReferences(tokensInput: any, themeInput: any, ui
             const paletteMatch = cssVar?.match(/_palettes_([a-z0-9-]+)_/)
             if (paletteMatch) {
               const paletteKey = paletteMatch[1]
-              const themes: any = (themeInput as any)?.brand?.themes || (themeInput as any)?.themes || themeInput
-              const paletteExists = themes?.light?.palettes?.[paletteKey] || themes?.dark?.palettes?.[paletteKey]
+              const modes: any = (themeInput as any)?.brand?.modes || (themeInput as any)?.modes || themeInput
+              const paletteExists = modes?.light?.palettes?.[paletteKey] || modes?.dark?.palettes?.[paletteKey]
               
               if (!paletteExists) {
                 missingReferences.push(`Missing palette '${paletteKey}' referenced at path '${path.join('.')}'`)

@@ -107,8 +107,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: var(--recursica_ui-kit_components_switch_thumb_icon_size);
-  height: var(--recursica_ui-kit_components_switch_thumb_icon_size);
+  width: var(--recursica-switch-thumb-icon-size);
+  height: var(--recursica-switch-thumb-icon-size);
   background-image: var(--recursica_ui-kit_components_switch_thumb_icon_unselected_svg);
   background-size: contain;
   background-repeat: no-repeat;

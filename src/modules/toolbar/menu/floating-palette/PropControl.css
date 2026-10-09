@@ -14,11 +14,11 @@
 .prop-control-label {
   font-size: 13px;
   font-weight: 500;
-  color: var(--recursica_brand_themes_light_layers_layer-3_elements_text-color, var(--recursica_brand_themes_light_layers_layer-3_elements_text-color));
+  color: var(--recursica_brand_modes_light_layers_layer-3_elements_text-color, var(--recursica_brand_modes_light_layers_layer-3_elements_text-color));
 }
 
 html[data-theme-mode="dark"] .prop-control-label {
-  color: var(--recursica_brand_themes_dark_layers_layer-3_elements_text-color, var(--recursica_brand_themes_dark_layers_layer-3_elements_text-color));
+  color: var(--recursica_brand_modes_dark_layers_layer-3_elements_text-color, var(--recursica_brand_modes_dark_layers_layer-3_elements_text-color));
 }
 
 .prop-control-input-group {
@@ -29,66 +29,66 @@ html[data-theme-mode="dark"] .prop-control-label {
 .prop-control-input {
   flex: 1;
   padding: var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md);
-  border: var(--recursica_brand_themes_light_layers_layer-3_properties_border-size, var(--recursica_brand_themes_light_layers_layer-3_properties_border-size)) solid var(--recursica_brand_themes_light_layers_layer-3_properties_border-color, var(--recursica_brand_themes_light_layers_layer-3_properties_border-color));
-  border-radius: var(--recursica_brand_themes_light_layers_layer-3_properties_border-radius, var(--recursica_brand_themes_light_layers_layer-3_properties_border-radius));
-  background: var(--recursica_brand_themes_light_layers_layer-3_properties_surface, var(--recursica_brand_themes_light_layers_layer-3_properties_surface));
-  color: var(--recursica_brand_themes_light_layers_layer-3_elements_text-color, var(--recursica_brand_themes_light_layers_layer-3_elements_text-color));
+  border: var(--recursica_brand_modes_light_layers_layer-3_properties_border-size, var(--recursica_brand_modes_light_layers_layer-3_properties_border-size)) solid var(--recursica_brand_modes_light_layers_layer-3_properties_border-color, var(--recursica_brand_modes_light_layers_layer-3_properties_border-color));
+  border-radius: var(--recursica_brand_modes_light_layers_layer-3_properties_border-radius, var(--recursica_brand_modes_light_layers_layer-3_properties_border-radius));
+  background: var(--recursica_brand_modes_light_layers_layer-3_properties_surface, var(--recursica_brand_modes_light_layers_layer-3_properties_surface));
+  color: var(--recursica_brand_modes_light_layers_layer-3_elements_text-color, var(--recursica_brand_modes_light_layers_layer-3_elements_text-color));
   font-size: 14px;
 }
 
 html[data-theme-mode="dark"] .prop-control-input {
-  border-color: var(--recursica_brand_themes_dark_layers_layer-3_properties_border-color, var(--recursica_brand_themes_dark_layers_layer-3_properties_border-color));
-  background: var(--recursica_brand_themes_dark_layers_layer-3_properties_surface, var(--recursica_brand_themes_dark_layers_layer-3_properties_surface));
-  color: var(--recursica_brand_themes_dark_layers_layer-3_elements_text-color, var(--recursica_brand_themes_dark_layers_layer-3_elements_text-color));
+  border-color: var(--recursica_brand_modes_dark_layers_layer-3_properties_border-color, var(--recursica_brand_modes_dark_layers_layer-3_properties_border-color));
+  background: var(--recursica_brand_modes_dark_layers_layer-3_properties_surface, var(--recursica_brand_modes_dark_layers_layer-3_properties_surface));
+  color: var(--recursica_brand_modes_dark_layers_layer-3_elements_text-color, var(--recursica_brand_modes_dark_layers_layer-3_elements_text-color));
 }
 
 .prop-control-input:focus {
   outline: none;
-  border-color: var(--recursica_brand_themes_light_layers_layer-3_elements_interactive-color, var(--recursica_brand_themes_light_layers_layer-3_elements_interactive-tone, var(--recursica_brand_themes_light_layers_layer-3_elements_interactive-color, var(--recursica_brand_themes_light_layers_layer-3_elements_interactive-tone))));
+  border-color: var(--recursica_brand_modes_light_layers_layer-3_elements_interactive-color, var(--recursica_brand_modes_light_layers_layer-3_elements_interactive-tone, var(--recursica_brand_modes_light_layers_layer-3_elements_interactive-color, var(--recursica_brand_modes_light_layers_layer-3_elements_interactive-tone))));
 }
 
 html[data-theme-mode="dark"] .prop-control-input:focus {
-  border-color: var(--recursica_brand_themes_dark_layers_layer-3_elements_interactive-color, var(--recursica_brand_themes_dark_layers_layer-3_elements_interactive-tone, var(--recursica_brand_themes_dark_layers_layer-3_elements_interactive-color, var(--recursica_brand_themes_dark_layers_layer-3_elements_interactive-tone))));
+  border-color: var(--recursica_brand_modes_dark_layers_layer-3_elements_interactive-color, var(--recursica_brand_modes_dark_layers_layer-3_elements_interactive-tone, var(--recursica_brand_modes_dark_layers_layer-3_elements_interactive-color, var(--recursica_brand_modes_dark_layers_layer-3_elements_interactive-tone))));
 }
 
 .prop-control-unit-select {
   padding: var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md);
-  border: var(--recursica_brand_themes_light_layers_layer-3_properties_border-size, var(--recursica_brand_themes_light_layers_layer-3_properties_border-size)) solid var(--recursica_brand_themes_light_layers_layer-3_properties_border-color, var(--recursica_brand_themes_light_layers_layer-3_properties_border-color));
-  border-radius: var(--recursica_brand_themes_light_layers_layer-3_properties_border-radius, var(--recursica_brand_themes_light_layers_layer-3_properties_border-radius));
-  background: var(--recursica_brand_themes_light_layers_layer-3_properties_surface, var(--recursica_brand_themes_light_layers_layer-3_properties_surface));
-  color: var(--recursica_brand_themes_light_layers_layer-3_elements_text-color, var(--recursica_brand_themes_light_layers_layer-3_elements_text-color));
+  border: var(--recursica_brand_modes_light_layers_layer-3_properties_border-size, var(--recursica_brand_modes_light_layers_layer-3_properties_border-size)) solid var(--recursica_brand_modes_light_layers_layer-3_properties_border-color, var(--recursica_brand_modes_light_layers_layer-3_properties_border-color));
+  border-radius: var(--recursica_brand_modes_light_layers_layer-3_properties_border-radius, var(--recursica_brand_modes_light_layers_layer-3_properties_border-radius));
+  background: var(--recursica_brand_modes_light_layers_layer-3_properties_surface, var(--recursica_brand_modes_light_layers_layer-3_properties_surface));
+  color: var(--recursica_brand_modes_light_layers_layer-3_elements_text-color, var(--recursica_brand_modes_light_layers_layer-3_elements_text-color));
   font-size: 14px;
   cursor: pointer;
 }
 
 html[data-theme-mode="dark"] .prop-control-unit-select {
-  border-color: var(--recursica_brand_themes_dark_layers_layer-3_properties_border-color, var(--recursica_brand_themes_dark_layers_layer-3_properties_border-color));
-  background: var(--recursica_brand_themes_dark_layers_layer-3_properties_surface, var(--recursica_brand_themes_dark_layers_layer-3_properties_surface));
-  color: var(--recursica_brand_themes_dark_layers_layer-3_elements_text-color, var(--recursica_brand_themes_dark_layers_layer-3_elements_text-color));
+  border-color: var(--recursica_brand_modes_dark_layers_layer-3_properties_border-color, var(--recursica_brand_modes_dark_layers_layer-3_properties_border-color));
+  background: var(--recursica_brand_modes_dark_layers_layer-3_properties_surface, var(--recursica_brand_modes_dark_layers_layer-3_properties_surface));
+  color: var(--recursica_brand_modes_dark_layers_layer-3_elements_text-color, var(--recursica_brand_modes_dark_layers_layer-3_elements_text-color));
 }
 
 .prop-control-unit-select:focus {
   outline: none;
-  border-color: var(--recursica_brand_themes_light_layers_layer-3_elements_interactive-color, var(--recursica_brand_themes_light_layers_layer-3_elements_interactive-tone, var(--recursica_brand_themes_light_layers_layer-3_elements_interactive-color, var(--recursica_brand_themes_light_layers_layer-3_elements_interactive-tone))));
+  border-color: var(--recursica_brand_modes_light_layers_layer-3_elements_interactive-color, var(--recursica_brand_modes_light_layers_layer-3_elements_interactive-tone, var(--recursica_brand_modes_light_layers_layer-3_elements_interactive-color, var(--recursica_brand_modes_light_layers_layer-3_elements_interactive-tone))));
 }
 
 html[data-theme-mode="dark"] .prop-control-unit-select:focus {
-  border-color: var(--recursica_brand_themes_dark_layers_layer-3_elements_interactive-color, var(--recursica_brand_themes_dark_layers_layer-3_elements_interactive-tone, var(--recursica_brand_themes_dark_layers_layer-3_elements_interactive-color, var(--recursica_brand_themes_dark_layers_layer-3_elements_interactive-tone))));
+  border-color: var(--recursica_brand_modes_dark_layers_layer-3_elements_interactive-color, var(--recursica_brand_modes_dark_layers_layer-3_elements_interactive-tone, var(--recursica_brand_modes_dark_layers_layer-3_elements_interactive-color, var(--recursica_brand_modes_dark_layers_layer-3_elements_interactive-tone))));
 }
 
 .prop-control-readonly {
   padding: var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md);
-  border: var(--recursica_brand_themes_light_layers_layer-3_properties_border-size, var(--recursica_brand_themes_light_layers_layer-3_properties_border-size)) solid var(--recursica_brand_themes_light_layers_layer-3_properties_border-color, var(--recursica_brand_themes_light_layers_layer-3_properties_border-color));
-  border-radius: var(--recursica_brand_themes_light_layers_layer-3_properties_border-radius, var(--recursica_brand_themes_light_layers_layer-3_properties_border-radius));
-  background: var(--recursica_brand_themes_light_layers_layer-3_properties_surface, var(--recursica_brand_themes_light_layers_layer-3_properties_surface));
-  color: var(--recursica_brand_themes_light_layers_layer-3_elements_text-color, var(--recursica_brand_themes_light_layers_layer-3_elements_text-color));
+  border: var(--recursica_brand_modes_light_layers_layer-3_properties_border-size, var(--recursica_brand_modes_light_layers_layer-3_properties_border-size)) solid var(--recursica_brand_modes_light_layers_layer-3_properties_border-color, var(--recursica_brand_modes_light_layers_layer-3_properties_border-color));
+  border-radius: var(--recursica_brand_modes_light_layers_layer-3_properties_border-radius, var(--recursica_brand_modes_light_layers_layer-3_properties_border-radius));
+  background: var(--recursica_brand_modes_light_layers_layer-3_properties_surface, var(--recursica_brand_modes_light_layers_layer-3_properties_surface));
+  color: var(--recursica_brand_modes_light_layers_layer-3_elements_text-color, var(--recursica_brand_modes_light_layers_layer-3_elements_text-color));
   font-size: 14px;
   opacity: 0.7;
 }
 
 html[data-theme-mode="dark"] .prop-control-readonly {
-  border-color: var(--recursica_brand_themes_dark_layers_layer-3_properties_border-color, var(--recursica_brand_themes_dark_layers_layer-3_properties_border-color));
-  background: var(--recursica_brand_themes_dark_layers_layer-3_properties_surface, var(--recursica_brand_themes_dark_layers_layer-3_properties_surface));
-  color: var(--recursica_brand_themes_dark_layers_layer-3_elements_text-color, var(--recursica_brand_themes_dark_layers_layer-3_elements_text-color));
+  border-color: var(--recursica_brand_modes_dark_layers_layer-3_properties_border-color, var(--recursica_brand_modes_dark_layers_layer-3_properties_border-color));
+  background: var(--recursica_brand_modes_dark_layers_layer-3_properties_surface, var(--recursica_brand_modes_dark_layers_layer-3_properties_surface));
+  color: var(--recursica_brand_modes_dark_layers_layer-3_elements_text-color, var(--recursica_brand_modes_dark_layers_layer-3_elements_text-color));
 }
 

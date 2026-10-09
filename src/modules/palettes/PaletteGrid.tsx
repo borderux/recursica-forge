@@ -88,10 +88,10 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
       Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
     }
     const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-    const themes = root?.themes || root
-    // Canonical structure: brand.themes.light.palettes → prefix 'palette' (singular, DTCG path)
-    if (themes?.light?.palettes) visit(themes.light.palettes, 'palette', 'Light')
-    if (themes?.dark?.palettes) visit(themes.dark.palettes, 'palette', 'Dark')
+    const modes = root?.modes || root
+    // Canonical structure: brand.modes.light.palettes → prefix 'palette' (singular, DTCG path)
+    if (modes?.light?.palettes) visit(modes.light.palettes, 'palette', 'Light')
+    if (modes?.dark?.palettes) visit(modes.dark.palettes, 'palette', 'Dark')
     return out
   }, [themeJson])
   const detectFamilyFromTheme = useMemo(() => {
@@ -244,7 +244,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
       const m = name.match(/\/(\d{3})\//)
       if (m) return m[1]
     }
-    // DTCG string ref: '{brand.themes.light.palettes.palette-1.400.color.tone}'
+    // DTCG string ref: '{brand.modes.light.palettes.palette-1.400.color.tone}'
     if (typeof ref === 'string') {
       const m = ref.match(/\.?(\d{3})\.color\.tone/)
       if (m) return m[1]
@@ -415,11 +415,11 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
           {descriptiveLabel && (
             <div style={{
               margin: 0,
-              fontFamily: 'var(--recursica_brand_typography_subtitle-font-family)',
-              fontSize: 'var(--recursica_brand_typography_subtitle-font-size)',
-              fontWeight: 'var(--recursica_brand_typography_subtitle-font-weight)',
-              letterSpacing: 'var(--recursica_brand_typography_subtitle-font-letter-spacing)',
-              lineHeight: 'var(--recursica_brand_typography_subtitle-line-height)',
+              fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+              fontSize: 'var(--recursica_brand_typography_body-font-size)',
+              fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
+              letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
+              lineHeight: 'var(--recursica_brand_typography_body-line-height)',
               color: `var(${genericLayerText(0, 'color')})`,
               opacity: `var(${textEmphasis(themeMode, 'low')})`,
             }}>{descriptiveLabel}</div>

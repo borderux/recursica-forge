@@ -46,7 +46,7 @@ describe("detectJsonFileType", () => {
 
   it("should detect recursica_brand.json", () => {
     expect(detectJsonFileType({ brand: {} })).toBe("brand");
-    expect(detectJsonFileType({ themes: {} })).toBe("brand");
+    expect(detectJsonFileType({ modes: {} })).toBe("brand");
   });
 
   it("should detect recursica_ui-kit.json", () => {
@@ -110,7 +110,7 @@ describe("detectDirtyData", () => {
   it("should return true when theme differs", () => {
     mockStore.getState.mockReturnValue({
       tokens: { tokens: {} },
-      theme: { brand: { themes: { light: { palettes: {} } } } },
+      theme: { brand: { modes: { light: { palettes: {} } } } },
       uikit: { "ui-kit": {} },
     });
 
@@ -214,7 +214,7 @@ describe("validateImportedReferences", () => {
   it("should throw ImportValidationError for missing palettes", () => {
     const mockState = {
       tokens: { tokens: { colors: {} } },
-      theme: { brand: { themes: { light: { palettes: {} } } } },
+      theme: { brand: { modes: { light: { palettes: {} } } } },
       uikit: {
         "ui-kit": {
           components: {
@@ -227,7 +227,7 @@ describe("validateImportedReferences", () => {
                         "layer-0": {
                           background: {
                             $type: "color",
-                            $value: "{brand.themes.light.palettes.palette-3.500.color.tone}"
+                            $value: "{brand.modes.light.palettes.palette-3.500.color.tone}"
                           }
                         }
                       }
@@ -252,7 +252,7 @@ describe("validateImportedReferences", () => {
       tokens: { tokens: { colors: {} } }, // Empty tokens, no scale-05
       theme: { 
         brand: { 
-          themes: { 
+          modes: { 
             light: { 
               palettes: {
                 "core-colors": { interactive: { tone: { $type: "color", $value: "{tokens.colors.scale-05.500}" } } }
@@ -275,7 +275,7 @@ describe("validateImportedReferences", () => {
       tokens: { tokens: { colors: { "scale-05": { "500": { $type: "color", $value: "#fff" } } } } },
       theme: { 
         brand: { 
-          themes: { 
+          modes: { 
             light: { 
               palettes: {
                 "core-colors": { interactive: { tone: { $type: "color", $value: "{tokens.colors.scale-05.500}" } } }
@@ -296,7 +296,7 @@ describe("validateImportedReferences", () => {
                         "layer-0": {
                           background: {
                             $type: "color",
-                            $value: "{brand.themes.light.palettes.core-colors.interactive.tone}"
+                            $value: "{brand.modes.light.palettes.core-colors.interactive.tone}"
                           }
                         }
                       }

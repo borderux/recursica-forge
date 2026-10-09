@@ -3,6 +3,7 @@ import { validateAllJsonSchemas } from './utils/validateJsonSchemas'
 import tokensImport from '../../recursica_tokens.json'
 import themeImport from '../../recursica_brand.json'
 import uikitImport from '../../recursica_ui-kit.json'
+import { expandLayers } from './uikit/expandLayers'
 // Note: fontUtils is imported dynamically to avoid circular dependencies
 
 // Initialize the store and compute/apply initial CSS vars before React mounts
@@ -21,7 +22,9 @@ export function bootstrapTheme() {
 
     // Validate JSON schemas before initializing store
     const theme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
-    validateAllJsonSchemas(theme, tokensImport as any, uikitImport as any)
+    // Validation runs on the expanded ui-kit, so the rule is unchanged: every layer must resolve
+    // to a value. Writing a property once instead of four times cannot skip that check.
+    validateAllJsonSchemas(theme, tokensImport as any, expandLayers(uikitImport) as any)
 
     const store = getVarsStore()
 

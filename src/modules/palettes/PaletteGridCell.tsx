@@ -128,8 +128,8 @@ export function PaletteEmphasisCell({
     const opacity = readCssVarNumber(emphasisCssVar, 1)
 
     // Also get high and low emphasis opacities to check both
-    const highEmphasisCssVar = `--recursica_brand_themes_${mode}_text-emphasis_high`
-    const lowEmphasisCssVar = `--recursica_brand_themes_${mode}_text-emphasis_low`
+    const highEmphasisCssVar = `--recursica_brand_modes_${mode}_text-emphasis_high`
+    const lowEmphasisCssVar = `--recursica_brand_modes_${mode}_text-emphasis_low`
     const highOpacity = readCssVarNumber(highEmphasisCssVar, 1)
     const lowOpacity = readCssVarNumber(lowEmphasisCssVar, 1)
 
@@ -139,8 +139,8 @@ export function PaletteEmphasisCell({
     const passesAA = currentRatio >= AA
 
     // Read actual core black and white colors from CSS variables (not hardcoded)
-    const coreHighContrastVar = `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast`
-    const coreLowContrastVar = `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast`
+    const coreHighContrastVar = `--recursica_brand_modes_${mode}_palettes_core-colors_high-contrast`
+    const coreLowContrastVar = `--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast`
     const blackHex = readCssVarResolved(coreHighContrastVar) || '#000000'
     const whiteHex = readCssVarResolved(coreLowContrastVar) || '#ffffff'
     const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
@@ -309,10 +309,10 @@ export function PaletteEmphasisCell({
       {isPrimary ? (
         // For primary tone, show both high and low emphasis dots vertically stacked
         (() => {
-          const highEmphasisCssVar = `--recursica_brand_themes_${mode}_text-emphasis_high`
-          const lowEmphasisCssVar = `--recursica_brand_themes_${mode}_text-emphasis_low`
-          const highOnToneCssVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
-          const lowOnToneCssVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
+          const highEmphasisCssVar = `--recursica_brand_modes_${mode}_text-emphasis_high`
+          const lowEmphasisCssVar = `--recursica_brand_modes_${mode}_text-emphasis_low`
+          const highOnToneCssVar = `--recursica_brand_modes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
+          const lowOnToneCssVar = `--recursica_brand_modes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
           const WarningIcon = iconNameToReactComponent('warning')
 
           if (shouldOpenColorPicker) {
@@ -323,11 +323,11 @@ export function PaletteEmphasisCell({
                 <div style={{
                   color: `var(${iconOnToneCssVar})`,
                   opacity: `var(${iconEmphasisCssVar})`,
-                  fontFamily: 'var(--recursica_brand_typography_body-small-font-family)',
-                  fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
-                  fontWeight: 'var(--recursica_brand_typography_body-small-font-weight)',
-                  letterSpacing: 'var(--recursica_brand_typography_body-small-font-letter-spacing)',
-                  lineHeight: 'var(--recursica_brand_typography_body-small-line-height)',
+                  fontFamily: 'var(--recursica_brand_typography_caption-font-family)',
+                  fontSize: 'var(--recursica_brand_typography_caption-font-size)',
+                  fontWeight: 'var(--recursica_brand_typography_caption-font-weight)',
+                  letterSpacing: 'var(--recursica_brand_typography_caption-font-letter-spacing)',
+                  lineHeight: 'var(--recursica_brand_typography_caption-line-height)',
                 }}>
                   {level}
                 </div>
@@ -364,11 +364,11 @@ export function PaletteEmphasisCell({
                   <div style={{
                     color: `var(${highOnToneCssVar})`,
                     opacity: `var(${highEmphasisCssVar})`,
-                    fontFamily: 'var(--recursica_brand_typography_body-small-font-family)',
-                    fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
-                    fontWeight: 'var(--recursica_brand_typography_body-small-font-weight)',
-                    letterSpacing: 'var(--recursica_brand_typography_body-small-font-letter-spacing)',
-                    lineHeight: 'var(--recursica_brand_typography_body-small-line-height)',
+                    fontFamily: 'var(--recursica_brand_typography_caption-font-family)',
+                    fontSize: 'var(--recursica_brand_typography_caption-font-size)',
+                    fontWeight: 'var(--recursica_brand_typography_caption-font-weight)',
+                    letterSpacing: 'var(--recursica_brand_typography_caption-font-letter-spacing)',
+                    lineHeight: 'var(--recursica_brand_typography_caption-line-height)',
                   }}>
                     {level}
                   </div>

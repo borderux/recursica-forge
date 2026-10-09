@@ -18,7 +18,7 @@
  * no-op.
  *
  * ── 1.x → 2.x structural deltas ─────────────────────────────────────────────
- *  brand.themes.<mode>.states:
+ *  brand.modes.<mode>.states:
  *    - `hover` was a bare opacity number → becomes `{ color, opacity }`
  *      (the old number is preserved as `opacity`; `color` gets the 2.x default).
  *    - `focus` (glow) and `link` (hover text treatment) are NEW → added with 2.x
@@ -32,6 +32,7 @@
  */
 
 import uikitTemplate from '../../../recursica_ui-kit.json'
+import { expandLayers } from '../uikit/expandLayers'
 import { sanitizeGoogleFontsUrl } from '../../modules/type/fontUtils'
 
 const TARGET_STRUCTURE_VERSION = '2.1.1'
@@ -79,6 +80,25 @@ export const MIGRATION_RULES: MigrationRule[] = [
     stringReplacement: {
       pattern: /\{brand\.palettes\.(core-colors|neutral|accent|success|warning|alert|info)_(.+?)\}/g,
       replacement: '{brand.palettes.$1.$2}',
+    },
+  },
+  {
+    // The brand's per-mode container was renamed `themes` → `modes`: it holds light/dark, which
+    // are modes, and the old name collided with the notion of a whole theme (a brand + ui-kit
+    // pair). Every export published before the rename carries the old path, in brand refs and in
+    // ui-kit refs that point back at the brand, so this rule applies to every file type.
+    description: 'Migrate brand.themes to brand.modes',
+    stringReplacement: {
+      pattern: /\{brand\.themes\./g,
+      replacement: '{brand.modes.',
+    },
+  },
+  {
+    // Same rename, for values where a raw CSS variable leaked into the JSON instead of a ref.
+    description: 'Migrate brand/ui-kit _themes_ CSS variable segment to _modes_',
+    stringReplacement: {
+      pattern: /--recursica_(brand|ui-kit)_themes_/g,
+      replacement: '--recursica_$1_modes_',
     },
   },
   // Catch flat css variables and convert them back to DTCG refs
@@ -189,7 +209,7 @@ const px = (value: number) => ({ value, unit: 'px' })
 
 /** 2.x default focus-glow block for a given theme mode. */
 const defaultFocus = (mode: string) => ({
-  color: { $type: 'color', $value: `{brand.themes.${mode}.palettes.core-colors.interactive.tone}` },
+  color: { $type: 'color', $value: `{brand.modes.${mode}.palettes.core-colors.interactive.tone}` },
   'border-size': { $type: 'number', $value: px(1) },
   margin: { $type: 'number', $value: px(2) },
   blur: { $type: 'number', $value: px(4) },
@@ -205,7 +225,7 @@ const defaultLink = () => ({
 /** 2.x default hover overlay color for a given theme mode. */
 const defaultHoverColor = (mode: string) => ({
   $type: 'color',
-  $value: `{brand.themes.${mode}.palettes.neutral.400.color.tone}`,
+  $value: `{brand.modes.${mode}.palettes.neutral.400.color.tone}`,
 })
 
 /** Stamp the structure version onto a file root (informational; idempotent). */
@@ -219,16 +239,44 @@ function stampVersion(root: any): void {
 }
 
 /**
- * Brand: reshape `themes.<mode>.states` from the 1.x shape to 2.x. Idempotent —
+ * Brand: reshape `modes.<mode>.states` from the 1.x shape to 2.x. Idempotent —
  * only reshapes `hover` when it is still a bare number, and only adds `focus` /
  * `link` when absent.
  */
+/**
+ * Brand: rename the per-mode container `themes` → `modes`, preserving its position in the object.
+ *
+ * `light`/`dark` are modes; a *theme* is a whole brand + ui-kit pair, so the old key read as
+ * though each entry were a complete theme. Structure-driven and idempotent: a file that already
+ * uses `modes` is left alone, and a file carrying both keeps the newer one.
+ *
+ * Must run before the other brand migrations, which all read `brand.modes`.
+ */
+export function renameBrandThemesToModes(root: any): any {
+  const brand = root?.brand ?? root
+  if (!brand || typeof brand !== 'object') return root
+  if (!brand.themes || brand.modes) {
+    // Nothing to do — already migrated, or no per-mode container at all.
+    if (brand.themes && brand.modes) delete brand.themes
+    return root
+  }
+  // Rebuild so `modes` sits where `themes` did rather than being appended at the end; the JSON
+  // is read by people as well as machines and the mode block belongs at the top.
+  const rebuilt: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(brand)) {
+    rebuilt[key === 'themes' ? 'modes' : key] = value
+  }
+  for (const key of Object.keys(brand)) delete brand[key]
+  Object.assign(brand, rebuilt)
+  return root
+}
+
 export function migrateBrandTo2x(root: any): any {
   const brand = root?.brand ?? root
-  const themes = brand?.themes
-  if (themes && typeof themes === 'object') {
-    for (const mode of Object.keys(themes)) {
-      const states = themes[mode]?.states
+  const modes = brand?.modes
+  if (modes && typeof modes === 'object') {
+    for (const mode of Object.keys(modes)) {
+      const states = modes[mode]?.states
       if (!states || typeof states !== 'object') continue
       // 1.x `hover` was a bare opacity number → { color, opacity } (preserve the number as opacity)
       if (
@@ -254,7 +302,9 @@ export function migrateBrandTo2x(root: any): any {
 // at its 2.x path via `mapOldUikitPath`. Values with no 2.x home (hover/focus/
 // per-component disabled-opacity — all global in 2.x) are intentionally dropped.
 
-const CURRENT_UIKIT_TEMPLATE: any = (uikitTemplate as any)?.['ui-kit']
+// The bundled ui-kit is written in the short layer form; an overlay maps old values onto the
+// current structure path by path, so it needs the layers written out.
+const CURRENT_UIKIT_TEMPLATE: any = expandLayers((uikitTemplate as any)?.['ui-kit'])
 
 const FORM_INPUTS = new Set([
   'text-field', 'textarea', 'number-input', 'date-picker', 'time-picker',
@@ -792,10 +842,10 @@ export function migrateUikitTo2x(root: any): any {
  * beside an existing `.color` is left in place rather than clobbering it.
  */
 export function migrateInteractiveElementTo2_1(root: any): any {
-  const themes = root?.brand?.themes
-  if (!themes || typeof themes !== 'object') return root
+  const modes = root?.brand?.modes
+  if (!modes || typeof modes !== 'object') return root
 
-  for (const theme of Object.values<any>(themes)) {
+  for (const theme of Object.values<any>(modes)) {
     const layers = theme?.layers
     if (!layers || typeof layers !== 'object') continue
 
@@ -898,7 +948,7 @@ export function repairCorruptedGoogleFontsUrls(root: any): any {
  */
 export function migrateImportedJson(data: any, fileType?: 'tokens' | 'brand' | 'uikit'): any {
   const migrated = applyStringRules(data)
-  if (fileType === 'brand') return migrateInteractiveElementTo2_1(migrateBrandTo2x(migrated))
+  if (fileType === 'brand') return migrateInteractiveElementTo2_1(migrateBrandTo2x(renameBrandThemesToModes(migrated)))
   if (fileType === 'uikit') return repointInteractiveRefsTo2_1(migrateUikitTo2x(migrated))
   if (fileType === 'tokens') return repairCorruptedGoogleFontsUrls(migrated)
   return migrated

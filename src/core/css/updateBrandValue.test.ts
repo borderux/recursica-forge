@@ -15,14 +15,14 @@ const mockTheme = {
         }
       }
     },
-    themes: {
+    modes: {
       light: {
         layers: {
           'layer-2': {
             properties: {
               elevation: {
                 $type: 'shadow',
-                $value: '{brand.themes.light.elevations.elevation-2}'
+                $value: '{brand.modes.light.elevations.elevation-2}'
               }
             }
           }
@@ -76,15 +76,15 @@ describe('updateBrandValue', () => {
   })
 
   it('should update single-value tokens directly under $value', () => {
-    // Alert tone CSS var: --recursica_brand_themes_light_palettes_core-colors_alert_tone
+    // Alert tone CSS var: --recursica_brand_modes_light_palettes_core-colors_alert_tone
     const result = updateBrandValue(
-      '--recursica_brand_themes_light_palettes_core-colors_alert_tone',
+      '--recursica_brand_modes_light_palettes_core-colors_alert_tone',
       'var(--recursica_tokens_colors_scale-05_600)'
     )
     
     expect(result).toBe(true)
     expect(mockSetThemeSilent).toHaveBeenCalled()
-    expect(mockThemeCopy.brand.themes.light.palettes['core-colors'].alert.tone.$value).toBe(
+    expect(mockThemeCopy.brand.modes.light.palettes['core-colors'].alert.tone.$value).toBe(
       '{tokens.colors.scale-05.600}'
     )
   })
@@ -107,9 +107,9 @@ describe('updateBrandValue', () => {
   })
 
   it('should update composite shadow elevation sub-properties inside $value object', () => {
-    // elevation-1 blur CSS var: --recursica_brand_themes_light_elevations_elevation-1_blur
+    // elevation-1 blur CSS var: --recursica_brand_modes_light_elevations_elevation-1_blur
     const result = updateBrandValue(
-      '--recursica_brand_themes_light_elevations_elevation-1_blur',
+      '--recursica_brand_modes_light_elevations_elevation-1_blur',
       '6px'
     )
 
@@ -117,34 +117,34 @@ describe('updateBrandValue', () => {
     expect(mockSetThemeSilent).toHaveBeenCalled()
 
     // Check that we updated the nested elevation value
-    expect(mockThemeCopy.brand.themes.light.elevations['elevation-1'].$value.blur.$value).toEqual({
+    expect(mockThemeCopy.brand.modes.light.elevations['elevation-1'].$value.blur.$value).toEqual({
       value: 6,
       unit: 'px'
     })
-    expect(mockThemeCopy.brand.themes.light.elevations['elevation-1'].blur).toBeUndefined()
+    expect(mockThemeCopy.brand.modes.light.elevations['elevation-1'].blur).toBeUndefined()
   })
 
   // Elevation CSS vars carry a bare name (`elevation-3`) rather than a var() reference — that form
   // is explicitly allowed by validateCssVarValue and read back by the Layers panel. The JSON must
   // still hold a resolvable DTCG reference, not the bare name.
   describe('bare elevation names', () => {
-    const VAR = '--recursica_brand_themes_light_layers_layer-2_properties_elevation'
-    const at = () => mockThemeCopy.brand.themes.light.layers['layer-2'].properties.elevation.$value
+    const VAR = '--recursica_brand_modes_light_layers_layer-2_properties_elevation'
+    const at = () => mockThemeCopy.brand.modes.light.layers['layer-2'].properties.elevation.$value
 
     it('stores a bare elevation name as a mode-qualified DTCG reference', () => {
       expect(updateBrandValue(VAR, 'elevation-3')).toBe(true)
-      expect(at()).toBe('{brand.themes.light.elevations.elevation-3}')
+      expect(at()).toBe('{brand.modes.light.elevations.elevation-3}')
     })
 
     it('never persists the bare name itself', () => {
       updateBrandValue(VAR, 'elevation-0')
       expect(at()).not.toBe('elevation-0')
-      expect(at()).toBe('{brand.themes.light.elevations.elevation-0}')
+      expect(at()).toBe('{brand.modes.light.elevations.elevation-0}')
     })
 
     it('still accepts an explicit reference unchanged', () => {
-      expect(updateBrandValue(VAR, '{brand.themes.light.elevations.elevation-1}')).toBe(true)
-      expect(at()).toBe('{brand.themes.light.elevations.elevation-1}')
+      expect(updateBrandValue(VAR, '{brand.modes.light.elevations.elevation-1}')).toBe(true)
+      expect(at()).toBe('{brand.modes.light.elevations.elevation-1}')
     })
 
     it('refuses a bare name on a var with no mode segment rather than guessing', () => {

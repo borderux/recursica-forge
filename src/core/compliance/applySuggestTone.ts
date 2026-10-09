@@ -59,16 +59,16 @@ export function applySuggestTone(
   
   if (newOnToneColor && targetCssVar) {
     // Determine the mode from the target CSS var path
-    const modeMatch = targetCssVar.match(/themes_(light|dark)/)
+    const modeMatch = targetCssVar.match(/modes_(light|dark)/)
     const mode = modeMatch ? modeMatch[1] : 'light'
 
     // Use core-color references (white.tone = scale-02.000, black.tone = scale-02.1000)
     const onToneValueJson = newOnToneColor === 'low-contrast'
-      ? `{brand.themes.${mode}.palettes.core-colors.low-contrast.tone}`
-      : `{brand.themes.${mode}.palettes.core-colors.high-contrast.tone}`
+      ? `{brand.modes.${mode}.palettes.core-colors.low-contrast.tone}`
+      : `{brand.modes.${mode}.palettes.core-colors.high-contrast.tone}`
     const onToneCssVarValue = newOnToneColor === 'low-contrast'
-      ? `var(--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone)`
-      : `var(--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast_tone)`
+      ? `var(--recursica_brand_modes_${mode}_palettes_core-colors_low-contrast_tone)`
+      : `var(--recursica_brand_modes_${mode}_palettes_core-colors_high-contrast_tone)`
     
     // Update the brand JSON with JSON ref
     updateBrandValue(targetCssVar, onToneValueJson)

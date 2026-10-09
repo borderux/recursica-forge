@@ -74,6 +74,8 @@ export type SliderProps = {
    * to both.
    */
   valueLabel?: string | ((value: number) => string)
+  /** Tooltip text (or formatter) shown for the current value. Not yet honored by the real adapters. */
+  tooltipText?: string | ((value: number) => string)
   minLabel?: React.ReactNode
   maxLabel?: React.ReactNode
   showMinMaxLabels?: boolean

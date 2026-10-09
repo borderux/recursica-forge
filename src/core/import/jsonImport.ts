@@ -122,7 +122,7 @@ export function detectJsonFileType(
   json: any,
 ): "tokens" | "brand" | "uikit" | null {
   if (json?.tokens) return "tokens";
-  if (json?.brand || json?.themes) return "brand";
+  if (json?.brand || json?.modes) return "brand";
   if (json?.["ui-kit"] || json?.uiKit) return "uikit";
   return null;
 }

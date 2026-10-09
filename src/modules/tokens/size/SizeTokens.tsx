@@ -130,7 +130,7 @@ export default function SizeTokens() {
           />
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
             <span style={{
-              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+              fontSize: 'var(--recursica_brand_typography_caption-font-size)',
               color: `var(${genericLayerText(0, 'color')})`,
               opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
             }}>
@@ -197,7 +197,7 @@ export default function SizeTokens() {
               paddingBottom: 0,
             }}>
               <label htmlFor={`size/${rawKey}`} style={{
-                fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                fontSize: 'var(--recursica_brand_typography_caption-font-size)',
                 color: `var(${genericLayerText(0, 'color')})`,
                 opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                 minWidth: 80,

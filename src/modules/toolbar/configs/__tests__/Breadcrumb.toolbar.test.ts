@@ -2,7 +2,11 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import config from '../Breadcrumb.toolbar.json'
-import uikitJson from '../../../../../recursica_ui-kit.json'
+import uikitRaw from '../../../../../recursica_ui-kit.json'
+import { expandLayers } from '../../../../core/uikit/expandLayers'
+
+// The ui-kit ships in the short layer form; these checks walk full paths.
+const uikitJson = expandLayers(uikitRaw) as typeof uikitRaw
 
 describe('Breadcrumb Toolbar Config', () => {
   it('should have valid JSON structure', () => {

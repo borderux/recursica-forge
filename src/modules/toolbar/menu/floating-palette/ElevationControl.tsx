@@ -62,7 +62,7 @@ export default function ElevationControl({
 
   const handleThumbElevationChange = (elevationName: string) => {
     if (thumbElevationVar) {
-      updateCssVar(thumbElevationVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
+      updateCssVar(thumbElevationVar, `{brand.modes.${mode}.elevations.${elevationName}}`)
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [thumbElevationVar] }
       }))
@@ -71,7 +71,7 @@ export default function ElevationControl({
 
   const handleTrackElevationChange = (elevationName: string) => {
     if (trackElevationVar) {
-      updateCssVar(trackElevationVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
+      updateCssVar(trackElevationVar, `{brand.modes.${mode}.elevations.${elevationName}}`)
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [trackElevationVar] }
       }))

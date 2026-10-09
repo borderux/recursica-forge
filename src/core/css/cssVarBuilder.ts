@@ -92,7 +92,7 @@ export function brandDimensions(...segments: string[]): string {
 // ─── Brand: Palettes (specific, theme-scoped) ───────────────────────────────
 
 /**
- * `--recursica_brand_themes_{mode}_palettes_{pk}_{level}_{prop}`
+ * `--recursica_brand_modes_{mode}_palettes_{pk}_{level}_{prop}`
  *
  * @param prop - e.g. 'tone', 'on-tone', 'high-contrast', 'low-contrast'
  */
@@ -102,18 +102,18 @@ export function palette(
   level: string,
   prop: string
 ): string {
-  return `${P}brand_themes_${mode}_palettes_${pk}_${level}_${prop}`
+  return `${P}brand_modes_${mode}_palettes_${pk}_${level}_${prop}`
 }
 
-/** `--recursica_brand_themes_{mode}_palettes_core-colors_{...rest joined with _}` */
+/** `--recursica_brand_modes_{mode}_palettes_core-colors_{...rest joined with _}` */
 export function paletteCore(mode: string, ...rest: string[]): string {
-  return `${P}brand_themes_${mode}_palettes_core-colors_${rest.join('_')}`
+  return `${P}brand_modes_${mode}_palettes_core-colors_${rest.join('_')}`
 }
 
 // ─── Brand: Layers (specific, theme-scoped) ─────────────────────────────────
 
 /**
- * `--recursica_brand_themes_{mode}_layers_layer-{N}_properties_{prop}`
+ * `--recursica_brand_modes_{mode}_layers_layer-{N}_properties_{prop}`
  *
  * @param prop - e.g. 'surface', 'border-color', 'padding', 'border-radius'
  */
@@ -122,11 +122,11 @@ export function layerProperty(
   layerNum: string | number,
   prop: string
 ): string {
-  return `${P}brand_themes_${mode}_layers_layer-${layerNum}_properties_${prop}`
+  return `${P}brand_modes_${mode}_layers_layer-${layerNum}_properties_${prop}`
 }
 
 /**
- * `--recursica_brand_themes_{mode}_layers_layer-{N}_elements_text-{prop}`
+ * `--recursica_brand_modes_{mode}_layers_layer-{N}_elements_text-{prop}`
  *
  * @param prop - e.g. 'color', 'high-emphasis', 'low-emphasis', 'alert'
  */
@@ -135,11 +135,11 @@ export function layerText(
   layerNum: string | number,
   prop: string
 ): string {
-  return `${P}brand_themes_${mode}_layers_layer-${layerNum}_elements_text-${prop}`
+  return `${P}brand_modes_${mode}_layers_layer-${layerNum}_elements_text-${prop}`
 }
 
 /**
- * `--recursica_brand_themes_{mode}_layers_layer-{N}_elements_interactive-{prop}`
+ * `--recursica_brand_modes_{mode}_layers_layer-{N}_elements_interactive-{prop}`
  *
  * @param prop - e.g. 'tone', 'tone-hover', 'on-tone', 'on-tone-hover'
  */
@@ -148,42 +148,42 @@ export function layerInteractive(
   layerNum: string | number,
   prop: string
 ): string {
-  return `${P}brand_themes_${mode}_layers_layer-${layerNum}_elements_interactive-${prop}`
+  return `${P}brand_modes_${mode}_layers_layer-${layerNum}_elements_interactive-${prop}`
 }
 
 /**
  * Raw layer element path for non-standard elements.
- * `--recursica_brand_themes_{mode}_layers_layer-{N}_elements_{elementPath}`
+ * `--recursica_brand_modes_{mode}_layers_layer-{N}_elements_{elementPath}`
  */
 export function layerElement(
   mode: string,
   layerNum: string | number,
   elementPath: string
 ): string {
-  return `${P}brand_themes_${mode}_layers_layer-${layerNum}_elements_${elementPath}`
+  return `${P}brand_modes_${mode}_layers_layer-${layerNum}_elements_${elementPath}`
 }
 
 // ─── Brand: States (specific, theme-scoped) ─────────────────────────────────
 
-/** `--recursica_brand_themes_{mode}_states_{...parts joined with _}` */
+/** `--recursica_brand_modes_{mode}_states_{...parts joined with _}` */
 export function state(mode: string, ...parts: string[]): string {
-  return `${P}brand_themes_${mode}_states_${parts.join('_')}`
+  return `${P}brand_modes_${mode}_states_${parts.join('_')}`
 }
 
 // ─── Brand: Text Emphasis (specific, theme-scoped) ──────────────────────────
 
-/** `--recursica_brand_themes_{mode}_text-emphasis_{level}` */
+/** `--recursica_brand_modes_{mode}_text-emphasis_{level}` */
 export function textEmphasis(
   mode: string,
   level: 'high' | 'low' | string
 ): string {
-  return `${P}brand_themes_${mode}_text-emphasis_${level}`
+  return `${P}brand_modes_${mode}_text-emphasis_${level}`
 }
 
 // ─── Brand: Elevations (specific, theme-scoped) ─────────────────────────────
 
 /**
- * `--recursica_brand_themes_{mode}_elevations_elevation-{N}_{prop}`
+ * `--recursica_brand_modes_{mode}_elevations_elevation-{N}_{prop}`
  *
  * @param prop - e.g. 'x-axis', 'y-axis', 'blur', 'spread', 'shadow-color'
  */
@@ -192,7 +192,7 @@ export function elevation(
   level: string | number,
   prop: string
 ): string {
-  return `${P}brand_themes_${mode}_elevations_elevation-${level}_${prop}`
+  return `${P}brand_modes_${mode}_elevations_elevation-${level}_${prop}`
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -299,16 +299,13 @@ export function cssVarToRef(value: string): string | null {
     // The style names include hyphens (e.g. body-small, subtitle-small) and the
     // property names are appended with a hyphen after the style, e.g.:
     //   brand_typography_h1-font-family          → brand.typography.h1.fontFamily
-    //   brand_typography_body-small-font-size     → brand.typography.body-small.fontSize
+    //   brand_typography_caption-font-size     → brand.typography.caption.fontSize
     //   brand_typography_h1-font-letter-spacing   → brand.typography.h1.letterSpacing
     //   brand_typography_h1-text-transform        → brand.typography.h1.textCase
     //   brand_typography_h1-line-height           → brand.typography.h1.lineHeight
     if (parts.length >= 2 && parts[0] === 'brand' && parts[1] === 'typography') {
       const styleAndProp = parts.slice(2).join('_') // e.g. "h1-font-family" or "body-small-font-size"
-      const knownStyles = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle-small', 'subtitle', 'body-small', 'body', 'caption', 'overline']
-      const matchedStyle = knownStyles.find(s => styleAndProp === s || styleAndProp.startsWith(s + '-'))
-      if (matchedStyle) {
-        const propRaw = styleAndProp.slice(matchedStyle.length + 1) // strip "{style}-"
+      {
         // Map flat kebab CSS prop name → DTCG camelCase property name
         const propMap: Record<string, string> = {
           'font-family': 'fontFamily',
@@ -322,9 +319,16 @@ export function cssVarToRef(value: string): string | null {
           'text-case': 'textCase',
           'text-decoration': 'textDecoration',
         }
-        const dtcgProp = propMap[propRaw]
-        if (dtcgProp) {
-          return `{brand.typography.${matchedStyle}.${dtcgProp}}`
+        // A style name may contain hyphens and a brand may define its own, so find the property
+        // as a suffix (longest first, so font-letter-spacing beats letter-spacing) and treat
+        // everything before it as the style name.
+        const propRaw = Object.keys(propMap)
+          .filter((prop) => styleAndProp.endsWith('-' + prop))
+          .sort((a, b) => b.length - a.length)[0]
+        const dtcgProp = propRaw ? propMap[propRaw] : undefined
+        if (propRaw && dtcgProp) {
+          const matchedStyle = styleAndProp.slice(0, styleAndProp.length - propRaw.length - 1)
+          if (matchedStyle) return `{brand.typography.${matchedStyle}.${dtcgProp}}`
         }
       }
     }
@@ -332,8 +336,8 @@ export function cssVarToRef(value: string): string | null {
     let joined = parts.join('.')
     
     // Strip theme prefix for brand variables since components are theme-agnostic
-    if (joined.startsWith('brand.themes.light.') || joined.startsWith('brand.themes.dark.')) {
-      joined = joined.replace(/^brand\.themes\.(light|dark)\./, 'brand.')
+    if (joined.startsWith('brand.modes.light.') || joined.startsWith('brand.modes.dark.')) {
+      joined = joined.replace(/^brand\.modes\.(light|dark)\./, 'brand.')
     }
 
     // Restore nested JSON structure for layer elements that were flattened in CSS var names
@@ -545,7 +549,7 @@ export type ParsedBrand = ParsedBrandPalette | ParsedBrandCoreColor | ParsedBran
  * Accepts both raw CSS var names (`--recursica_brand_...`) and
  * `var()` wrapped values (`var(--recursica_brand_...)`).
  *
- * @example parseBrandCssVar('--recursica_brand_themes_light_palettes_core_interactive_default_tone')
+ * @example parseBrandCssVar('--recursica_brand_modes_light_palettes_core_interactive_default_tone')
  *   → { type: 'core-color', mode: 'light', path: 'interactive_default_tone' }
  * @example parseBrandCssVar('--recursica_brand_typography_body-font-size')
  *   → { type: 'typography', style: 'body', property: 'font-size' }
@@ -601,8 +605,8 @@ export function parseBrandCssVar(input: string): ParsedBrand | null {
     return { type: 'palette', mode: '', paletteName: pk, level: segments[2], prop: segments.slice(3).join('_') }
   }
 
-  // themes_{mode}_palettes_core_{...path}
-  if (segments[0] === 'themes' && segments.length >= 4) {
+  // modes_{mode}_palettes_core_{...path}
+  if (segments[0] === 'modes' && segments.length >= 4) {
     const mode = segments[1]
     const section = segments[2]
 

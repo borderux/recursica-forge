@@ -377,16 +377,16 @@ export default function BaseColorsGrid() {
 
     // Get default values from recursica_brand.json
     const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
-    const themes = root?.themes || root
+    const modes = root?.modes || root
     // core-colors are direct children (not under $value)
-    const defaultCoreColors = themes?.[modeLower]?.palettes?.['core-colors']
+    const defaultCoreColors = modes?.[modeLower]?.palettes?.['core-colors']
 
     if (!defaultCoreColors) return
 
     // Create a copy of the current theme
     const themeCopy = getVarsStore().getLatestThemeCopy()
     const themeRoot: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-    const currentThemes = themeRoot?.themes || themeRoot
+    const currentThemes = themeRoot?.modes || themeRoot
 
     // Ensure structure exists
     if (!currentThemes[modeLower]) currentThemes[modeLower] = {}

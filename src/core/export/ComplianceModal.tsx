@@ -24,7 +24,7 @@ export function ComplianceModal({ onAcknowledge, onCancel }: ComplianceModalProp
   const navigate = useNavigate()
   const { issueCount } = useCompliance()
   const { mode } = useThemeMode()
-  const layer3Elements = `--recursica_brand_themes_${mode}_layers_layer-3-elements`
+  const layer3Elements = `--recursica_brand_modes_${mode}_layers_layer-3-elements`
 
   return (
     <Modal

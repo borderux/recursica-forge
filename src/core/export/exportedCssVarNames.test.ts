@@ -10,8 +10,8 @@ describe('pathToExportedName', () => {
 
   it('handles each namespace prefix', () => {
     expect(pathToExportedName(['tokens', 'sizes', 'sm'])).toBe('--recursica_tokens_sizes_sm')
-    expect(pathToExportedName(['brand', 'themes', 'light', 'palettes', 'neutral', '500'])).toBe(
-      '--recursica_brand_themes_light_palettes_neutral_500'
+    expect(pathToExportedName(['brand', 'modes', 'light', 'palettes', 'neutral', '500'])).toBe(
+      '--recursica_brand_modes_light_palettes_neutral_500'
     )
     expect(pathToExportedName(['ui-kit', 'globals', 'form', 'properties', 'label-field-gap'])).toBe(
       '--recursica_ui-kit_globals_form_properties_label-field-gap'
@@ -58,9 +58,9 @@ describe('exportedNameToPath', () => {
       'scale-02',
       '500',
     ])
-    expect(exportedNameToPath('--recursica_brand_themes_light_palettes_neutral_500')).toEqual([
+    expect(exportedNameToPath('--recursica_brand_modes_light_palettes_neutral_500')).toEqual([
       'brand',
-      'themes',
+      'modes',
       'light',
       'palettes',
       'neutral',
@@ -112,7 +112,7 @@ describe('round-trip pathToExportedName and exportedNameToPath', () => {
   })
 
   it('round-trips long path', () => {
-    const path = ['brand', 'themes', 'light', 'palettes', 'neutral', '500', 'color', 'tone']
+    const path = ['brand', 'modes', 'light', 'palettes', 'neutral', '500', 'color', 'tone']
     expect(exportedNameToPath(pathToExportedName(path))).toEqual(path)
   })
 
@@ -161,10 +161,10 @@ describe('internalNameToPath', () => {
       internalNameToPath('--recursica_brand_palettes_neutral_500_color_tone')
     ).toEqual(['brand', 'palettes', 'neutral', '500', 'color', 'tone'])
     expect(
-      internalNameToPath('--recursica_brand_themes_light_palettes_neutral_500_color_tone')
+      internalNameToPath('--recursica_brand_modes_light_palettes_neutral_500_color_tone')
     ).toEqual([
       'brand',
-      'themes',
+      'modes',
       'light',
       'palettes',
       'neutral',

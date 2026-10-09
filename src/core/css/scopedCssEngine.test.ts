@@ -23,19 +23,19 @@ import { updateScopedCss, resetScopedCssCache } from './scopedCssEngine'
  */
 const SPECIFIC_VARS: Record<string, string> = {
   // ui-kit component colour, layer embedded mid-path
-  '--recursica_ui-kit_themes_light_components_badge_variants_styles_primary-color_properties_colors_layer-0_background-color':
+  '--recursica_ui-kit_modes_light_components_badge_variants_styles_primary-color_properties_colors_layer-0_background-color':
     '#abcdef',
-  '--recursica_ui-kit_themes_light_components_badge_variants_styles_primary-color_properties_colors_layer-2_background-color':
+  '--recursica_ui-kit_modes_light_components_badge_variants_styles_primary-color_properties_colors_layer-2_background-color':
     '#123456',
-  '--recursica_ui-kit_themes_dark_components_badge_variants_styles_primary-color_properties_colors_layer-0_background-color':
+  '--recursica_ui-kit_modes_dark_components_badge_variants_styles_primary-color_properties_colors_layer-0_background-color':
     '#000000',
   // ui-kit component property with no layer at all
-  '--recursica_ui-kit_themes_light_components_badge_properties_border-radius': '32px',
+  '--recursica_ui-kit_modes_light_components_badge_properties_border-radius': '32px',
   // Toast authors elevation as layer-N leaves; consumers read it WITH the layer in the name
-  '--recursica_ui-kit_themes_light_components_toast_properties_elevation_layer-0': 'none',
+  '--recursica_ui-kit_modes_light_components_toast_properties_elevation_layer-0': 'none',
   // brand layer var — consumers read the layer number in the name, so it must pass through
-  '--recursica_brand_themes_light_layers_layer-0_properties_surface': '#ffffff',
-  '--recursica_brand_themes_light_layers_layer-2_properties_surface': '#eeeeee',
+  '--recursica_brand_modes_light_layers_layer-0_properties_surface': '#ffffff',
+  '--recursica_brand_modes_light_layers_layer-2_properties_surface': '#eeeeee',
   // unscoped token — should not appear in any scope block
   '--recursica_tokens_colors_scale-01_500': '#8b8b8b',
 }
@@ -77,8 +77,8 @@ describe('scopedCssEngine', () => {
       '--recursica_ui-kit_components_badge_variants_styles_primary-color_properties_colors_background-color'
 
     // Same generic name in both blocks, each aliasing its own layer's specific var.
-    expect(layer0).toContain(`${generic}: var(--recursica_ui-kit_themes_light_components_badge_variants_styles_primary-color_properties_colors_layer-0_background-color)`)
-    expect(layer2).toContain(`${generic}: var(--recursica_ui-kit_themes_light_components_badge_variants_styles_primary-color_properties_colors_layer-2_background-color)`)
+    expect(layer0).toContain(`${generic}: var(--recursica_ui-kit_modes_light_components_badge_variants_styles_primary-color_properties_colors_layer-0_background-color)`)
+    expect(layer2).toContain(`${generic}: var(--recursica_ui-kit_modes_light_components_badge_variants_styles_primary-color_properties_colors_layer-2_background-color)`)
   })
 
   it('keeps the layer-in-name form too, which Toast elevation depends on', () => {
@@ -131,7 +131,7 @@ describe('scopedCssEngine', () => {
 
     updateScopedCss({
       ...SPECIFIC_VARS,
-      '--recursica_ui-kit_themes_light_components_badge_properties_colors_layer-0_novel-prop': 'red',
+      '--recursica_ui-kit_modes_light_components_badge_properties_colors_layer-0_novel-prop': 'red',
     })
 
     expect(el.textContent).not.toBe(before)

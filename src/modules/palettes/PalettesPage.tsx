@@ -477,14 +477,14 @@ export default function PalettesPage() {
   const { mode } = useThemeMode()
   const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
 
-  // Migrate legacy palette data: move brand.[mode].palettes → brand.themes.[mode].palettes
+  // Migrate legacy palette data: move brand.[mode].palettes → brand.modes.[mode].palettes
   // This handles palettes that were incorrectly saved at the wrong path before the fix
   useEffect(() => {
     if (!themeJson || !setTheme) return
 
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      if (!root?.themes) return // No themes structure, nothing to migrate
+      if (!root?.modes) return // No modes structure, nothing to migrate
 
       let migrated = false
       const themeCopy = getVarsStore().getLatestThemeCopy()
@@ -494,16 +494,16 @@ export default function PalettesPage() {
         const legacyPalettes = rootCopy[modeKey]?.palettes
         if (!legacyPalettes || typeof legacyPalettes !== 'object') continue
 
-        // Only migrate if themes structure exists — skip core-colors/neutral
-        // Those are expected in the themes path already
-        if (!rootCopy.themes[modeKey]) rootCopy.themes[modeKey] = {}
-        if (!rootCopy.themes[modeKey].palettes) rootCopy.themes[modeKey].palettes = {}
+        // Only migrate if modes structure exists — skip core-colors/neutral
+        // Those are expected in the modes path already
+        if (!rootCopy.modes[modeKey]) rootCopy.modes[modeKey] = {}
+        if (!rootCopy.modes[modeKey].palettes) rootCopy.modes[modeKey].palettes = {}
 
         for (const [paletteKey, paletteData] of Object.entries(legacyPalettes)) {
           // Only migrate palette-N keys that aren't already in the correct path
           if (!paletteKey.startsWith('palette-')) continue
-          if (!rootCopy.themes[modeKey].palettes[paletteKey]) {
-            rootCopy.themes[modeKey].palettes[paletteKey] = paletteData
+          if (!rootCopy.modes[modeKey].palettes[paletteKey]) {
+            rootCopy.modes[modeKey].palettes[paletteKey] = paletteData
             migrated = true
           }
         }
@@ -595,8 +595,8 @@ export default function PalettesPage() {
     // Palettes are independent per mode - each mode has its own family assignments
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-      const themes = root?.themes || root
+      // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+      const modes = root?.modes || root
       const currentModeKey = mode === 'dark' ? 'dark' : 'light'
 
       palettes.forEach((p) => {
@@ -604,7 +604,7 @@ export default function PalettesPage() {
 
         // Only check the current mode
         // Try both possible paths
-        const palette = themes?.[currentModeKey]?.palettes?.[paletteKey] || root?.[currentModeKey]?.palettes?.[paletteKey]
+        const palette = modes?.[currentModeKey]?.palettes?.[paletteKey] || root?.[currentModeKey]?.palettes?.[paletteKey]
 
         if (palette) {
           // Check a few levels to detect the family
@@ -735,9 +735,9 @@ export default function PalettesPage() {
       }
 
       // Initialize for BOTH modes — dark mode needs reversed level mapping
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-      const themes = root?.themes || root
-      const targetRoot = themes !== root ? themes : root
+      // Support both old structure (brand.light.*) and new structure (brand.modes.light.*)
+      const modes = root?.modes || root
+      const targetRoot = modes !== root ? modes : root
 
       // Find the scale key once (shared by both modes)
       let resolvedScaleKey: string | undefined
@@ -874,8 +874,8 @@ export default function PalettesPage() {
         // Write the 'default' level entry so updateBrandValue can navigate to it
         // when the user sets the default tone via the palette grid.
         // Initialise pointing to level 500 (the PaletteEntry.defaultLevel default).
-        const defaultRef = `{brand.themes.${modeKey}.palettes.${paletteKey}.500.color.tone}`
-        const defaultOnToneRef = `{brand.themes.${modeKey}.palettes.${paletteKey}.500.color.on-tone}`
+        const defaultRef = `{brand.modes.${modeKey}.palettes.${paletteKey}.500.color.tone}`
+        const defaultOnToneRef = `{brand.modes.${modeKey}.palettes.${paletteKey}.500.color.on-tone}`
         targetRoot[modeKey].palettes[paletteKey].default = {
           color: {
             $type: 'color',

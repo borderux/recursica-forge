@@ -41,7 +41,7 @@ describeDom('Button Component Rendering', () => {
 describeLogic('Button Component Logic', () => {
   itLogic('generates correct CSS variable paths', () => {
     const varPath = buildButtonCssVar('background')
-    expect(varPath).toBe('--recursica-ui-kit-components-button-properties-background')
+    expect(varPath).toBe('--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_background-color')
   })
 })
 ```
@@ -132,7 +132,7 @@ To migrate existing tests:
 See these files for examples:
 - `src/components/adapters/__tests__/Button.test.tsx` - DOM tests using `describeDom`
 - `src/components/adapters/__tests__/Button.cssVars.test.tsx` - Mix of DOM and logic tests
-- `src/core/compliance/__tests__/AAComplianceWatcher.test.tsx` - Pure logic tests
+- `src/core/compliance/AAComplianceWatcher.test.ts` - Pure logic tests
 
 ## Troubleshooting
 

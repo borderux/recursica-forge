@@ -30,7 +30,7 @@ vi.mock('../../recursica_tokens.json', () => ({
 }))
 
 vi.mock('../../recursica_brand.json', () => ({
-  default: { brand: { themes: { light: {}, dark: {} } } }
+  default: { brand: { modes: { light: {}, dark: {} } } }
 }))
 
 vi.mock('../../recursica_ui-kit.json', () => ({

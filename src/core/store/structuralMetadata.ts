@@ -153,10 +153,10 @@ function extractTokenKeys(tokens: JsonLike): TokenKeys {
 
 function extractBrandStructure(brand: JsonLike): BrandStructure {
   const root: any = (brand as any)?.brand || brand || {}
-  const themes = root.themes || root
+  const modes = root.modes || root
 
   // Palettes — enumerate from light mode (or first available)
-  const modePalettes = themes?.light?.palettes || themes?.Light?.palettes || {}
+  const modePalettes = modes?.light?.palettes || modes?.Light?.palettes || {}
   const paletteNames: string[] = []
   const corePaletteKeys: string[] = []
 
@@ -184,7 +184,7 @@ function extractBrandStructure(brand: JsonLike): BrandStructure {
 
   // Layers — count from light mode
   let layerCount = 0
-  const layers = themes?.light?.layers || themes?.light?.layer || {}
+  const layers = modes?.light?.layers || modes?.light?.layer || {}
   if (layers && typeof layers === 'object') {
     Object.keys(layers).forEach((k) => {
       const m = k.match(/layer[- ]?(\d+)/i)
@@ -198,7 +198,7 @@ function extractBrandStructure(brand: JsonLike): BrandStructure {
 
   // Elevations — count from brand structure
   let elevationLevels = 0
-  const elevations = root.elevations || themes?.light?.elevations || {}
+  const elevations = root.elevations || modes?.light?.elevations || {}
   if (elevations && typeof elevations === 'object') {
     Object.keys(elevations).forEach((k) => {
       const m = k.match(/elevation[- ]?(\d+)/i)
@@ -212,7 +212,7 @@ function extractBrandStructure(brand: JsonLike): BrandStructure {
 
   // Typography styles
   const typographyStyles: string[] = []
-  const typography = root.typography || themes?.light?.typography || {}
+  const typography = root.typography || modes?.light?.typography || {}
   if (typography && typeof typography === 'object') {
     Object.keys(typography).forEach((k) => {
       if (!k.startsWith('$')) typographyStyles.push(k)
@@ -221,7 +221,7 @@ function extractBrandStructure(brand: JsonLike): BrandStructure {
 
   // Dimensions
   const dimensionCategories: Record<string, string[]> = {}
-  const dimensions = root.dimensions || themes?.light?.dimensions || {}
+  const dimensions = root.dimensions || modes?.light?.dimensions || {}
   if (dimensions && typeof dimensions === 'object') {
     Object.keys(dimensions).forEach((cat) => {
       if (cat.startsWith('$')) return

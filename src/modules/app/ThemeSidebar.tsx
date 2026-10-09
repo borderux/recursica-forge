@@ -43,7 +43,7 @@ export function ThemeSidebar() {
 
   const navItems: Array<{ key: ThemeNavItem; label: string }> = [
     { key: 'core-properties', label: 'Core Properties' },
-    { key: 'type', label: 'Type' },
+    { key: 'type', label: 'Type & Breakpoints' },
     { key: 'palettes', label: 'Palettes' },
     { key: 'elevations', label: 'Elevations' },
     { key: 'layers', label: 'Layers' },

@@ -115,7 +115,7 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
   const [showResetConfirmation, setShowResetConfirmation] = useState(false)
   const { mode } = useThemeMode()
   const { uikit } = useVars()
-  const layerElements = `--recursica_brand_themes_${mode}_layers_layer-1_elements`
+  const layerElements = `--recursica_brand_modes_${mode}_layers_layer-1_elements`
 
   // Scan uikit for components using the same global variable reference
   const otherComponents = useMemo(() => {
@@ -143,7 +143,7 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
 
     // Filter out the current component key
     const currentSlug = conflict.componentName.toLowerCase().replace(/\s+/g, '-')
-    const currentCompKey = conflict.cssVarName.replace(/^--recursica_ui-kit_(?:themes_(?:light|dark)_)?/, '').split('_')[0].toLowerCase()
+    const currentCompKey = conflict.cssVarName.replace(/^--recursica_ui-kit_(?:modes_(?:light|dark)_)?/, '').split('_')[0].toLowerCase()
 
     return matches.filter(c => {
       const norm = c.toLowerCase()
@@ -350,7 +350,7 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
       } else {
         // Only resolve/cancel if the DOM value was actually modified by a toolbar preview
         const root = document.documentElement
-        const baseVar = conflict.cssVarName.replace(/^--recursica_ui-kit_(?:themes_(?:light|dark)_)?/, '')
+        const baseVar = conflict.cssVarName.replace(/^--recursica_ui-kit_(?:modes_(?:light|dark)_)?/, '')
         const nonThemedVar = `--recursica_ui-kit_${baseVar}`
         const currentDomValue = root.style.getPropertyValue(nonThemedVar).trim()
         

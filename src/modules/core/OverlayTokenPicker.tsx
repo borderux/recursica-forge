@@ -154,13 +154,13 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
         try {
           const themeCopy = getVarsStore().getLatestThemeCopy()
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-          const themes = root?.themes || root
+          const modes = root?.modes || root
           
-          if (!themes[modeLower]) themes[modeLower] = {}
-          if (!themes[modeLower].states) themes[modeLower].states = {}
-          if (!themes[modeLower].states.overlay) themes[modeLower].states.overlay = {}
+          if (!modes[modeLower]) modes[modeLower] = {}
+          if (!modes[modeLower].states) modes[modeLower].states = {}
+          if (!modes[modeLower].states.overlay) modes[modeLower].states.overlay = {}
           
-          themes[modeLower].states.overlay.opacity = {
+          modes[modeLower].states.overlay.opacity = {
             $type: 'number',
             $value: `{tokens.opacities.${tokenKey}}`
           }
@@ -180,8 +180,8 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
     const colors: Array<{ key: string; cssVar: string; label: string }> = []
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const themes = root?.themes || root
-      const coreColorsRaw: any = themes?.[modeLower]?.palettes?.['core-colors'] || themes?.[modeLower]?.palettes?.core || {}
+      const modes = root?.modes || root
+      const coreColorsRaw: any = modes?.[modeLower]?.palettes?.['core-colors'] || modes?.[modeLower]?.palettes?.core || {}
       const coreColorsObj: any = coreColorsRaw?.$value || coreColorsRaw || {}
       
       // Add interactive color (flat structure: tone directly under interactive)
@@ -218,8 +218,8 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
     const staticPalettes: string[] = []
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const themes = root?.themes || root
-      const lightPal: any = themes?.light?.palettes || themes?.light?.palette || {}
+      const modes = root?.modes || root
+      const lightPal: any = modes?.light?.palettes || modes?.light?.palette || {}
       Object.keys(lightPal).forEach((k) => {
         if (k !== 'core' && k !== 'core-colors' && !dynamic.includes(k)) {
           staticPalettes.push(k)
@@ -233,8 +233,8 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
     const levels: Record<string, string[]> = {}
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const themes = root?.themes || root
-      const modePal: any = themes?.[modeLower]?.palettes || themes?.[modeLower]?.palette || {}
+      const modes = root?.modes || root
+      const modePal: any = modes?.[modeLower]?.palettes || modes?.[modeLower]?.palette || {}
       
       paletteKeys.forEach((pk) => {
         const palette: any = modePal[pk]
@@ -277,24 +277,24 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
         try {
           const themeCopy = getVarsStore().getLatestThemeCopy()
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-          const themes = root?.themes || root
+          const modes = root?.modes || root
           const modeKey = modeLower
           
-          if (!themes[modeKey]) themes[modeKey] = {}
-          if (!themes[modeKey].states) themes[modeKey].states = {}
-          if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+          if (!modes[modeKey]) modes[modeKey] = {}
+          if (!modes[modeKey].states) modes[modeKey].states = {}
+          if (!modes[modeKey].states.overlay) modes[modeKey].states.overlay = {}
           
           // Handle interactive colors
           if (coreColorKey === 'interactive') {
-            themes[modeKey].states.overlay.color = {
+            modes[modeKey].states.overlay.color = {
               $type: 'color',
-              $value: `{brand.themes.${modeKey}.palettes.core-colors.interactive.tone}`
+              $value: `{brand.modes.${modeKey}.palettes.core-colors.interactive.tone}`
             }
           } else {
             // For non-interactive core colors (black, white, alert, warning, success),
             // use the reference format with .tone to match the CSS variable format
             // This will resolve to: var(--recursica_brand_palettes_core_${coreColorKey}_color_tone)
-            themes[modeKey].states.overlay.color = {
+            modes[modeKey].states.overlay.color = {
               $type: 'color',
               $value: `{brand.palettes.core-colors.${coreColorKey}.tone}`
             }
@@ -330,18 +330,18 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
         try {
           const themeCopy = getVarsStore().getLatestThemeCopy()
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-          const themes = root?.themes || root
+          const modes = root?.modes || root
           const modeKey = modeLower
           
           const cssLevel = level === 'primary' ? 'default' : level
           
-          if (!themes[modeKey]) themes[modeKey] = {}
-          if (!themes[modeKey].states) themes[modeKey].states = {}
-          if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+          if (!modes[modeKey]) modes[modeKey] = {}
+          if (!modes[modeKey].states) modes[modeKey].states = {}
+          if (!modes[modeKey].states.overlay) modes[modeKey].states.overlay = {}
           
-          themes[modeKey].states.overlay.color = {
+          modes[modeKey].states.overlay.color = {
             $type: 'color',
-            $value: `{brand.themes.${modeKey}.palettes.${paletteKey}.${cssLevel}.color.tone}`
+            $value: `{brand.modes.${modeKey}.palettes.${paletteKey}.${cssLevel}.color.tone}`
           }
           
           getVarsStore().setThemeSilent(themeCopy)
@@ -465,11 +465,11 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
                 if (themeJson) {
                   const themeCopy = getVarsStore().getLatestThemeCopy()
                   const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-                  const themes = root?.themes || root
+                  const modes = root?.modes || root
                   const modeKey = modeLower
                   
-                  if (themes[modeKey]?.states?.overlay) {
-                    delete themes[modeKey].states.overlay.color
+                  if (modes[modeKey]?.states?.overlay) {
+                    delete modes[modeKey].states.overlay.color
                     getVarsStore().setThemeSilent(themeCopy)
                   }
                 }
@@ -500,7 +500,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
               style={{
                 width: '100%',
                 height: '100%',
-                background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_surface)`,
+                background: `var(--recursica_brand_modes_${modeLower}_layers_layer-3_properties_surface)`,
                 position: 'relative',
               }}
             >

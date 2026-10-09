@@ -11,12 +11,13 @@ import {
   EXPORT_FILENAME_TOKENS,
   EXPORT_FILENAME_BRAND,
   EXPORT_FILENAME_UIKIT,
+  EXPORT_FILENAME_MANIFEST,
   EXPORT_FILENAME_CSS_SPECIFIC,
   EXPORT_FILENAME_CSS_SCOPED,
 } from './EXPORT_FILENAMES'
 
 export interface ValidationError {
-  file: 'tokens' | 'brand' | 'uikit' | 'css-specific' | 'css-scoped' | 'references'
+  file: 'tokens' | 'brand' | 'uikit' | 'manifest' | 'css-specific' | 'css-scoped' | 'references'
   message: string
 }
 
@@ -55,6 +56,7 @@ export function ValidationErrorModal({ show, errors, onClose }: ValidationErrorM
     'tokens': EXPORT_FILENAME_TOKENS,
     'brand': EXPORT_FILENAME_BRAND,
     'uikit': EXPORT_FILENAME_UIKIT,
+    'manifest': EXPORT_FILENAME_MANIFEST,
     'css-specific': EXPORT_FILENAME_CSS_SPECIFIC,
     'css-scoped': EXPORT_FILENAME_CSS_SCOPED,
     'references': 'Cross-file References',
