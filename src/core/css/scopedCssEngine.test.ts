@@ -31,8 +31,6 @@ const SPECIFIC_VARS: Record<string, string> = {
     '#000000',
   // ui-kit component property with no layer at all
   '--recursica_ui-kit_modes_light_components_badge_properties_border-radius': '32px',
-  // Toast authors elevation as layer-N leaves; consumers read it WITH the layer in the name
-  '--recursica_ui-kit_modes_light_components_toast_properties_elevation_layer-0': 'none',
   // brand layer var — consumers read the layer number in the name, so it must pass through
   '--recursica_brand_modes_light_layers_layer-0_properties_surface': '#ffffff',
   '--recursica_brand_modes_light_layers_layer-2_properties_surface': '#eeeeee',
@@ -79,15 +77,6 @@ describe('scopedCssEngine', () => {
     // Same generic name in both blocks, each aliasing its own layer's specific var.
     expect(layer0).toContain(`${generic}: var(--recursica_ui-kit_modes_light_components_badge_variants_styles_primary-color_properties_colors_layer-0_background-color)`)
     expect(layer2).toContain(`${generic}: var(--recursica_ui-kit_modes_light_components_badge_variants_styles_primary-color_properties_colors_layer-2_background-color)`)
-  })
-
-  it('keeps the layer-in-name form too, which Toast elevation depends on', () => {
-    const css = generate()
-    expect(css).toContain('--recursica_ui-kit_components_toast_properties_elevation_layer-0:')
-    // ...and additionally exposes the layer-free form in the layer block.
-    expect(block(css, '[data-recursica-theme="light"][data-recursica-layer="0"]')).toContain(
-      '--recursica_ui-kit_components_toast_properties_elevation:'
-    )
   })
 
   it('passes layer-free ui-kit properties through unchanged, in the theme block', () => {
@@ -155,8 +144,9 @@ describe('scopedCssEngine', () => {
     ]
     expect(read.length).toBeGreaterThan(100) // sanity: we really parsed the adapter CSS
 
-    // Toast elevation is the documented exception that keeps the layer in the name.
-    const withLayer = read.filter((n) => /_layer-\d/.test(n) && !/_toast_/.test(n))
+    // The published adapter still reads Toast elevation as `..._elevation_layer-0`; Forge now
+    // exports a single `elevation`, so that is an adapter-side change pending a new release.
+    const withLayer = read.filter((n) => /_layer-\d/.test(n) && !/_toast_properties_elevation_layer-\d$/.test(n))
     expect(
       withLayer,
       'Adapter reads ui-kit names containing a layer segment; the layer-stripping rule in ' +

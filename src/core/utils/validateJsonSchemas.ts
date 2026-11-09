@@ -318,6 +318,255 @@ export function validateUIKitVariantStructure(uikitJson: JsonLike): void {
 }
 
 /**
+ * Validates that every component property has a single owner in recursica_ui-kit.json.
+ *
+ * A property (identified by its path under `properties`, ignoring `layer-N` segments) may be
+ * defined under more than one variant node only when those nodes can never apply to the same
+ * component at once, e.g. `styles.solid` and `styles.outline`. Two definitions conflict when,
+ * for every variant dimension both sit under, they select the same value. `sizes.default` and
+ * `content.label.variants.sizes.default` conflict, as do the component root and any variant.
+ * Nothing in the JSON says which would win, so the format forbids it.
+ *
+ * Definitions under a `states` dimension are skipped: a state overriding its base is the
+ * intended way to express hover, focus and disabled values.
+ *
+ * Throws if violations are found.
+ */
+export function validateUIKitSinglePropOwner(uikitJson: JsonLike): void {
+  const components =
+    (uikitJson as any)?.['ui-kit']?.components ??
+    (uikitJson as any)?.components ??
+    {}
+
+  type Chain = Array<[string, string]>
+  const errors: string[] = []
+
+  const isNode = (v: unknown): v is Record<string, unknown> =>
+    v !== null && typeof v === 'object'
+
+  function collect(
+    node: Record<string, unknown>,
+    chain: Chain,
+    path: string[],
+    out: Map<string, Chain[]>
+  ): void {
+    for (const [key, val] of Object.entries(node)) {
+      if (key.startsWith('$') || !isNode(val)) continue
+      if (Object.prototype.hasOwnProperty.call(val, '$value')) {
+        if (chain.some(([dim]) => dim === 'states')) continue
+        const id = [...path, key].filter(seg => !/^layer-\d+$/.test(seg)).join('/')
+        const chains = out.get(id) ?? []
+        // Layer variants of one property share a chain; record each chain once
+        if (!chains.some(c => c.length === chain.length && c.every(([d, v], i) => d === chain[i][0] && v === chain[i][1]))) {
+          chains.push(chain)
+        }
+        out.set(id, chains)
+      } else if (key === 'properties') {
+        collect(val, chain, [], out)
+      } else if (key === 'variants') {
+        for (const [dim, values] of Object.entries(val)) {
+          if (dim.startsWith('$') || !isNode(values)) continue
+          for (const [value, sub] of Object.entries(values)) {
+            if (value.startsWith('$') || !isNode(sub)) continue
+            collect(sub, [...chain, [dim, value]], [], out)
+          }
+        }
+      } else {
+        collect(val, chain, [...path, key], out)
+      }
+    }
+  }
+
+  const describe = (chain: Chain): string =>
+    chain.length === 0 ? 'component root' : chain.map(([dim, value]) => `${dim}.${value}`).join(' > ')
+
+  for (const [compName, compData] of Object.entries(components as Record<string, unknown>)) {
+    if (!isNode(compData)) continue
+    const owners = new Map<string, Chain[]>()
+    collect(compData, [], [], owners)
+    for (const [id, chains] of owners) {
+      for (let i = 0; i < chains.length; i++) {
+        for (let j = i + 1; j < chains.length; j++) {
+          const a = new Map(chains[i])
+          const compatible = chains[j].every(([dim, value]) => !a.has(dim) || a.get(dim) === value)
+          if (compatible) {
+            errors.push(
+              `components.${compName}: property "${id}" is defined under both ` +
+              `[${describe(chains[i])}] and [${describe(chains[j])}]. A property must have one owner.`
+            )
+          }
+        }
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `recursica_ui-kit.json single-owner validation failed (${errors.length} error(s)):\n` +
+      errors.map(e => `  - ${e}`).join('\n')
+    )
+  }
+}
+
+/**
+ * The defined values of a `states` dimension in recursica_ui-kit.json, lowest to highest
+ * priority. States can combine; when two define the same property the later one in this list
+ * wins, so a CSS export emits state blocks in this order.
+ */
+export const UIKIT_STATE_PRIORITY = ['visited', 'active', 'error', 'disabled'] as const
+
+/**
+ * Validates that every value under a `states` dimension is one of UIKIT_STATE_PRIORITY, so a
+ * typo fails instead of silently creating a new state. `selection-states` is a separate,
+ * ordinary dimension and is not checked here.
+ *
+ * Throws if violations are found.
+ */
+export function validateUIKitStateNames(uikitJson: JsonLike): void {
+  const components =
+    (uikitJson as any)?.['ui-kit']?.components ??
+    (uikitJson as any)?.components ??
+    {}
+
+  const allowed = new Set<string>(UIKIT_STATE_PRIORITY)
+  const errors: string[] = []
+
+  const isNode = (v: unknown): v is Record<string, unknown> =>
+    v !== null && typeof v === 'object'
+
+  function visit(path: string, node: Record<string, unknown>): void {
+    const variants = node.variants
+    if (!isNode(variants)) return
+    for (const [dim, values] of Object.entries(variants)) {
+      if (dim.startsWith('$') || !isNode(values)) continue
+      for (const [value, sub] of Object.entries(values)) {
+        if (value.startsWith('$') || !isNode(sub)) continue
+        if (dim === 'states' && !allowed.has(value)) {
+          errors.push(
+            `${path}.variants.states.${value}: "${value}" is not a defined state. ` +
+            `Allowed: ${UIKIT_STATE_PRIORITY.join(', ')}.`
+          )
+        }
+        visit(`${path}.variants.${dim}.${value}`, sub)
+      }
+    }
+  }
+
+  for (const [compName, compData] of Object.entries(components as Record<string, unknown>)) {
+    if (isNode(compData)) visit(`components.${compName}`, compData)
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `recursica_ui-kit.json state name validation failed (${errors.length} error(s)):\n` +
+      errors.map(e => `  - ${e}`).join('\n')
+    )
+  }
+}
+
+/**
+ * Validates that a nested variant dimension uses the same set of values under every parent that
+ * has it. For example every `styles` value that nests `orientation` must list the same
+ * orientations, and every `selection-states` value that nests `sizes` the same sizes. A typo'd
+ * dimension or value, or a value set that differs between siblings, fails here. Parents that nest
+ * dimensions must also nest the same ones, so `orientation` in one style and `orientaton` in
+ * another is an error.
+ *
+ * Dimensions are grouped by the chain of dimension names above them (e.g. `styles > types`), and
+ * a parent value that lacks the dimension is fine (avatar `types` only exists under text and
+ * icon). `states` is exempt: it is the override axis and may be sparse.
+ *
+ * Throws if violations are found.
+ */
+export function validateUIKitNestedVariantConsistency(uikitJson: JsonLike): void {
+  const components =
+    (uikitJson as any)?.['ui-kit']?.components ??
+    (uikitJson as any)?.components ??
+    {}
+
+  const errors: string[] = []
+
+  const isNode = (v: unknown): v is Record<string, unknown> =>
+    v !== null && typeof v === 'object'
+
+  const valueNames = (node: Record<string, unknown>): string[] =>
+    Object.entries(node)
+      .filter(([k, v]) => !k.startsWith('$') && isNode(v))
+      .map(([k]) => k)
+
+  for (const [compName, compData] of Object.entries(components as Record<string, unknown>)) {
+    if (!isNode(compData)) continue
+    // dimension chain -> list of { where, values } for each parent value that nests it
+    const groups = new Map<string, Array<{ where: string; values: string[] }>>()
+    // dimension chain -> list of { where, dims } for each parent value that nests any dimensions
+    const dimSets = new Map<string, Array<{ where: string; dims: string[] }>>()
+
+    const visit = (node: Record<string, unknown>, chain: string[], where: string): void => {
+      const variants = node.variants
+      if (!isNode(variants)) return
+      for (const [dim, values] of Object.entries(variants)) {
+        if (dim.startsWith('$') || !isNode(values)) continue
+        if (chain.length > 0 && dim !== 'states') {
+          const key = [...chain, dim].join(' > ')
+          const list = groups.get(key) ?? []
+          list.push({ where, values: valueNames(values).sort() })
+          groups.set(key, list)
+        }
+        for (const [value, sub] of Object.entries(values)) {
+          if (value.startsWith('$') || !isNode(sub)) continue
+          const childWhere = `${where ? where + ' > ' : ''}${dim}.${value}`
+          const nested = isNode(sub.variants)
+            ? Object.entries(sub.variants as Record<string, unknown>)
+                .filter(([k, v]) => !k.startsWith('$') && isNode(v) && k !== 'states')
+                .map(([k]) => k)
+                .sort()
+            : []
+          if (nested.length > 0) {
+            const key = [...chain, dim].join(' > ')
+            const list = dimSets.get(key) ?? []
+            list.push({ where: childWhere, dims: nested })
+            dimSets.set(key, list)
+          }
+          visit(sub, [...chain, dim], childWhere)
+        }
+      }
+    }
+    visit(compData, [], '')
+
+    for (const [key, list] of dimSets) {
+      const reference = list[0].dims.join(', ')
+      for (const entry of list.slice(1)) {
+        if (entry.dims.join(', ') !== reference) {
+          errors.push(
+            `components.${compName}: under "${key}", ${entry.where} nests [${entry.dims.join(', ')}] ` +
+            `but ${list[0].where} nests [${reference}]. Parents must nest the same dimensions.`
+          )
+        }
+      }
+    }
+
+    for (const [key, list] of groups) {
+      const reference = list[0].values.join(', ')
+      for (const entry of list.slice(1)) {
+        if (entry.values.join(', ') !== reference) {
+          errors.push(
+            `components.${compName}: "${key}" lists [${entry.values.join(', ')}] under ${entry.where} ` +
+            `but [${reference}] under ${list[0].where}. A nested dimension must use the same values under every parent.`
+          )
+        }
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `recursica_ui-kit.json nested variant validation failed (${errors.length} error(s)):\n` +
+      errors.map(e => `  - ${e}`).join('\n')
+    )
+  }
+}
+
+/**
  * Validates `recursica.component` extension tokens in recursica_ui-kit.json.
  *
  * A `recursica.component` token is a DTCG token (has `$value`) whose `$value`
@@ -470,6 +719,15 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
 
   // Enforce variant nesting structure
   validateUIKitVariantStructure(uikitJson)
+
+  // Enforce one owner per property across variant dimensions
+  validateUIKitSinglePropOwner(uikitJson)
+
+  // Enforce the defined set of state names
+  validateUIKitStateNames(uikitJson)
+
+  // Enforce consistent nested variant values across parents
+  validateUIKitNestedVariantConsistency(uikitJson)
 
   // Enforce recursica.component $extensions integrity
   validateUIKitComponentExtensions(uikitJson)

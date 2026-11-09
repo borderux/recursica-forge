@@ -68,7 +68,7 @@
 - Integration with existing CSS variable system
 
 ### 2. Remaining Component Adapters
-**Status**: Button only implemented
+**Status**: Button only implemented as an adapter. The CSS contract is exported for every component with variants.
 **Components to Implement** (35 total):
 - Card
 - TextField (uses `ui-kit.form.*` tokens)

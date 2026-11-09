@@ -104,7 +104,7 @@ function classifyVar(specificName: string): {
 
 /**
  * Matches a layer segment embedded inside a ui-kit path, e.g.
- * `..._properties_colors_layer-0_background-color` or a trailing `..._elevation_layer-0`.
+ * `..._properties_colors_layer-0_background-color`.
  */
 const EMBEDDED_LAYER = /_layer-(\d+)(?=_|$)/
 
@@ -117,10 +117,8 @@ const EMBEDDED_LAYER = /_layer-(\d+)(?=_|$)/
  * adapter and Forge's own export both work. So such a var also produces a second alias
  * with the layer segment removed, emitted into the matching theme+layer block.
  *
- * Both aliases are emitted rather than replacing the layered one:
- *   - Toast authors elevation as `..._elevation_layer-0..3` and consumers read it WITH the
- *     layer in the name, so removing that form would break it.
- *   - Keeping it costs only stylesheet size and cannot break an existing reader.
+ * Both aliases are emitted rather than replacing the layered one: keeping it costs only
+ * stylesheet size and cannot break an existing reader.
  */
 function aliasesFor(specificName: string): ScopedAlias[] {
   const primary = classifyVar(specificName)

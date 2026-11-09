@@ -218,14 +218,7 @@ function buildCssVars(layer: string, selState: string) {
         '--timeline-avatar-size-small': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'small', 'properties', 'width')}, 32px)`,
         '--timeline-avatar-size-default': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'default', 'properties', 'width')}, 40px)`,
         '--timeline-avatar-size-large': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'large', 'properties', 'width')}, 64px)`,
-        '--timeline-avatar-bullet-size': (() => {
-            const sizeVarName = bulletPropVar('avatar', 'avatar-size')
-            const sizeValue = typeof document !== 'undefined'
-                ? getComputedStyle(document.documentElement).getPropertyValue(sizeVarName).trim().replace(/^["']|["']$/g, '')
-                : 'default'
-            const sizeKey = sizeValue === 'small' || sizeValue === 'large' ? sizeValue : 'default'
-            return `var(--timeline-avatar-size-${sizeKey}, 40px)`
-        })(),
+        '--timeline-avatar-bullet-size': `var(${bulletPropVar('avatar', 'avatar-size')}, 40px)`,
         '--timeline-avatar-active-bg': `var(${bulletColorVar('avatar', layer, 'active-background')})`,
         '--timeline-avatar-inactive-bg': `var(${bulletColorVar('avatar', layer, 'inactive-background')})`,
         '--timeline-avatar-active-border': `var(${bulletColorVar('avatar', layer, 'active-border-color')})`,

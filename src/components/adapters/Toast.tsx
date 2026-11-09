@@ -37,8 +37,8 @@ function SharedToast({
   const { mode } = useThemeMode()
 
   const elevationVar = useMemo(() => {
-    return buildComponentCssVarPath('Toast', 'properties', 'elevation', layer, mode)
-  }, [layer, mode])
+    return buildComponentCssVarPath('Toast', 'properties', 'elevation', mode)
+  }, [mode])
 
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
     const value = readCssVar(elevationVar)

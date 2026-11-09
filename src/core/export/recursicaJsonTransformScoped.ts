@@ -74,7 +74,7 @@ function expandUIKitLayers<T>(node: T): T {
 
 const FILENAME = 'recursica_variables_scoped.css'
 const PREFIX = '--recursica_'
-const TRANSFORM_VERSION = '1.4.0'
+const TRANSFORM_VERSION = '1.8.0'
 
 /** Maps brand.typography $value keys (camelCase) to CSS property names. */
 const TYPOGRAPHY_JSON_TO_CSS_PROP: Record<string, string> = {
@@ -601,17 +601,17 @@ function getScopeKey(scope: ScopeKind): string {
 
 /** True if path is a ui-kit path that includes a layer segment (e.g. ...colors.layer-0.background). */
 function isLayerSpecificUIKitPath(path: string): boolean {
-  return path.startsWith('ui-kit.') && /\.layer-\d+\./.test(path)
+  return path.startsWith('ui-kit.') && /\.layer-\d+(\.|$)/.test(path)
 }
 
 /** Removes the .layer-N. segment so one canonical name is used for all layers. */
 function getCanonicalUIKitPath(path: string): string {
-  return path.replace(/\.layer-\d+\./, '.')
+  return path.replace(/\.layer-\d+(\.|$)/, (_m, tail) => tail)
 }
 
 /** Extracts the layer number from a ui-kit path (e.g. layer-1 from ...colors.layer-1.background). */
 function getLayerFromUIKitPath(path: string): string | null {
-  const m = path.match(/\.layer-(\d+)\./)
+  const m = path.match(/\.layer-(\d+)(?:\.|$)/)
   return m ? m[1] : null
 }
 
@@ -1042,6 +1042,156 @@ function isNullStringToken(value: unknown, tokenType: string | undefined): boole
   return value == null && tokenType === 'string'
 }
 
+/** Brand groups whose value differs by theme. A ui-kit value that references one is theme-dependent. */
+const THEME_SCOPED_BRAND_GROUPS = ['palettes', 'elevations', 'layers', 'states', 'text-emphasis']
+
+/** The reference path inside a value, whether written as a bare ref or as `{ value: ref }`. */
+function refPathOfValue(value: unknown): string | null {
+  if (isRef(value)) return extractRefPath(value)
+  if (value && typeof value === 'object' && 'value' in value && isRef((value as { value: unknown }).value)) {
+    return extractRefPath((value as { value: string }).value)
+  }
+  return null
+}
+
+/**
+ * Finds the ui-kit values outside the per-layer groups that depend on the theme: those that
+ * reference a theme-scoped brand group, or another ui-kit value that does. They cannot be written
+ * once on `:root`, since `:root` has no theme to resolve against and would pin them to one mode.
+ * They are emitted once per mode, with the mode in the name, and the theme blocks alias the
+ * generic name to the right one, as for the per-layer values.
+ */
+function collectThemeDependentUIKitPaths(entries: FlatEntry[]): Set<string> {
+  const candidates = entries.filter((e) => e.path.startsWith('ui-kit.') && !isLayerSpecificUIKitPath(e.path) && e.type !== 'variant')
+  const dependent = new Set<string>()
+  let changed = true
+  while (changed) {
+    changed = false
+    for (const { path, value } of candidates) {
+      if (dependent.has(path)) continue
+      const ref = refPathOfValue(value)
+      if (ref == null) continue
+      let themed = false
+      if (ref.startsWith('brand.')) {
+        const afterBrand = ref.slice('brand.'.length)
+        themed = THEME_SCOPED_BRAND_GROUPS.some((g) => afterBrand === g || afterBrand.startsWith(g + '.'))
+      } else if (ref.startsWith('ui-kit.')) {
+        themed = dependent.has(ref) || resolvePathAlias(ref).some((q) => dependent.has(q))
+      }
+      if (themed) {
+        dependent.add(path)
+        changed = true
+      }
+    }
+  }
+  return dependent
+}
+
+/** States, lowest to highest priority. Later blocks win at equal specificity. Mirrors UIKIT_STATE_PRIORITY. */
+const CONTRACT_STATE_PRIORITY = ['visited', 'active', 'error', 'disabled']
+
+/** States that also have a native pseudo-class. The contract emits both, so an adapter can use either the attribute or the browser's own state. */
+const CONTRACT_STATE_PSEUDO: Record<string, string> = { visited: ':visited' }
+
+/**
+ * Non-state axis values the browser already exposes through ARIA. The contract emits the attribute selector and this one,
+ * so an adapter can rely on the element's own aria-* instead of mirroring it into data-recursica-*. :where() keeps the
+ * specificity equal to the attribute form, so state blocks still win. Only signals that do not depend on one UI kit's DOM
+ * shape belong here: ARIA any element can carry, and :has(input:...) on a root that contains the native input at any depth.
+ * A direct-child form such as :has(> input) does not belong here.
+ */
+const CONTRACT_NATIVE_AXIS_SELECTORS: Record<string, Record<string, Record<string, string>>> = {
+  'accordion-header': { appearance: { open: ':where([aria-expanded="true"])', closed: ':where([aria-expanded="false"])' } },
+  'tabs-item': { 'selection-states': { active: ':where([aria-selected="true"])', inactive: ':where([aria-selected="false"])' } },
+  // Input-based controls: contract rule is that the data-recursica root contains the native <input> as a descendant.
+  // :has() inside :where() adds no specificity. No assumption is made about how deep the input sits.
+  checkbox: { 'selection-states': {
+    checked: ':where(:has(input:checked:not(:indeterminate)))',
+    indeterminate: ':where(:has(input:indeterminate))',
+    unchecked: ':where(:has(input:not(:checked):not(:indeterminate)))',
+  } },
+  'radio-button': { 'selection-states': { selected: ':where(:has(input:checked))', unselected: ':where(:has(input:not(:checked)))' } },
+  chip: { 'selection-states': { selected: ':where(:has(input:checked))', unselected: ':where(:has(input:not(:checked)))' } },
+  switch: { 'selection-states': { selected: ':where(:has(input:checked))', unselected: ':where(:has(input:not(:checked)))' } },
+  'segmented-control-item': { 'selection-states': { selected: ':where(:has(input:checked))', unselected: ':where(:has(input:not(:checked)))' } },
+}
+
+const isContractNode = (v: unknown): v is Record<string, any> => v !== null && typeof v === 'object' && !Array.isArray(v)
+
+/** Leaf property ids under a `properties` node, with the per-layer groups collapsed (colors.layers.layer-N.x -> colors_x). */
+function contractPropertyIds(node: unknown, path: string[] = [], out: string[] = []): string[] {
+  if (!isContractNode(node)) return out
+  for (const [key, child] of Object.entries(node)) {
+    if (key.startsWith('$') || !isContractNode(child)) continue
+    if ('$value' in child) {
+      const id = [...path, key].filter((seg) => seg !== 'layers' && !/^layer-\d+$/.test(seg)).join('_')
+      if (!out.includes(id)) out.push(id)
+    } else {
+      contractPropertyIds(child, [...path, key], out)
+    }
+  }
+  return out
+}
+
+/**
+ * Emits, per component that has variants, the rules that point the stable root names
+ * (--recursica_ui-kit_components_<c>_properties_*) at the variant that owns each property. The
+ * adapter sets data-recursica="<c>" and one data-recursica-<axis> attribute per axis (named after the
+ * JSON key); data-recursica-<state> marks a state. There are no defaults: an unset attribute matches
+ * no rule. Each property has one owner, so only states override, and those come last in priority order.
+ */
+function renderComponentContracts(uikitDoc: unknown): string {
+  const components = (uikitDoc as any)?.['ui-kit']?.components ?? (uikitDoc as any)?.components
+  if (!isContractNode(components)) return ''
+  let out = ''
+  for (const name of Object.keys(components)) {
+    const variants = components[name]?.variants
+    if (!isContractNode(variants)) continue
+    const prefix = `${PREFIX}ui-kit_components_${name}_`
+    const blocks: string[] = []
+    const stateBlocks: Array<{ state: string; css: string }> = []
+
+    const block = (selector: string, ownerPath: string[], properties: unknown): string => {
+      const ids = contractPropertyIds(properties)
+      if (ids.length === 0) return ''
+      const owner = ownerPath.join('_')
+      let css = `${selector} {\n`
+      for (const id of ids) css += `  ${prefix}properties_${id}: var(${prefix}${owner}_properties_${id});\n`
+      return css + `}\n`
+    }
+    // Each position carries the attribute form and, when one exists, the native form; nested blocks combine them all.
+    const visit = (node: Record<string, any>, selectors: string[], ownerPath: string[]): void => {
+      const join = (suffixes: string[]) => selectors.flatMap((sel) => suffixes.map((suf) => `${sel}${suf}`))
+      for (const [axis, values] of Object.entries(node.variants ?? {})) {
+        if (!isContractNode(values)) continue
+        for (const [value, child] of Object.entries(values)) {
+          if (!isContractNode(child)) continue
+          const childPath = [...ownerPath, 'variants', axis, value]
+          if (axis === 'states') {
+            const pseudo = CONTRACT_STATE_PSEUDO[value]
+            const css = block(join([`[data-recursica-${value}]`, ...(pseudo ? [pseudo] : [])]).join(',\n'), childPath, child.properties)
+            if (css) stateBlocks.push({ state: value, css })
+          } else {
+            const native = CONTRACT_NATIVE_AXIS_SELECTORS[name]?.[axis]?.[value]
+            const childSelectors = join([`[data-recursica-${axis}="${value}"]`, ...(native ? [native] : [])])
+            const css = block(childSelectors.join(',\n'), childPath, child.properties)
+            if (css) blocks.push(css)
+            visit(child, childSelectors, childPath)
+          }
+        }
+      }
+    }
+    visit({ variants }, [`[data-recursica="${name}"]`], [])
+    const rank = (state: string) => { const i = CONTRACT_STATE_PRIORITY.indexOf(state); return i < 0 ? CONTRACT_STATE_PRIORITY.length : i }
+    stateBlocks.sort((a, b) => rank(a.state) - rank(b.state))
+    const all = [...blocks, ...stateBlocks.map((b) => b.css)]
+    if (all.length === 0) continue
+    out += `\n/* ===== ${name}: component contract. Set data-recursica="${name}" and every axis attribute on the root; read only ${prefix}properties_*. ===== */\n`
+    out += all.join('')
+  }
+  return out
+}
+
 export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   const errors: TransformError[] = []
   // Split the optional breakpoint groups off first so the base output is unchanged by their
@@ -1051,10 +1201,24 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   const { base: baseJson, breakpoints } = extractBreakpoints(input, errors)
   const entries = flattenInput(baseJson)
 
+  const themeDependent = collectThemeDependentUIKitPaths(entries)
+  /** The root var a theme-dependent ui-kit value is written to for one mode. */
+  const modeRootName = (path: string, theme: 'light' | 'dark'): string =>
+    layerlessRootName(pathToVarName(path), theme)
+  /** Names a ref target for a value emitted in `theme`: a theme-dependent target resolves per mode. */
+  const nameRefFor = (theme: 'light' | 'dark') => (p: string): string => {
+    if (isLayerSpecificUIKitPath(p)) return pathToRootVarNameLayerSpecificUIKit(p, theme)
+    return themeDependent.has(p) ? modeRootName(p, theme) : pathToVarName(p)
+  }
+
   // 1. Build set of all root var names (so refs validate and we know what exists on root)
   const allRootNames = new Set<string>()
   for (const entry of entries) {
     const { path } = entry
+    if (themeDependent.has(path)) {
+      allRootNames.add(modeRootName(path, 'light'))
+      allRootNames.add(modeRootName(path, 'dark'))
+    }
     if (isLayerSpecificUIKitPath(path)) {
       allRootNames.add(pathToRootVarNameLayerSpecificUIKit(path, 'light'))
       allRootNames.add(pathToRootVarNameLayerSpecificUIKit(path, 'dark'))
@@ -1088,12 +1252,26 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
       if (layer == null) continue
       for (const theme of ['light', 'dark'] as const) {
         let formatted = formatValue(value, path, allRootNames, errors, {
-          refNamer: (p: string) => isLayerSpecificUIKitPath(p) ? pathToRootVarNameLayerSpecificUIKit(p, theme) : pathToVarName(p),
+          refNamer: nameRefFor(theme),
           themeForExpand: theme
         })
         if (formatted == null) formatted = fallbackForNullByType(tokenType)
         if (formatted == null) continue
         const rootName = pathToRootVarNameLayerSpecificUIKit(path, theme)
+        rootVarsMap.set(rootName, formatted)
+        if (comment) rootVarsComments.set(rootName, comment)
+      }
+      continue
+    }
+
+    if (themeDependent.has(path)) {
+      for (const theme of ['light', 'dark'] as const) {
+        const formatted = formatValue(value, path, allRootNames, errors, {
+          refNamer: nameRefFor(theme),
+          themeForExpand: theme
+        })
+        if (formatted == null) continue
+        const rootName = modeRootName(path, theme)
         rootVarsMap.set(rootName, formatted)
         if (comment) rootVarsComments.set(rootName, comment)
       }
@@ -1108,7 +1286,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
     }
 
     let formatted = formatValue(value, path, allRootNames, errors, {
-      refNamer: (p: string) => isLayerSpecificUIKitPath(p) ? pathToRootVarNameLayerSpecificUIKit(p, 'light') : pathToVarName(p)
+      refNamer: nameRefFor('light')
     })
     if (formatted == null) continue // nothing to emit (non-string null with no type fallback)
     const rootName = pathToVarName(path)
@@ -1166,6 +1344,14 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
       continue
     }
 
+    if (themeDependent.has(path)) {
+      for (const theme of ['light', 'dark'] as const) {
+        if (!themeAliases.has(theme)) themeAliases.set(theme, [])
+        themeAliases.get(theme)!.push({ genericName: pathToVarName(path), rootName: modeRootName(path, theme) })
+      }
+      continue
+    }
+
     const scope = getScope(path)
     const scopeKey = getScopeKey(scope)
     const rootName = pathToVarName(path)
@@ -1190,6 +1376,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   }
 
   const css = formatScopedCss(rootVarsMap, themeAliases, themeLayerAliases, rootVarsComments, getSourceJsonVersion(json))
+    + renderComponentContracts(input.uikit)
     + renderBreakpointBlocks(breakpoints, allRootNames, errors)
   return [{ filename: FILENAME, contents: css }]
 }
@@ -1255,7 +1442,7 @@ function formatScopedCss(
   css += ` *    should reference.\n`
   css += ` *\n`
   css += ` *    Use (generic; correct):\n`
-  css += ` *      var(--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_background)\n`
+  css += ` *      var(--recursica_ui-kit_components_button_properties_colors_background-color)\n`
   css += ` *      var(--recursica_brand_layer_properties_surface)\n`
   css += ` *\n`
   css += ` *    Do not use (specific; wrong in component CSS):\n`
@@ -1292,6 +1479,30 @@ function formatScopedCss(
   css += ` *    automatically expands the reference into individual variables for each property in the group\n`
   css += ` *    (e.g., font-family, font-weight). The base reference variable is safely discarded.\n`
   css += ` *\n`
+  css += ` * 9. Native state (optional)\n`
+  css += ` *    Where the browser already knows a state, the contract matches it as well as the data attribute, so\n`
+  css += ` *    an adapter need not mirror it into data-recursica-*: aria-expanded (accordion-header), aria-selected\n`
+  css += ` *    (tabs-item), and input:checked / :indeterminate (checkbox, radio-button, chip, switch). For the\n`
+  css += ` *    input-based controls the data-recursica root must contain the native <input> as a descendant, at any\n`
+  css += ` *    depth. A control whose root is a sibling of its input must keep setting the attribute.\n`
+  css += ` *\n`
+  css += ` * --- Importing this CSS into a component ---\n`
+  css += ` * 1. Load this file once, globally, before your component styles (a <link>, or an import in your app entry).\n`
+  css += ` * 2. Set data-recursica-theme on <html>. Set data-recursica-layer on a wrapper when you need layers 1 to 3.\n`
+  css += ` * 3. Style the component with stable names only: --recursica_ui-kit_components_<component>_properties_<property>.\n`
+  css += ` *    Never reference variant-specific names (…_variants_styles_solid_…) or theme/layer names (…_modes_…).\n`
+  css += ` * 4. Where a component contract is emitted (see the "component contract" comment near the end of the file),\n`
+  css += ` *    put these attributes on the component's root element so the stable names resolve:\n`
+  css += ` *      data-recursica="<component>"           required; names the component\n`
+  css += ` *      data-recursica-<axis>="<value>"        one per variant axis, e.g. -styles, -sizes, -content; set on every render\n`
+  css += ` *      data-recursica-<state>                 present, with no value, while a state applies (e.g. -disabled)\n`
+  css += ` * 5. There are no defaults: a missing or unknown axis attribute leaves that axis's names undefined, so always set\n`
+  css += ` *    every axis. Some properties exist only in a state (e.g. Button opacity when disabled); give them a fallback value.\n`
+  css += ` * 6. Map your disabled mechanism to data-recursica-disabled; do not rely on :disabled or aria-disabled for\n`
+  css += ` *    Recursica values. Hover, focus and pressed treatments are global (see below), not per component.\n`
+  css += ` * 7. The contract is emitted for every component that has variants (see docs/UIKIT_GENERATOR_DECISIONS.md).\n`
+  css += ` * Full guide: docs/SCOPED_CSS_INTEGRATION_GUIDE.md in the Recursica Forge repo.\n`
+  css += ` *\n`
   css += ` * --- Disabled state (implicit rule) ---\n`
   css += ` * The brand theme exposes a single disabled token: --recursica_brand_states_disabled (generic\n`
   css += ` * name; resolves per theme to an opacity value, e.g. from opacities_ghost). Use this for disabled\n`
@@ -1317,9 +1528,10 @@ function formatScopedCss(
   css += ` * --- How this file is structured ---\n`
   css += ` * :root defines every variable with a specific (full-path) name so every reference resolves.\n`
   css += ` * Theme and theme+layer blocks ([data-recursica-theme="light"], [data-recursica-theme="light"][data-recursica-layer="1"], etc.)\n`
-  css += ` * define only generic names that alias to those root variables. Components use the generic names;\n`
-  css += ` * the block that matches the element (via theme and layer on ancestors) determines which root\n`
-  css += ` * value that generic name resolves to.\n`
+  css += ` * define only generic names. They alias to those root variables, except a layer-specific ui-kit\n`
+  css += ` * value, which the theme+layer block holds itself. Components use the generic names; the block\n`
+  css += ` * that matches the element (via theme and layer on ancestors) determines which value that\n`
+  css += ` * generic name resolves to.\n`
   css += ` * At the end, typography helper classes (e.g. .recursica_brand_typography_h1, .recursica_brand_typography_body)\n`
   css += ` * are provided for each type in brand.typography. Apply one class to get the full type style.\n`
   css += ` * Class names follow the path: brand.typography.<typeName> → .recursica_brand_typography_<typeName>.\n`
@@ -1329,7 +1541,18 @@ function formatScopedCss(
   css += ` * Make changes in the Recursica JSON source and re-export.\n`
   css += ` */\n\n`
 
-  const rootVars = [...rootVarsMap.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  // A layer-specific ui-kit value is only ever read through its alias in the matching theme+layer
+  // block, so the block carries the value itself and no root variable is written for it. (A
+  // reference declared once at root would resolve there, at layer 0, for every nested layer.)
+  const layerSpecificValues = new Map<string, string>()
+  for (const [name, value] of rootVarsMap) {
+    if (LAYER_SPECIFIC_ROOT_PATTERN.test(name)) layerSpecificValues.set(name, value)
+  }
+  const aliasValue = (rootName: string) => layerSpecificValues.get(rootName) ?? `var(${rootName})`
+
+  const rootVars = [...rootVarsMap.entries()]
+    .filter(([name]) => !layerSpecificValues.has(name))
+    .sort((a, b) => a[0].localeCompare(b[0]))
   css += `:root {\n`
   for (const [name, value] of rootVars) {
     const comment = rootVarsComments.get(name)
@@ -1352,10 +1575,10 @@ function formatScopedCss(
       .sort((a, b) => a.name.localeCompare(b.name))
     css += `[data-recursica-theme="${theme}"] {\n`
     for (const { genericName, rootName } of sorted) {
-      css += `  ${genericName}: var(${rootName});\n`
+      css += `  ${genericName}: ${aliasValue(rootName)};\n`
     }
     for (const { name, rootName } of layer0) {
-      css += `  ${name}: var(${rootName});\n`
+      css += `  ${name}: ${aliasValue(rootName)};\n`
     }
     css += `}\n\n`
   }
@@ -1384,7 +1607,7 @@ function formatScopedCss(
       .filter((a): a is { name: string; rootName: string } => a.name != null)
     css += `[data-recursica-theme="${theme}"][data-recursica-layer="${layer}"],\n[data-recursica-theme="${theme}"] [data-recursica-layer="${layer}"] {\n`
     for (const { genericName, rootName } of sorted) {
-      css += `  ${genericName}: var(${rootName});\n`
+      css += `  ${genericName}: ${aliasValue(rootName)};\n`
     }
     for (const { name, rootName } of agnostic) {
       css += `  ${name}: var(${rootName});\n`

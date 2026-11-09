@@ -103,8 +103,8 @@ export default function Toast({
   
   // Read elevation CSS variable and extract mode from it (reactive)
   const elevationVar = useMemo(() => {
-    return buildComponentCssVarPath('Toast', 'properties', 'elevation', layer, mode)
-  }, [layer, mode])
+    return buildComponentCssVarPath('Toast', 'properties', 'elevation', mode)
+  }, [mode])
   
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
     const value = readCssVar(elevationVar)
@@ -116,7 +116,7 @@ export default function Toast({
     return extractElevationMode(value, elevationVar)
   })
   
-  // Re-read elevation when elevationVar changes (including when layer changes)
+  // Re-read elevation when elevationVar changes
   useEffect(() => {
     const value = readCssVar(elevationVar)
     const parsed = value ? parseElevationValue(value) : undefined

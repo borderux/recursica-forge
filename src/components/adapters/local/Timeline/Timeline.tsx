@@ -113,14 +113,7 @@ export default function Timeline({
         '--timeline-avatar-size-default': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'default', 'properties', 'width')}, 40px)`,
         '--timeline-avatar-size-large': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'large', 'properties', 'width')}, 64px)`,
         // Read the stored avatar-size string and resolve to the correct Avatar size
-        '--timeline-avatar-bullet-size': (() => {
-            const sizeVarName = bulletPropVar('avatar', 'avatar-size')
-            const sizeValue = typeof document !== 'undefined'
-                ? getComputedStyle(document.documentElement).getPropertyValue(sizeVarName).trim().replace(/^["']|["']$/g, '')
-                : 'default'
-            const sizeKey = sizeValue === 'small' || sizeValue === 'large' ? sizeValue : 'default'
-            return `var(--timeline-avatar-size-${sizeKey}, 40px)`
-        })(),
+        '--timeline-avatar-bullet-size': `var(${bulletPropVar('avatar', 'avatar-size')}, 40px)`,
         '--timeline-avatar-active-bg': `var(${bulletColor('avatar', 'active', 'background-color')})`,
         '--timeline-avatar-inactive-bg': `var(${bulletColor('avatar', 'inactive', 'background-color')})`,
         '--timeline-avatar-active-border': `var(${bulletColor('avatar', 'active', 'border-color')})`,
