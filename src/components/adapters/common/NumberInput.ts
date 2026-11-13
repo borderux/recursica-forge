@@ -2,7 +2,7 @@
  * NumberInput — common types
  *
  * Single source of truth for the NumberInput prop vocabulary, shared by the dispatcher
- * (`adapters/NumberInput.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/NumberInput`).
+ * (`adapters/NumberInput.tsx`) and the per-library wrapper (`adapters/mantine/NumberInput`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

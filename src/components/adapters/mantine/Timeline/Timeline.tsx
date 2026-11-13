@@ -55,6 +55,6 @@ export default React.forwardRef<any, TimelineProps>(function Timeline({
 type _Wiring = AssertWired<
   TimelineProps,
   typeof MantineTimeline,
-  'items' | 'children' | 'layer' | 'className' | 'style' | 'mantine' | 'material' | 'carbon'
+  'items' | 'children' | 'layer' | 'className' | 'style' | 'mantine'
 >
 const _wiringCheck: _Wiring = true

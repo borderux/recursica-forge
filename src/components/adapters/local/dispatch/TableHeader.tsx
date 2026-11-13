@@ -32,8 +32,6 @@ export function TableHeader({
   sorted,
   onClick,
   mantine,
-  material,
-  carbon,
 }: TableHeaderProps) {
   const Component = useComponent('TableHeader')
 
@@ -53,8 +51,6 @@ export function TableHeader({
         sorted={sorted}
         onClick={onClick}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

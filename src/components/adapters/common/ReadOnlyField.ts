@@ -2,7 +2,7 @@
  * ReadOnlyField — common types
  *
  * Single source of truth for the ReadOnlyField prop vocabulary, shared by the dispatcher
- * (`adapters/ReadOnlyField.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/ReadOnlyField`).
+ * (`adapters/ReadOnlyField.tsx`) and the per-library wrapper (`adapters/mantine/ReadOnlyField`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

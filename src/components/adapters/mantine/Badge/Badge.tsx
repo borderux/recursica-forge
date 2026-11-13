@@ -7,9 +7,8 @@
  * explicitly omitted upstream with nothing to replace it.
  *
  * `variant` maps onto a real, matching slot (`RecursicaBadgeProps.variant`), but Forge
- * deliberately types its own `variant` as an open `string` — the material/carbon Badge
- * implementations both key CSS vars off arbitrary custom variant names (e.g. `'my-badge'`),
- * confirmed in adapters/material/Badge/Badge.tsx's own comment — wider than the real adapter's
+ * deliberately types its own `variant` as an open `string` so CSS vars can be keyed off
+ * arbitrary custom variant names (e.g. `'my-badge'`) — wider than the real adapter's
  * `'alert' | 'primary-color' | 'success' | 'warning'` union, which only enumerates its four
  * known values. The cast below is the actual translation (same spirit as DatePicker's
  * `layout`): a custom variant name still flows through unchanged at runtime (it's a plain
@@ -47,6 +46,6 @@ export default React.forwardRef<any, BadgeProps>(function Badge({
 type _Wiring = AssertWired<
     BadgeProps,
     typeof MantineBadge,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'variant' | 'size'
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'variant' | 'size'
 >
 const _wiringCheck: _Wiring = true

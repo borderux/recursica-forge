@@ -67,8 +67,6 @@ type _Wiring = AssertWired<
     typeof MantineSwitchGroup,
     | 'layer'
     | 'mantine'
-    | 'material'
-    | 'carbon'
     | 'className'
     | 'style'
     | 'children'

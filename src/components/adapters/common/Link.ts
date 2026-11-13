@@ -2,7 +2,7 @@
  * Link — common types
  *
  * Single source of truth for the Link prop vocabulary, shared by the dispatcher
- * (`adapters/Link.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Link`).
+ * (`adapters/Link.tsx`) and the per-library wrapper (`adapters/mantine/Link`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

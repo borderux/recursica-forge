@@ -2,7 +2,7 @@
  * SwitchGroup — common types
  *
  * Single source of truth for the SwitchGroup prop vocabulary, shared by the dispatcher
- * (`adapters/SwitchGroup.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/SwitchGroup`).
+ * (`adapters/SwitchGroup.tsx`) and the per-library wrapper (`adapters/mantine/SwitchGroup`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

@@ -113,7 +113,7 @@ export default React.forwardRef<any, FileUploadAdapterProps>(function FileUpload
 type _Wiring = AssertWired<
     FileUploadAdapterProps,
     typeof MantineFileUpload,
-    | 'layer' | 'disableTopBottomMargin' | 'mantine' | 'material' | 'carbon' | 'className' | 'style'
+    | 'layer' | 'disableTopBottomMargin' | 'mantine' | 'className' | 'style'
     | 'files' | 'onUpload' | 'onRemove' | 'state' | 'layout'
     | 'labelId' | 'helpId' | 'errorId',
     { helpText: 'assistiveText'; errorText: 'error'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment' }

@@ -79,8 +79,6 @@ export function Label({
   onEditIconClick,
   editIconTitle,
   mantine,
-  material,
-  carbon,
 }: LabelProps) {
   const Component = useComponent('Label')
   const { mode } = useThemeMode()
@@ -346,8 +344,6 @@ export function Label({
           ...style,
         }}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

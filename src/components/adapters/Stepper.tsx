@@ -26,8 +26,6 @@ function SharedStepper({
     className,
     style,
     mantine,
-    material,
-    carbon,
 }: StepperProps) {
     const Component = useComponent('Stepper')
 
@@ -41,8 +39,6 @@ function SharedStepper({
         className,
         style,
         mantine,
-        material,
-        carbon,
     }
 
     return (

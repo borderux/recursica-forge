@@ -2,7 +2,7 @@
  * Pagination — common types
  *
  * Single source of truth for the Pagination prop vocabulary, shared by the dispatcher
- * (`adapters/Pagination.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Pagination`).
+ * (`adapters/Pagination.tsx`) and the per-library wrapper (`adapters/mantine/Pagination`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

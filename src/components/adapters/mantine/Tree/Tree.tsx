@@ -61,7 +61,7 @@ export default React.forwardRef<any, TreeProps>(function Tree({ data, selected, 
 type _Wiring = AssertWired<
     TreeProps,
     typeof MantineTree,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'data' | 'children' | 'variant' | 'className' | 'style' | 'forceHover',
+    'layer' | 'elevation' | 'mantine' | 'data' | 'children' | 'variant' | 'className' | 'style' | 'forceHover',
     { selected: 'initialSelectedValues'; onSelect: 'onSelectedChange' }
 >
 const _wiringCheck: _Wiring = true

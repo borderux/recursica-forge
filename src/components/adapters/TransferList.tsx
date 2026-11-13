@@ -44,8 +44,6 @@ function SharedTransferList({
     className,
     style,
     mantine,
-    material,
-    carbon,
 }: TransferListProps) {
     const Component = useComponent('TransferList')
 
@@ -233,8 +231,6 @@ function SharedTransferList({
                         filteredSource={filteredSource}
                         filteredTarget={filteredTarget}
                         mantine={mantine}
-                        material={material}
-                        carbon={carbon}
                     />
                 </Suspense>
                 {assistiveElement}

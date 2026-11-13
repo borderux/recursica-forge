@@ -2,7 +2,7 @@
  * Tooltip — common types
  *
  * Single source of truth for the Tooltip prop vocabulary, shared by the dispatcher
- * (`adapters/Tooltip.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Tooltip`).
+ * (`adapters/Tooltip.tsx`) and the per-library wrapper (`adapters/mantine/Tooltip`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

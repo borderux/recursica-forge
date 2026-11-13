@@ -2,7 +2,7 @@
  * DatePicker — common types
  *
  * Single source of truth for the DatePicker prop vocabulary, shared by the dispatcher
- * (`adapters/DatePicker.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/DatePicker`).
+ * (`adapters/DatePicker.tsx`) and the per-library wrapper (`adapters/mantine/DatePicker`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

@@ -56,8 +56,6 @@ export function Card({
     withBorder = true,
     withDividers = true,
     mantine,
-    material,
-    carbon,
 }: CardProps) {
     const Component = useComponent('Card')
     const { mode } = useThemeMode()
@@ -143,8 +141,6 @@ export function Card({
                 className={className}
                 style={style}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             />
         </Suspense>
     )

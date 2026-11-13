@@ -2,7 +2,7 @@
  * Label — common types
  *
  * Single source of truth for the Label prop vocabulary, shared by the dispatcher
- * (`adapters/Label.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Label`).
+ * (`adapters/Label.tsx`) and the per-library wrapper (`adapters/mantine/Label`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

@@ -12,8 +12,8 @@ export default function MenuPreview({
   selectedLayer,
   componentElevation,
 }: MenuPreviewProps) {
-  // No outer cssVarsUpdated listener/force-remount needed here — Menu, and every shell's
-  // MenuItem (Material/Carbon listen internally, Mantine reacts via native CSS), already
+  // No outer cssVarsUpdated listener/force-remount needed here — Menu and MenuItem
+  // (Mantine reacts via native CSS) already
   // pick up toolbar edits on their own. See the Menu bug thread for how this was confirmed.
   return (
     <div style={{

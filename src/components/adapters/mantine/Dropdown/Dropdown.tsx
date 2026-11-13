@@ -132,9 +132,7 @@ type _Wiring = AssertWired<
     | 'disableTopBottomMargin'
     | 'className'
     | 'style'
-    | 'mantine'
-    | 'material'
-    | 'carbon',
+    | 'mantine',
     { helpText: 'assistiveText'; errorText: 'error'; leadingIcon: 'leftSection'; trailingIcon: 'rightSection'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment'; maxHeight: 'maxDropdownHeight' }
 >
 const _wiringCheck: _Wiring = true

@@ -17,7 +17,7 @@ describe('Button Component (Adapter)', () => {
     await new Promise(resolve => setTimeout(resolve, 200))
   })
 
-  const renderWithProviders = (ui: React.ReactElement, kit: 'mantine' | 'material' | 'carbon' = 'mantine') => {
+  const renderWithProviders = (ui: React.ReactElement) => {
     return render(
       <UiKitProvider>
         <ThemeModeProvider>
@@ -191,22 +191,6 @@ describe('Button Component (Adapter)', () => {
         <Button mantine={{ 'data-testid': 'mantine-button' }}>Mantine</Button>
       )
       const button = await waitForButton(container, 'Mantine')
-      expect(button).toBeInTheDocument()
-    })
-
-    it('passes material-specific props', async () => {
-      const { container } = renderWithProviders(
-        <Button material={{ 'data-testid': 'material-button' }}>Material</Button>
-      )
-      const button = await waitForButton(container, 'Material')
-      expect(button).toBeInTheDocument()
-    })
-
-    it('passes carbon-specific props', async () => {
-      const { container } = renderWithProviders(
-        <Button carbon={{ 'data-testid': 'carbon-button' }}>Carbon</Button>
-      )
-      const button = await waitForButton(container, 'Carbon')
       expect(button).toBeInTheDocument()
     })
   })

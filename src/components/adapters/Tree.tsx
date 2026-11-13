@@ -27,8 +27,6 @@ function SharedTree({
   onSelect,
   forceHover,
   mantine,
-  material,
-  carbon,
 }: TreeProps) {
   const Component = useComponent('Tree')
 
@@ -45,8 +43,6 @@ function SharedTree({
         onSelect={onSelect}
         forceHover={forceHover}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

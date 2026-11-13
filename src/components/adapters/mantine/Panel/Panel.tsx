@@ -75,9 +75,7 @@ type _Wiring = AssertWired<
   | 'elevation'
   | 'className'
   | 'style'
-  | 'mantine'
-  | 'material'
-  | 'carbon',
+  | 'mantine',
   { position: 'placement' }
 >
 const _wiringCheck: _Wiring = true

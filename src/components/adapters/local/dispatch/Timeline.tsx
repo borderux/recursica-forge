@@ -37,8 +37,6 @@ export function Timeline({
     className,
     style,
     mantine,
-    material,
-    carbon,
 }: TimelineProps) {
     const Component = useComponent('Timeline')
 
@@ -59,8 +57,6 @@ export function Timeline({
         className,
         style,
         mantine,
-        material,
-        carbon,
     }
 
     return (

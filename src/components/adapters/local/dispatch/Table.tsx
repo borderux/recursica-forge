@@ -28,8 +28,6 @@ export function Table({
   style,
   data,
   mantine,
-  material,
-  carbon,
 }: TableProps) {
   const Component = useComponent('Table')
 
@@ -47,8 +45,6 @@ export function Table({
         style={style}
         data={data}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

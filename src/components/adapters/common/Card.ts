@@ -2,7 +2,7 @@
  * Card — common types
  *
  * Single source of truth for the Card prop vocabulary, shared by the dispatcher
- * (`adapters/Card.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Card`).
+ * (`adapters/Card.tsx`) and the per-library wrapper (`adapters/mantine/Card`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

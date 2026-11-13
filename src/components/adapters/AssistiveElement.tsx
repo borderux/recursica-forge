@@ -24,8 +24,6 @@ function SharedAssistiveElement({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: AssistiveElementProps) {
   const Component = useComponent('AssistiveElement')
 
@@ -39,8 +37,6 @@ function SharedAssistiveElement({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )

@@ -2,7 +2,7 @@
  * TransferList — common types
  *
  * Single source of truth for the TransferList prop vocabulary, shared by the dispatcher
- * (`adapters/TransferList.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/TransferList`).
+ * (`adapters/TransferList.tsx`) and the per-library wrapper (`adapters/mantine/TransferList`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

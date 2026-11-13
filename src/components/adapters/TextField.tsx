@@ -55,8 +55,6 @@ function SharedTextField({
   onEditIconClick,
   editIconTitle,
   mantine,
-  material,
-  carbon,
 }: TextFieldProps) {
   const Component = useComponent('TextField')
   const { mode } = useThemeMode()
@@ -119,8 +117,6 @@ function SharedTextField({
           className={className}
           style={style}
           mantine={mantine}
-          material={material}
-          carbon={carbon}
         />
       </Suspense>
     </div>

@@ -36,17 +36,11 @@
     "release": "changeset publish"
   },
   "dependencies": {
-    "@carbon/react": "^1.93.0",
-    "@carbon/styles": "^1.92.0",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
     "@heroicons/react": "^2.2.0",
     "@mantine/core": "^8.3.5",
     "@mantine/dates": "^8.3.5",
     "@mantine/hooks": "^8.3.5",
     "@mantine/notifications": "^8.3.5",
-    "@mui/material": "^7.3.4",
-    "@mui/system": "^7.3.3",
     "@phosphor-icons/react": "^2.1.10",
     "@radix-ui/react-icons": "^1.3.2",
     "@recursica/adapter-mantine-v8": "^1.0.0",

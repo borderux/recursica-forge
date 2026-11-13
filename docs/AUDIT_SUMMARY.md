@@ -4,27 +4,21 @@
 
 ## Overview
 
-This document provides a summary of audits completed for Avatar, Button, and Switch components across all three UI libraries (Carbon, Mantine, Material UI).
+This document provides a summary of audits completed for Avatar, Button, and Switch components for the Mantine adapter. (Carbon and Material UI audits were removed along with those adapters.)
 
 ## Audit Status
 
 ### Avatar Component
-- ⬜ **Carbon**: not audited — no audit file was written
 - ⬜ **Mantine**: not audited — no audit file was written
-- ⬜ **Material UI**: not audited — no audit file was written
 
-These three were marked complete here, but the files they pointed at have never existed. The rest
+This was marked complete here, but the file it pointed at has never existed. The rest
 of this document describes Button and Switch, which were audited.
 
 ### Button Component
-- ✅ **Carbon**: `src/components/adapters/carbon/Button/audit.md` (includes toolbar config validation)
-- ⬜ **Mantine**: audit file removed with the old per-kit Mantine adapter (now the real adapter package)
-- ✅ **Material UI**: `src/components/adapters/material/Button/audit.md` (includes toolbar config validation)
+- ✅ **Mantine (local adapter)**: `src/components/adapters/local/Button/audit.md`
 
 ### Switch Component
-- ✅ **Carbon**: `src/components/adapters/carbon/Switch/audit.md` (includes toolbar config validation)
-- ⬜ **Mantine**: audit file removed with the old per-kit Mantine adapter (now the real adapter package)
-- ✅ **Material UI**: `src/components/adapters/material/Switch/audit.md` (includes toolbar config validation)
+- ✅ **Mantine (local adapter)**: `src/components/adapters/local/Switch/audit.md`
 
 ## Toolbar Config Validation Results
 
@@ -54,9 +48,7 @@ All toolbar configurations have been validated:
 - ✅ Proper fallback chains implemented
 
 ### Implementation Patterns
-- **Carbon**: Custom implementations where native components don't exist (Avatar)
 - **Mantine**: Props-based styling with CSS overrides
-- **Material UI**: Sx prop-based styling with CSS overrides
 
 ### Toolbar Configs
 - ✅ All configs follow correct schema

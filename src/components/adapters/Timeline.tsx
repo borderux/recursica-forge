@@ -25,8 +25,6 @@ function SharedTimeline({
     className,
     style,
     mantine,
-    material,
-    carbon,
 }: TimelineProps) {
     const Component = useComponent('Timeline')
 
@@ -38,8 +36,6 @@ function SharedTimeline({
         className,
         style,
         mantine,
-        material,
-        carbon,
     }
 
     return (

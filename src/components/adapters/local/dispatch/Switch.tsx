@@ -36,8 +36,6 @@ export function Switch({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: SwitchProps) {
   const Component = useComponent('Switch')
   
@@ -160,8 +158,6 @@ export function Switch({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )

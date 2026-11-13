@@ -8,7 +8,7 @@
  * because every library needs the same answer to "what's open right now" — duplicating that
  * logic per library would just be three copies of the same bookkeeping. Everything
  * library-specific — translating that state, and `items`, into what Mantine/Material/Carbon
- * actually render — lives in each library's own wrapper under adapters/{mantine,material,carbon}/Accordion.
+ * actually render — lives in each library's own wrapper under adapters/mantine/Accordion.
  */
 
 import { Suspense, useMemo, useRef, useState, useEffect } from 'react'
@@ -30,8 +30,6 @@ function SharedAccordion({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: AccordionProps) {
   const Component = useComponent('Accordion')
 
@@ -113,8 +111,6 @@ function SharedAccordion({
     className,
     style,
     mantine,
-    material,
-    carbon,
   }
 
   return (

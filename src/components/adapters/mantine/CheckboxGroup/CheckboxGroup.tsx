@@ -69,8 +69,6 @@ type _Wiring = AssertWired<
     typeof MantineCheckboxGroup,
     | 'layer'
     | 'mantine'
-    | 'material'
-    | 'carbon'
     | 'className'
     | 'style'
     | 'children'

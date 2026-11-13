@@ -50,6 +50,6 @@ export default React.forwardRef<any, SwitchProps>(function Switch({ checked, onC
 type _Wiring = AssertWired<
     SwitchProps,
     typeof MantineSwitch,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'onChange'
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'onChange'
 >
 const _wiringCheck: _Wiring = true

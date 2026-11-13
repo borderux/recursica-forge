@@ -41,8 +41,6 @@ export function Popover({
     position = 'bottom',
     zIndex,
     mantine,
-    material,
-    carbon,
 }: PopoverProps) {
     const Component = useComponent('Popover')
     const { mode } = useThemeMode()
@@ -153,8 +151,6 @@ export function Popover({
                 position={position}
                 zIndex={zIndex}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             >
                 {children}
             </Component>

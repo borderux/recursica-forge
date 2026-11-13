@@ -25,8 +25,6 @@ function SharedTableCell({
   isHeader,
   disabled,
   mantine,
-  material,
-  carbon,
 }: TableCellProps) {
   const Component = useComponent('TableCell')
 
@@ -41,8 +39,6 @@ function SharedTableCell({
         isHeader={isHeader}
         disabled={disabled}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

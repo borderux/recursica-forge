@@ -8,7 +8,7 @@
  * properties on `Tabs` instead of separate named exports, since every call site already uses
  * `<Tabs.List>`/`<Tabs.Tab>`/`<Tabs.Panel>` composition. Per-kit rendering, including
  * `TabsContext` (the active value/orientation/variant/alignment sub-components read), lives
- * entirely in each kit's own `adapters/{mantine,material,carbon}/Tabs/` files — nothing
+ * entirely in each kit's own `adapters/mantine/Tabs/` files — nothing
  * kit-specific belongs here.
  */
 
@@ -36,8 +36,6 @@ function SharedTabs({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: TabsProps) {
   const Component = useComponent('Tabs')
 
@@ -56,8 +54,6 @@ function SharedTabs({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

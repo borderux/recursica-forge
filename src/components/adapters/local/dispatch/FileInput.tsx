@@ -74,8 +74,6 @@ export function FileInput({
     verticalPadding,
     iconSize,
     mantine,
-    material,
-    carbon,
 }: FileInputProps) {
     const Component = useComponent('FileInput')
 
@@ -472,8 +470,6 @@ export function FileInput({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

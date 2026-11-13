@@ -51,8 +51,6 @@ export function Panel({
     width,
     zIndex,
     mantine,
-    material,
-    carbon,
 }: PanelProps) {
     const Component = useComponent('Panel')
     const { mode } = useThemeMode()
@@ -133,8 +131,6 @@ export function Panel({
                 className={className}
                 style={style}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             />
         </Suspense>
     )

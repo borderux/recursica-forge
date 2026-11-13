@@ -33,8 +33,6 @@ function SharedMenuItem({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: MenuItemProps) {
   const Component = useComponent('MenuItem')
 
@@ -64,8 +62,6 @@ function SharedMenuItem({
     className,
     style,
     mantine,
-    material,
-    carbon,
   }
 
   return (

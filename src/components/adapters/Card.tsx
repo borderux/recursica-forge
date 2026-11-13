@@ -45,8 +45,6 @@ function SharedCard({
     withBorder = true,
     withDividers = true,
     mantine,
-    material,
-    carbon,
 }: CardProps) {
     const Component = useComponent('Card')
     const { mode } = useThemeMode()
@@ -96,8 +94,6 @@ function SharedCard({
                 className={className}
                 style={style}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             />
         </Suspense>
     )

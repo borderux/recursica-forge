@@ -12,8 +12,6 @@ import type { AdapterKey, ComponentName } from './types'
 const registries: Record<AdapterKey, Partial<Record<ComponentName, () => Promise<{ default: ComponentType<any> }>>>> = {
   mantine: {},
   local: {},
-  material: {},
-  carbon: {},
 }
 
 // Cache for lazy-loaded components

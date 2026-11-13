@@ -2,7 +2,7 @@
  * FileUpload — common types
  *
  * Single source of truth for the FileUpload prop vocabulary, shared by the dispatcher
- * (`adapters/FileUpload.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/FileUpload`).
+ * (`adapters/FileUpload.tsx`) and the per-library wrapper (`adapters/mantine/FileUpload`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

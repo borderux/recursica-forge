@@ -30,8 +30,6 @@ function SharedToast({
   onClose,
   action,
   mantine,
-  material,
-  carbon,
 }: ToastProps) {
   const Component = useComponent('Toast')
   const { mode } = useThemeMode()
@@ -82,8 +80,6 @@ function SharedToast({
     onClose,
     action,
     mantine,
-    material,
-    carbon,
   })
 
   const C = Component as React.ComponentType<any>
@@ -96,12 +92,10 @@ function SharedToast({
 }
 
 function mapToastProps(props: ToastProps & { elevation?: string }): any {
-  const { mantine, material, carbon, ...rest } = props
+  const { mantine, ...rest } = props
   return {
     ...rest,
     ...(mantine && { mantine }),
-    ...(material && { material }),
-    ...(carbon && { carbon }),
   }
 }
 

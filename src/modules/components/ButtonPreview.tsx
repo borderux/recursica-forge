@@ -192,9 +192,6 @@ export default function ButtonPreview({
               size={sizeVariant as any}
               layer={actualLayer}
               elevation={componentElevation}
-              material={{
-                endIcon: trailingIconElement
-              }}
               mantine={{
                 rightSection: trailingIconElement
               }}

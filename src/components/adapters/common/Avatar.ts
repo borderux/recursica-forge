@@ -2,7 +2,7 @@
  * Avatar — common types
  *
  * Single source of truth for the Avatar prop vocabulary, shared by the dispatcher
- * (`adapters/Avatar.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Avatar`).
+ * (`adapters/Avatar.tsx`) and the per-library wrapper (`adapters/mantine/Avatar`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

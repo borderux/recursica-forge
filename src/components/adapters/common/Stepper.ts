@@ -2,7 +2,7 @@
  * Stepper — common types
  *
  * Single source of truth for the Stepper prop vocabulary, shared by the dispatcher
- * (`adapters/Stepper.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Stepper`).
+ * (`adapters/Stepper.tsx`) and the per-library wrapper (`adapters/mantine/Stepper`).
  */
 
 import type { ReactNode } from 'react'

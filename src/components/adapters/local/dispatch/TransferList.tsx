@@ -83,8 +83,6 @@ export function TransferList({
     className,
     style,
     mantine,
-    material,
-    carbon,
 }: TransferListProps) {
     const Component = useComponent('TransferList')
 
@@ -272,8 +270,6 @@ export function TransferList({
                         filteredSource={filteredSource}
                         filteredTarget={filteredTarget}
                         mantine={mantine}
-                        material={material}
-                        carbon={carbon}
                     />
                 </Suspense>
                 {assistiveElement}

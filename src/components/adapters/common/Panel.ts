@@ -2,7 +2,7 @@
  * Panel — common types
  *
  * Single source of truth for the Panel prop vocabulary, shared by the dispatcher
- * (`adapters/Panel.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Panel`).
+ * (`adapters/Panel.tsx`) and the per-library wrapper (`adapters/mantine/Panel`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

@@ -2,7 +2,7 @@
  * FileInput — common types
  *
  * Single source of truth for the FileInput prop vocabulary, shared by the dispatcher
- * (`adapters/FileInput.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/FileInput`).
+ * (`adapters/FileInput.tsx`) and the per-library wrapper (`adapters/mantine/FileInput`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

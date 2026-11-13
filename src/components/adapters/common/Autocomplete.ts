@@ -2,7 +2,7 @@
  * Autocomplete — common types
  *
  * Single source of truth for the Autocomplete prop vocabulary, shared by the dispatcher
- * (`adapters/Autocomplete.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Autocomplete`).
+ * (`adapters/Autocomplete.tsx`) and the per-library wrapper (`adapters/mantine/Autocomplete`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

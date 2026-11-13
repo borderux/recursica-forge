@@ -33,8 +33,6 @@ const SharedButton = React.forwardRef<any, ButtonProps>((props, ref) => {
     icon,
     title,
     mantine,
-    material,
-    carbon,
     ...rest
   } = props
   const Component = useComponent('Button')
@@ -125,8 +123,6 @@ const SharedButton = React.forwardRef<any, ButtonProps>((props, ref) => {
     style,
     icon,
     mantine,
-    material,
-    carbon,
   })
   
   return (
@@ -137,7 +133,7 @@ const SharedButton = React.forwardRef<any, ButtonProps>((props, ref) => {
 })
 
 function mapButtonProps(props: ButtonProps & { elevation?: string }): any {
-  const { mantine, material, carbon, title, ...rest } = props
+  const { mantine, title, ...rest } = props
   
   // Base props that work across libraries
   // Include variant, size, layer, and elevation so library adapters can use them
@@ -155,10 +151,6 @@ function mapButtonProps(props: ButtonProps & { elevation?: string }): any {
     ...baseProps,
     // Mantine-specific
     ...(mantine && { mantine }),
-    // Material-specific
-    ...(material && { material }),
-    // Carbon-specific
-    ...(carbon && { carbon }),
   }
 }
 

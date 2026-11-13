@@ -39,8 +39,6 @@ const RandomizerResultsPage = import.meta.env.DEV
 // Initialize component registries
 import './components/registry/local'
 import './components/registry/mantine'
-import './components/registry/material'
-import './components/registry/carbon'
 
 // Initialize CSS variable audit utility (available in console as window.auditCssVars)
 if (import.meta.env.DEV) {

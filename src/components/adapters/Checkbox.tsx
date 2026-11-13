@@ -25,8 +25,6 @@ function SharedCheckbox({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: CheckboxProps) {
   const Component = useComponent('Checkbox')
 
@@ -42,8 +40,6 @@ function SharedCheckbox({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )

@@ -43,8 +43,6 @@ function SharedDatePicker({
     disableTopBottomMargin = false,
     dateFormat,
     mantine,
-    material,
-    carbon,
 }: DatePickerProps) {
     const Component = useComponent('DatePicker')
     const { mode } = useThemeMode()
@@ -90,8 +88,6 @@ function SharedDatePicker({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

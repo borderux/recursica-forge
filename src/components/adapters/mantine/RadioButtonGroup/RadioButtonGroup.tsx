@@ -71,8 +71,6 @@ type _Wiring = AssertWired<
     typeof MantineRadioGroup,
     | 'layer'
     | 'mantine'
-    | 'material'
-    | 'carbon'
     | 'className'
     | 'style'
     | 'children'

@@ -24,8 +24,6 @@ function SharedBreadcrumb({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: BreadcrumbProps) {
   const Component = useComponent('Breadcrumb')
 
@@ -42,8 +40,6 @@ function SharedBreadcrumb({
     className,
     style,
     mantine,
-    material,
-    carbon,
   }
 
   return (

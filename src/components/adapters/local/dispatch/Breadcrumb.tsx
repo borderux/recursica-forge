@@ -32,8 +32,6 @@ export function Breadcrumb({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: BreadcrumbProps) {
   const Component = useComponent('Breadcrumb')
 
@@ -76,8 +74,6 @@ export function Breadcrumb({
     className,
     style,
     mantine,
-    material,
-    carbon,
   }
 
   return (

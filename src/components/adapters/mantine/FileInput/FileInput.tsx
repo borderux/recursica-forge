@@ -128,7 +128,7 @@ export default React.forwardRef<any, FileInputAdapterProps>(function FileInput({
 type _Wiring = AssertWired<
     FileInputAdapterProps,
     typeof MantineFileInput,
-    | 'layer' | 'disableTopBottomMargin' | 'mantine' | 'material' | 'carbon' | 'className' | 'style'
+    | 'layer' | 'disableTopBottomMargin' | 'mantine' | 'className' | 'style'
     | 'value' | 'defaultValue' | 'onChange' | 'state' | 'layout'
     | 'name' | 'verticalPadding' | 'iconSize'
     | 'labelId' | 'helpId' | 'errorId',

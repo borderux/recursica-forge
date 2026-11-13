@@ -2,7 +2,7 @@
  * Timeline — common types
  *
  * Single source of truth for the Timeline prop vocabulary, shared by the dispatcher
- * (`adapters/Timeline.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Timeline`).
+ * (`adapters/Timeline.tsx`) and the per-library wrapper (`adapters/mantine/Timeline`).
  */
 
 import type { ReactNode } from 'react'

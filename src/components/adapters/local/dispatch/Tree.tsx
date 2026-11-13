@@ -35,8 +35,6 @@ export function Tree({
   onSelect,
   forceHover,
   mantine,
-  material,
-  carbon,
 }: TreeProps) {
   const Component = useComponent('Tree')
 
@@ -57,8 +55,6 @@ export function Tree({
         onSelect={onSelect}
         forceHover={forceHover}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

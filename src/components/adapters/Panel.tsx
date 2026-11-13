@@ -9,7 +9,7 @@
  * `isOpen`/`onClose` — so this dispatcher just picks the implementation and forwards props.
  * Everything library-specific — Mantine's Panel being a Drawer with a composed `Panel.Footer`
  * child instead of a `footer` prop, for instance — lives in each library's own wrapper under
- * adapters/{mantine,material,carbon}/Panel.
+ * adapters/mantine/Panel.
  *
  * Panel is currently Mantine-only: Material and Carbon have no registered implementation, so
  * `useComponent` falls back to NoAdapterImplementation for those kits.

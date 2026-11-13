@@ -73,8 +73,6 @@ type _Wiring = AssertWired<
     | 'layer'
     | 'disableTopBottomMargin'
     | 'mantine'
-    | 'material'
-    | 'carbon'
     | 'className'
     | 'style'
     | 'layout'

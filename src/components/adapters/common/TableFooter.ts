@@ -2,7 +2,7 @@
  * TableFooter — common types
  *
  * Single source of truth for the TableFooter prop vocabulary, shared by the dispatcher
- * (`adapters/TableFooter.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/TableFooter`).
+ * (`adapters/TableFooter.tsx`) and the per-library wrapper (`adapters/mantine/TableFooter`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

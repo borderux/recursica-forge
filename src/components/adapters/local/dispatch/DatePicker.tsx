@@ -75,8 +75,6 @@ export function DatePicker({
     disableTopBottomMargin = false,
     dateFormat,
     mantine,
-    material,
-    carbon,
 }: DatePickerProps) {
     const Component = useComponent('DatePicker')
     const { mode } = useThemeMode()
@@ -309,8 +307,6 @@ export function DatePicker({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

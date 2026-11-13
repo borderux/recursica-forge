@@ -38,8 +38,6 @@ function SharedFileUpload({
     style,
     disableTopBottomMargin = false,
     mantine,
-    material,
-    carbon,
 }: FileUploadProps) {
     const Component = useComponent('FileUpload')
 
@@ -85,8 +83,6 @@ function SharedFileUpload({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

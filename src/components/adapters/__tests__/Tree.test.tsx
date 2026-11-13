@@ -16,9 +16,6 @@ import { getComponentTextCssVar, getComponentLevelCssVar } from '../../utils/css
   beforeAll(async () => {
     await Promise.all([
       import('@mantine/core'),
-      import('@mui/material/styles'),
-      import('@mui/material'),
-      import('@carbon/react'),
     ])
     await preloadComponent('mantine', 'Tree')
   })

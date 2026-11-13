@@ -29,8 +29,6 @@ export function Menu({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: MenuProps) {
   const Component = useComponent('Menu')
 
@@ -103,8 +101,6 @@ export function Menu({
     className,
     style,
     mantine,
-    material,
-    carbon,
   }
 
   return (

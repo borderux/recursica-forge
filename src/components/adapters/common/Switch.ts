@@ -2,7 +2,7 @@
  * Switch — common types
  *
  * Single source of truth for the Switch prop vocabulary, shared by the dispatcher
- * (`adapters/Switch.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Switch`).
+ * (`adapters/Switch.tsx`) and the per-library wrapper (`adapters/mantine/Switch`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

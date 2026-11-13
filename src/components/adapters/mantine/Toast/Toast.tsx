@@ -42,6 +42,6 @@ export default React.forwardRef<any, ToastProps>(function Toast({
 type _Wiring = AssertWired<
     ToastProps,
     typeof MantineToast,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'action'
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'action'
 >
 const _wiringCheck: _Wiring = true

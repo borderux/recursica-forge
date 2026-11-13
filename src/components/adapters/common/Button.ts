@@ -2,7 +2,7 @@
  * Button — common types
  *
  * Single source of truth for the Button prop vocabulary, shared by the dispatcher
- * (`adapters/Button.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Button`).
+ * (`adapters/Button.tsx`) and the per-library wrapper (`adapters/mantine/Button`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

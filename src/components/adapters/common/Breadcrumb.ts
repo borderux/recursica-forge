@@ -2,7 +2,7 @@
  * Breadcrumb — common types
  *
  * Single source of truth for the Breadcrumb prop vocabulary, shared by the dispatcher
- * (`adapters/Breadcrumb.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Breadcrumb`).
+ * (`adapters/Breadcrumb.tsx`) and the per-library wrapper (`adapters/mantine/Breadcrumb`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

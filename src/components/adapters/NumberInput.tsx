@@ -51,8 +51,6 @@ function SharedNumberInput({
     readOnly,
     disableTopBottomMargin = false,
     mantine,
-    material,
-    carbon,
 }: NumberInputProps) {
     const Component = useComponent('NumberInput')
     const { mode } = useThemeMode()
@@ -107,8 +105,6 @@ function SharedNumberInput({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

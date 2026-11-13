@@ -34,8 +34,6 @@ function SharedReadOnlyField({
     style,
     disableTopBottomMargin = false,
     mantine,
-    material,
-    carbon,
 }: ReadOnlyFieldProps) {
     const Component = useComponent('ReadOnlyField')
 
@@ -106,8 +104,6 @@ function SharedReadOnlyField({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

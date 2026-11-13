@@ -80,8 +80,6 @@ export function TimePicker({
     period = 'AM',
     onPeriodChange,
     mantine,
-    material,
-    carbon,
 }: TimePickerProps) {
     const Component = useComponent('TimePicker')
     const { mode } = useThemeMode()
@@ -153,8 +151,6 @@ export function TimePicker({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

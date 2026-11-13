@@ -70,9 +70,7 @@ export const FORGE_ONLY_PROPS = new Set([
   // before that wrapper ever runs — a global drop here would starve it of both props before
   // its own destructuring saw them. Switch's mantine wrapper (mantine/Switch/Switch.tsx) now
   // drops both explicitly itself, for the same reason.
-  'mantine', // Forge's per-kit escape hatches
-  'material',
-  'carbon',
+  'mantine', // Forge's per-kit escape hatch
 ])
 
 /**

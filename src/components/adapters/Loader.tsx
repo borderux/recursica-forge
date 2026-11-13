@@ -21,8 +21,6 @@ function SharedLoader({
     className,
     style,
     mantine,
-    material,
-    carbon,
 }: LoaderProps) {
     const Component = useComponent('Loader')
 
@@ -33,8 +31,6 @@ function SharedLoader({
                 className={className}
                 style={style}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             />
         </Suspense>
     )

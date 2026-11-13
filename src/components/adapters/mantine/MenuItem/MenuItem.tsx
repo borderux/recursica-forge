@@ -72,8 +72,6 @@ type _Wiring = AssertWired<
     typeof Menu.Item,
     | 'layer'
     | 'mantine'
-    | 'material'
-    | 'carbon'
     | 'className'
     | 'style'
     | 'onClick'

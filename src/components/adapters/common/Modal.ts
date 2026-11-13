@@ -2,7 +2,7 @@
  * Modal — common types
  *
  * Single source of truth for the Modal prop vocabulary, shared by the dispatcher
- * (`adapters/Modal.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Modal`).
+ * (`adapters/Modal.tsx`) and the per-library wrapper (`adapters/mantine/Modal`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

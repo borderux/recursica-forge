@@ -20,7 +20,7 @@ export default defineConfig({
   test: {
     // This is the node/unit run and the CI gate (`npm run test`). Component render tests
     // (src/components/adapters/__tests__/**.test.tsx + App.test.tsx) that mount the real
-    // MUI/Mantine/Carbon adapters are EXCLUDED here: rendering three CSS-in-JS libraries in a
+    // Mantine adapters are EXCLUDED here: rendering them in a
     // headless DOM OOMs the worker. Those run in a REAL browser via `npm run test:browser`
     // (see vitest.browser.config.ts). Logic tests (*.test.ts) run here; some read `document`,
     // so we keep a lightweight DOM environment (happy-dom).
@@ -50,23 +50,12 @@ export default defineConfig({
           //   id.includes('node_modules/react/jsx-runtime')) {
           //   return 'react-vendor'
           // }
-          // MUI + Emotion must be in the SAME chunk to avoid Safari
-          // initialization-order crash (Emotion styled helper must be
-          // defined before MUI references it)
-          if (id.includes('node_modules/@mui/') ||
-            id.includes('node_modules/@emotion/')) {
-            return 'mui-vendor'
-          }
           // Mantine
           if (id.includes('node_modules/@mantine/core')) {
             return 'mantine-core'
           }
           if (id.includes('node_modules/@mantine/hooks')) {
             return 'mantine-hooks'
-          }
-          // Carbon
-          if (id.includes('node_modules/@carbon/')) {
-            return 'carbon-core'
           }
           // Icon libraries
           if (id.includes('node_modules/@phosphor-icons/')) {

@@ -33,9 +33,8 @@ import { Button } from '../Button'
 import { Tooltip } from '../Tooltip'
 import type { ComponentLayer } from '../../registry/types'
 
-// Duplicated (not imported) from material/Label/Label.tsx and carbon/Label/Label.tsx: those two
-// wrap a caller-supplied `editIcon` node into their own real Button/Tooltip components, so
-// there's no single shared implementation to fold all three into, only a shared shape.
+// Detects whether a caller-supplied `editIcon` is already clickable, so it isn't wrapped in a
+// second Button.
 function isButtonOrHasClick(node: React.ReactNode): boolean {
     if (!React.isValidElement(node)) return false
 

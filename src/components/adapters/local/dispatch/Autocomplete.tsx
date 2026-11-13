@@ -79,8 +79,6 @@ export function Autocomplete({
     disableTopBottomMargin = false,
     zIndex,
     mantine,
-    material,
-    carbon,
 }: AutocompleteProps) {
     const Component = useComponent('Autocomplete')
 
@@ -255,8 +253,6 @@ export function Autocomplete({
                     style={style}
                     zIndex={zIndex}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

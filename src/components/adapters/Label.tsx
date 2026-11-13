@@ -35,8 +35,6 @@ function SharedLabel({
   onEditIconClick,
   editIconTitle,
   mantine,
-  material,
-  carbon,
 }: LabelProps) {
   const Component = useComponent('Label')
   const { mode } = useThemeMode()
@@ -113,8 +111,6 @@ function SharedLabel({
           ...style,
         }}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

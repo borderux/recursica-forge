@@ -30,8 +30,6 @@ export function TableCell({
   isHeader,
   disabled,
   mantine,
-  material,
-  carbon,
 }: TableCellProps) {
   const Component = useComponent('TableCell')
 
@@ -50,8 +48,6 @@ export function TableCell({
         isHeader={isHeader}
         disabled={disabled}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

@@ -2,7 +2,7 @@
  * Dropdown — common types
  *
  * Single source of truth for the Dropdown prop vocabulary, shared by the dispatcher
- * (`adapters/Dropdown.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Dropdown`).
+ * (`adapters/Dropdown.tsx`) and the per-library wrapper (`adapters/mantine/Dropdown`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

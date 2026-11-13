@@ -97,7 +97,7 @@ export default React.forwardRef<any, TransferListWrapperProps>(function Transfer
 type _Wiring = AssertWired<
     TransferListProps,
     typeof MantineTransferList,
-    | 'layer' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'state'
+    | 'layer' | 'mantine' | 'className' | 'style' | 'state'
     | 'label' | 'helpText' | 'errorText' | 'required' | 'optional' | 'layout'
 >
 const _wiringCheck: _Wiring = true

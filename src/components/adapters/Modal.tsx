@@ -48,8 +48,6 @@ function SharedModal({
     draggable,
     onPositionChange,
     mantine,
-    material,
-    carbon,
 }: ModalProps) {
     const Component = useComponent('Modal')
 
@@ -165,8 +163,6 @@ function SharedModal({
                 draggable={draggable}
                 onPositionChange={onPositionChange}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             />
         </Suspense>
     )

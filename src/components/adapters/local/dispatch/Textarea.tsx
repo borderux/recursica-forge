@@ -77,8 +77,6 @@ export function Textarea({
     leadingIcon,
     trailingIcon,
     mantine,
-    material,
-    carbon,
 }: TextareaProps) {
     const Component = useComponent('Textarea')
     const { mode } = useThemeMode()
@@ -299,8 +297,6 @@ export function Textarea({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

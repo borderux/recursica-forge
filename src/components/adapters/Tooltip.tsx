@@ -32,8 +32,6 @@ function SharedTooltip({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: TooltipProps) {
   const Component = useComponent('Tooltip')
   const { mode } = useThemeMode()
@@ -133,8 +131,6 @@ function SharedTooltip({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

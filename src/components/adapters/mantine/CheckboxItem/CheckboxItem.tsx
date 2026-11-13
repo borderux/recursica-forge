@@ -39,6 +39,6 @@ export default React.forwardRef<any, CheckboxItemProps>(function CheckboxItem({
 type _Wiring = AssertWired<
     CheckboxItemProps,
     typeof MantineCheckbox,
-    'layer' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'onChange'
+    'layer' | 'mantine' | 'className' | 'style' | 'onChange'
 >
 const _wiringCheck: _Wiring = true

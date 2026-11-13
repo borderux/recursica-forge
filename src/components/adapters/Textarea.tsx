@@ -48,8 +48,6 @@ function SharedTextarea({
     leadingIcon,
     trailingIcon,
     mantine,
-    material,
-    carbon,
 }: TextareaProps) {
     const Component = useComponent('Textarea')
     const { mode } = useThemeMode()
@@ -109,8 +107,6 @@ function SharedTextarea({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

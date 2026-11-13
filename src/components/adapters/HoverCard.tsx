@@ -31,8 +31,6 @@ function SharedHoverCard({
     position = 'bottom',
     zIndex,
     mantine,
-    material,
-    carbon,
 }: HoverCardProps) {
     const Component = useComponent('HoverCard')
 
@@ -114,8 +112,6 @@ function SharedHoverCard({
                 position={position}
                 zIndex={zIndex}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             >
                 {children}
             </Component>

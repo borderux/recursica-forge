@@ -2,7 +2,7 @@
  * Accordion — common types
  *
  * Single source of truth for the Accordion prop vocabulary, shared by the dispatcher
- * (`adapters/Accordion.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Accordion`).
+ * (`adapters/Accordion.tsx`) and the per-library wrapper (`adapters/mantine/Accordion`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

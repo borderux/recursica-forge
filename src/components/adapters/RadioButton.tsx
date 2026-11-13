@@ -25,8 +25,6 @@ function SharedRadioButton({
     className,
     style,
     mantine,
-    material,
-    carbon,
 }: RadioButtonProps) {
     const Component = useComponent('RadioButton')
 
@@ -42,8 +40,6 @@ function SharedRadioButton({
                 className={className}
                 style={style}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             />
         </Suspense>
     )

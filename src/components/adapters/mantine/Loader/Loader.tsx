@@ -30,6 +30,6 @@ export default React.forwardRef<any, LoaderProps>(function Loader({
 type _Wiring = AssertWired<
     LoaderProps,
     typeof MantineLoader,
-    'mantine' | 'material' | 'carbon' | 'className' | 'style'
+    'mantine' | 'className' | 'style'
 >
 const _wiringCheck: _Wiring = true

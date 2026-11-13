@@ -60,8 +60,6 @@ export function SegmentedControl({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: SegmentedControlProps) {
   const Component = useComponent('SegmentedControl')
   
@@ -380,8 +378,6 @@ export function SegmentedControl({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )

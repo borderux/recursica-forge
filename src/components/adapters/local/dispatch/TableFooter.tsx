@@ -28,8 +28,6 @@ export function TableFooter({
   style,
   disabled,
   mantine,
-  material,
-  carbon,
 }: TableFooterProps) {
   const Component = useComponent('TableFooter')
 
@@ -47,8 +45,6 @@ export function TableFooter({
         style={style}
         disabled={disabled}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

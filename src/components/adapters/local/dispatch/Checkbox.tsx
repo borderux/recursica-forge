@@ -30,8 +30,6 @@ export function Checkbox({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: CheckboxProps) {
   const Component = useComponent('Checkbox')
   
@@ -83,8 +81,6 @@ export function Checkbox({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )

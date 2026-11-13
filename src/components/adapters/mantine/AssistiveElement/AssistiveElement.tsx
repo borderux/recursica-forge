@@ -44,6 +44,6 @@ export default React.forwardRef<any, AssistiveElementProps>(function AssistiveEl
 type _Wiring = AssertWired<
     AssistiveElementProps,
     typeof MantineAssistiveElement,
-    'layer' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'text' | 'variant' | 'icon'
+    'layer' | 'mantine' | 'className' | 'style' | 'text' | 'variant' | 'icon'
 >
 const _wiringCheck: _Wiring = true

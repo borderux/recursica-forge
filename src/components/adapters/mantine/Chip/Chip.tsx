@@ -60,6 +60,6 @@ export default React.forwardRef<any, ChipProps>(function Chip({
 type _Wiring = AssertWired<
     ChipProps,
     typeof MantineChip,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'variant' | 'size' | 'deletable'
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'variant' | 'size' | 'deletable'
 >
 const _wiringCheck: _Wiring = true

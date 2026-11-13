@@ -91,8 +91,6 @@ type _Wiring = AssertWired<
     typeof MantineLabel,
     | 'layer'
     | 'mantine'
-    | 'material'
-    | 'carbon'
     | 'className'
     | 'style'
     | 'variant'

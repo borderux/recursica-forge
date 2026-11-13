@@ -160,7 +160,7 @@ export default React.forwardRef<any, ModalProps>(function Modal({
 type _Wiring = AssertWired<
     ModalProps,
     typeof MantineModal,
-    | 'layer' | 'elevation' | 'mantine' | 'material' | 'carbon'
+    | 'layer' | 'elevation' | 'mantine'
     | 'content' | 'children' | 'padding' | 'zIndex' | 'className' | 'style'
     | 'showHeader' | 'showFooter' | 'scrollable' | 'showSecondaryButton'
     | 'primaryActionLabel' | 'onPrimaryAction' | 'primaryActionDisabled'

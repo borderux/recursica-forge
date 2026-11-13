@@ -89,7 +89,7 @@ export default React.forwardRef<any, LinkProps>(function Link({
 type _Wiring = AssertWired<
     LinkProps,
     typeof MantineLink,
-    | 'layer' | 'elevation' | 'mantine' | 'material' | 'carbon'
+    | 'layer' | 'elevation' | 'mantine'
     | 'endIcon' | 'underline' | 'showIcon' | 'iconPosition' | 'className' | 'style' | 'inlineStyle' | 'forceState'
     | 'href' | 'target' | 'rel' | 'onClick' | 'title',
     { startIcon: 'icon' }

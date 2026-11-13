@@ -65,14 +65,13 @@ export function useComponent<T = any>(componentName: ComponentName): React.Compo
       return Fallback as unknown as React.ComponentType<T>
     }
 
-    // Return a wrapper that strips out other library props before passing to the adapter
-    // This allows inner adapters to omit `mantine`, `material`, `carbon` from their destructuring
+    // Return a wrapper that adapts Forge's props for the active adapter before passing them on.
     //
     // forwardRef is required: the real adapter's components are forwardRef/polymorphic and
     // callers do pass refs through the dispatchers. A plain function component would drop
     // them and warn ("Function components cannot be given refs").
     const Wrapper = React.forwardRef<unknown, any>((props, ref) => {
-      const { mantine, material, carbon, ...rest } = props
+      const { mantine, ...rest } = props
 
       if (adapter === 'local') {
         // Local adapter keeps the original contract: its own implementations take Forge's props
@@ -92,30 +91,22 @@ export function useComponent<T = any>(componentName: ComponentName): React.Compo
       // `style` and `className` are deliberately NOT stripped. The adapter runs its own
       // filterStylingProps() and ignores them unless overStyled is set — letting its real
       // policy apply is the point of using the real adapter.
-      if (kit === 'mantine') {
-        const mantineRest = applyPropContract(componentName, rest)
-        const element = React.createElement(Component as any, { ...mantineRest, ref })
-        const wrapperLayer = toWrapperLayer(rest.layer)
-        // LayerScope, not the adapter's <Layer>: Forge's `layer` prop asks for token
-        // resolution, whereas <Layer> paints a surface (border, radius, padding, elevation).
-        // Using Layer here drew a box around every control that requested a non-zero layer.
-        const layered = wrapperLayer
-          ? React.createElement(LayerScope, { layer: wrapperLayer }, element)
-          : element
+      const mantineRest = applyPropContract(componentName, rest)
+      const element = React.createElement(Component as any, { ...mantineRest, ref })
+      const wrapperLayer = toWrapperLayer(rest.layer)
+      // LayerScope, not the adapter's <Layer>: Forge's `layer` prop asks for token
+      // resolution, whereas <Layer> paints a surface (border, radius, padding, elevation).
+      // Using Layer here drew a box around every control that requested a non-zero layer.
+      const layered = wrapperLayer
+        ? React.createElement(LayerScope, { layer: wrapperLayer }, element)
+        : element
 
-        // Contain render-time throws so one prop-contract mismatch can't blank the route.
-        return React.createElement(
-          AdapterErrorBoundary,
-          { componentName },
-          layered
-        )
-      }
-
-      const activeProps: any = {}
-      if (kit === 'material' && material !== undefined) activeProps.material = material
-      if (kit === 'carbon' && carbon !== undefined) activeProps.carbon = carbon
-
-      return React.createElement(Component as any, { ...rest, ...activeProps, ref })
+      // Contain render-time throws so one prop-contract mismatch can't blank the route.
+      return React.createElement(
+        AdapterErrorBoundary,
+        { componentName },
+        layered
+      )
     })
     Wrapper.displayName = `AdapterWrapper(${componentName})`
 

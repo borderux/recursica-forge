@@ -2,7 +2,7 @@
  * MenuItem — common types
  *
  * Single source of truth for the MenuItem prop vocabulary, shared by the dispatcher
- * (`adapters/MenuItem.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/MenuItem`).
+ * (`adapters/MenuItem.tsx`) and the per-library wrapper (`adapters/mantine/MenuItem`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

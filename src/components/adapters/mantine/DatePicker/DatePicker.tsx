@@ -83,7 +83,7 @@ export default React.forwardRef<any, DatePickerProps>(function DatePicker({
 type _Wiring = AssertWired<
     DatePickerProps,
     typeof MantineDatePicker,
-    'layer' | 'disableTopBottomMargin' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'onChange' | 'state' | 'dateFormat' | 'layout',
+    'layer' | 'disableTopBottomMargin' | 'mantine' | 'className' | 'style' | 'onChange' | 'state' | 'dateFormat' | 'layout',
     { helpText: 'assistiveText'; errorText: 'error'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment' }
 >
 const _wiringCheck: _Wiring = true

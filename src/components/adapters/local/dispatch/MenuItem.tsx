@@ -48,8 +48,6 @@ export function MenuItem({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: MenuItemProps) {
   const Component = useComponent('MenuItem')
 
@@ -124,8 +122,6 @@ export function MenuItem({
     className,
     style,
     mantine,
-    material,
-    carbon,
   }
 
   return (

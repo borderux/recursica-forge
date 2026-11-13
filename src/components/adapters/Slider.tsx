@@ -55,8 +55,6 @@ function SharedSlider({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: SliderProps) {
   // Use showMinMaxInput as a master toggle if showInput/showValueLabel aren't explicitly provided
   const finalShowInput = showInput ?? showMinMaxInput
@@ -104,8 +102,6 @@ function SharedSlider({
           readOnly={readOnly}
           className={className}
           mantine={mantine}
-          material={material}
-          carbon={carbon}
         />
       </Suspense>
     </div>

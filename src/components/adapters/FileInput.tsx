@@ -46,8 +46,6 @@ function SharedFileInput({
     verticalPadding,
     iconSize,
     mantine,
-    material,
-    carbon,
 }: FileInputProps) {
     const Component = useComponent('FileInput')
 
@@ -96,8 +94,6 @@ function SharedFileInput({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

@@ -77,8 +77,6 @@ export function Modal({
     draggable,
     onPositionChange,
     mantine,
-    material,
-    carbon,
 }: ModalProps) {
     const Component = useComponent('Modal')
 
@@ -259,8 +257,6 @@ export function Modal({
                 draggable={draggable}
                 onPositionChange={onPositionChange}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             />
         </Suspense>
     )

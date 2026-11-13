@@ -2,7 +2,7 @@
  * Table — common types
  *
  * Single source of truth for the Table prop vocabulary, shared by the dispatcher
- * (`adapters/Table.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Table`).
+ * (`adapters/Table.tsx`) and the per-library wrapper (`adapters/mantine/Table`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

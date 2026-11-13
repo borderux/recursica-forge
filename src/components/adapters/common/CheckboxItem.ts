@@ -2,7 +2,7 @@
  * CheckboxItem — common types
  *
  * Single source of truth for the CheckboxItem prop vocabulary, shared by the dispatcher
- * (`adapters/CheckboxItem.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/CheckboxItem`).
+ * (`adapters/CheckboxItem.tsx`) and the per-library wrapper (`adapters/mantine/CheckboxItem`).
  */
 
 import type { CheckboxProps } from './Checkbox'

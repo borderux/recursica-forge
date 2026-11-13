@@ -70,7 +70,7 @@ export default React.forwardRef<any, AvatarProps>(function Avatar({
 type _Wiring = AssertWired<
     AvatarProps,
     typeof MantineAvatar,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'fallback' | 'colorVariant',
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'fallback' | 'colorVariant',
     { sizeVariant: 'size' }
 >
 const _wiringCheck: _Wiring = true

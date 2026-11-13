@@ -29,6 +29,6 @@ export default React.forwardRef<any, TableFooterProps>(function TableFooter({ ch
 type _Wiring = AssertWired<
     TableFooterProps,
     typeof Table.Tfoot,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'variant' | 'disabled'
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'variant' | 'disabled'
 >
 const _wiringCheck: _Wiring = true

@@ -5,7 +5,7 @@
  * Mantine implementation for every component Forge previews.
  *
  * Every entry points at a local wrapper file under src/components/adapters/mantine/ — one
- * folder per component, exactly like registry/material.ts and registry/carbon.ts. Most of
+ * folder per component. Most of
  * those wrappers are a trivial one-line pass-through (the adapter's own shape already
  * matches Forge's); a handful (Accordion, Dropdown, Panel, SegmentedControl) do real
  * translation because their Forge shape differs *structurally* from the adapter's own

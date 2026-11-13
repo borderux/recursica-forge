@@ -42,8 +42,6 @@ export function Chip({
   style,
   icon,
   mantine,
-  material,
-  carbon,
 }: ChipProps) {
   const Component = useComponent('Chip')
   const { mode } = useThemeMode()
@@ -240,8 +238,6 @@ export function Chip({
     style,
     icon,
     mantine,
-    material,
-    carbon,
   })
 
   return (
@@ -321,7 +317,7 @@ function getChipStyles(
 }
 
 function mapChipProps(props: ChipProps & { elevation?: string }): any {
-  const { mantine, material, carbon, ...rest } = props
+  const { mantine, ...rest } = props
 
   const baseProps: any = {
     ...rest,
@@ -330,8 +326,6 @@ function mapChipProps(props: ChipProps & { elevation?: string }): any {
   return {
     ...baseProps,
     ...(mantine && { mantine }),
-    ...(material && { material }),
-    ...(carbon && { carbon }),
   }
 }
 

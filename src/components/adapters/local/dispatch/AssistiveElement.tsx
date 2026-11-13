@@ -31,8 +31,6 @@ export function AssistiveElement({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: AssistiveElementProps) {
   const Component = useComponent('AssistiveElement')
   const { mode } = useThemeMode()
@@ -163,8 +161,6 @@ export function AssistiveElement({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )

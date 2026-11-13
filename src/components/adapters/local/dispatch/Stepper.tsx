@@ -40,8 +40,6 @@ export function Stepper({
     className,
     style,
     mantine,
-    material,
-    carbon,
 }: StepperProps) {
     const Component = useComponent('Stepper')
 
@@ -64,8 +62,6 @@ export function Stepper({
         className,
         style,
         mantine,
-        material,
-        carbon,
     }
 
     return (

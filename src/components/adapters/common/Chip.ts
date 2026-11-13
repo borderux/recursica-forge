@@ -2,7 +2,7 @@
  * Chip — common types
  *
  * Single source of truth for the Chip prop vocabulary, shared by the dispatcher
- * (`adapters/Chip.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Chip`).
+ * (`adapters/Chip.tsx`) and the per-library wrapper (`adapters/mantine/Chip`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

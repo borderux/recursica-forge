@@ -1,6 +1,6 @@
 # Component Development Guide
 
-This guide provides comprehensive instructions for building new components for all UI libraries (Mantine, Material UI, Carbon) in the Recursica Forge.
+This guide provides comprehensive instructions for building new components for the Mantine UI library in the Recursica Forge.
 
 > **Note**: Steps 1-4 are required for basic component functionality. Steps 5-6 add toolbar configuration and testing.
 
@@ -38,7 +38,7 @@ See [Development Process](#development-process) for detailed instructions.
 
 Each component in the Recursica Forge consists of:
 - **Adapter Component**: Unified interface that works across all libraries
-- **Library Implementations**: Library-specific implementations (Mantine, Material UI, Carbon)
+- **Library Implementations**: Library-specific implementations (Mantine)
 - **CSS Overrides**: Library-specific CSS files for styling
 - **Tests**: Unit, integration, and toolbar integration tests (mandatory)
 - **Audit**: Documentation of library CSS variables and coverage
@@ -46,8 +46,6 @@ Each component in the Recursica Forge consists of:
 ### Supported Libraries
 
 - **Mantine** (`@mantine/core`)
-- **Material UI** (`@mui/material`)
-- **Carbon Design System** (`@carbon/react`)
 
 ## Folder Structure
 
@@ -56,21 +54,11 @@ Each component in the Recursica Forge consists of:
 ```
 src/components/adapters/
 ├── {ComponentName}.tsx              # Adapter component (unified interface)
-├── mantine/
-│   └── {ComponentName}/
-│       ├── {ComponentName}.tsx      # Mantine implementation
-│       ├── {ComponentName}.css      # Mantine CSS overrides
-│       └── {ComponentName}.mantine.audit.md  # Mantine-specific audit
-├── material/
-│   └── {ComponentName}/
-│       ├── {ComponentName}.tsx      # Material UI implementation
-│       ├── {ComponentName}.css      # Material UI CSS overrides
-│       └── {ComponentName}.material.audit.md  # Material UI-specific audit
-└── carbon/
+└── mantine/
     └── {ComponentName}/
-        ├── {ComponentName}.tsx      # Carbon implementation
-        ├── {ComponentName}.css      # Carbon CSS overrides
-        └── {ComponentName}.carbon.audit.md  # Carbon-specific audit
+        ├── {ComponentName}.tsx      # Mantine implementation
+        ├── {ComponentName}.css      # Mantine CSS overrides
+        └── {ComponentName}.mantine.audit.md  # Mantine-specific audit
 ```
 
 ### Example: Button Component
@@ -78,21 +66,11 @@ src/components/adapters/
 ```
 src/components/adapters/
 ├── Button.tsx
-├── mantine/
-│   └── Button/
-│       ├── Button.tsx
-│       ├── Button.css
-│       └── Button.mantine.audit.md
-├── material/
-│   └── Button/
-│       ├── Button.tsx
-│       ├── Button.css
-│       └── Button.material.audit.md
-└── carbon/
+└── mantine/
     └── Button/
         ├── Button.tsx
         ├── Button.css
-        └── Button.carbon.audit.md
+        └── Button.mantine.audit.md
 ```
 
 ## recursica_ui-kit.json Structure
@@ -885,13 +863,13 @@ const baseComponents = useMemo(() => {
 4. **Component Props Usage**
    - ✅ **DO** use the component's native props exactly as the library intended
    - ✅ **DO** map unified props (from the adapter interface) to library-specific props
-   - ✅ **DO** use library-specific style props (e.g., Mantine's `styles`, Material's `sx`) only for simple overrides
+   - ✅ **DO** use library-specific style props (e.g., Mantine's `styles`) only for simple overrides
    - ❌ **DO NOT** use style props to create complex wrapper structures
    - ❌ **DO NOT** conditionally change component structure based on props
 
 5. **Icon Handling**
    - ✅ **DO** pass icons through native icon props (`startIcon`, `leftSection`, `icon`, etc.)
-   - ✅ **DO** use library-specific icon prop names (e.g., Mantine's `leftSection`, Material's `startIcon`)
+   - ✅ **DO** use library-specific icon prop names (e.g., Mantine's `leftSection`)
    - ❌ **DO NOT** wrap icons in custom wrapper elements
    - ❌ **DO NOT** conditionally render different icon structures
 
@@ -1162,15 +1140,11 @@ When working with adapters:
 
 **Files**: 
 - `src/components/registry/mantine.ts`
-- `src/components/registry/material.ts`
-- `src/components/registry/carbon.ts`
 
 ```typescript
 import { registerComponent } from './index'
 
 registerComponent('mantine', '{ComponentName}', () => import('../adapters/mantine/{ComponentName}/{ComponentName}'))
-registerComponent('material', '{ComponentName}', () => import('../adapters/material/{ComponentName}/{ComponentName}'))
-registerComponent('carbon', '{ComponentName}', () => import('../adapters/carbon/{ComponentName}/{ComponentName}'))
 ```
 
 **Also update**: `src/components/registry/types.ts` - Add component name to `ComponentName` type union.
@@ -1855,8 +1829,6 @@ After creating the config file and registering it in `loadToolbarConfig.ts`:
 
 Create an audit document for each library implementation:
 - `src/components/adapters/mantine/{ComponentName}/{ComponentName}.mantine.audit.md`
-- `src/components/adapters/material/{ComponentName}/{ComponentName}.material.audit.md`
-- `src/components/adapters/carbon/{ComponentName}/{ComponentName}.carbon.audit.md`
 
 **Do NOT create global audit reports** - each library has its own unique CSS variables, fallbacks, and implementation details that must be documented separately.
 
@@ -1873,8 +1845,6 @@ See [Component Audit](#component-audit) section below for details.
 ```bash
 # Search for direct library imports
 grep -r "from '@mantine/core'" src/
-grep -r "from '@mui/material'" src/
-grep -r "from '@carbon/react'" src/
 
 # Search for component usage
 grep -r "Button\|Card\|TextField" src/ --include="*.tsx" --include="*.ts"
@@ -2606,7 +2576,7 @@ style={{ '--button-bg': `var(${bgVar})` }} // Direct reference - updates immedia
 
 ### Library CSS Variables
 
-Library-specific CSS variables (e.g., `--mantine-color-*`, `--cds-*`, `--mui-*`) should:
+Library-specific CSS variables (e.g., `--mantine-color-*`) should:
 - **NOT** be modified directly
 - **ONLY** be used as fallbacks in `var()` functions
 - Be documented in the component audit
@@ -2622,15 +2592,9 @@ src/components/adapters/
 │   ├── {ComponentName}.cssVars.test.tsx      # CSS variable coverage tests
 │   ├── {ComponentName}.integration.test.tsx  # Integration tests
 │   └── {ComponentName}.toolbar.test.tsx      # Toolbar integration tests (MANDATORY)
-├── mantine/
-│   └── {ComponentName}/
-│       └── {ComponentName}.test.tsx      # Mantine-specific tests
-├── material/
-│   └── {ComponentName}/
-│       └── {ComponentName}.test.tsx      # Material-specific tests
-└── carbon/
+└── mantine/
     └── {ComponentName}/
-        └── {ComponentName}.test.tsx      # Carbon-specific tests
+        └── {ComponentName}.test.tsx      # Mantine-specific tests
 ```
 
 ### 1. Unit Tests
@@ -2714,56 +2678,17 @@ describe('Button Integration', () => {
     expect(screen.getByText('Mantine Button').closest('.mantine-Button-root')).toBeInTheDocument()
   })
 
-  it('renders Material button when Material is selected', () => {
-    render(
-      <UiKitProvider initialKit="material">
-        <Button>Material Button</Button>
-      </UiKitProvider>
-    )
-    // Check for Material-specific classes
-    expect(screen.getByText('Material Button').closest('.MuiButton-root')).toBeInTheDocument()
-  })
-
-  it('renders Carbon button when Carbon is selected', () => {
-    render(
-      <UiKitProvider initialKit="carbon">
-        <Button>Carbon Button</Button>
-      </UiKitProvider>
-    )
-    // Check for Carbon-specific classes
-    expect(screen.getByText('Carbon Button').closest('.cds--btn')).toBeInTheDocument()
-  })
-
-  it('maintains consistent styling across libraries', () => {
+  it('uses Recursica CSS variables', () => {
     const mantine = render(
       <UiKitProvider initialKit="mantine">
         <Button variant="solid" size="default">Test</Button>
       </UiKitProvider>
     )
-    const material = render(
-      <UiKitProvider initialKit="material">
-        <Button variant="solid" size="default">Test</Button>
-      </UiKitProvider>
-    )
-    const carbon = render(
-      <UiKitProvider initialKit="carbon">
-        <Button variant="solid" size="default">Test</Button>
-      </UiKitProvider>
-    )
 
-    // Check that all use the same CSS variables
     const mantineButton = mantine.container.querySelector('button')
-    const materialButton = material.container.querySelector('button')
-    const carbonButton = carbon.container.querySelector('button')
 
-    // All should reference the same Recursica CSS variables
+    // Should reference the Recursica CSS variables
     expect(mantineButton).toHaveStyle({
-      backgroundColor: expect.stringContaining('--recursica_ui-kit_components_button')
-    })
-    expect(materialButton).toHaveStyle({
-      backgroundColor: expect.stringContaining('--recursica_ui-kit_components_button')
-    })
-    expect(carbonButton).toHaveStyle({
       backgroundColor: expect.stringContaining('--recursica_ui-kit_components_button')
     })
   })
@@ -2894,7 +2819,7 @@ describe('Button Visual Regression', () => {
     sizes.forEach(size => {
       layers.forEach(layer => {
         it(`renders ${variant} ${size} button on ${layer} correctly`, () => {
-          ['mantine', 'material', 'carbon'].forEach(kit => {
+          ['mantine'].forEach(kit => {
             const { container } = render(
               <UiKitProvider initialKit={kit as any}>
                 <Button variant={variant} size={size} layer={layer as any}>
@@ -2930,7 +2855,7 @@ npm test Button.test.tsx
 
 ## Component Audit
 
-**IMPORTANT**: Audits are **library-specific**. You must create **separate audit documents for each library** (Mantine, Material UI, Carbon). Each library has unique CSS variables, fallback chains, and implementation details that must be documented independently.
+**IMPORTANT**: Audits are **library-specific**. You must create **separate audit documents for each library** (currently Mantine). Each library has unique CSS variables, fallback chains, and implementation details that must be documented independently.
 
 ### Audit Requirements
 
@@ -3143,21 +3068,15 @@ Include validation results in your audit document:
 
 ```
 src/components/adapters/
-├── mantine/
-│   └── {ComponentName}/
-│       └── {ComponentName}.mantine.audit.md  # Mantine-specific audit
-├── material/
-│   └── {ComponentName}/
-│       └── {ComponentName}.material.audit.md  # Material UI-specific audit
-└── carbon/
+└── mantine/
     └── {ComponentName}/
-        └── {ComponentName}.carbon.audit.md  # Carbon-specific audit
+        └── {ComponentName}.mantine.audit.md  # Mantine-specific audit
 ```
 
 **File Path Pattern**: `src/components/adapters/{library}/{ComponentName}/{ComponentName}.{library}.audit.md`
 
 **Naming Convention**: `{ComponentName}.{library}.audit.md`
-- Examples: `Button.mantine.audit.md`, `Button.material.audit.md`, `Button.carbon.audit.md`
+- Example: `Button.mantine.audit.md`
 - This naming makes it clear which component and library the audit covers
 
 **Do NOT create**:
@@ -3315,7 +3234,7 @@ Browser default
 
 ### Audit Process
 
-**IMPORTANT**: Audits are **library-specific**. You must run audits **separately for each library** (Mantine, Material UI, Carbon). Each library has unique CSS variables, fallback chains, and implementation details that must be documented independently.
+**IMPORTANT**: Audits are **library-specific**. You must run audits **separately for each library** (currently Mantine). Each library has unique CSS variables, fallback chains, and implementation details that must be documented independently.
 
 **Audit Steps**:
 
@@ -3324,18 +3243,6 @@ Browser default
    - Review `mantine/{ComponentName}/{ComponentName}.css`
    - Document all Mantine-specific CSS variables
    - Save to: `mantine/{ComponentName}/{ComponentName}.mantine.audit.md`
-
-2. **Material UI Audit**: Analyze `material/{ComponentName}/` files
-   - Review `material/{ComponentName}/{ComponentName}.tsx`
-   - Review `material/{ComponentName}/{ComponentName}.css`
-   - Document all Material UI-specific CSS variables
-   - Save to: `material/{ComponentName}/{ComponentName}.material.audit.md`
-
-3. **Carbon Audit**: Analyze `carbon/{ComponentName}/` files
-   - Review `carbon/{ComponentName}/{ComponentName}.tsx`
-   - Review `carbon/{ComponentName}/{ComponentName}.css`
-   - Document all Carbon-specific CSS variables
-   - Save to: `carbon/{ComponentName}/{ComponentName}.carbon.audit.md`
 
 **Do NOT create**:
 - ❌ Global audit reports at the adapter root level
@@ -3365,9 +3272,7 @@ Review the `{ComponentName}.tsx` file and identify:
    - Dynamic values that could be set as CSS custom properties and used in CSS
 
 4. **Library-Specific Style Props**:
-   - Material UI `sx` prop usage that could be moved to CSS
    - Mantine `styles` prop usage that could be moved to CSS
-   - Carbon inline styles that could be moved to CSS
 
 #### Migration Strategy
 
@@ -3489,7 +3394,7 @@ Use these commands to find CSS variables in your component files. **Run these co
 
 ```bash
 # Find all library CSS variables in component files
-grep -r "var(--mantine-\|var(--cds-\|var(--mui-" src/components/adapters/{library}/{ComponentName}/
+grep -r "var(--mantine-" src/components/adapters/{library}/{ComponentName}/
 ```
 
 ### Find Recursica CSS Variables
@@ -3503,7 +3408,7 @@ grep -r "var(--recursica-" src/components/adapters/{library}/{ComponentName}/
 
 ```bash
 # Find any direct library variable assignments (should be none)
-grep -r "'--mantine-\|'--cds-\|'--mui-" src/components/adapters/{library}/{ComponentName}/
+grep -r "'--mantine-" src/components/adapters/{library}/{ComponentName}/
 ```
 
 ### Verify CSS Variable Usage
@@ -3526,7 +3431,7 @@ grep -r "var(--recursica-.*var(--" src/components/adapters/{library}/{ComponentN
 
 ### Screenshots
 
-Screenshots should be captured for each test case across all three libraries to ensure visual consistency.
+Screenshots should be captured for each test case to ensure visual consistency.
 
 ## Recommendations
 
@@ -3550,12 +3455,6 @@ Create a script to generate audit data for a specific library:
 ```bash
 # Audit Mantine implementation
 node scripts/audit-component.js Button mantine
-
-# Audit Material UI implementation
-node scripts/audit-component.js Button material
-
-# Audit Carbon implementation
-node scripts/audit-component.js Button carbon
 ```
 
 **Important**: The script generates library-specific audit data. Each library must be audited separately.
@@ -3592,7 +3491,7 @@ cssFiles.forEach(file => {
   const content = fs.readFileSync(file, 'utf-8')
   
   // Find library CSS variables
-  const libraryMatches = content.matchAll(/var\(--(mantine|cds|mui)-[^)]+\)/g)
+  const libraryMatches = content.matchAll(/var\(--mantine-[^)]+\)/g)
   for (const match of libraryMatches) {
     libraryVars.add(match[0])
   }
@@ -3622,7 +3521,7 @@ After creating a new component, use this checklist to ensure completeness.
 
 **Development:**
 - [ ] Adapter component created with unified props interface
-- [ ] All three library implementations created (Mantine, Material UI, Carbon)
+- [ ] Mantine library implementation created
 - [ ] CSS override files created for all libraries
 - [ ] Components registered in registry files
 - [ ] Component name added to `ComponentName` type union
@@ -3661,7 +3560,7 @@ After creating a new component, use this checklist to ensure completeness.
 - [ ] All tests passing
 
 **Verification:**
-- [ ] Component works correctly in all three libraries
+- [ ] Component works correctly in Mantine
 - [ ] Visual appearance consistent across libraries
 - [ ] All variants, sizes, and layers tested manually
 
@@ -3694,8 +3593,6 @@ See the existing Button component as a reference:
 
 - **Adapter**: `src/components/adapters/Button.tsx`
 - **Mantine**: `src/components/adapters/mantine/Button/Button.tsx`
-- **Material**: `src/components/adapters/material/Button/Button.tsx`
-- **Carbon**: `src/components/adapters/carbon/Button/Button.tsx`
 - **CSS Files**: `src/components/adapters/{library}/Button/Button.css`
 - **Tests**: `src/components/adapters/__tests__/Button.test.tsx`, `Button.toolbar.test.tsx`, etc.
 - **Audits**: `src/components/adapters/{library}/Button/Button.{library}.audit.md`
@@ -3725,8 +3622,6 @@ If you're unsure about any aspect of component development:
 2. Review the CSS Override Files section above for CSS override guidelines
 3. Review the library-specific audit documents for examples:
    - `mantine/{ComponentName}/{ComponentName}.mantine.audit.md`
-   - `material/{ComponentName}/{ComponentName}.material.audit.md`
-   - `carbon/{ComponentName}/{ComponentName}.carbon.audit.md`
    
    **Note**: Each library has its own audit document - do not create global audit reports.
 4. Consult the testing examples above

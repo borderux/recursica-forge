@@ -39,8 +39,6 @@ export function HoverCard({
     position = 'bottom',
     zIndex,
     mantine,
-    material,
-    carbon,
 }: HoverCardProps) {
     const Component = useComponent('HoverCard')
     const { mode } = useThemeMode()
@@ -150,8 +148,6 @@ export function HoverCard({
                 position={position}
                 zIndex={zIndex}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             >
                 {children}
             </Component>

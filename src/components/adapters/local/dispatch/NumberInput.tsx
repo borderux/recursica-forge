@@ -81,8 +81,6 @@ export function NumberInput({
     readOnly,
     disableTopBottomMargin = false,
     mantine,
-    material,
-    carbon,
 }: NumberInputProps) {
     const Component = useComponent('NumberInput')
     const { mode } = useThemeMode()
@@ -366,8 +364,6 @@ export function NumberInput({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

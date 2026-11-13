@@ -47,6 +47,6 @@ export default React.forwardRef<any, TableCellProps>(function TableCell({ childr
 type _Wiring = AssertWired<
     TableCellProps,
     typeof Table.Td,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'isHeader' | 'variant'
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'isHeader' | 'variant'
 >
 const _wiringCheck: _Wiring = true

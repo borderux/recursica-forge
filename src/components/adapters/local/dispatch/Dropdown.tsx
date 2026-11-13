@@ -88,8 +88,6 @@ export function Dropdown({
     onEditIconClick,
     editIconTitle,
     mantine,
-    material,
-    carbon,
 }: DropdownProps) {
     const Component = useComponent('Dropdown')
 
@@ -263,8 +261,6 @@ export function Dropdown({
                     style={style}
                     zIndex={zIndex}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

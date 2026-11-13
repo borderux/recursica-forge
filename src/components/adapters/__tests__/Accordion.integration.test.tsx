@@ -7,11 +7,8 @@ import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Accordion } from '../Accordion'
 import { preloadComponent } from '../../registry'
 import '../../../components/registry/mantine'
-import '../../../components/registry/material'
-import '../../../components/registry/carbon'
-import { itDom } from '../../../test-utils/conditionalTests'
 
-function KitSwitcher({ kit }: { kit: 'mantine' | 'material' | 'carbon' }) {
+function KitSwitcher({ kit }: { kit: 'mantine' }) {
   const { setKit } = useUiKit()
   useEffect(() => {
     setKit(kit)
@@ -25,16 +22,9 @@ describe('Accordion Integration', () => {
     // read from cache synchronously and isLoading starts as false.
     await Promise.all([
       import('@mantine/core'),
-      import('@mui/material/styles'),
-      import('@mui/material'),
-      import('@carbon/react'),
     ])
-    // Eagerly resolve all three lazy imports so <Suspense> never suspends during tests.
-    await Promise.all([
-      preloadComponent('mantine', 'Accordion'),
-      preloadComponent('material', 'Accordion'),
-      preloadComponent('carbon', 'Accordion'),
-    ])
+    // Eagerly resolve the lazy import so <Suspense> never suspends during tests.
+    await preloadComponent('mantine', 'Accordion')
   })
 
   beforeEach(() => {
@@ -43,7 +33,7 @@ describe('Accordion Integration', () => {
 
   // Mantine's CSS-in-JS style injection in JSDOM is slow (~30-40s on first cold render).
   // Use plain render() (no act() wrapper) so waitFor can poll while Mantine processes.
-  const renderWithKit = (kit: 'mantine' | 'material' | 'carbon') => {
+  const renderWithKit = (kit: 'mantine') => {
     return render(
       <UiKitProvider>
         <ThemeModeProvider>
@@ -62,12 +52,11 @@ describe('Accordion Integration', () => {
     )
   }
 
-  // Look for the kit-specific class (.mantine-accordion, .material-accordion, .carbon-accordion)
-  // rather than the generic .recursica-accordion. This avoids a race where waitFor resolves with
-  // the default Mantine element before KitSwitcher's useEffect fires and switches the kit.
+  // Look for the kit-specific class (.mantine-accordion) rather than the generic
+  // .recursica-accordion.
   // Mantine's CSS-in-JS is synchronous/blocking in JSDOM (~70s first cold render),
   // so the waitFor timeout must exceed that.
-  const waitForAccordion = async (container: HTMLElement, kit: 'mantine' | 'material' | 'carbon') => {
+  const waitForAccordion = async (container: HTMLElement, kit: 'mantine') => {
     return await waitFor(() => {
       const el = container.querySelector(`.${kit}-accordion`)
       if (!el) throw new Error(`${kit} Accordion not found`)
@@ -80,16 +69,4 @@ describe('Accordion Integration', () => {
     const el = await waitForAccordion(container, 'mantine')
     expect(el).toBeInTheDocument()
   }, 120000)
-
-  itDom.skip('renders Material accordion when Material is selected', async () => {
-    const { container } = renderWithKit('material')
-    const el = await waitForAccordion(container, 'material')
-    expect(el).toBeInTheDocument()
-  }, 60000)
-
-  itDom.skip('renders Carbon accordion when Carbon is selected', async () => {
-    const { container } = renderWithKit('carbon')
-    const el = await waitForAccordion(container, 'carbon')
-    expect(el).toBeInTheDocument()
-  }, 60000)
 })

@@ -58,8 +58,6 @@ export function Link({
   iconPosition,
   forceState,
   mantine,
-  material,
-  carbon,
 }: LinkProps) {
   const Component = useComponent('Link')
   const { mode } = useThemeMode()
@@ -245,8 +243,6 @@ export function Link({
     iconPosition,
     forceState,
     mantine,
-    material,
-    carbon,
   })
 
   return (
@@ -304,7 +300,7 @@ function getLinkStyles(
 }
 
 function mapLinkProps(props: LinkProps): any {
-  const { mantine, material, carbon, title, inlineStyle, ...rest } = props
+  const { mantine, title, inlineStyle, ...rest } = props
 
   // Base props that work across libraries
   // Map 'inlineStyle' to 'style' for library adapters
@@ -318,9 +314,5 @@ function mapLinkProps(props: LinkProps): any {
     ...baseProps,
     // Mantine-specific
     ...(mantine && { mantine }),
-    // Material-specific
-    ...(material && { material }),
-    // Carbon-specific
-    ...(carbon && { carbon }),
   }
 }

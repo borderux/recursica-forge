@@ -79,8 +79,6 @@ export function Slider({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: SliderProps) {
   // Use showMinMaxInput as a master toggle if showInput/showMinMaxLabels/showValueLabel aren't explicitly provided
   let finalShowInput = showInput ?? (showMinMaxInput ? true : false)
@@ -812,8 +810,6 @@ export function Slider({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )
@@ -954,8 +950,6 @@ export function Slider({
             className={className}
             style={style}
             mantine={mantine}
-            material={material}
-            carbon={carbon}
           />
         </Suspense>
       </div>

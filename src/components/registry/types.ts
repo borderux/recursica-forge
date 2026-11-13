@@ -2,7 +2,7 @@
  * Component Registry Types
  * 
  * Defines the types for the component adapter system that allows
- * rendering components from different UI libraries (Mantine, Material, Carbon).
+ * rendering components from the local or the published Mantine adapter.
  */
 
 import { ReactNode, ComponentType } from 'react'
@@ -93,7 +93,5 @@ export interface UiKitPlugin {
 
 export interface LibrarySpecificProps {
   mantine?: Record<string, any>
-  material?: Record<string, any>
-  carbon?: Record<string, any>
 }
 

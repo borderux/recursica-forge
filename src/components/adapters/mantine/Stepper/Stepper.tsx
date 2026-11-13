@@ -53,6 +53,6 @@ export default React.forwardRef<any, StepperProps>(function Stepper({
 type _Wiring = AssertWired<
   StepperProps,
   typeof MantineStepper,
-  'steps' | 'children' | 'layer' | 'className' | 'style' | 'mantine' | 'material' | 'carbon'
+  'steps' | 'children' | 'layer' | 'className' | 'style' | 'mantine'
 >
 const _wiringCheck: _Wiring = true

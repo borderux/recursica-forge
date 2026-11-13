@@ -28,6 +28,6 @@ export default React.forwardRef<any, TableProps>(function Table({ children, vari
 type _Wiring = AssertWired<
     TableProps,
     typeof MantineTable,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style'
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style'
 >
 const _wiringCheck: _Wiring = true

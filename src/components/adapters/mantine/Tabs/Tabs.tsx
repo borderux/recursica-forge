@@ -70,6 +70,6 @@ export default React.forwardRef<any, TabsProps>(function Tabs({
 type _Wiring = AssertWired<
     TabsProps,
     typeof MantineTabs,
-    'layer' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'tabContentAlignment'
+    'layer' | 'mantine' | 'className' | 'style' | 'tabContentAlignment'
 >
 const _wiringCheck: _Wiring = true

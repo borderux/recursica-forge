@@ -2,7 +2,7 @@
  * Toast — common types
  *
  * Single source of truth for the Toast prop vocabulary, shared by the dispatcher
- * (`adapters/Toast.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Toast`).
+ * (`adapters/Toast.tsx`) and the per-library wrapper (`adapters/mantine/Toast`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

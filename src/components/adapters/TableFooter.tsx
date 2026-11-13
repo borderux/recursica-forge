@@ -24,8 +24,6 @@ function SharedTableFooter({
   style,
   disabled,
   mantine,
-  material,
-  carbon,
 }: TableFooterProps) {
   const Component = useComponent('TableFooter')
 
@@ -39,8 +37,6 @@ function SharedTableFooter({
         style={style}
         disabled={disabled}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

@@ -2,7 +2,7 @@
  * TimePicker — common types
  *
  * Single source of truth for the TimePicker prop vocabulary, shared by the dispatcher
- * (`adapters/TimePicker.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/TimePicker`).
+ * (`adapters/TimePicker.tsx`) and the per-library wrapper (`adapters/mantine/TimePicker`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

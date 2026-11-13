@@ -52,6 +52,6 @@ export default React.forwardRef<any, MenuProps>(function Menu({
 type _Wiring = AssertWired<
     MenuProps,
     typeof MantineMenu,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style'
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style'
 >
 const _wiringCheck: _Wiring = true

@@ -168,8 +168,6 @@ type _Wiring = AssertWired<
     typeof MantineSlider,
     | 'layer'
     | 'mantine'
-    | 'material'
-    | 'carbon'
     | 'className'
     | 'style'
     | 'value'

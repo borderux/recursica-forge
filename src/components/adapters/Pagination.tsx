@@ -31,8 +31,6 @@ function SharedPagination({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: PaginationProps) {
   const Component = useComponent('Pagination')
 
@@ -52,8 +50,6 @@ function SharedPagination({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )

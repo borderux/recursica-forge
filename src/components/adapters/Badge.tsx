@@ -24,8 +24,6 @@ function SharedBadge({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: BadgeProps) {
   const Component = useComponent('Badge')
 
@@ -39,8 +37,6 @@ function SharedBadge({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

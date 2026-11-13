@@ -2,7 +2,7 @@
  * AssistiveElement — common types
  *
  * Single source of truth for the AssistiveElement prop vocabulary, shared by the dispatcher
- * (`adapters/AssistiveElement.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/AssistiveElement`).
+ * (`adapters/AssistiveElement.tsx`) and the per-library wrapper (`adapters/mantine/AssistiveElement`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

@@ -51,8 +51,6 @@ export function Accordion({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: AccordionProps) {
   const Component = useComponent('Accordion')
 
@@ -166,8 +164,6 @@ export function Accordion({
     className,
     style,
     mantine,
-    material,
-    carbon,
   }
 
   return (

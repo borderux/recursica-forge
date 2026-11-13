@@ -28,8 +28,6 @@ export function Badge({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: BadgeProps) {
   const Component = useComponent('Badge')
 
@@ -47,8 +45,6 @@ export function Badge({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

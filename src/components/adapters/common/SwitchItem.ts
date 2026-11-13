@@ -2,7 +2,7 @@
  * SwitchItem — common types
  *
  * Single source of truth for the SwitchItem prop vocabulary, shared by the dispatcher
- * (`adapters/SwitchItem.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/SwitchItem`).
+ * (`adapters/SwitchItem.tsx`) and the per-library wrapper (`adapters/mantine/SwitchItem`).
  */
 
 import type { SwitchProps } from './Switch'

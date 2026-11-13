@@ -47,6 +47,6 @@ export default React.forwardRef<any, PaginationProps>(function Pagination({
 type _Wiring = AssertWired<
     PaginationProps,
     typeof MantinePagination,
-    'layer' | 'mantine' | 'material' | 'carbon' | 'className' | 'style'
+    'layer' | 'mantine' | 'className' | 'style'
 >
 const _wiringCheck: _Wiring = true

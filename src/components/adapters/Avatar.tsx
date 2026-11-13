@@ -31,8 +31,6 @@ function SharedAvatar({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: AvatarProps) {
   const Component = useComponent('Avatar')
   const { mode } = useThemeMode()
@@ -124,8 +122,6 @@ function SharedAvatar({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )

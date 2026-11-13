@@ -40,6 +40,6 @@ export default React.forwardRef<any, RadioButtonItemProps>(function RadioButtonI
 type _Wiring = AssertWired<
     RadioButtonItemProps,
     typeof MantineRadio,
-    'layer' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'onChange'
+    'layer' | 'mantine' | 'className' | 'style' | 'onChange'
 >
 const _wiringCheck: _Wiring = true

@@ -7,7 +7,7 @@
  * `defaultValue` always are — so this dispatcher just picks the implementation and forwards
  * props. Everything library-specific — translating `items` into whatever shape Mantine/
  * Material/Carbon actually render — lives in each library's own wrapper under
- * adapters/{mantine,material,carbon}/SegmentedControl.
+ * adapters/mantine/SegmentedControl.
  */
 
 import { Suspense } from 'react'

@@ -8,7 +8,7 @@
  * library needs the same answer — duplicating that per library would just be three copies
  * of the same bookkeeping. Everything library-specific — translating `items` into whatever
  * shape Mantine/Material/Carbon actually render — lives in each library's own wrapper under
- * adapters/{mantine,material,carbon}/Dropdown.
+ * adapters/mantine/Dropdown.
  */
 
 import { Suspense, useState } from 'react'
@@ -52,8 +52,6 @@ function SharedDropdown({
     onEditIconClick,
     editIconTitle,
     mantine,
-    material,
-    carbon,
 }: DropdownProps) {
     const Component = useComponent('Dropdown')
 
@@ -107,8 +105,6 @@ function SharedDropdown({
         onEditIconClick,
         editIconTitle,
         mantine,
-        material,
-        carbon,
     }
 
     return (

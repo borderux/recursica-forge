@@ -24,8 +24,6 @@ function SharedTable({
   style,
   data,
   mantine,
-  material,
-  carbon,
 }: TableProps) {
   const Component = useComponent('Table')
 
@@ -39,8 +37,6 @@ function SharedTable({
         style={style}
         data={data}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

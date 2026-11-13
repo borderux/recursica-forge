@@ -43,8 +43,6 @@ function SharedAutocomplete({
     disableTopBottomMargin = false,
     zIndex,
     mantine,
-    material,
-    carbon,
 }: AutocompleteProps) {
     const Component = useComponent('Autocomplete')
 
@@ -99,8 +97,6 @@ function SharedAutocomplete({
                     style={style}
                     zIndex={zIndex}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

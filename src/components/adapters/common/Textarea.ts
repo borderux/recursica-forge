@@ -2,7 +2,7 @@
  * Textarea — common types
  *
  * Single source of truth for the Textarea prop vocabulary, shared by the dispatcher
- * (`adapters/Textarea.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Textarea`).
+ * (`adapters/Textarea.tsx`) and the per-library wrapper (`adapters/mantine/Textarea`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

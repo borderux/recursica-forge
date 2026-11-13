@@ -24,8 +24,6 @@ function SharedSwitch({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: SwitchProps) {
   const Component = useComponent('Switch')
 
@@ -40,8 +38,6 @@ function SharedSwitch({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )

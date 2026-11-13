@@ -2,7 +2,7 @@
  * TextField — common types
  *
  * Single source of truth for the TextField prop vocabulary, shared by the dispatcher
- * (`adapters/TextField.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/TextField`).
+ * (`adapters/TextField.tsx`) and the per-library wrapper (`adapters/mantine/TextField`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

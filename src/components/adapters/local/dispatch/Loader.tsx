@@ -21,8 +21,6 @@ export function Loader({
     className,
     style,
     mantine,
-    material,
-    carbon,
 }: LoaderProps) {
     const Component = useComponent('Loader')
 
@@ -37,8 +35,6 @@ export function Loader({
                 className={className}
                 style={style}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             />
         </Suspense>
     )

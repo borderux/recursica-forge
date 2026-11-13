@@ -3,7 +3,7 @@
  *
  * Single source of truth for the SegmentedControl prop vocabulary, shared by the dispatcher
  * (`adapters/SegmentedControl.tsx`) and every per-library wrapper
- * (`adapters/{mantine,material,carbon}/SegmentedControl`).
+ * (`adapters/mantine/SegmentedControl`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps, ComponentName } from '../../registry/types'

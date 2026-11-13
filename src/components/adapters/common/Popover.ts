@@ -2,7 +2,7 @@
  * Popover — common types
  *
  * Single source of truth for the Popover prop vocabulary, shared by the dispatcher
- * (`adapters/Popover.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Popover`).
+ * (`adapters/Popover.tsx`) and the per-library wrapper (`adapters/mantine/Popover`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

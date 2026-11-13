@@ -2,7 +2,7 @@
  * CheckboxGroup — common types
  *
  * Single source of truth for the CheckboxGroup prop vocabulary, shared by the dispatcher
- * (`adapters/CheckboxGroup.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/CheckboxGroup`).
+ * (`adapters/CheckboxGroup.tsx`) and the per-library wrapper (`adapters/mantine/CheckboxGroup`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

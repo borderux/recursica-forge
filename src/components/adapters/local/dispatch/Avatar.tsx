@@ -39,8 +39,6 @@ export function Avatar({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: AvatarProps) {
   const Component = useComponent('Avatar')
   const { mode } = useThemeMode()
@@ -168,8 +166,6 @@ export function Avatar({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )

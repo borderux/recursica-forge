@@ -26,8 +26,6 @@ function SharedTableHeader({
   sorted,
   onClick,
   mantine,
-  material,
-  carbon,
 }: TableHeaderProps) {
   const Component = useComponent('TableHeader')
 
@@ -43,8 +41,6 @@ function SharedTableHeader({
         sorted={sorted}
         onClick={onClick}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

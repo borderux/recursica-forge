@@ -61,6 +61,6 @@ export default React.forwardRef<any, ButtonProps>(function Button({
 type _Wiring = AssertWired<
     ButtonProps,
     typeof MantineButton,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'className' | 'style' | 'onClick' | 'type' | 'title'
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'onClick' | 'type' | 'title'
 >
 const _wiringCheck: _Wiring = true

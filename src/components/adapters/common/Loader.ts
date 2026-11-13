@@ -2,7 +2,7 @@
  * Loader — common types
  *
  * Single source of truth for the Loader prop vocabulary, shared by the dispatcher
- * (`adapters/Loader.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Loader`).
+ * (`adapters/Loader.tsx`) and the per-library wrapper (`adapters/mantine/Loader`).
  */
 
 import type { LibrarySpecificProps } from '../../registry/types'

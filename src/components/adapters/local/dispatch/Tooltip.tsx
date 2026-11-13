@@ -40,8 +40,6 @@ export function Tooltip({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: TooltipProps) {
   const Component = useComponent('Tooltip')
   const { mode } = useThemeMode()
@@ -168,8 +166,6 @@ export function Tooltip({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       >
         {children}
       </Component>

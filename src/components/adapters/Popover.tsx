@@ -32,8 +32,6 @@ function SharedPopover({
     position = 'bottom',
     zIndex,
     mantine,
-    material,
-    carbon,
 }: PopoverProps) {
     const Component = useComponent('Popover')
 
@@ -116,8 +114,6 @@ function SharedPopover({
                 position={position}
                 zIndex={zIndex}
                 mantine={mantine}
-                material={material}
-                carbon={carbon}
             >
                 {children}
             </Component>

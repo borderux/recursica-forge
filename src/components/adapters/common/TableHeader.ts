@@ -2,7 +2,7 @@
  * TableHeader — common types
  *
  * Single source of truth for the TableHeader prop vocabulary, shared by the dispatcher
- * (`adapters/TableHeader.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/TableHeader`).
+ * (`adapters/TableHeader.tsx`) and the per-library wrapper (`adapters/mantine/TableHeader`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

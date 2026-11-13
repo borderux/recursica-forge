@@ -2,7 +2,7 @@
  * Tabs — common types
  *
  * Single source of truth for the Tabs prop vocabulary, shared by the dispatcher
- * (`adapters/Tabs.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Tabs`).
+ * (`adapters/Tabs.tsx`) and the per-library wrapper (`adapters/mantine/Tabs`).
  * Also covers the Tabs.List / Tabs.Tab / Tabs.Panel subcomponents.
  */
 

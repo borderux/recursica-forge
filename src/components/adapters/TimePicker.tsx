@@ -54,8 +54,6 @@ function SharedTimePicker({
     period = 'AM',
     onPeriodChange,
     mantine,
-    material,
-    carbon,
 }: TimePickerProps) {
     const Component = useComponent('TimePicker')
     const { mode } = useThemeMode()
@@ -114,8 +112,6 @@ function SharedTimePicker({
                     className={className}
                     style={style}
                     mantine={mantine}
-                    material={material}
-                    carbon={carbon}
                 />
             </Suspense>
         </div>

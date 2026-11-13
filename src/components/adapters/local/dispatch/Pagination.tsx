@@ -52,8 +52,6 @@ export function Pagination({
   className,
   style,
   mantine,
-  material,
-  carbon,
 }: PaginationProps) {
   const Component = useComponent('Pagination')
 
@@ -77,8 +75,6 @@ export function Pagination({
         className={className}
         style={style}
         mantine={mantine}
-        material={material}
-        carbon={carbon}
       />
     </Suspense>
   )

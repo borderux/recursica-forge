@@ -91,6 +91,6 @@ export default React.forwardRef<any, TooltipProps>(function Tooltip({
 type _Wiring = AssertWired<
     TooltipProps,
     typeof MantineTooltip,
-    'layer' | 'elevation' | 'mantine' | 'material' | 'carbon' | 'position' | 'alignment' | 'zIndex' | 'className' | 'style'
+    'layer' | 'elevation' | 'mantine' | 'position' | 'alignment' | 'zIndex' | 'className' | 'style'
 >
 const _wiringCheck: _Wiring = true

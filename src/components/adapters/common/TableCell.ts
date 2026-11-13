@@ -2,7 +2,7 @@
  * TableCell — common types
  *
  * Single source of truth for the TableCell prop vocabulary, shared by the dispatcher
- * (`adapters/TableCell.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/TableCell`).
+ * (`adapters/TableCell.tsx`) and the per-library wrapper (`adapters/mantine/TableCell`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

@@ -2,7 +2,7 @@
  * Slider — common types
  *
  * Single source of truth for the Slider prop vocabulary, shared by the dispatcher
- * (`adapters/Slider.tsx`) and every per-library wrapper (`adapters/{mantine,material,carbon}/Slider`).
+ * (`adapters/Slider.tsx`) and the per-library wrapper (`adapters/mantine/Slider`).
  */
 
 import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'

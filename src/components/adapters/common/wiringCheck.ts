@@ -17,7 +17,7 @@
  * USAGE — at the bottom of a mantine/{X}/{X}.tsx wrapper file:
  *
  *   type _Wiring = AssertWired<XProps, typeof RealX,
- *     'layer' | 'elevation' | 'mantine' | 'material' | 'carbon',        // Forge-internal / documented drops
+ *     'layer' | 'elevation' | 'mantine',        // Forge-internal / documented drops
  *     { helpText: 'assistiveText'; errorText: 'error' }                  // declared renames
  *   >
  *   const _wiringCheck: _Wiring = true
@@ -36,7 +36,7 @@
  *   `TransferList`'s `searchable` regression went unnoticed after upstream added a real
  *   `searchable` prop the table still nulls.
  * - A prop genuinely dropped (documented adapter gap, e.g. no upstream sizing hook) or
- *   Forge-internal (`layer`, `elevation`, the `mantine`/`material`/`carbon` escape hatches):
+ *   Forge-internal (`layer`, `elevation`, the `mantine` escape hatch):
  *   add it to `Ignore` with a comment explaining why, matching the existing pattern in
  *   `adapterPropContract.ts`.
  */
