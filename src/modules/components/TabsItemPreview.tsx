@@ -55,17 +55,11 @@ export default function TabsItemPreview({ selectedVariants, selectedLayer }: Tab
             {/* With badges */}
             <Tabs value={badges ?? undefined} onChange={(v) => setBadges(v ?? null)} {...tabsProps}>
                 <Tabs.List>
-                    <Tabs.Tab value="active">
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <span>Active tab</span>
-                            <Badge variant="primary-color">42</Badge>
-                        </div>
+                    <Tabs.Tab value="active" rightSection={<Badge variant="primary-color">42</Badge>}>
+                        Active tab
                     </Tabs.Tab>
-                    <Tabs.Tab value="inactive">
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <span>Inactive tab</span>
-                            <Badge variant="primary-color">7</Badge>
-                        </div>
+                    <Tabs.Tab value="inactive" rightSection={<Badge variant="primary-color">7</Badge>}>
+                        Inactive tab
                     </Tabs.Tab>
                 </Tabs.List>
             </Tabs>

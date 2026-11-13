@@ -37,7 +37,6 @@ export function ComplianceModal({ onAcknowledge, onCancel }: ComplianceModalProp
       secondaryActionLabel="Cancel"
       onSecondaryAction={onCancel}
       layer="layer-3"
-      size={480}
       scrollable={false}
       content={
         <div style={{

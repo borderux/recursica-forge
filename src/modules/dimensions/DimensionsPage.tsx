@@ -379,7 +379,6 @@ export default function DimensionsPage() {
                   const baseTokenIndex = sliderValues[entry.cssVar] ?? findClosestTokenIndex(entry.currentValue)
                   const currentTokenIndex = Math.round(baseTokenIndex)
                   const clampedTokenIndex = Math.max(0, Math.min(availableSizeTokens.length - 1, currentTokenIndex))
-                  const currentToken = availableSizeTokens[clampedTokenIndex]
 
                   // Get value label function - always round to get discrete token
                   const getValueLabel = (value: number) => {
@@ -391,14 +390,6 @@ export default function DimensionsPage() {
 
                   const minToken = availableSizeTokens[0]
                   const maxToken = availableSizeTokens[availableSizeTokens.length - 1]
-
-                  // Get tooltip text - show token name (key) in tooltip
-                  // availableSizeTokens have a 'name' property which is the token key (e.g., 'sm', 'md', 'lg')
-                  // Extract just the key part if it's in format "size/key"
-                  const tokenKey = currentToken?.name?.includes('/')
-                    ? currentToken.name.split('/').pop() || currentToken.name
-                    : currentToken?.name || ''
-                  const tooltipText = tokenKey || currentToken?.label || '—'
 
                   return (
                     <Slider
@@ -431,7 +422,6 @@ export default function DimensionsPage() {
                 step={1}
                       layer="layer-0"
                       layout="side-by-side"
-                      tooltipText={tooltipText}
                       label={<Label layer="layer-0" layout="side-by-side" size="small">{toTitleCase(entry.label)}</Label>}
                       showInput={false}
                       showValueLabel={true}

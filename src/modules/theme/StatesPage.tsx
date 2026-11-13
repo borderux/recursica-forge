@@ -200,7 +200,7 @@ function TestComponents({ visible }: { visible: Record<string, boolean> }) {
     'Form inputs': (
       <Group title="Form inputs" fill>
         <CheckboxItem checked={checked} onChange={setChecked} label="Checkbox item" />
-        <RadioButtonItem selected={selected} onChange={setSelected} label="Radio item" value="a" />
+        <RadioButtonItem checked={selected} onChange={setSelected} label="Radio item" value="a" />
         <SwitchItem checked={on} onChange={setOn} label="Switch item" />
         <SegmentedControl
           value={segValue}

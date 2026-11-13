@@ -1,103 +1,49 @@
 /**
- * Mantine AssistiveElement Implementation
- * 
- * Mantine-specific AssistiveElement component that uses CSS variables for theming.
- * Uses native HTML elements since Mantine doesn't have a specific component for this.
+ * Mantine AssistiveElement Adapter
+ *
+ * Not actually a 1:1 pass-through, despite how it looked before this file had a body: the
+ * real component takes its message as `children` (JSX content), not a `text` string prop,
+ * and its variant prop is named `assistiveVariant`, not `variant` — confirmed against
+ * @recursica/adapter-mantine-v8's own RecursicaAssistiveElementProps.
+ *
+ * `icon` is dropped: the real component has no slot for a caller-supplied icon node, only a
+ * boolean `assistiveWithIcon` toggle that shows its own fixed variant-specific icon. There is
+ * no real way to inject a custom icon, so a caller-supplied `icon` node is silently unused —
+ * documented here rather than forwarded to nowhere.
  */
 
-import React, { useState, useEffect } from 'react'
-import type { AssistiveElementProps as AdapterAssistiveElementProps } from '../../AssistiveElement'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
-import './AssistiveElement.css'
+import React from 'react'
+import { AssistiveElement as MantineAssistiveElement } from '@recursica/adapter-mantine-v8'
+import type { AssistiveElementProps } from '../../common/AssistiveElement'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function AssistiveElement({
-  text,
-  variant = 'help',
-  icon,
-  layer = 'layer-0',
-  className,
-  style,
-  mantine,
-  ...props
-}: AdapterAssistiveElementProps) {
-  const { mode } = useThemeMode()
-  
-  // Get CSS variables for colors (variant-specific)
-  const textColorVar = buildComponentCssVarPath('AssistiveElement', 'variants', 'types', variant, 'properties', 'colors', layer, 'text-color')
-  const iconColorVar = buildComponentCssVarPath('AssistiveElement', 'variants', 'types', variant, 'properties', 'colors', layer, 'icon-color')
-  
-  // Get CSS variables for size
-  const iconSizeVar = getComponentLevelCssVar('AssistiveElement', 'icon-size')
-  const iconTextGapVar = getComponentLevelCssVar('AssistiveElement', 'icon-text-gap')
-  const topMarginVar = getComponentLevelCssVar('AssistiveElement', 'top-margin')
-  const maxWidthVar = getComponentLevelCssVar('AssistiveElement', 'max-width')
-  
-  // Get text properties from component text property groups
-  const textFontSizeVar = getComponentTextCssVar('AssistiveElement', 'text', 'font-size')
-  const textFontFamilyVar = getComponentTextCssVar('AssistiveElement', 'text', 'font-family')
-  const textFontWeightVar = getComponentTextCssVar('AssistiveElement', 'text', 'font-weight')
-  const textLetterSpacingVar = getComponentTextCssVar('AssistiveElement', 'text', 'letter-spacing')
-  const textLineHeightVar = getComponentTextCssVar('AssistiveElement', 'text', 'line-height')
-  const textTextDecorationVar = getComponentTextCssVar('AssistiveElement', 'text', 'text-decoration')
-  const textTextTransformVar = getComponentTextCssVar('AssistiveElement', 'text', 'text-transform')
-  const textFontStyleVar = getComponentTextCssVar('AssistiveElement', 'text', 'font-style')
-  
-  return (
-    <div
-      className={className}
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: `var(${iconTextGapVar})`,
-        marginTop: `var(${topMarginVar})`,
-        maxWidth: `var(${maxWidthVar})`,
-        ...style,
-        ...mantine?.style,
-      }}
-      {...mantine}
-      {...props}
-    >
-      {icon && (
-        <span
-          className="recursica-assistive-element-icon"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: `var(${iconSizeVar})`,
-            height: `var(${iconSizeVar})`,
-            minWidth: `var(${iconSizeVar})`,
-            minHeight: `var(${iconSizeVar})`,
-            flexShrink: 0,
-            color: `var(${iconColorVar})`,
-          }}
+export default React.forwardRef<any, AssistiveElementProps>(function AssistiveElement({
+    text,
+    variant,
+    id,
+    mantine,
+}, ref) {
+    return (
+        <MantineAssistiveElement
+            id={id}
+            assistiveVariant={variant}
+            {...mantine}
+            ref={ref}
         >
-          {icon}
-        </span>
-      )}
-      <span
-        className="recursica-assistive-element-text"
-        style={{
-          color: `var(${textColorVar})`,
-          fontSize: `var(${textFontSizeVar})`,
-          fontFamily: `var(${textFontFamilyVar})`,
-          fontWeight: `var(${textFontWeightVar})`,
-          fontStyle: textFontStyleVar ? `var(${textFontStyleVar})` as any : 'normal',
-          letterSpacing: textLetterSpacingVar ? `var(${textLetterSpacingVar})` : undefined,
-          lineHeight: `var(${textLineHeightVar})`,
-          textDecoration: textTextDecorationVar ? `var(${textTextDecorationVar})` as any : 'none',
-          textTransform: textTextTransformVar ? `var(${textTextTransformVar})` as any : 'none',
-          minWidth: 0,
-          flex: '1 1 0%',
-          minHeight: `var(${iconSizeVar})`,
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        {text}
-      </span>
-    </div>
-  )
-}
+            {text}
+        </MantineAssistiveElement>
+    )
+})
+
+// Compile-time only — fails the build the moment AssistiveElementProps declares a prop with
+// no real, type-compatible home on the real AssistiveElement. `text` and `variant` are
+// excluded: both are explicitly translated above (`text` -> `children`, `variant` ->
+// `assistiveVariant`), so checking their untranslated shape here would be a false positive.
+// `icon` is excluded with no rename: confirmed no real slot for a caller-supplied icon node
+// exists (only the boolean `assistiveWithIcon` toggle for the component's own fixed icon).
+type _Wiring = AssertWired<
+    AssistiveElementProps,
+    typeof MantineAssistiveElement,
+    'layer' | 'mantine' | 'className' | 'style' | 'text' | 'variant' | 'icon'
+>
+const _wiringCheck: _Wiring = true

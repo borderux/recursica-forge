@@ -8,8 +8,6 @@
   - `registry/types.ts` - Type definitions for components, layers, and library-specific props
   - `registry/index.ts` - Component registry with lazy loading
   - `registry/mantine.ts` - Mantine component registrations
-  - `registry/material.ts` - Material UI component registrations
-  - `registry/carbon.ts` - Carbon component registrations
   - `hooks/useComponent.ts` - Hook to get current library's component
   - `hooks/useCssVar.ts` - Hook for reactive CSS variable reading
   - `utils/cssVarNames.ts` - CSS variable name generation utilities
@@ -20,20 +18,18 @@
 - **Files Created**:
   - `Button.tsx` - Unified Button adapter component
   - `mantine/Button.tsx` - Mantine-specific implementation
-  - `material/Button.tsx` - Material UI-specific implementation
-  - `carbon/Button.tsx` - Carbon-specific implementation
 
 **Features**:
 - ✅ Supports `variant` prop (solid, outline, text)
 - ✅ Supports `size` prop (default, small)
 - ✅ Supports `layer` prop (layer-0, layer-1, layer-2, layer-3) with CSS cascading
-- ✅ Supports library-specific props via `mantine`, `material`, `carbon` props
+- ✅ Supports library-specific props via the `mantine` prop
 - ✅ Uses CSS variables for theming: `--recursica_ui-kit_components_button_*`
 
 ### 3. Unified Theme Provider
 - **Location**: `src/components/providers/UnifiedThemeProvider.tsx`
 - **Features**:
-  - ✅ Wraps app with all library providers (Mantine, Material, Carbon)
+  - ✅ Wraps app with the Mantine provider (plus the published adapter's theme provider when that adapter is active)
   - ✅ Lazy loads providers to optimize bundle size
   - ✅ Ensures components can render regardless of selected kit
 
@@ -68,7 +64,7 @@
 - Integration with existing CSS variable system
 
 ### 2. Remaining Component Adapters
-**Status**: Button only implemented
+**Status**: Button only implemented as an adapter. The CSS contract is exported for every component with variants.
 **Components to Implement** (35 total):
 - Card
 - TextField (uses `ui-kit.form.*` tokens)
@@ -112,8 +108,6 @@
 1. Create adapter component in `src/components/adapters/{Component}.tsx`
 2. Create library implementations:
    - `src/components/adapters/mantine/{Component}.tsx`
-   - `src/components/adapters/material/{Component}.tsx`
-   - `src/components/adapters/carbon/{Component}.tsx`
 3. Register in registry files
 4. Update PreviewPage to use adapter
 
@@ -160,7 +154,7 @@ useComponent Hook
   ↓
 Component Registry
   ↓
-Library-Specific Implementation (mantine/material/carbon)
+Library-Specific Implementation (mantine)
   ↓
 CSS Variables (--recursica_ui-kit_components_*)
 ```
@@ -208,7 +202,6 @@ function MyComponent() {
       <Button 
         variant="outline" 
         mantine={{ radius: 'xl' }}
-        material={{ sx: { fontWeight: 'bold' } }}
       >
         Custom
       </Button>

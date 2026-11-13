@@ -2,11 +2,16 @@ import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 import { configure, cleanup as rtlCleanup } from '@testing-library/react'
 
+// The existing adapter tests exercise the real @recursica/adapter-mantine-v8 wrappers, so default
+// tests to that adapter (the app itself defaults to 'local'). Tests of the local adapter set
+// the key themselves — see components/registry/activeAdapter.test.ts.
+window.localStorage.setItem('recursica:mantine-adapter', 'mantine')
+
 // Configure testing library
 configure({
   testIdAttribute: 'data-testid',
   asyncUtilTimeout: 30000, // Match testTimeout for waitFor and other async utils
-  // Do NOT embed the full DOM in query-failure errors. Mantine/MUI/Carbon inject enormous
+  // Do NOT embed the full DOM in query-failure errors. Mantine injects enormous
   // markup + styles, so the default DOM dump can be multi-MB; when vitest serializes that
   // error across the worker IPC channel the main process OOMs (JSON.parse blows the heap)
   // and you get a cryptic "heap out of memory" instead of the real assertion message.
@@ -30,16 +35,12 @@ console.error = (...args: any[]) => {
       allArgs.includes('Button/Button.tsx') ||
       allArgs.includes('adapters/Button') ||
       allArgs.includes('adapters/mantine/Button') ||
-      allArgs.includes('adapters/material/Button') ||
-      allArgs.includes('adapters/carbon/Button') ||
       allArgs.includes('Accordion') ||
       allArgs.includes('at Accordion') ||
       allArgs.includes('Accordion.tsx') ||
       allArgs.includes('Accordion/Accordion.tsx') ||
       allArgs.includes('adapters/Accordion') ||
-      allArgs.includes('adapters/mantine/Accordion') ||
-      allArgs.includes('adapters/material/Accordion') ||
-      allArgs.includes('adapters/carbon/Accordion')) {
+      allArgs.includes('adapters/mantine/Accordion')) {
       // Suppress Button and Accordion component act() warnings - these are from internal useEffect hooks
       // that update state after mount (e.g., CSS variable listeners, elevation updates)
       // These are expected behavior and don't indicate test problems
@@ -51,16 +52,11 @@ console.error = (...args: any[]) => {
 
 // Import component registries to register components
 import './src/components/registry/mantine'
-import './src/components/registry/material'
-import './src/components/registry/carbon'
 
 // Preload provider modules for tests to avoid lazy loading issues
 // This ensures providers are available when components try to use them
 Promise.all([
   import('@mantine/core').catch(() => null),
-  import('@mui/material/styles').catch(() => null),
-  import('@mui/material').catch(() => null),
-  import('@carbon/react').catch(() => null),
 ]).catch(() => {
   // Ignore errors - providers will load when needed
 })

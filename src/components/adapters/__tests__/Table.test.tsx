@@ -13,9 +13,6 @@ describe('Table Component (Adapter)', () => {
   beforeAll(async () => {
     await Promise.all([
       import('@mantine/core'),
-      import('@mui/material/styles'),
-      import('@mui/material'),
-      import('@carbon/react'),
     ])
     await preloadComponent('mantine', 'Table')
     await preloadComponent('mantine', 'TableCell')

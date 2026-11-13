@@ -10,6 +10,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { genericLayerText } from '../../core/css/cssVarBuilder'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import packageJson from '../../../package.json'
+import { getMantineAdapter } from '../../components/registry/activeAdapter'
 
 export function SidebarFooter() {
     const { mode } = useThemeMode()
@@ -91,7 +92,7 @@ export function SidebarFooter() {
                 >
                     Border LLC
                 </Link>
-                <span style={dimStyle}>{'.'}<br />Version {packageJson.version} ·{' '}</span>
+                <span style={dimStyle}>{'.'}<br />Version {packageJson.version}<br />Adapter: {getMantineAdapter()} ·{' '}</span>
                 <Link
                     href="https://github.com/borderux/recursica-forge"
                     target="_blank"

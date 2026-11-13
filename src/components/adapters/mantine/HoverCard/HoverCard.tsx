@@ -1,176 +1,80 @@
 /**
- * Mantine HoverCard Implementation
- * 
- * Mantine-specific HoverCard component that uses CSS variables for theming.
- * Shares recursica_ui-kit.json styling with Popover under 'hover-card-popover'.
+ * Mantine HoverCard Adapter
+ *
+ * @recursica/adapter-mantine-v8's HoverCard is a COMPOSITION api: it renders `HoverCard.Target`
+ * (the trigger element) and `HoverCard.Dropdown` (the panel shown on hover) as children,
+ * rather than accepting Forge's flat `children`/`content` data props directly. This wrapper is
+ * the one place that bridges the two.
+ *
+ * `isOpen` has no real home: the real HoverCard's props explicitly `Omit<PopoverProps, "opened"
+ * | "onChange">` — hover-triggered open/close has no programmatic override upstream at all
+ * (unlike Popover, which keeps both). Dropped rather than half-wired.
+ *
+ * `position`/`zIndex` are real, matching fields (`RecursicaHoverCardProps.position`, and
+ * Mantine's own `zIndex`) but both sit on the adapter's `BlockedStylingKeys` list, so the real
+ * component's exported type strips them out unless the caller opts in with `overStyled: true`.
+ * Since these two are legitimate layout props (not cosmetic overrides), this wrapper flips
+ * `overStyled` on automatically whenever either is actually provided, rather than dropping them.
+ *
+ * `className`/`style` stay dropped, same as every other `RecursicaOverStyled`-gated component —
+ * the caller can still reach them through the `mantine` escape hatch
+ * (`mantine={{ overStyled: true, style: {...} }}`).
  */
 
-import { useState, useEffect } from 'react'
-import { HoverCard as MantineHoverCard, Box } from '@mantine/core'
-import type { HoverCardProps as AdapterHoverCardProps } from '../../HoverCard'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
-import { genericElevation } from '../../../../core/css/cssVarBuilder'
-import './HoverCard.css'
+import React from 'react'
+import { HoverCard as MantineHoverCard } from '@recursica/adapter-mantine-v8'
+import type { HoverCardProps } from '../../common/HoverCard'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function HoverCard({
-    children,
-    content,
-    isOpen,
-    layer = 'layer-1',
-    elevation,
-    className,
-    style,
-    withBeak = false,
-    position = 'bottom',
-    zIndex,
-    mantine,
-    ...props
-}: AdapterHoverCardProps) {
-    const { mode } = useThemeMode()
-    const [, setUpdateKey] = useState(0)
+export default React.forwardRef<any, HoverCardProps>(function HoverCard({
+  children,
+  content,
+  withBeak = false,
+  position,
+  zIndex,
+  mantine,
+}, ref) {
+  const target = children !== undefined ? <MantineHoverCard.Target>{children}</MantineHoverCard.Target> : null
+  const dropdown = content !== undefined ? <MantineHoverCard.Dropdown>{content}</MantineHoverCard.Dropdown> : null
 
-    // Build CSS variable names — use 'HoverCardPopover' as the component name for shared styling
-    const bgVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'background-color')
-    const contentColorVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'content')
-    const borderColorVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'border-color')
+  // The real HoverCard is a plain function component (not wrapped in React.forwardRef
+  // upstream), so its exported prop type has no `ref` slot at all — spreading `{ ref }` from
+  // an `any`-typed object (rather than a literal `ref={ref}` attribute) avoids a spurious
+  // "not assignable" error from the excess-property check while still attaching the ref at
+  // runtime for whenever upstream adds forwardRef support.
+  return position !== undefined || zIndex !== undefined ? (
+    <MantineHoverCard overStyled withBeak={withBeak} position={position} zIndex={zIndex} {...mantine} {...({ ref } as any)}>
+      {target}
+      {dropdown}
+    </MantineHoverCard>
+  ) : (
+    <MantineHoverCard withBeak={withBeak} {...mantine} {...({ ref } as any)}>
+      {target}
+      {dropdown}
+    </MantineHoverCard>
+  )
+})
 
-
-    const borderRadiusVar = getComponentLevelCssVar('HoverCardPopover', 'border-radius')
-    const borderSizeVar = getComponentLevelCssVar('HoverCardPopover', 'border-size')
-    const horizontalPaddingVar = getComponentLevelCssVar('HoverCardPopover', 'horizontal-padding')
-    const verticalPaddingVar = getComponentLevelCssVar('HoverCardPopover', 'vertical-padding')
-    const minWidthVar = getComponentLevelCssVar('HoverCardPopover', 'min-width')
-    const maxWidthVar = getComponentLevelCssVar('HoverCardPopover', 'max-width')
-    const beakSizeVar = getComponentLevelCssVar('HoverCardPopover', 'beak-size')
-
-    // Text properties
-    const contentFontFamilyVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-family')
-    const contentFontSizeVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-size')
-    const contentFontWeightVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-weight')
-    const contentLetterSpacingVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'letter-spacing')
-    const contentLineHeightVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'line-height')
-    const contentFontStyleVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-style')
-    const contentTextDecorationVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'text-decoration')
-    const contentTextTransformVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'text-transform')
-
-    // Elevation variable
-    const internalElevationVar = getComponentLevelCssVar('HoverCardPopover', 'elevation')
-
-    useEffect(() => {
-        const textCssVars = [
-            contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar,
-            contentLetterSpacingVar, contentLineHeightVar, contentFontStyleVar,
-            contentTextDecorationVar, contentTextTransformVar,
-            internalElevationVar, beakSizeVar
-        ]
-
-        const handleCssVarUpdate = (e: Event) => {
-            const detail = (e as CustomEvent).detail
-            const shouldUpdate = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
-            if (shouldUpdate) {
-                setUpdateKey(prev => prev + 1)
-            }
-        }
-
-        window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-
-        const observer = new MutationObserver(() => {
-            setUpdateKey(prev => prev + 1)
-        })
-
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['style'],
-        })
-
-        return () => {
-            window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-            observer.disconnect()
-        }
-    }, [contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar, contentLetterSpacingVar, contentLineHeightVar, contentFontStyleVar, contentTextDecorationVar, contentTextTransformVar, internalElevationVar, beakSizeVar])
-
-    const beakSizeValue = parseInt(readCssVar(beakSizeVar) || '16')
-
-    // Get elevation value
-    const activeElevation = elevation || parseElevationValue(readCssVar(internalElevationVar))
-    const elevationBoxShadow = getElevationBoxShadow(mode, activeElevation)
-
-    // Calculate drop-shadow parameters for the beak
-    const shadowParams = (() => {
-        if (!activeElevation || activeElevation === 'elevation-0') return '0 0 0 rgba(0,0,0,0)'
-        const match = activeElevation.match(/elevation-(\d+)/)
-        if (!match) return '0 0 0 rgba(0,0,0,0)'
-        const level = match[1]
-        const xAxis = `var(${genericElevation(level, 'x-axis')})`
-        const yAxis = `var(${genericElevation(level, 'y-axis')})`
-        const blur = `var(${genericElevation(level, 'blur')})`
-        const color = `var(${genericElevation(level, 'shadow-color')})`
-        return `${xAxis} ${yAxis} ${blur} ${color}`
-    })()
-
-    const dropdownStyles = {
-        '--hcp-bg': `var(${bgVar})`,
-        '--hcp-content-color': `var(${contentColorVar})`,
-        '--hcp-border-color': `var(${borderColorVar})`,
-        '--hcp-border-radius': `var(${borderRadiusVar})`,
-        '--hcp-border-size': `var(${borderSizeVar})`,
-        '--hcp-padding-x': `var(${horizontalPaddingVar})`,
-        '--hcp-padding-y': `var(${verticalPaddingVar})`,
-        '--hcp-min-width': `var(${minWidthVar})`,
-        '--hcp-max-width': `var(${maxWidthVar})`,
-        '--hcp-content-font-family': `var(${contentFontFamilyVar})`,
-        '--hcp-content-font-size': `var(${contentFontSizeVar})`,
-        '--hcp-content-font-weight': `var(${contentFontWeightVar})`,
-        '--hcp-content-letter-spacing': `var(${contentLetterSpacingVar})`,
-        '--hcp-content-line-height': `var(${contentLineHeightVar})`,
-        '--hcp-content-font-style': `var(${contentFontStyleVar})`,
-        '--hcp-content-text-decoration': `var(${contentTextDecorationVar})`,
-        '--hcp-content-text-transform': `var(${contentTextTransformVar})`,
-        '--hcp-box-shadow': elevationBoxShadow || 'none',
-        '--hcp-shadow-params': shadowParams,
-        ...style,
-    } as React.CSSProperties
-
-    return (
-        <MantineHoverCard
-            position={position}
-            withArrow={withBeak}
-            arrowSize={beakSizeValue}
-            zIndex={zIndex ?? 300}
-            openDelay={200}
-            closeDelay={400}
-            {...mantine}
-            {...props}
-        >
-            <MantineHoverCard.Target>
-                <Box component="span" className={className} style={{ display: 'inline-block' }}>
-                    {children}
-                </Box>
-            </MantineHoverCard.Target>
-            <MantineHoverCard.Dropdown
-                className="recursica-hcp-dropdown"
-                style={dropdownStyles}
-            >
-                <Box
-                    className="recursica-hcp-content"
-                    style={{
-                        color: 'var(--hcp-content-color)',
-                        fontFamily: 'var(--hcp-content-font-family)',
-                        fontSize: 'var(--hcp-content-font-size)',
-                        fontWeight: 'var(--hcp-content-font-weight)',
-                        letterSpacing: 'var(--hcp-content-letter-spacing)',
-                        lineHeight: 'var(--hcp-content-line-height)',
-                        fontStyle: 'var(--hcp-content-font-style)',
-                        textDecoration: 'var(--hcp-content-text-decoration)',
-                        textTransform: 'var(--hcp-content-text-transform)',
-                    } as any}
-                >
-                    {content}
-                </Box>
-            </MantineHoverCard.Dropdown>
-        </MantineHoverCard>
-    )
-}
+// `children`/`content` are composed into `HoverCard.Target`/`HoverCard.Dropdown` above, not
+// forwarded raw. `isOpen` is dropped per the comment above (no upstream controlled-open hook).
+// `position`/`zIndex` ARE wired above (see the `overStyled` branch) but still need to be
+// listed here: both only exist on the `overStyled: true` half of the real component's
+// `RecursicaOverStyled` union, and `keyof` over a union only keeps keys common to every
+// member, so the static check can't see them on the type as a whole even though the literal
+// JSX attributes above are fully type-checked against the real (narrowed) prop shape.
+// `className`/`style` are dropped per the comment above.
+type _Wiring = AssertWired<
+  HoverCardProps,
+  typeof MantineHoverCard,
+  | 'children'
+  | 'content'
+  | 'isOpen'
+  | 'position'
+  | 'zIndex'
+  | 'layer'
+  | 'elevation'
+  | 'className'
+  | 'style'
+  | 'mantine'
+>
+const _wiringCheck: _Wiring = true

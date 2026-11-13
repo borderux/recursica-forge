@@ -1,38 +1,128 @@
 /**
  * useComponent Hook
- * 
- * Returns the appropriate component implementation based on the current UI kit.
+ *
+ * Returns the appropriate component implementation based on the current UI kit. Never
+ * returns null: a component with nothing registered for the active kit gets
+ * NoAdapterImplementation instead, so every dispatcher shows the same honest "not wired
+ * up" box rather than each hand-rolling its own blank/fallback state.
  */
 
 import React, { useMemo } from 'react'
+import { AdapterErrorBoundary } from './AdapterErrorBoundary'
+import { LayerScope } from './LayerScope'
+import { applyPropContract } from './adapterPropContract'
 import { useUiKit } from '../../modules/uikit/UiKitContext'
 import { getComponent } from '../registry'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { NoAdapterImplementation } from '../adapters/NoAdapterImplementation'
 import type { ComponentName } from '../registry/types'
 
-export function useComponent<T = any>(componentName: ComponentName): React.ComponentType<T> | null {
-  const { kit } = useUiKit()
-  
-  return useMemo(() => {
-    const Component = getComponent(kit, componentName)
-    if (!Component) return null
-    
-    // Return a wrapper that strips out other library props before passing to the adapter
-    // This allows inner adapters to omit `mantine`, `material`, `carbon` from their destructuring
-    const Wrapper = (props: any) => {
-      const { mantine, material, carbon, ...rest } = props
-      
-      const activeProps: any = {}
-      if (kit === 'mantine' && mantine !== undefined) activeProps.mantine = mantine
-      if (kit === 'material' && material !== undefined) activeProps.material = material
-      if (kit === 'carbon' && carbon !== undefined) activeProps.carbon = carbon
-      
-      return React.createElement(Component as any, { ...rest, ...activeProps })
-    }
-    
-    // Copy over any static properties (like Tabs.List, Tabs.Tab, Tabs.Panel)
-    Object.assign(Wrapper, Component)
-    
-    return Wrapper as unknown as React.ComponentType<T>
-  }, [kit, componentName])
+/**
+ * React-owned fields that identify what kind of component something is. Copying any of
+ * these from the wrapped component onto our wrapper would change how React renders the
+ * wrapper itself. See the copy loop at the bottom of useComponent.
+ */
+const REACT_INTERNAL_KEYS = new Set([
+  '$$typeof',
+  '_payload',
+  '_init',
+  '_result',
+  '_status',
+  'render',
+  'compare',
+  'type',
+  'displayName',
+])
+
+/**
+ * Translates Forge's `layer="layer-N"` string into the numeric layer LayerScope wants.
+ * Returns null for layer-0 and for anything unparseable.
+ *
+ * layer-0 returns null on purpose: core/bootstrap.ts puts data-recursica-layer="0" on
+ * <html>, so layer-0 variables already resolve ambiently and no wrapper is needed in that
+ * (very common) case. Layers 1–3 need an element to carry the attribute.
+ */
+function toWrapperLayer(layer: unknown): 1 | 2 | 3 | null {
+  const match = typeof layer === 'string' ? /^layer-([0-9]+)$/.exec(layer) : null
+  const n = match ? Number(match[1]) : typeof layer === 'number' ? layer : NaN
+  return n === 1 || n === 2 || n === 3 ? n : null
 }
 
+export function useComponent<T = any>(componentName: ComponentName): React.ComponentType<T> {
+  const { kit } = useUiKit()
+  // The Mantine shell renders either the local adapter or the real published one (fixed per page load).
+  const adapter = kit === 'mantine' && isLocalAdapter ? 'local' : kit
+
+  return useMemo(() => {
+    const Component = getComponent(adapter, componentName)
+    if (!Component) {
+      // Ignore whatever props/children a dispatcher passes through — there's no real
+      // component underneath to receive them, just the "not implemented" box.
+      const Fallback = React.forwardRef<unknown, any>(() =>
+        React.createElement(NoAdapterImplementation, { componentName })
+      )
+      Fallback.displayName = `NoAdapterImplementation(${componentName})`
+      return Fallback as unknown as React.ComponentType<T>
+    }
+
+    // Return a wrapper that adapts Forge's props for the active adapter before passing them on.
+    //
+    // forwardRef is required: the real adapter's components are forwardRef/polymorphic and
+    // callers do pass refs through the dispatchers. A plain function component would drop
+    // them and warn ("Function components cannot be given refs").
+    const Wrapper = React.forwardRef<unknown, any>((props, ref) => {
+      const { mantine, ...rest } = props
+
+      if (adapter === 'local') {
+        // Local adapter keeps the original contract: its own implementations take Forge's props
+        // as-is, plus the `mantine` pass-through object.
+        const localProps: any = mantine !== undefined ? { ...rest, mantine } : rest
+        return React.createElement(Component as any, { ...localProps, ref })
+      }
+
+      // Mantine is now the real published adapter (@recursica/adapter-mantine-v8), whose prop
+      // vocabulary differs from Forge's old local implementations. applyPropContract()
+      // renames what has an equivalent and drops what does not — see adapterPropContract.ts.
+      //
+      // Dropping matters: the adapter does not filter unknown props, so anything it doesn't
+      // recognise reaches the DOM and React warns about it. `layer` is handled here rather
+      // than in the table because it becomes a wrapper element, not a prop.
+      //
+      // `style` and `className` are deliberately NOT stripped. The adapter runs its own
+      // filterStylingProps() and ignores them unless overStyled is set — letting its real
+      // policy apply is the point of using the real adapter.
+      const mantineRest = applyPropContract(componentName, rest)
+      const element = React.createElement(Component as any, { ...mantineRest, ref })
+      const wrapperLayer = toWrapperLayer(rest.layer)
+      // LayerScope, not the adapter's <Layer>: Forge's `layer` prop asks for token
+      // resolution, whereas <Layer> paints a surface (border, radius, padding, elevation).
+      // Using Layer here drew a box around every control that requested a non-zero layer.
+      const layered = wrapperLayer
+        ? React.createElement(LayerScope, { layer: wrapperLayer }, element)
+        : element
+
+      // Contain render-time throws so one prop-contract mismatch can't blank the route.
+      return React.createElement(
+        AdapterErrorBoundary,
+        { componentName },
+        layered
+      )
+    })
+    Wrapper.displayName = `AdapterWrapper(${componentName})`
+
+    // Copy over any static properties (like Tabs.List, Tabs.Tab, Tabs.Panel).
+    //
+    // React's own internal fields must NOT be copied. getComponent() returns a
+    // React.lazy object whose own enumerable keys include `$$typeof`, `_payload` and
+    // `_init`; assigning those onto Wrapper makes React classify Wrapper as a lazy
+    // component and render the underlying component directly, silently skipping this
+    // wrapper's body — which would defeat the prop translation, ref forwarding and
+    // error boundary above.
+    for (const key of Object.keys(Component)) {
+      if (REACT_INTERNAL_KEYS.has(key)) continue
+      ;(Wrapper as any)[key] = (Component as any)[key]
+    }
+
+    return Wrapper as unknown as React.ComponentType<T>
+  }, [kit, adapter, componentName])
+}

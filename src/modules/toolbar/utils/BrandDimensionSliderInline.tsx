@@ -279,15 +279,11 @@ export default function BrandDimensionSliderInline({
 
   // Ensure selectedIndex is within bounds
   const safeSelectedIndex = Math.max(0, Math.min(selectedIndex, tokens.length - 1))
-  const currentToken = tokens[safeSelectedIndex]
 
   const minToken = tokens[0]
   const maxToken = tokens[tokens.length - 1]
   const minLabel = minToken?.label || 'None'
   const maxLabel = maxToken?.label || 'Xl'
-
-  // Get tooltip text - show token name (key) in tooltip
-  const tooltipText = currentToken?.key || currentToken?.label || String(safeSelectedIndex)
 
   // Create a function that calculates the value label from the current slider value
   // This ensures it updates when the slider changes
@@ -319,7 +315,6 @@ export default function BrandDimensionSliderInline({
       showInput={false}
       showValueLabel={true}
       valueLabel={getValueLabel}
-      tooltipText={tooltipText}
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}

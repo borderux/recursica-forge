@@ -15,7 +15,6 @@ export function ImportValidationErrorModal({ missingNodes, onAcknowledge }: Impo
       primaryActionLabel="Dismiss"
       onPrimaryAction={onAcknowledge}
       layer="layer-3"
-      size="md"
       content={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <p style={{ margin: 0, opacity: 0.7 }}>

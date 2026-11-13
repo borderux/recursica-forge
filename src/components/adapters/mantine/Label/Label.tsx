@@ -1,325 +1,104 @@
 /**
- * Mantine Label Implementation
- * 
- * Mantine-specific Label component that uses CSS variables for theming.
- * Note: Mantine doesn't have a standalone Label component, so we use a native label element.
+ * Mantine Label Adapter
+ *
+ * Label is the one field-ish component whose OWN prop names are unprefixed (`size`, `align`)
+ * while the shared field vocabulary (helpText/labelAlign/labelSize/...) assumes prefixed
+ * names — which is exactly why folding Label into the old FIELD_CONTRACT table never did
+ * anything for it. Mapped directly here instead:
+ *
+ *   - `size` -> the real `labelSize` prop (confirmed on RecursicaLabelProps).
+ *   - `align` -> the real `labelAlignment` prop.
+ *   - `variant` has no real prop of its own, but its two non-default values ARE derivable:
+ *     the real API expresses "required" and "optional" through `required` +
+ *     `labelOptionalText` rather than a variant string, so `variant === 'required'` folds
+ *     into `required` (alongside Forge's own separate `required` prop) and
+ *     `variant === 'optional'` folds into `labelOptionalText`, instead of dropping the prop
+ *     outright.
+ *   - `layout` has no real destination: Label is not a form control (no FormControlWrapper),
+ *     so it has nothing to do with `formLayout`. Moved in here from
+ *     adapterPropContract.ts's `PROP_CONTRACT['Label']` entry.
+ *   - `editIcon`/`editIconTitle`/`onEditIconClick` (2026-08, corrected — this wrapper
+ *     previously dropped `editIcon`/`editIconTitle` entirely on the claim "no real slot, same
+ *     rationale as TextField's," which turned out to be wrong: the real Label (and every real
+ *     field component built on the same `RecursicaFormControlWrapperProps`) has a slot for
+ *     exactly this, `labelActionArea`. Translated via the shared `resolveLabelActionArea`
+ *     helper (`../labelActionArea.tsx`) — see that file for the full two-case explanation
+ *     (boolean shorthand vs. a real icon node) and why it's centralized there. This was the
+ *     root cause of a real, user-visible bug: `BrandDimensionSliderInline`'s globe-icon-to-
+ *     detach-a-global-token control (rendered via a `<Label editIcon={...}>` passed as a
+ *     Slider's `label`) silently had no visible icon at all on the Mantine kit, despite being
+ *     correctly computed and forwarded from `useGlobalRefControl`.
+ *   - `id` IS a real prop (via `ElementProps<'label'>`) — passed through here even though the
+ *     Label dispatcher (`adapters/Label.tsx`) doesn't currently destructure/forward it at all.
+ *     That's a dispatcher-level bug (not this wrapper's to fix): today `id` is always
+ *     `undefined` by the time it reaches here, but the wrapper is ready for it regardless.
  */
 
-import React, { useState, useEffect } from 'react'
-import type { LabelProps as AdapterLabelProps } from '../../Label'
-import { Button } from '../../Button'
-import { Tooltip } from '../../Tooltip'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
-import './Label.css'
+import React from 'react'
+import { Label as MantineLabel } from '@recursica/adapter-mantine-v8'
+import { resolveLabelActionArea } from '../labelActionArea'
+import type { LabelProps } from '../../common/Label'
+import type { AssertWired } from '../../common/wiringCheck'
 
-function isButtonOrHasClick(node: React.ReactNode): boolean {
-  if (!React.isValidElement(node)) return false
-  
-  const props = node.props as any
-  if (!props) return false
+export default React.forwardRef<any, LabelProps>(function Label({
+    children,
+    htmlFor,
+    variant,
+    size,
+    align,
+    layer,
+    required,
+    id,
+    editIcon,
+    editIconTitle,
+    onEditIconClick,
+    mantine,
+}, ref) {
+    const { labelActionArea, labelWithEditIcon, onLabelEditClick } =
+        resolveLabelActionArea(editIcon, editIconTitle, onEditIconClick, layer)
 
-  if (props.onClick !== undefined) return true
-  
-  const type = node.type
-  if (
-    type === 'button' ||
-    (typeof type === 'function' &&
-      (type.name === 'Button' ||
-        type.name === 'MantineButton' ||
-        (type as any).displayName === 'Button' ||
-        (type as any).displayName === 'MantineButton'))
-  ) {
-    return true
-  }
-
-  if (props.children) {
-    if (Array.isArray(props.children)) {
-      return props.children.some((child: any) => isButtonOrHasClick(child))
-    }
-    return isButtonOrHasClick(props.children)
-  }
-
-  return false
-}
-
-export default function Label({
-  children,
-  htmlFor,
-  variant = 'default',
-  size,
-  layout = 'stacked',
-  align = 'left',
-  layer = 'layer-0',
-  className,
-  style,
-  editIcon, // Destructure to prevent passing to DOM
-  editIconGap,
-  onEditIconClick,
-  editIconTitle,
-  mantine,
-  ...props
-}: AdapterLabelProps) {
-  const { mode } = useThemeMode()
-
-  // Get CSS variables for colors
-  // Text color is at component level, not variant-specific
-  const textColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text-color')
-  const asteriskColorVar = variant === 'required'
-    ? buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'asterisk-color')
-    : undefined
-
-  // Get CSS variables for text emphasis opacity
-  const highEmphasisOpacityVar = `--recursica_brand_text-emphasis_high`
-
-  // Get text properties from component text property groups
-  const labelFontSizeVar = getComponentTextCssVar('Label', 'label-text', 'font-size')
-  const labelFontFamilyVar = getComponentTextCssVar('Label', 'label-text', 'font-family')
-  const labelFontWeightVar = getComponentTextCssVar('Label', 'label-text', 'font-weight')
-  const labelLetterSpacingVar = getComponentTextCssVar('Label', 'label-text', 'letter-spacing')
-  const labelLineHeightVar = getComponentTextCssVar('Label', 'label-text', 'line-height')
-  const labelTextDecorationVar = getComponentTextCssVar('Label', 'label-text', 'text-decoration')
-  const labelTextTransformVar = getComponentTextCssVar('Label', 'label-text', 'text-transform')
-  const labelFontStyleVar = getComponentTextCssVar('Label', 'label-text', 'font-style')
-
-  const optionalFontSizeVar = getComponentTextCssVar('Label', 'optional-text', 'font-size')
-  const optionalFontFamilyVar = getComponentTextCssVar('Label', 'optional-text', 'font-family')
-  const optionalFontWeightVar = getComponentTextCssVar('Label', 'optional-text', 'font-weight')
-  const optionalLetterSpacingVar = getComponentTextCssVar('Label', 'optional-text', 'letter-spacing')
-  const optionalLineHeightVar = getComponentTextCssVar('Label', 'optional-text', 'line-height')
-  const optionalTextDecorationVar = getComponentTextCssVar('Label', 'optional-text', 'text-decoration')
-  const optionalTextTransformVar = getComponentTextCssVar('Label', 'optional-text', 'text-transform')
-  const optionalFontStyleVar = getComponentTextCssVar('Label', 'optional-text', 'font-style')
-  const optionalTextOpacityVar = getComponentLevelCssVar('Label', 'optional-text-opacity')
-
-  // State to force re-renders when CSS vars change (needed for Mantine to pick up CSS var changes)
-  const [, setUpdateKey] = useState(0)
-
-  // Get CSS variables for layout-specific sizes
-  const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
-  const optionalTextGapVar = getComponentLevelCssVar('Label', 'label-optional-text-gap')
-  const editIconGapVar = getComponentLevelCssVar('Label', 'edit-icon-gap')
-
-  const finalEditIconGap = editIconGap !== undefined
-    ? (typeof editIconGap === 'number' ? `${editIconGap}px` : editIconGap)
-    : `var(${editIconGapVar})`
-
-
-  // Get CSS variable for size-based width based on layout and size variants
-  // Width is nested: variants.layouts.{layout}.variants.sizes.{size}.properties.width
-  let widthVar: string | undefined
-
-  // Use provided size or default to 'default' if not provided
-  const effectiveSize = size || 'default'
-
-  // Get width from nested variant structure
-  widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layout, 'variants', 'sizes', effectiveSize, 'properties', 'width')
-
-  // Also check for general label-width property at component level as fallback
-  const labelWidthVar = getComponentLevelCssVar('Label', 'label-width')
-  const effectiveWidthVar = widthVar || labelWidthVar
-
-  // Get CSS variables for layout-specific spacing (must be declared before useEffect)
-  const bottomPaddingVar = layout === 'stacked'
-    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'stacked', 'properties', 'bottom-padding')
-    : undefined
-  const stackedMinHeightVar = layout === 'stacked'
-    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'stacked', 'properties', 'min-height')
-    : undefined
-  const minHeightVar = layout === 'side-by-side'
-    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'min-height')
-    : undefined
-  const verticalPaddingVar = layout === 'side-by-side'
-    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding')
-    : undefined
-
-  // Listen for CSS variable updates from the toolbar
-  useEffect(() => {
-    const textCssVars = [
-      labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar,
-      labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
-      optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
-      optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar,
-      optionalTextOpacityVar
-    ]
-
-    // Include width CSS vars in the update check
-    const widthCssVars = effectiveWidthVar ? [effectiveWidthVar, widthVar, labelWidthVar].filter(Boolean) : []
-    // Include layout-specific CSS vars (bottom-padding, min-height, vertical-padding)
-    const layoutCssVars = [bottomPaddingVar, stackedMinHeightVar, minHeightVar, verticalPaddingVar].filter(Boolean) as string[]
-    const allCssVars = [...textCssVars, ...widthCssVars, ...layoutCssVars]
-
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      const updatedVars = detail?.cssVars || []
-      // Update if any text or width CSS var was updated, or if no specific vars were mentioned (global update)
-      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) =>
-        allCssVars.includes(cssVar) || cssVar.includes('label') || cssVar.includes('components-label')
-      )
-
-      if (shouldUpdate) {
-        // Force re-render by updating state
-        setUpdateKey(prev => prev + 1)
-      }
-    }
-
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-
-    // Also watch for direct style changes using MutationObserver
-    const observer = new MutationObserver(() => {
-      // Force re-render for text and width vars
-      setUpdateKey(prev => prev + 1)
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-
-    return () => {
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-      observer.disconnect()
-    }
-  }, [
-    labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar,
-    labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
-    optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
-    optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar,
-    optionalTextOpacityVar,
-    effectiveWidthVar, widthVar, labelWidthVar, effectiveSize, layout,
-    bottomPaddingVar, stackedMinHeightVar, minHeightVar, verticalPaddingVar
-  ])
-
-  // Build layout styles using the CSS variables declared above
-  let layoutStyles: Record<string, string> = {}
-
-  if (layout === 'stacked') {
-    layoutStyles.paddingBottom = `var(${bottomPaddingVar})`
-    layoutStyles.minHeight = `var(${stackedMinHeightVar})`
-  } else if (layout === 'side-by-side') {
-    // Use min-height so the label can grow with content
-    layoutStyles.minHeight = `var(${minHeightVar})`
-    // Use flexbox to center content vertically (override display: block from default)
-    layoutStyles.display = 'flex'
-    layoutStyles.alignItems = 'center'
-    // For right alignment in side-by-side, use justifyContent instead of textAlign
-    if (align === 'right') {
-      layoutStyles.justifyContent = 'flex-end'
-    }
-    // Note: gutter is used by parent container's gap property, not applied to label itself
-  }
-
-  // Apply width/minWidth to layoutStyles
-  if (effectiveWidthVar) {
-    if (layout === 'side-by-side') {
-      // In side-by-side, use minWidth to respect min-width but allow growth
-      layoutStyles.minWidth = `var(${effectiveWidthVar})`
-    } else {
-      // In stacked, use width
-      layoutStyles.width = `var(${effectiveWidthVar})`
-    }
-  }
-
-  return (
-    <label
-      htmlFor={htmlFor}
-      className={className}
-      style={{
-        color: `var(${textColorVar})`,
-        display: 'block',
-        fontSize: `var(${labelFontSizeVar})`,
-        fontFamily: `var(${labelFontFamilyVar})`,
-        fontWeight: `var(${labelFontWeightVar})`,
-        fontStyle: labelFontStyleVar ? `var(${labelFontStyleVar})` as any : 'normal',
-        letterSpacing: labelLetterSpacingVar ? `var(${labelLetterSpacingVar})` : undefined,
-        lineHeight: `var(${labelLineHeightVar})`,
-        textDecoration: labelTextDecorationVar ? `var(${labelTextDecorationVar})` as any : 'none',
-        textTransform: labelTextTransformVar ? `var(${labelTextTransformVar})` as any : 'none',
-        textAlign: align,
-        opacity: `var(${highEmphasisOpacityVar})`,
-        ...layoutStyles,
-        ...style,
-        ...mantine?.style,
-        // Ensure minHeight from layout takes precedence over style props UNLESS a minHeight is explicitly provided
-        ...(layout === 'stacked' && stackedMinHeightVar ? {
-          minHeight: (style as any)?.minHeight || `var(${stackedMinHeightVar})`
-        } : {}),
-        ...(layout === 'side-by-side' && minHeightVar ? {
-          minHeight: (style as any)?.minHeight || `var(${minHeightVar})`
-        } : {}),
-      }}
-      {...mantine}
-      {...props}
-    >
-      {variant === 'optional' ? (
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: layout === 'side-by-side'
-            ? (align === 'right' ? 'flex-end' : 'flex-start')
-            : (align === 'right' ? 'flex-end' : 'stretch'),
-          gap: optionalTextGapVar ? `var(${optionalTextGapVar})` : undefined,
-        }}>
-          <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, padding: '0.15em 0' }}>{children}</span>
-          <span
-            style={{
-              display: 'block',
-              opacity: `var(${optionalTextOpacityVar}, var(--recursica_brand_text-emphasis_low))`,
-              fontSize: `var(${optionalFontSizeVar})`,
-              fontFamily: `var(${optionalFontFamilyVar})`,
-              fontWeight: `var(${optionalFontWeightVar})`,
-              fontStyle: optionalFontStyleVar ? `var(${optionalFontStyleVar})` as any : 'normal',
-              letterSpacing: optionalLetterSpacingVar ? `var(${optionalLetterSpacingVar})` : undefined,
-              lineHeight: `var(${optionalLineHeightVar})`,
-              textDecoration: optionalTextDecorationVar ? `var(${optionalTextDecorationVar})` as any : 'none',
-              textTransform: optionalTextTransformVar ? `var(${optionalTextTransformVar})` as any : 'none',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              textAlign: align,
-              paddingBottom: '0.05em',
-            }}
-          >
-            (optional)
-          </span>
-        </div>
-      ) : (
-        <span style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: align === 'right' ? 'flex-end' : 'flex-start',
-          width: '100%',
-          gap: editIcon ? finalEditIconGap : 0
-        }}>
-          <span style={{ display: 'inline-block', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, padding: '0.15em 0' }}>
+    return (
+        <MantineLabel
+            htmlFor={htmlFor}
+            labelSize={size}
+            labelAlignment={align}
+            required={required || variant === 'required'}
+            labelOptionalText={variant === 'optional' ? true : undefined}
+            id={id}
+            labelActionArea={labelActionArea}
+            labelWithEditIcon={labelWithEditIcon}
+            onLabelEditClick={onLabelEditClick}
+            {...mantine}
+            ref={ref}
+        >
             {children}
-            {variant === 'required' && asteriskColorVar && (
-              <span
-                style={{
-                  color: `var(${asteriskColorVar})`,
-                  marginLeft: `var(${requiredIndicatorGapVar})`,
-                }}
-              >
-                *
-              </span>
-            )}
-          </span>
-          {editIcon && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
-              {isButtonOrHasClick(editIcon) ? (
-                editIcon
-              ) : editIconTitle ? (
-                <Tooltip label={editIconTitle} withinPortal zIndex={10000}>
-                  <Button variant="text" size="small" icon={editIcon} layer={layer} onClick={onEditIconClick} />
-                </Tooltip>
-              ) : (
-                <Button variant="text" size="small" icon={editIcon} layer={layer} onClick={onEditIconClick} />
-              )}
-            </span>
-          )}
-        </span>
-      )}
-    </label>
-  )
-}
+        </MantineLabel>
+    )
+})
+
+// Compile-time only — fails the build the moment LabelProps declares a prop with no real,
+// type-compatible home on the real Label (directly, or via the renames below). `variant` is
+// excluded: it's explicitly folded into `required`/`labelOptionalText` above, not renamed, so
+// checking its untranslated shape here would be a false positive. `layout` is excluded: Label
+// isn't a form control, no real `formLayout`-equivalent concept applies to it (see header).
+// `editIcon`/`editIconTitle`/`onEditIconClick` are excluded: they're a real reshape into
+// `labelActionArea`/`labelWithEditIcon`/`onLabelEditClick` above (a genuine translation, not a
+// straight rename), so the literal attributes above are what actually get checked.
+// `editIconGap` has no real equivalent — the real `labelActionArea` slot has no configurable
+// gap of its own — dropped.
+type _Wiring = AssertWired<
+    LabelProps,
+    typeof MantineLabel,
+    | 'layer'
+    | 'mantine'
+    | 'className'
+    | 'style'
+    | 'variant'
+    | 'layout'
+    | 'editIcon'
+    | 'editIconGap'
+    | 'editIconTitle'
+    | 'onEditIconClick',
+    { size: 'labelSize'; align: 'labelAlignment' }
+>
+const _wiringCheck: _Wiring = true

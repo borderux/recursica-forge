@@ -19,6 +19,7 @@ import { Dropdown } from "../../../components/adapters/Dropdown";
 import { Modal } from "../../../components/adapters/Modal";
 import "@mantine/core/styles.css";
 import "./MantineShell.css";
+import { isLocalAdapter } from "../../../components/registry/activeAdapter";
 import { RadioButtonGroup } from "../../../components/adapters/RadioButtonGroup";
 import { RadioButtonItem } from "../../../components/adapters/RadioButtonItem";
 import { iconNameToReactComponent } from "../../components/iconUtils";
@@ -66,6 +67,21 @@ import {
 
 import { useSaveReminder } from '../../../core/hooks/useSaveReminder';
 import { useVersionCheck } from '../../../core/hooks/useVersionCheck';
+
+// The real Recursica adapter's stylesheet is loaded only when that adapter is active, and here
+// (after the static core styles above) so its :global(.mantine-*) overrides come later in the
+// cascade and win — loading it from the registry put it BEFORE core styles, so Mantine's own
+// Anchor/Button colours beat the adapter's tokens (blue links).
+//
+// @mantine/dates' own stylesheet is a required peer stylesheet of the adapter (its DatePicker
+// and TimePicker are built on @mantine/dates) — without it the calendar renders as an unstyled
+// list of day buttons. Loaded first so the adapter's overrides still win.
+if (!isLocalAdapter) {
+  void import("@mantine/dates/styles.css").then(
+    () => import("@recursica/adapter-mantine-v8/style.css")
+  );
+}
+
 
 export default function MantineShell({
   children,
@@ -456,37 +472,15 @@ export default function MantineShell({
                 </Tooltip>
 
                 {!import.meta.env.DEV && (
-                  <Tooltip label='Report a bug'>
-                    <Button
-                      variant='outline'
-                      size='small'
-                      icon={(() => {
-                        const BugIcon = iconNameToReactComponent("bug");
-                        return BugIcon ? (
-                          <BugIcon
-                            style={{
-                              width:
-                                "var(--recursica_brand_dimensions_icons_default)",
-                              height:
-                                "var(--recursica_brand_dimensions_icons_default)",
-                            }}
-                          />
-                        ) : null;
-                      })()}
-                      onClick={() => createBugReport()}
-                    />
-                  </Tooltip>
-                )}
-                {import.meta.env.DEV && (
                   <>
-                    <Tooltip label='Randomize all variables (dev only)'>
+                    <Tooltip label='Report a bug'>
                       <Button
                         variant='outline'
                         size='small'
                         icon={(() => {
-                          const ShuffleIcon = iconNameToReactComponent("shuffle");
-                          return ShuffleIcon ? (
-                            <ShuffleIcon
+                          const BugIcon = iconNameToReactComponent("bug");
+                          return BugIcon ? (
+                            <BugIcon
                               style={{
                                 width:
                                   "var(--recursica_brand_dimensions_icons_default)",
@@ -496,7 +490,7 @@ export default function MantineShell({
                             />
                           ) : null;
                         })()}
-                        onClick={() => setShowRandomizeModal(true)}
+                        onClick={() => createBugReport()}
                       />
                     </Tooltip>
 
@@ -542,7 +536,6 @@ export default function MantineShell({
                               }, 500); // Small delay to ensure CSS vars are ready
                             }
                           }}
-                          sizeVariant='small'
                         />
                       </div>
                     </Tooltip>
@@ -551,92 +544,43 @@ export default function MantineShell({
                 {/* Library switcher temporarily disabled — kit locked to mantine */}
               </div>
 
-              {/* Chunk 4: Theme Mode Segmented Control */}
               {(() => {
-                const buttonBorderRadius = getComponentCssVar(
-                  "Button",
-                  "size",
-                  "border-radius",
-                  undefined,
-                );
-                const buttonSmallHeight = getComponentCssVar(
-                  "Button",
-                  "size",
-                  "small-height",
-                  undefined,
-                );
-                const buttonSmallMinWidth = getComponentCssVar(
-                  "Button",
-                  "size",
-                  "small-min-width",
-                  undefined,
-                );
-                const buttonSmallIcon = getComponentCssVar(
-                  "Button",
-                  "size",
-                  "small-icon",
-                  undefined,
-                );
-                const buttonSmallIconPadding = getComponentCssVar(
-                  "Button",
-                  "size",
-                  "small-icon-padding",
-                  undefined,
-                );
-                const buttonSolidBg = getComponentCssVar(
-                  "Button",
-                  "colors",
-                  "solid-background-color",
-                  "layer-0",
-                );
-                const buttonSolidText = getComponentCssVar(
-                  "Button",
-                  "colors",
-                  "solid-text",
-                  "layer-0",
-                );
-                const buttonTextBg = getComponentCssVar(
-                  "Button",
-                  "colors",
-                  "text-background",
-                  "layer-0",
-                );
-                const buttonTextText = getComponentCssVar(
-                  "Button",
-                  "colors",
-                  "text-text",
-                  "layer-0",
-                );
-
-                const SunIcon = iconNameToReactComponent("sun");
-                const MoonIcon = iconNameToReactComponent("moon");
-                const modeItems: SegmentedControlItem[] = [
-                  {
-                    value: "light",
-                    icon: SunIcon ? (
-                      <SunIcon
-                        style={{
-                          width: `var(${buttonSmallIcon})`,
-                          height: `var(${buttonSmallIcon})`,
-                        }}
-                      />
-                    ) : undefined,
-                    tooltip: "Light theme",
-                  },
-                  {
-                    value: "dark",
-                    icon: MoonIcon ? (
-                      <MoonIcon
-                        style={{
-                          width: `var(${buttonSmallIcon})`,
-                          height: `var(${buttonSmallIcon})`,
-                        }}
-                      />
-                    ) : undefined,
-                    tooltip: "Dark theme",
-                  },
-                ];
-                return (
+              const buttonSmallIcon = getComponentCssVar('Button', 'size', 'small-icon', undefined)
+              const SunIcon = iconNameToReactComponent("sun");
+              const MoonIcon = iconNameToReactComponent("moon");
+              const modeItems: SegmentedControlItem[] = [
+                {
+                  value: "light",
+                  icon: SunIcon ? (
+                    <SunIcon
+                      style={{
+                        width: `var(${buttonSmallIcon})`,
+                        height: `var(${buttonSmallIcon})`,
+                      }}
+                    />
+                  ) : undefined,
+                  tooltip: "Light theme",
+                },
+                {
+                  value: "dark",
+                  icon: MoonIcon ? (
+                    <MoonIcon
+                      style={{
+                        width: `var(${buttonSmallIcon})`,
+                        height: `var(${buttonSmallIcon})`,
+                      }}
+                    />
+                  ) : undefined,
+                  tooltip: "Dark theme",
+                },
+              ];
+              return (
+                // flexShrink: 0 because this header row is marginally overfull and every child
+                // defaults to shrinking. The two icon segments are a fixed token size and
+                // cannot compress, so when the control was allowed to shrink its contents
+                // spilled past the page edge and the dark-mode segment was cut off. The tabs
+                // beside it are elastic and absorb the difference instead.
+                <div style={{ flexShrink: 0, display: "flex" }}>
                   <SegmentedControl
                     items={modeItems}
                     value={mode}
@@ -646,10 +590,11 @@ export default function MantineShell({
                     layer='layer-0'
                     componentNameForCssVars='SegmentedControl'
                   />
-                );
-              })()}
-            </Group>
-          </header>
+                </div>
+              );
+            })()}
+          </Group>
+        </header>
         )}
         {isDevRoute ? (
           <>{children}</>
@@ -769,14 +714,14 @@ export default function MantineShell({
                   required
                 >
                   <RadioButtonItem
-                    selected={resetTarget === 'imported'}
+                    checked={resetTarget === 'imported'}
                     onChange={() => setResetTarget('imported')}
                     label="Reset to last imported version"
                   />
                   <RadioButtonItem
-                    selected={resetTarget === 'original'}
-                    onChange={() => setResetTarget('original')}
-                    label="Reset to Recursica defaults"
+                    checked={resetTarget === 'original'}
+                    onChange={() => setResetTarget('original')} 
+                    label="Reset to app defaults" 
                   />
                 </RadioButtonGroup>
               )}

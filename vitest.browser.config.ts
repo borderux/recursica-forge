@@ -5,8 +5,8 @@ import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 /**
  * Browser test config — component RENDER tests only.
  *
- * These tests mount the real MUI/Mantine/Carbon adapters. In a headless DOM (jsdom/happy-dom)
- * the three libraries' CSS-in-JS injection churns and OOMs the worker, so they can't run in the
+ * These tests mount the real Mantine adapters. In a headless DOM (jsdom/happy-dom)
+ * the library's CSS-in-JS injection churns and OOMs the worker, so they can't run in the
  * node/unit pipeline (see vite.config.ts `test.exclude`). Here they run in a REAL browser
  * (Playwright Chromium), where rendering behaves normally.
  *

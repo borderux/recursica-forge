@@ -17,7 +17,6 @@ import { Timeline } from '../../components/adapters/Timeline'
 import { Avatar } from '../../components/adapters/Avatar'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from './iconUtils'
-import '../../components/adapters/mantine/Timeline/Timeline.css'
 import { getTypographyStyle } from './typographyStyles'
 
 
@@ -219,14 +218,7 @@ function buildCssVars(layer: string, selState: string) {
         '--timeline-avatar-size-small': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'small', 'properties', 'width')}, 32px)`,
         '--timeline-avatar-size-default': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'default', 'properties', 'width')}, 40px)`,
         '--timeline-avatar-size-large': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'large', 'properties', 'width')}, 64px)`,
-        '--timeline-avatar-bullet-size': (() => {
-            const sizeVarName = bulletPropVar('avatar', 'avatar-size')
-            const sizeValue = typeof document !== 'undefined'
-                ? getComputedStyle(document.documentElement).getPropertyValue(sizeVarName).trim().replace(/^["']|["']$/g, '')
-                : 'default'
-            const sizeKey = sizeValue === 'small' || sizeValue === 'large' ? sizeValue : 'default'
-            return `var(--timeline-avatar-size-${sizeKey}, 40px)`
-        })(),
+        '--timeline-avatar-bullet-size': `var(${bulletPropVar('avatar', 'avatar-size')}, 40px)`,
         '--timeline-avatar-active-bg': `var(${bulletColorVar('avatar', layer, 'active-background')})`,
         '--timeline-avatar-inactive-bg': `var(${bulletColorVar('avatar', layer, 'inactive-background')})`,
         '--timeline-avatar-active-border': `var(${bulletColorVar('avatar', layer, 'active-border-color')})`,
@@ -299,7 +291,7 @@ function useBullets() {
             {CheckIcon ? <CheckIcon size={14} /> : null}
         </ThemeIcon>, // icon-alt
         <div className="recursica-timeline-avatar-container">
-            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-smith.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" colorVariant="image" src="/goblin-avatar-smith.png" className="recursica-timeline-avatar-bullet" />
         </div>, // avatar
         undefined, // default dot
         BellIcon ? <BellIcon size={14} /> : undefined, // icon
@@ -307,7 +299,7 @@ function useBullets() {
             {WarningIcon ? <WarningIcon size={14} /> : null}
         </ThemeIcon>, // icon-alt
         <div className="recursica-timeline-avatar-container">
-            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-elder.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" colorVariant="image" src="/goblin-avatar-elder.png" className="recursica-timeline-avatar-bullet" />
         </div>, // avatar
     ]
 
@@ -318,7 +310,7 @@ function useBullets() {
             {HeartIcon ? <HeartIcon size={14} /> : null}
         </ThemeIcon>,
         <div className="recursica-timeline-avatar-container">
-            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-shaman.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" colorVariant="image" src="/goblin-avatar-shaman.png" className="recursica-timeline-avatar-bullet" />
         </div>,
         undefined,
         InfoIcon ? <InfoIcon size={14} /> : undefined,
@@ -326,7 +318,7 @@ function useBullets() {
             {StarIcon ? <StarIcon size={14} /> : null}
         </ThemeIcon>,
         <div className="recursica-timeline-avatar-container">
-            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-scout.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" colorVariant="image" src="/goblin-avatar-scout.png" className="recursica-timeline-avatar-bullet" />
         </div>,
     ]
 

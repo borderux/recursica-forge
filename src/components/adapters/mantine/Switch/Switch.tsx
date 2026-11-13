@@ -1,172 +1,55 @@
 /**
- * Mantine Switch Implementation
- * 
- * Mantine-specific Switch component that uses CSS variables for theming.
+ * Mantine Switch Adapter
+ *
+ * Not actually a 1:1 pass-through, despite how it looked before this file had a body:
+ *
+ *   - The real Switch is built on the same native `<input>` pattern as Checkbox — its
+ *     `onChange` is `(event: ChangeEvent<HTMLInputElement>) => void` (confirmed: Mantine's
+ *     own SwitchProps extends `ElementProps<'input', 'size' | 'children'>`, i.e. native input
+ *     attributes), not the `(checked: boolean) => void` Forge declares. Same bug as Checkbox,
+ *     adapted here the same way.
+ *   - The real Switch's prop type is `RequireAccessibleLabel<...>` — it requires a real value
+ *     for one of `label` / `aria-label` / `aria-labelledby`. Forge's Switch has no `label` (or
+ *     any label-ish prop) in its vocabulary at all, and every real usage in this app renders
+ *     `<Switch>` inside its own external `<label>` element (see e.g.
+ *     `modules/preview/componentSections.tsx`), which already associates it accessibly at the
+ *     DOM level — Forge's Switch was never meant to carry its own label. There is nothing to
+ *     forward, so `label={undefined}` is passed explicitly (React.ReactNode includes
+ *     `undefined`) purely to satisfy the required *key*; this is a genuine adapter/Forge API
+ *     mismatch worth flagging, not a real capability being dropped.
+ *
+ * `className`/`style` are on the adapter's blocked-styling-keys list (the real Switch type is
+ * also `RecursicaOverStyled`-wrapped) and are ignored unless the caller opts in with
+ * `overStyled: true` — which the `mantine` escape hatch can still do
+ * (`mantine={{ overStyled: true, style: {...} }}`). Not forwarded here.
  */
 
-import { useState, useEffect } from 'react'
-import { Switch as MantineSwitch } from '@mantine/core'
-import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
-import { getComponentLevelCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
-import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
-import './Switch.css'
+import React from 'react'
+import { Switch as MantineSwitch } from '@recursica/adapter-mantine-v8'
+import type { SwitchProps } from '../../common/Switch'
+import type { AssertWired } from '../../common/wiringCheck'
 
+export default React.forwardRef<any, SwitchProps>(function Switch({ checked, onChange, disabled, mantine }, ref) {
+    return (
+        <MantineSwitch
+            label={undefined}
+            checked={checked}
+            onChange={(event) => onChange(event.currentTarget.checked)}
+            disabled={disabled}
+            {...mantine}
+            ref={ref}
+        />
+    )
+})
 
-export default function Switch({
-  checked,
-  onChange,
-  disabled = false,
-  layer = 'layer-0',
-  colorVariant = 'default',
-  sizeVariant = 'default',
-  elevation,
-  className,
-  style,
-  mantine,
-  ...props
-}: AdapterSwitchProps) {
-  const { mode } = useThemeMode()
-  const [updateKey, setUpdateKey] = useState(0)
-  
-  // Force re-render when mode changes to update CSS variable references
-  useEffect(() => {
-    setUpdateKey(prev => prev + 1)
-  }, [mode])
-  
-  // Use getComponentCssVar to build CSS var names - matches what toolbar uses
-  // These will be mode-aware because buildComponentCssVarPath reads mode from document
-  // Colors now nested under variants.selection-states.<sel>.properties.colors.<layer>
-  const selColor = (sel: string, prop: string) => buildComponentCssVarPath('Switch', 'variants', 'selection-states', sel, 'properties', 'colors', layer, prop)
-  const thumbSelectedVar = selColor('selected', 'thumb-color')
-  const thumbUnselectedVar = selColor('unselected', 'thumb-color')
-  const trackSelectedVar = selColor('selected', 'track-color')
-  const trackUnselectedVar = selColor('unselected', 'track-color')
-  const iconSelectedVar = selColor('selected', 'icon-color')
-  const iconUnselectedVar = selColor('unselected', 'icon-color')
-
-  const trackBorderRadiusVar = getComponentLevelCssVar('Switch', 'track-border-radius')
-  const thumbBorderRadiusVar = getComponentLevelCssVar('Switch', 'thumb-border-radius')
-  const thumbHeightVar = buildComponentCssVarPath('Switch', 'properties', 'thumb-height')
-  const thumbWidthVar = buildComponentCssVarPath('Switch', 'properties', 'thumb-width')
-  const trackWidthVar = buildComponentCssVarPath('Switch', 'properties', 'track-width')
-  const trackInnerPaddingVar = buildComponentCssVarPath('Switch', 'properties', 'track-inner-padding')
-  const thumbIconSizeVar = buildComponentCssVarPath('Switch', 'properties', 'thumb-icon-size')
-  // Hardcode checkmark and x-mark for switch thumb state (as requested by user)
-  const ThumbIconSelected = iconNameToReactComponent('check')
-  const ThumbIconUnselected = iconNameToReactComponent('x-mark')
-  
-  const thumbElevationVar = buildComponentCssVarPath('Switch', 'properties', 'thumb-elevation')
-  const trackElevationVar = buildComponentCssVarPath('Switch', 'properties', 'track-elevation')
-  
-  // Reactively read thumb and track elevation from CSS variables
-  const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
-    if (!thumbElevationVar) return undefined
-    const value = readCssVar(thumbElevationVar)
-    return value ? parseElevationValue(value) : undefined
-  })
-  
-  const [trackElevationFromVar, setTrackElevationFromVar] = useState<string | undefined>(() => {
-    if (!trackElevationVar) return undefined
-    const value = readCssVar(trackElevationVar)
-    return value ? parseElevationValue(value) : undefined
-  })
-  
-  // Listen for CSS variable updates from the toolbar
-  useEffect(() => {
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      // Update if these CSS vars were updated or if no specific vars were specified
-      if (!detail?.cssVars || detail.cssVars.includes(thumbElevationVar) || detail.cssVars.includes(trackElevationVar)) {
-        if (thumbElevationVar) {
-          const value = readCssVar(thumbElevationVar)
-          setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
-        }
-        if (trackElevationVar) {
-          const value = readCssVar(trackElevationVar)
-          setTrackElevationFromVar(value ? parseElevationValue(value) : undefined)
-        }
-      }
-    }
-    
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
-    // Also watch for direct style changes using MutationObserver
-    const observer = new MutationObserver(() => {
-      if (thumbElevationVar) {
-        const value = readCssVar(thumbElevationVar)
-        setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
-      }
-      if (trackElevationVar) {
-        const value = readCssVar(trackElevationVar)
-        setTrackElevationFromVar(value ? parseElevationValue(value) : undefined)
-      }
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-    
-    return () => {
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-      observer.disconnect()
-    }
-  }, [thumbElevationVar, trackElevationVar])
-  
-  // Determine track elevation to apply - prioritize prop, then recursica_ui-kit.json
-  const trackElevationBoxShadow = getElevationBoxShadow(mode, elevation ?? trackElevationFromVar)
-  
-  // Determine thumb elevation from recursica_ui-kit.json
-  const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
-  
-  // Calculate track height: thumb height + 2 * track inner padding
-  const trackHeight = `calc(var(${thumbHeightVar}) + 2 * var(${trackInnerPaddingVar}))`
-  
-  // Read resolved values for Mantine internal variables to avoid undefined references
-  const thumbBorderRadiusValue = readCssVarResolved(thumbBorderRadiusVar) || readCssVar(thumbBorderRadiusVar) || '0px'
-  
-  return (
-    <MantineSwitch
-      key={`switch-${mode}-${updateKey}`}
-      checked={checked}
-      onChange={(e) => onChange(e.currentTarget.checked)}
-      disabled={disabled}
-      thumbIcon={
-        checked
-          ? (ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${iconSelectedVar})` }} /> : null)
-          : (ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${iconUnselectedVar})` }} /> : null)
-      }
-      className={className}
-      style={{
-        // Set Mantine's internal CSS variables to reference UIKit variables directly
-        // These will automatically update when UIKit variables change
-        '--switch-thumb-size': `var(${thumbWidthVar})`,
-        '--switch-width': `var(${trackWidthVar})`,
-        '--switch-track-label-padding': `var(${trackInnerPaddingVar})`,
-        '--switch-radius': thumbBorderRadiusValue,
-        // Set wrapper variables that CSS will use - these reference UIKit vars directly
-        '--recursica_ui-kit_components_switch_thumb_bg_selected': `var(${thumbSelectedVar})`,
-        '--recursica_ui-kit_components_switch_thumb_bg_unselected': `var(${thumbUnselectedVar})`,
-        '--recursica_ui-kit_components_switch_track_checked': `var(${trackSelectedVar})`,
-        '--recursica_ui-kit_components_switch_track_unchecked': `var(${trackUnselectedVar})`,
-        '--recursica-switch-thumb-icon-size': `var(${thumbIconSizeVar})`,
-        '--recursica_ui-kit_components_switch_track_height': trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
-        '--recursica_ui-kit_components_switch_thumb_elevation': thumbElevationBoxShadow || 'none',
-        '--recursica_ui-kit_components_switch_track_elevation': trackElevationBoxShadow || 'none',
-        // Set wrapper variables for properties that CSS references directly
-        '--recursica_ui-kit_components_switch_thumb_width': `var(${thumbWidthVar})`,
-        '--recursica_ui-kit_components_switch_thumb_height': `var(${thumbHeightVar})`,
-        '--recursica_ui-kit_components_switch_thumb_border-radius': `var(${thumbBorderRadiusVar})`,
-        '--recursica_ui-kit_components_switch_track_border-radius': `var(${trackBorderRadiusVar})`,
-        '--recursica_ui-kit_components_switch_track_inner_padding': `var(${trackInnerPaddingVar})`,
-        width: `var(${trackWidthVar})`,
-        ...style,
-      }}
-      {...mantine}
-      {...props}
-    />
-  )
-}
-
+// Compile-time only — fails the build the moment SwitchProps declares a prop with no real,
+// type-compatible home on the real Switch. `onChange` is excluded: adapted above (event ->
+// boolean), same reasoning as Checkbox's identical exclusion. `colorVariant`/`sizeVariant`
+// removed from SwitchProps entirely (2026-08) rather than left in the Ignore list — see
+// common/Switch.ts.
+type _Wiring = AssertWired<
+    SwitchProps,
+    typeof MantineSwitch,
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'onChange'
+>
+const _wiringCheck: _Wiring = true

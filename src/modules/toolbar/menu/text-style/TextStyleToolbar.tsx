@@ -1385,10 +1385,6 @@ export default function TextStyleToolbar({
               const token = fontSizes[Math.round(val)]
               return token?.label || String(val)
             }}
-            tooltipText={(val) => {
-              const token = fontSizes[Math.round(val)]
-              return token?.label || String(val)
-            }}
             minLabel={fontSizes[0]?.label || '2Xs'}
             maxLabel={fontSizes[fontSizes.length - 1]?.label || '6Xl'}
             showMinMaxLabels={false}
@@ -1461,10 +1457,6 @@ export default function TextStyleToolbar({
                   const token = fontWeights[Math.round(val)]
                   return token?.label || String(val)
                 }}
-                tooltipText={(val) => {
-                  const token = fontWeights[Math.round(val)]
-                  return token?.label || String(val)
-                }}
                 minLabel={fontWeights[0]?.label || 'Thin'}
                 maxLabel={fontWeights[fontWeights.length - 1]?.label || 'Black'}
                 showMinMaxLabels={false}
@@ -1517,10 +1509,6 @@ export default function TextStyleToolbar({
                   const token = letterSpacings[Math.round(val)]
                   return token?.label || String(val)
                 }}
-                tooltipText={(val) => {
-                  const token = letterSpacings[Math.round(val)]
-                  return token?.label || String(val)
-                }}
                 minLabel={letterSpacings[0]?.label || 'Tight'}
                 maxLabel={letterSpacings[letterSpacings.length - 1]?.label || 'Wide'}
                 showMinMaxLabels={false}
@@ -1570,10 +1558,6 @@ export default function TextStyleToolbar({
                 showInput={false}
                 showValueLabel={true}
                 valueLabel={(val) => {
-                  const token = lineHeights[Math.round(val)]
-                  return token?.label || String(val)
-                }}
-                tooltipText={(val) => {
                   const token = lineHeights[Math.round(val)]
                   return token?.label || String(val)
                 }}

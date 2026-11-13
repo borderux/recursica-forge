@@ -5,72 +5,25 @@
  * based on the current UI kit selection.
  */
 
-import { Suspense, ReactNode } from 'react'
+import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { LibrarySpecificProps } from '../registry/types'
+import type { StepperProps } from './common/Stepper'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { Stepper as LocalStepper } from './local/dispatch/Stepper'
 
-export type StepperStepData = {
-    label: string
-    description?: string
-    icon?: ReactNode
-    loading?: boolean
-    allowStepSelect?: boolean
+// Re-exported so existing `import type { StepperStepData, StepperProps } from
+// '.../adapters/Stepper'` call sites keep working — the types now live in common/Stepper.ts.
+export type { StepperStepData, StepperProps } from './common/Stepper'
+
+function SharedStepper(props: StepperProps) {
+  const Component = useComponent('Stepper')
+
+  return (
+    <Suspense fallback={<span />}>
+      <Component {...props} />
+    </Suspense>
+  )
 }
 
-export type StepperProps = {
-    active: number
-    onStepClick?: (step: number) => void
-    orientation?: 'horizontal' | 'vertical'
-    size?: 'large' | 'small'
-    layer?: string
-    children?: ReactNode
-    steps?: StepperStepData[]
-    className?: string
-    style?: React.CSSProperties
-} & LibrarySpecificProps
-
-export function Stepper({
-    active,
-    onStepClick,
-    orientation = 'horizontal',
-    size = 'large',
-    layer,
-    children,
-    steps,
-    className,
-    style,
-    mantine,
-    material,
-    carbon,
-}: StepperProps) {
-    const Component = useComponent('Stepper')
-
-    if (!Component) {
-        // Fallback to simple div if component not available
-        return (
-            <div className={className} style={style}>
-                {children}
-            </div>
-        )
-    }
-
-    const libraryProps = {
-        active,
-        onStepClick,
-        orientation,
-        size,
-        layer,
-        steps,
-        className,
-        style,
-        mantine,
-        material,
-        carbon,
-    }
-
-    return (
-        <Suspense fallback={<span />}>
-            <Component {...libraryProps}>{children}</Component>
-        </Suspense>
-    )
-}
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const Stepper = (isLocalAdapter ? LocalStepper : SharedStepper) as typeof SharedStepper

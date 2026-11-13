@@ -1,333 +1,137 @@
 /**
- * Mantine FileInput Implementation
- * 
- * Mantine-specific FileInput component that uses CSS variables for theming.
- * Uses native HTML elements for the field-like structure to match TextField consistency.
+ * Mantine FileInput Adapter
+ *
+ * Forge's FileInput models its value the way a native `<input type="file">` would — a plain
+ * `File | File[] | null`, set via `value`/`defaultValue` and reported via `onChange(files)`.
+ * The real adapter's FileInput has no such prop at all: it is a CONTROLLED LIST
+ * (`files: RecursicaFileUploadItem[]`, i.e. `{file, id?}[]`) that reports changes through
+ * `onFilesAdded(files: File[])` / `onFileRemove(id: string)` and never mutates `files`
+ * itself — the caller (this wrapper) owns merging those reports back into what it renders.
+ * This file is the one place that bridges the two models.
+ *
+ * Also fixed here, not just renamed (verified against RecursicaFileInputProps in
+ * node_modules/@recursica/adapter-mantine-v8/dist/index.d.ts):
+ *   - `leadingIcon` -> the real prop is a plain `icon` slot, NOT `leftSection`/`rightSection`
+ *     — those don't exist on this component at all. FIELD_CONTRACT's generic leading/
+ *     trailing-icon renames (built for TextField-shaped fields) are wrong here, which is why
+ *     this component no longer goes through that central table (see adapterPropContract.ts).
+ *   - `trailingIcon` -> `clearIcon` (2026-08, corrected — previously dropped on the claim "no
+ *     second icon slot exists"; that was true of raw Mantine's `leftSection`/`rightSection`
+ *     pair the upstream ask #6 was about, but missed that the real 0.47.0 component grew its
+ *     own bespoke `clearIcon` prop for exactly this purpose — its own doc comment: "giving
+ *     Forge's `leading-icon`/`trailing-icon` token pair a matching pair of override props."
+ *     Rendered on the trailing clear-all button once a file is selected, defaulting to the
+ *     adapter's own X icon when not overridden.
+ *   - `state` — unlike DatePicker (whose Recursica-specific additions are a genuinely empty
+ *     interface), this component's real props DO include a real `disabled?: boolean`, so
+ *     `state === 'disabled'` is wired to it for real rather than dropped.
+ *   - `name` — dropped: the real props extend `HTMLAttributes<HTMLDivElement>`, which has no
+ *     `name` attribute at all.
+ *   - `verticalPadding` / `iconSize` — dropped: no real sizing hook of either kind.
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
-import type { FileInputProps as AdapterFileInputProps } from '../../FileInput'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { Label } from '../../Label'
-import { AssistiveElement } from '../../AssistiveElement'
-import { Chip } from '../../Chip'
-import { Button } from '../../Button'
-import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
-import './FileInput.css'
+import React, { useState } from 'react'
+import { FileInput as MantineFileInput, type RecursicaFileUploadItem } from '@recursica/adapter-mantine-v8'
+import type { FileInputAdapterProps } from '../../common/FileInput'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function FileInput({
+function toItems(value: File | File[] | null | undefined): RecursicaFileUploadItem[] {
+    if (!value) return []
+    return (Array.isArray(value) ? value : [value]).map((file) => ({ file, id: file.name }))
+}
+
+function toValue(items: RecursicaFileUploadItem[], multiple: boolean): File | File[] | null {
+    if (multiple) return items.map((item) => item.file)
+    return items[items.length - 1]?.file ?? null
+}
+
+export default React.forwardRef<any, FileInputAdapterProps>(function FileInput({
     value,
     defaultValue,
     onChange,
-    placeholder = 'Choose file...',
+    placeholder,
     label,
     helpText,
     errorText,
     leadingIcon,
     trailingIcon,
-    state = 'default',
-    layout = 'stacked',
-    layer = 'layer-0',
+    state,
+    layout,
+    required,
+    optional,
+    labelAlign,
+    labelSize,
+    id,
+    name: _name,
+    readOnly,
     multiple = false,
     accept,
-    required = false,
-    id,
-    labelId,
-    helpId,
-    errorId,
-    readOnly,
-    disableTopBottomMargin = false,
-    verticalPadding,
-    iconSize,
-    name,
-    className,
-    style,
+    verticalPadding: _verticalPadding,
+    iconSize: _iconSize,
+    labelId: _labelId,
+    helpId: _helpId,
+    errorId: _errorId,
     mantine,
-    ...restProps
-}: AdapterFileInputProps & { labelId?: string; helpId?: string; errorId?: string; verticalPadding?: string | number; iconSize?: string | number }) {
-    const { mode } = useThemeMode()
+}, ref) {
+    // Uncontrolled fallback — only used while the caller never supplies `value`. Once `value`
+    // is provided it drives everything; this wrapper never mutates it.
+    const [internalItems, setInternalItems] = useState<RecursicaFileUploadItem[]>(() => toItems(defaultValue))
+    const controlled = value !== undefined
+    const items = controlled ? toItems(value) : internalItems
 
-    // Extract props that shouldn't be passed to DOM elements
-    const { optional, labelAlign, labelSize, ...domProps } = restProps
-
-    // Generate unique ID if not provided
-    const uniqueId = id || `file-input-${Math.random().toString(36).substr(2, 9)}`
-
-    // Get CSS variables for colors based on state variant
-    const backgroundVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'background-color')
-    const borderVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'border-color')
-    const textVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'text-color')
-    const leadingIconVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'leading-icon')
-    const trailingIconVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'trailing-icon')
-
-    // Get focus state variables
-    const focusBorderVar = buildComponentCssVarPath('FileInput', 'variants', 'states', 'focus', 'properties', 'colors', layer, 'border-color')
-    const focusBorderSizeVar = buildComponentCssVarPath('FileInput', 'variants', 'states', 'focus', 'properties', 'border-size')
-
-    // Get variant-specific border size
-    const borderSizeVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'border-size')
-
-    // Get component-level properties
-    const borderRadiusVar = getComponentLevelCssVar('FileInput', 'border-radius')
-    const minHeightVar = getComponentLevelCssVar('FileInput', 'min-height')
-    const horizontalPaddingVar = getComponentLevelCssVar('FileInput', 'horizontal-padding')
-    const verticalPaddingVar = getComponentLevelCssVar('FileInput', 'vertical-padding')
-    const iconSizeVar = getComponentLevelCssVar('FileInput', 'icon-size')
-    const iconTextGapVar = getComponentLevelCssVar('FileInput', 'icon-text-gap')
-    const maxWidthVar = buildComponentCssVarPath('FileInput', 'variants', 'layouts', layout, 'properties', 'max-width')
-    const minWidthVar = buildComponentCssVarPath('FileInput', 'variants', 'layouts', layout, 'properties', 'min-width')
-    const buttonHeightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'small', 'properties', 'height')
-    const placeholderOpacityVar = getComponentLevelCssVar('FileInput', 'placeholder-opacity')
-
-    // Get text style CSS variables
-    const valueFontSizeVar = getComponentTextCssVar('FileInput', 'text', 'font-size')
-    const valueFontFamilyVar = getComponentTextCssVar('FileInput', 'text', 'font-family')
-    const valueFontWeightVar = getComponentTextCssVar('FileInput', 'text', 'font-weight')
-    const valueLetterSpacingVar = getComponentTextCssVar('FileInput', 'text', 'letter-spacing')
-    const valueLineHeightVar = getComponentTextCssVar('FileInput', 'text', 'line-height')
-    const valueTextDecorationVar = getComponentTextCssVar('FileInput', 'text', 'text-decoration')
-    const valueTextTransformVar = getComponentTextCssVar('FileInput', 'text', 'text-transform')
-    const valueFontStyleVar = getComponentTextCssVar('FileInput', 'text', 'font-style')
-
-    // Listen for CSS variable updates (trigger re-render)
-    const [, setUpdate] = useState(0)
-    useEffect(() => {
-        const handleUpdate = () => setUpdate(prev => prev + 1)
-        window.addEventListener('cssVarsUpdated', handleUpdate)
-        return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-    }, [])
-
-    // Render Label
-    const labelElement = label ? (
-        <Label
-            htmlFor={uniqueId}
-            variant={required ? 'required' : (optional ? 'optional' : 'default')}
-            size={labelSize}
-            layout={layout}
-            align={labelAlign || 'left'}
-            layer={layer}
-            id={labelId}
-            style={layout === 'side-by-side' ? { minHeight: `var(${minHeightVar})` } : undefined}
-        >
-            {label}
-        </Label>
-    ) : null
-
-    // Get icons
-    const HelpIcon = useMemo(() => iconNameToReactComponent('info'), [])
-    const ErrorIcon = useMemo(() => iconNameToReactComponent('warning'), [])
-    const DefaultUploadIcon = useMemo(() => iconNameToReactComponent('upload'), [])
-
-    // Render AssistiveElement
-    const assistiveElement = errorText ? (
-        <AssistiveElement
-            text={errorText}
-            variant="error"
-            layer={layer}
-            id={errorId}
-            icon={ErrorIcon ? <ErrorIcon /> : <span>⚠</span>}
-        />
-    ) : helpText ? (
-        <AssistiveElement
-            text={helpText}
-            variant="help"
-            layer={layer}
-            id={helpId}
-            icon={HelpIcon ? <HelpIcon /> : <span>ℹ</span>}
-        />
-    ) : null
-
-    // Clear icon logic
-    const ClearIcon = useMemo(() => iconNameToReactComponent('x'), [])
-    const hasValue = value && (Array.isArray(value) ? value.length > 0 : true)
-    const handleClear = (e: React.MouseEvent) => {
-        e.stopPropagation()
-        onChange?.(multiple ? [] : null)
-    }
-
-    const finalVerticalPadding = verticalPadding !== undefined
-        ? (typeof verticalPadding === 'number' ? `${verticalPadding}px` : verticalPadding)
-        : `var(${verticalPaddingVar}, 4px)`
-
-    const finalIconSize = iconSize !== undefined
-        ? (typeof iconSize === 'number' ? `${iconSize}px` : iconSize)
-        : `var(${iconSizeVar})`
-
-    const displayValue = value
-        ? (Array.isArray(value) ? `${value.length} files selected` : (value as File).name)
-        : placeholder
-
-    const innerInput = (
-        <div
-            className={`recursica-file-input-wrapper ${state === 'focus' ? 'focus' : ''}`}
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: `var(${iconTextGapVar}, 8px)`,
-                width: '100%',
-                minWidth: `var(${minWidthVar})`,
-                maxWidth: `var(${maxWidthVar}, 100%)`,
-                paddingLeft: `var(${horizontalPaddingVar}, 12px)`,
-                paddingRight: `var(${horizontalPaddingVar}, 12px)`,
-                paddingTop: finalVerticalPadding,
-                paddingBottom: finalVerticalPadding,
-                borderRadius: `var(${borderRadiusVar})`,
-                backgroundColor: `var(${backgroundVar})`,
-                boxShadow: `inset 0 0 0 var(${borderSizeVar}) var(${borderVar})`,
-                minHeight: `var(${minHeightVar})`,
-                transition: 'all 0.2s',
-                position: 'relative',
-                cursor: state === 'disabled' ? 'not-allowed' : 'pointer',
-                overflow: 'visible'
-            }}
-        >
-            <input
-                id={uniqueId}
-                name={name}
-                type="file"
-                multiple={multiple}
-                accept={accept}
-                onChange={(e) => {
-                    const files = e.target.files
-                    if (files) {
-                        onChange?.(multiple ? Array.from(files) : files[0])
-                    }
-                }}
-                disabled={state === 'disabled'}
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    opacity: 0,
-                    cursor: 'inherit',
-                    zIndex: 1
-                }}
-                {...mantine}
-            />
-            {(leadingIcon || true) && (
-                <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${leadingIconVar})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {leadingIcon || (DefaultUploadIcon ? <DefaultUploadIcon width="100%" height="100%" /> : '↑')}
-                </div>
-            )}
-            {multiple && Array.isArray(value) && value.length > 0 ? (
-                <div
-                    className="recursica-file-input-chips-scroll"
-                    style={{
-                        display: 'flex',
-                        flexWrap: 'nowrap',
-                        gap: '4px',
-                        flex: 1,
-                        overflowX: 'auto',
-                        paddingTop: '4px',
-                        paddingBottom: '4px',
-                        zIndex: 2,
-                        pointerEvents: 'none',
-                        scrollbarWidth: 'none',
-                        msOverflowStyle: 'none',
-                    }}
-                >
-                    {value.map((file, index) => (
-                        <Chip
-                            key={`${file.name}-${index}`}
-                            variant="unselected"
-                            size="small"
-                            layer={layer}
-                            deletable={state !== 'disabled'}
-                            onDelete={(e) => {
-                                e.stopPropagation();
-                                if (state === 'disabled') return;
-                                const newValue = [...value];
-                                newValue.splice(index, 1);
-                                onChange?.(newValue);
-                            }}
-                            style={{ pointerEvents: 'auto', flexShrink: 0 }}
-                        >
-                            {file.name}
-                        </Chip>
-                    ))}
-                </div>
-            ) : (
-                <span style={{
-                    flex: 1,
-                    overflow: 'clip',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    fontFamily: `var(${valueFontFamilyVar})`,
-                    fontSize: `var(${valueFontSizeVar})`,
-                    fontWeight: `var(${valueFontWeightVar})`,
-                    letterSpacing: `var(${valueLetterSpacingVar})`,
-                    lineHeight: 'normal',
-                    textDecoration: `var(${valueTextDecorationVar})`,
-                    textTransform: `var(${valueTextTransformVar})` as any,
-                    fontStyle: `var(${valueFontStyleVar})`,
-                    color: value ? `var(${textVar})` : `var(${textVar})`,
-                    opacity: value ? 1 : `var(${placeholderOpacityVar})`,
-                } as React.CSSProperties}>
-                    {displayValue}
-                </span>
-            )}
-            {hasValue && state !== 'disabled' && (
-                <Button
-                    variant="text"
-                    size="small"
-                    onClick={handleClear}
-                    icon={ClearIcon ? <ClearIcon /> : '×'}
-                    layer={layer}
-                    style={{
-                        width: `var(${buttonHeightVar})`,
-                        height: `var(${buttonHeightVar})`,
-                        flexShrink: 0,
-                        pointerEvents: 'auto',
-                        zIndex: 2,
-                        minWidth: 'auto',
-                        padding: 0
-                    }}
-                />
-            )}
-            {trailingIcon && (
-                <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${trailingIconVar})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {trailingIcon}
-                </div>
-            )}
-            <style>{`
-            .recursica-file-input-wrapper:has(input:focus),
-            .recursica-file-input-wrapper.focus {
-                box-shadow: inset 0 0 0 var(${focusBorderSizeVar}) var(${focusBorderVar}) !important;
-            }
-            .recursica-file-input-chips-scroll::-webkit-scrollbar {
-                display: none;
-            }
-        `}</style>
-        </div>
-    )
-
-    if (layout === 'side-by-side' && labelElement) {
-        const gapValue = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
-        return (
-            <div className={`recursica-file-input recursica-file-input-side-by-side ${className || ''}`} style={style}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: `var(${gapValue}, 8px)`, width: '100%' }}>
-                    <div style={{ flexShrink: 0 }}>
-                        {labelElement}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
-                        {innerInput}
-                        {assistiveElement}
-                    </div>
-                </div>
-            </div>
-        )
+    const commit = (next: RecursicaFileUploadItem[]) => {
+        if (!controlled) setInternalItems(next)
+        onChange?.(toValue(next, multiple))
     }
 
     return (
-        <div className={`recursica-file-input recursica-file-input-stacked ${className || ''}`} style={style}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', alignItems: labelAlign === 'right' ? 'flex-end' : 'stretch' }}>
-                {labelElement}
-                {innerInput}
-                {assistiveElement}
-            </div>
-        </div>
+        <MantineFileInput
+            files={items}
+            onFilesAdded={(added) => {
+                const addedItems = added.map((file) => ({ file, id: file.name }))
+                commit(multiple ? [...items, ...addedItems] : addedItems.slice(-1))
+            }}
+            onFileRemove={(removedId) => {
+                commit(items.filter((item) => (item.id ?? item.file.name) !== removedId))
+            }}
+            placeholder={placeholder}
+            label={label}
+            assistiveText={helpText}
+            error={errorText}
+            icon={leadingIcon}
+            clearIcon={trailingIcon}
+            formLayout={layout === 'side-by-side' ? 'side-by-side' : 'stacked'}
+            required={required}
+            labelOptionalText={optional}
+            labelAlignment={labelAlign}
+            labelSize={labelSize}
+            id={id}
+            readOnly={readOnly}
+            multiple={multiple}
+            accept={accept}
+            disabled={state === 'disabled'}
+            {...mantine}
+            ref={ref}
+        />
     )
-}
+})
+
+// `value`/`defaultValue`/`onChange` are excluded: adapted above into the real controlled-list
+// model (`files`/`onFilesAdded`/`onFileRemove`), which has no shape in common with Forge's
+// single-value model, so checking it here would be a false positive. `state` is excluded:
+// translated into the literal `disabled` attribute above. `layout` is excluded: Forge types
+// it as an open `string` for custom variant names, wider than the real `formLayout` union —
+// the ternary above is the real translation. `name`/`verticalPadding`/`iconSize` are excluded:
+// confirmed above to have no real destination at all. `labelId`/`helpId`/`errorId` are
+// excluded: the real component wires its own aria relationships, same as every other field
+// component.
+type _Wiring = AssertWired<
+    FileInputAdapterProps,
+    typeof MantineFileInput,
+    | 'layer' | 'disableTopBottomMargin' | 'mantine' | 'className' | 'style'
+    | 'value' | 'defaultValue' | 'onChange' | 'state' | 'layout'
+    | 'name' | 'verticalPadding' | 'iconSize'
+    | 'labelId' | 'helpId' | 'errorId',
+    { helpText: 'assistiveText'; errorText: 'error'; leadingIcon: 'icon'; trailingIcon: 'clearIcon'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment' }
+>
+const _wiringCheck: _Wiring = true

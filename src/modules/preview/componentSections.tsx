@@ -96,7 +96,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     )
   }
 
-  function SwitchExamples({ layer, colorVariant = 'default', sizeVariant = 'default' }: { layer: string; colorVariant?: string; sizeVariant?: string }) {
+  function SwitchExamples({ layer }: { layer: string }) {
     const [checked1, setChecked1] = React.useState(true)
     const [checked2, setChecked2] = React.useState(false)
     const [checked3, setChecked3] = React.useState(false)
@@ -173,7 +173,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     return (
       <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
-          <Switch checked={checked1} onChange={setChecked1} layer={layer as ComponentLayer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
+          <Switch checked={checked1} onChange={setChecked1} layer={layer as ComponentLayer} />
           <span style={{
             fontFamily: labelTextFontFamilyVar ? `var(${labelTextFontFamilyVar})` : undefined,
             fontSize: labelTextFontSizeVar ? `var(${labelTextFontSizeVar})` : undefined,
@@ -188,7 +188,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           } as React.CSSProperties}>On</span>
         </label>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
-          <Switch checked={checked2} onChange={setChecked2} layer={layer as ComponentLayer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
+          <Switch checked={checked2} onChange={setChecked2} layer={layer as ComponentLayer} />
           <span style={{
             fontFamily: labelTextFontFamilyVar ? `var(${labelTextFontFamilyVar})` : undefined,
             fontSize: labelTextFontSizeVar ? `var(${labelTextFontSizeVar})` : undefined,
@@ -203,7 +203,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           } as React.CSSProperties}>Off</span>
         </label>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
-          <Switch checked={checked3} onChange={setChecked3} disabled layer={layer as ComponentLayer} colorVariant={colorVariant} sizeVariant={sizeVariant} />
+          <Switch checked={checked3} onChange={setChecked3} disabled layer={layer as ComponentLayer} />
           <span style={{
             fontFamily: labelTextFontFamilyVar ? `var(${labelTextFontFamilyVar})` : undefined,
             fontSize: labelTextFontSizeVar ? `var(${labelTextFontSizeVar})` : undefined,
@@ -326,21 +326,21 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         <RadioButtonItem
           label="Goblin war axe"
           value="option1"
-          selected={selected === 'option1'}
+          checked={selected === 'option1'}
           onChange={() => setSelected('option1')}
           layer={layer as any}
         />
         <RadioButtonItem
           label="Obsidian dagger"
           value="option2"
-          selected={selected === 'option2'}
+          checked={selected === 'option2'}
           onChange={() => setSelected('option2')}
           layer={layer as any}
         />
         <RadioButtonItem
           label="Forbidden blade"
           value="option3"
-          selected={false}
+          checked={false}
           onChange={() => { }}
           disabled
           layer={layer as any}
@@ -348,7 +348,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         <RadioButtonItem
           label="Deep in the enchanted caverns beneath the goblin king's throne, a rebellious young goblin discovered an ancient spell book bound in dragon leather, and upon reading the first incantation aloud, accidentally turned every torch in the kingdom bright pink"
           value="option4"
-          selected={selected === 'option4'}
+          checked={selected === 'option4'}
           onChange={() => setSelected('option4')}
           layer={layer as any}
         />
@@ -370,21 +370,21 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           <RadioButtonItem
             label="Obsidian Hammer"
             value="opt1"
-            selected={selected1 === 'opt1'}
+            checked={selected1 === 'opt1'}
             onChange={() => setSelected1('opt1')}
             layer={layer as any}
           />
           <RadioButtonItem
             label="Runic Longsword"
             value="opt2"
-            selected={selected1 === 'opt2'}
+            checked={selected1 === 'opt2'}
             onChange={() => setSelected1('opt2')}
             layer={layer as any}
           />
           <RadioButtonItem
             label="Crystal Spear"
             value="opt3"
-            selected={selected1 === 'opt3'}
+            checked={selected1 === 'opt3'}
             onChange={() => setSelected1('opt3')}
             layer={layer as any}
           />
@@ -559,7 +559,6 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
               colorVariant="text-ghost"
               sizeVariant="default"
               layer={layer as any}
-              shape="circle"
               fallback="AB"
             />
           </div>

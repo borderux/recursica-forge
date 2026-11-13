@@ -37,8 +37,8 @@ This project uses [Changesets](https://github.com/changesets/changesets) to mana
   - `LayerModule`: renders a representative layer block using mapped CSS variables
 
 - UI Shells
-  - `UiKitContext`: selects Mantine / Material UI / Carbon shell
-  - `Layout`: lazily loads the shell and hosts pages
+  - `UiKitContext`: holds the UI kit (Mantine is the only one)
+  - `Layout`: lazily loads the Mantine shell and hosts pages
   - Shells provide nav, reset defaults, and import/export of CSS variables
 
 ## Key Browser Events

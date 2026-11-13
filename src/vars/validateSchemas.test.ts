@@ -13,6 +13,11 @@ import {
   validateReferences,
   validateDtcgStructure,
   validateUIKitComponentExtensions,
+  validateUIKitSinglePropOwner,
+  validateUIKitStateNames,
+  validateUIKitJson,
+  validateUIKitNestedVariantConsistency,
+  UIKIT_STATE_PRIORITY,
   REF_WORKAROUND_IDS,
   type RefWorkaroundId,
 } from '../core/utils/validateJsonSchemas'
@@ -623,6 +628,164 @@ describe('DTCG structural compliance (validateDtcgStructure)', () => {
       const invalid = { tokens: { sizes: { test: { $type: 'dimension', $value: { value: 200 } } } } }
       expect(() => validateDtcgStructure(invalid as any, 'test.json')).toThrow(/type is "dimension" but value is not an object/)
     })
+  })
+})
+
+describe('validateUIKitSinglePropOwner', () => {
+  const dim = (value: string) => ({ $type: 'dimension', $value: { value, unit: 'px' } })
+  const wrap = (button: unknown) => ({ 'ui-kit': { components: { button } } })
+
+  it('should pass on seed ui-kit JSON', () => {
+    expect(() => validateUIKitSinglePropOwner(uikitJson as any)).not.toThrow()
+  })
+
+  it('should reject the same property under sizes and content', () => {
+    const uikit = wrap({
+      variants: {
+        sizes: { default: { properties: { 'min-width': dim('48') } } },
+        content: { label: { variants: { sizes: { default: { properties: { 'min-width': dim('120') } } } } } },
+      },
+    })
+    expect(() => validateUIKitSinglePropOwner(uikit as any)).toThrow(/"min-width".*one owner/)
+  })
+
+  it('should reject a property defined on the component root and a variant', () => {
+    const uikit = wrap({
+      properties: { elevation: dim('1') },
+      variants: { styles: { solid: { properties: { elevation: dim('2') } } } },
+    })
+    expect(() => validateUIKitSinglePropOwner(uikit as any)).toThrow(/"elevation"/)
+  })
+
+  it('should allow the same property under different values of one dimension', () => {
+    const uikit = wrap({
+      variants: {
+        styles: {
+          solid: { properties: { 'border-size': dim('1') } },
+          outline: { properties: { 'border-size': dim('2') } },
+        },
+      },
+    })
+    expect(() => validateUIKitSinglePropOwner(uikit as any)).not.toThrow()
+  })
+
+  it('should allow a state to override its base', () => {
+    const uikit = wrap({
+      variants: {
+        styles: {
+          solid: {
+            properties: { elevation: dim('1') },
+            variants: { states: { disabled: { properties: { elevation: dim('0') } } } },
+          },
+        },
+      },
+    })
+    expect(() => validateUIKitSinglePropOwner(uikit as any)).not.toThrow()
+  })
+})
+
+describe('validateUIKitStateNames', () => {
+  const wrap = (states: Record<string, unknown>) => ({
+    'ui-kit': { components: { button: { variants: { states } } } },
+  })
+
+  it('should pass on seed ui-kit JSON', () => {
+    expect(() => validateUIKitStateNames(uikitJson as any)).not.toThrow()
+  })
+
+  it('should list states from lowest to highest priority', () => {
+    expect([...UIKIT_STATE_PRIORITY]).toEqual(['visited', 'active', 'error', 'disabled'])
+  })
+
+  it('should accept every defined state', () => {
+    const states = Object.fromEntries(UIKIT_STATE_PRIORITY.map(s => [s, { properties: {} }]))
+    expect(() => validateUIKitStateNames(wrap(states) as any)).not.toThrow()
+  })
+
+  it('should reject an undefined state name', () => {
+    expect(() => validateUIKitStateNames(wrap({ disabld: { properties: {} } }) as any))
+      .toThrow(/"disabld" is not a defined state/)
+  })
+
+  it('should reject an undefined state nested in another variant', () => {
+    const uikit = {
+      'ui-kit': {
+        components: {
+          button: {
+            variants: {
+              styles: { solid: { variants: { states: { hover: { properties: {} } } } } },
+            },
+          },
+        },
+      },
+    }
+    expect(() => validateUIKitStateNames(uikit as any)).toThrow(/styles\.solid\.variants\.states\.hover/)
+  })
+
+  it('should not check selection-states values', () => {
+    const uikit = {
+      'ui-kit': {
+        components: {
+          chip: { variants: { 'selection-states': { selected: { properties: {} } } } },
+        },
+      },
+    }
+    expect(() => validateUIKitStateNames(uikit as any)).not.toThrow()
+  })
+})
+
+describe('validateUIKitNestedVariantConsistency', () => {
+  const orientations = (...names: string[]) => ({
+    variants: { orientation: Object.fromEntries(names.map(n => [n, { properties: {} }])) },
+  })
+  const tabs = (styles: Record<string, unknown>) => ({
+    'ui-kit': { components: { tabs: { variants: { styles: styles } } } },
+  })
+
+  it('should pass on seed ui-kit JSON', () => {
+    expect(() => validateUIKitNestedVariantConsistency(uikitJson as any)).not.toThrow()
+  })
+
+  it('should pass when every parent nests the same values', () => {
+    const uikit = tabs({
+      default: orientations('horizontal', 'vertical'),
+      pills: orientations('vertical', 'horizontal'),
+    })
+    expect(() => validateUIKitNestedVariantConsistency(uikit as any)).not.toThrow()
+  })
+
+  it('should pass when only some parents nest the dimension', () => {
+    const uikit = tabs({
+      text: orientations('horizontal', 'vertical'),
+      image: { properties: {} },
+    })
+    expect(() => validateUIKitNestedVariantConsistency(uikit as any)).not.toThrow()
+  })
+
+  it('should reject a typo in a nested value', () => {
+    const uikit = tabs({
+      default: orientations('horizontal', 'vertical'),
+      pills: orientations('horizontal', 'vertcal'),
+    })
+    expect(() => validateUIKitNestedVariantConsistency(uikit as any))
+      .toThrow(/"styles > orientation".*vertcal/)
+  })
+
+  it('should reject a typo in a nested dimension name', () => {
+    const uikit = tabs({
+      default: orientations('horizontal'),
+      pills: { variants: { orientaton: { horizontal: { properties: {} } } } },
+    })
+    expect(() => validateUIKitNestedVariantConsistency(uikit as any))
+      .toThrow(/nests \[orientaton\] but .* nests \[orientation\]/)
+  })
+
+  it('should exempt states', () => {
+    const uikit = tabs({
+      solid: { variants: { states: { disabled: { properties: {} } } } },
+      text: { variants: { states: { disabled: { properties: {} }, error: { properties: {} } } } },
+    })
+    expect(() => validateUIKitNestedVariantConsistency(uikit as any)).not.toThrow()
   })
 })
 

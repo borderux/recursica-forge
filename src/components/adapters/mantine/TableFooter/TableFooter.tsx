@@ -1,78 +1,34 @@
 /**
- * Mantine TableFooter Implementation
+ * Mantine TableFooter Adapter
+ *
+ * A Forge TableFooter is Table.Tfoot upstream — there's no standalone footer export, so this
+ * pulls it off the Table static instead of a plain named import.
+ *
+ * `variant` — TableTfootProps structurally accepts an optional `variant?: string` (inherited
+ * generically from Mantine's StylesApiProps, which every compound sub-component gets), but
+ * Table.Tfoot has no actual variant-driven styling — it's a type-level coincidence, not a real
+ * capability. Dropped; not forwarded.
+ * `disabled` — no equivalent at all: a `<tfoot>` has no native `disabled` attribute and
+ * RecursicaTableProps (empty) adds none. Dropped.
  */
 
-import { Table as MantineTable } from '@mantine/core'
-import type { TableFooterProps as AdapterTableFooterProps } from '../../TableFooter'
-import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import './TableFooter.css'
+import React from 'react'
+import { Table } from '@recursica/adapter-mantine-v8'
+import type { TableFooterProps } from '../../common/TableFooter'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function TableFooter({
-  children,
-  layer = 'layer-0',
-  className,
-  style,
-  disabled = false,
-  variant,
-  mantine,
-  ...props
-}: AdapterTableFooterProps) {
-  const paddingHVar = getComponentLevelCssVar('TableFooter', 'padding-horizontal')
-  const paddingVVar = getComponentLevelCssVar('TableFooter', 'padding-vertical')
-  const verticalMarginVar = getComponentLevelCssVar('TableFooter', 'vertical-margin')
-  const horizontalDividerSizeVar = getComponentLevelCssVar('TableFooter', 'horizontal-divider-size')
-  const verticalDividerSizeVar = getComponentLevelCssVar('TableFooter', 'vertical-divider-size')
+export default React.forwardRef<any, TableFooterProps>(function TableFooter({ children, mantine }, ref) {
+    return <Table.Tfoot ref={ref} {...mantine}>{children}</Table.Tfoot>
+})
 
-  // Currency footers use the footer's own currency-style text token set, mirroring how
-  // TableCell reads its own currency-style (rather than borrowing TableCell's).
-  const isCurrency = variant === 'currency'
-  const textStyleKey = isCurrency ? 'currency-style' : 'text-style'
-
-  const textFamilyVar = getComponentTextCssVar('TableFooter', textStyleKey, 'font-family')
-  const textSizeVar = getComponentTextCssVar('TableFooter', textStyleKey, 'font-size')
-  const textWeightVar = getComponentTextCssVar('TableFooter', textStyleKey, 'font-weight')
-  const textStyleVar = getComponentTextCssVar('TableFooter', textStyleKey, 'font-style')
-  const textLetterSpacingVar = getComponentTextCssVar('TableFooter', textStyleKey, 'letter-spacing')
-  const textLineHeightVar = getComponentTextCssVar('TableFooter', textStyleKey, 'line-height')
-  const textCaseVar = getComponentTextCssVar('TableFooter', textStyleKey, 'text-transform')
-  const textDecorationVar = getComponentTextCssVar('TableFooter', textStyleKey, 'text-decoration')
-
-  const footerBase = (prop: string) => buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, prop)
-  const footerDisabled = (prop: string) => buildComponentCssVarPath('TableFooter', 'variants', 'states', 'disabled', 'properties', 'colors', layer, prop)
-  const textColorVar = disabled ? footerDisabled('text-color') : footerBase('text-color')
-  const cellColorVar = disabled ? footerDisabled('cell-color') : footerBase('cell-color')
-  const horizontalDividerColorVar = buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, 'horizontal-divider-color')
-  const verticalDividerColorVar = buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, 'vertical-divider-color')
-
-  return (
-    <MantineTable.Td
-      className={`recursica-table-footer mantine-table-footer ${disabled ? 'disabled' : ''} ${className || ''}`}
-      style={{
-        ['--table-footer-padding-h' as string]: `var(${paddingHVar})`,
-        ['--table-footer-padding-v' as string]: `var(${paddingVVar})`,
-        ['--table-footer-vertical-margin' as string]: `var(${verticalMarginVar})`,
-        ['--table-footer-horizontal-divider-size' as string]: `var(${horizontalDividerSizeVar})`,
-        ['--table-footer-horizontal-divider-color' as string]: `var(${horizontalDividerColorVar})`,
-        ['--table-footer-vertical-divider-size' as string]: `var(${verticalDividerSizeVar})`,
-        ['--table-footer-vertical-divider-color' as string]: `var(${verticalDividerColorVar})`,
-        ['--table-footer-bg' as string]: `var(${cellColorVar})`,
-        ['--table-footer-color' as string]: `var(${textColorVar})`,
-        ['--table-footer-font-family' as string]: `var(${textFamilyVar})`,
-        ['--table-footer-font-size' as string]: `var(${textSizeVar})`,
-        ['--table-footer-font-weight' as string]: `var(${textWeightVar})`,
-        ['--table-footer-font-style' as string]: `var(${textStyleVar})`,
-        ['--table-footer-letter-spacing' as string]: `var(${textLetterSpacingVar})`,
-        ['--table-footer-line-height' as string]: `var(${textLineHeightVar})`,
-        ['--table-footer-text-case' as string]: `var(${textCaseVar})`,
-        ['--table-footer-text-decoration' as string]: `var(${textDecorationVar})`,
-        ...style
-      } as React.CSSProperties}
-      {...mantine}
-      {...props}
-    >
-      <div className="recursica-table-footer-content">
-        {children}
-      </div>
-    </MantineTable.Td>
-  )
-}
+// Compile-time only — fails the build the moment TableFooterProps declares a prop with no
+// real, type-compatible home on Table.Tfoot. `variant` is excluded: see the comment above —
+// it type-matches by coincidence via Mantine's generic StylesApiProps, not because it's a real
+// capability, so checking it here would be a false positive that hides the actual (documented)
+// gap.
+type _Wiring = AssertWired<
+    TableFooterProps,
+    typeof Table.Tfoot,
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'variant' | 'disabled'
+>
+const _wiringCheck: _Wiring = true

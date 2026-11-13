@@ -1,0 +1,55 @@
+/**
+ * FileUpload — common types
+ *
+ * Single source of truth for the FileUpload prop vocabulary, shared by the dispatcher
+ * (`adapters/FileUpload.tsx`) and the per-library wrapper (`adapters/mantine/FileUpload`).
+ */
+
+import type { ComponentLayer, LibrarySpecificProps } from '../../registry/types'
+
+export type FileUploadItem = {
+    id: string
+    name: string
+    size?: number
+    type?: string
+    status?: 'success' | 'error' | 'uploading'
+}
+
+export type FileUploadProps = {
+    files?: FileUploadItem[]
+    onUpload?: (files: File[]) => void
+    onRemove?: (fileId: string) => void
+    label?: string
+    helpText?: string
+    errorText?: string
+    /**
+     * Narrowed (2026-08) to document the two values the real adapter actually
+     * recognizes ('stacked'/'side-by-side' — anything else silently falls back to
+     * 'stacked'), while still allowing custom strings through for other CSS-variable
+     * lookup uses elsewhere in the app.
+     */
+    layout?: 'stacked' | 'side-by-side' | (string & {})
+    state?: string  // accepts custom state variant names
+    layer?: ComponentLayer
+    multiple?: boolean
+    accept?: string
+    required?: boolean
+    optional?: boolean
+    labelAlign?: 'left' | 'right'
+    labelSize?: 'default' | 'small'
+    id?: string
+    className?: string
+    style?: React.CSSProperties
+    disableTopBottomMargin?: boolean
+} & LibrarySpecificProps
+
+/**
+ * What a per-library wrapper receives. Same vocabulary as `FileUploadProps`, plus the ids the
+ * dispatcher generates once for its label/help/error triad. The real adapter wires its own
+ * aria relationships and has no slot for a caller-supplied id, so every wrapper drops these.
+ */
+export type FileUploadAdapterProps = FileUploadProps & {
+    labelId?: string
+    helpId?: string
+    errorId?: string
+}

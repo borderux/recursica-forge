@@ -71,7 +71,7 @@ export default function SliderPreview({
     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%', maxWidth: 600 }}>
       {/* With label, value (read-only), min and max */}
       <Slider
-        errorText="The crystal walls shattered!"
+        errorText={selectedState === 'error' ? 'The crystal walls shattered!' : undefined}
         value={value1}
         onChange={(val) => setValue1(typeof val === 'number' ? val : val[0])}
         min={0}
@@ -87,7 +87,7 @@ export default function SliderPreview({
 
       {/* No label, read-only input, with min and max */}
       <Slider
-        errorText="The goblin king's spell failed."
+        errorText={selectedState === 'error' ? "The goblin king's spell failed." : undefined}
         value={value2}
         onChange={(val) => setValue2(typeof val === 'number' ? val : val[0])}
         min={0}
@@ -102,7 +102,7 @@ export default function SliderPreview({
 
       {/* With label + input */}
       <Slider
-        errorText="Stolen trinkets lost in the river."
+        errorText={selectedState === 'error' ? 'Stolen trinkets lost in the river.' : undefined}
         value={value3}
         onChange={(val) => setValue3(typeof val === 'number' ? val : val[0])}
         min={0}
@@ -117,7 +117,7 @@ export default function SliderPreview({
 
       {/* Range Slider */}
       <Slider
-        errorText="Maneuver executed with poor zeal."
+        errorText={selectedState === 'error' ? 'Maneuver executed with poor zeal.' : undefined}
         value={rangeValue1}
         onChange={(val) => setRangeValue1(val as [number, number])}
         min={0}
@@ -132,7 +132,7 @@ export default function SliderPreview({
 
       {/* With icons */}
       <Slider
-        errorText="Too loud for a sneaky goblin."
+        errorText={selectedState === 'error' ? 'Too loud for a sneaky goblin.' : undefined}
         value={value4}
         onChange={(val) => setValue4(typeof val === 'number' ? val : val[0])}
         min={0}

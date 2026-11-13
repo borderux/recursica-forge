@@ -260,7 +260,7 @@ export default function LayerModule({ level, title, className, children, onSelec
           {onSelect ? (
             <div style={{ marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)' }} onClick={(e) => e.stopPropagation()}>
               <RadioButtonItem
-                selected={!!isSelected}
+                checked={!!isSelected}
                 onChange={() => onSelect?.()}
                 label={title || `Layer ${layerId}`}
                 value={`layer-${layerId}`}

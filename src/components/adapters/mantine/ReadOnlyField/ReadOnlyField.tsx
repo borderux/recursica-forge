@@ -1,118 +1,83 @@
 /**
- * Mantine ReadOnlyField Implementation
+ * Mantine ReadOnlyField Adapter
+ *
+ * Mostly a clean rename onto the shared field vocabulary (confirmed against
+ * RecursicaReadOnlyFieldProps: `formLayout`, `labelAlignment`, `labelSize`,
+ * `labelOptionalText` all exist for real).
+ *
+ *   - `editIcon` (2026-08, corrected — previously dropped on the incorrect claim "no slot for
+ *     a caller-supplied icon node short of replacing the whole label action area," when
+ *     replacing the whole label action area is exactly the intended mechanism): translated via
+ *     the shared `resolveLabelActionArea` helper (`../labelActionArea.tsx`) into the real
+ *     `labelActionArea`/`labelWithEditIcon` — see that file. Note `ReadOnlyFieldProps` (unlike
+ *     TextField's/Label's) has no `editIconTitle`/`onEditIconClick` of its own — a narrower,
+ *     but genuine, gap in Forge's own common type for this component, not addressed here — so
+ *     those two are passed as `undefined` to the helper; only the plain-icon and
+ *     boolean-shorthand cases are reachable through ReadOnlyField today.
+ *   - `editIconGap` has no real destination either, and the ReadOnlyField dispatcher
+ *     (`adapters/ReadOnlyField.tsx`) never even forwards it to this component in the first
+ *     place, so it's dead on both sides.
  */
 
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { Label } from '../../Label'
-import type { ReadOnlyFieldProps } from '../../ReadOnlyField'
+import React from 'react'
+import { ReadOnlyField as MantineReadOnlyField } from '@recursica/adapter-mantine-v8'
+import { resolveLabelActionArea } from '../labelActionArea'
+import type { ReadOnlyFieldProps } from '../../common/ReadOnlyField'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function ReadOnlyField({
+export default React.forwardRef<any, ReadOnlyFieldProps>(function ReadOnlyField({
     value,
     label,
-    layout = 'stacked',
-    layer = 'layer-0',
-    required = false,
-    optional = false,
-    labelAlign = 'left',
+    layout,
+    layer,
+    required,
+    optional,
+    labelAlign,
     labelSize,
-    editIcon,
-    editIconGap,
     id,
-    labelId,
-    className,
-    style,
-}: ReadOnlyFieldProps & { labelId?: string }) {
-    // Get CSS variables for colors
-    const textColorVar = buildComponentCssVarPath('ReadOnlyField', 'properties', 'colors', layer, 'text-color')
-
-    // Get CSS variables for text properties
-    const fontFamilyVar = getComponentTextCssVar('ReadOnlyField', 'text', 'font-family')
-    const fontSizeVar = getComponentTextCssVar('ReadOnlyField', 'text', 'font-size')
-    const fontWeightVar = getComponentTextCssVar('ReadOnlyField', 'text', 'font-weight')
-    const letterSpacingVar = getComponentTextCssVar('ReadOnlyField', 'text', 'letter-spacing')
-    const lineHeightVar = getComponentTextCssVar('ReadOnlyField', 'text', 'line-height')
-    const textDecorationVar = getComponentTextCssVar('ReadOnlyField', 'text', 'text-decoration')
-    const textTransformVar = getComponentTextCssVar('ReadOnlyField', 'text', 'text-transform')
-    const fontStyleVar = getComponentTextCssVar('ReadOnlyField', 'text', 'font-style')
-
-    // Get component-level properties
-    const minHeightVar = getComponentLevelCssVar('ReadOnlyField', 'min-height')
-
-    // Get Label's gutter for side-by-side layout
-    const labelGutterVar = layout === 'side-by-side'
-        ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
-        : undefined
-
-    // Render Label component if provided
-    const labelElement = label ? (
-        <Label
-            htmlFor={id}
-            variant={required ? 'required' : (optional ? 'optional' : 'default')}
-            size={labelSize}
-            layout={layout}
-            align={labelAlign}
-            layer={layer}
-            id={labelId}
-            editIcon={editIcon}
-            editIconGap={editIconGap}
-            style={layout === 'side-by-side' ? { minHeight: `var(${minHeightVar})` } : undefined}
-        >
-            {label}
-        </Label>
-    ) : null
+    editIcon,
+    mantine,
+}, ref) {
+    const { labelActionArea, labelWithEditIcon, onLabelEditClick } =
+        resolveLabelActionArea(editIcon, undefined, undefined, layer)
 
     return (
-        <div className={className} style={style}>
-            {layout === 'stacked' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 0, alignItems: labelAlign === 'right' ? 'flex-end' : 'stretch' }}>
-                    {labelElement}
-                    <div
-                        id={id}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            minHeight: `var(${minHeightVar})`,
-                            color: `var(${textColorVar})`,
-                            fontFamily: `var(${fontFamilyVar})`,
-                            fontSize: `var(${fontSizeVar})`,
-                            fontWeight: `var(${fontWeightVar})`,
-                            fontStyle: `var(${fontStyleVar})`,
-                            letterSpacing: `var(${letterSpacingVar})`,
-                            lineHeight: `var(${lineHeightVar})`,
-                            textDecoration: `var(${textDecorationVar})` as any,
-                            textTransform: `var(${textTransformVar})` as any,
-                            textAlign: labelAlign === 'right' && layout === 'stacked' ? 'right' : 'left',
-                            width: '100%',
-                        }}
-                    >
-                        {value || '—'}
-                    </div>
-                </div>
-            ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: labelGutterVar ? `var(${labelGutterVar})` : '8px' }}>
-                    {labelElement}
-                    <div
-                        id={id}
-                        style={{
-                            flex: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            minHeight: `var(${minHeightVar})`,
-                            color: `var(${textColorVar})`,
-                            fontFamily: `var(${fontFamilyVar})`,
-                            fontSize: `var(${fontSizeVar})`,
-                            fontWeight: `var(${fontWeightVar})`,
-                            fontStyle: `var(${fontStyleVar})`,
-                            letterSpacing: `var(${letterSpacingVar})`,
-                            lineHeight: `var(${lineHeightVar})`,
-                            textDecoration: `var(${textDecorationVar})` as any,
-                            textTransform: `var(${textTransformVar})` as any,
-                        }}
-                    >
-                        {value || '—'}
-                    </div>
-                </div>
-            )}
-        </div>
+        <MantineReadOnlyField
+            value={value}
+            label={label}
+            formLayout={layout === 'side-by-side' ? 'side-by-side' : 'stacked'}
+            required={required}
+            labelOptionalText={optional}
+            labelAlignment={labelAlign}
+            labelSize={labelSize}
+            id={id}
+            labelActionArea={labelActionArea}
+            labelWithEditIcon={labelWithEditIcon}
+            onLabelEditClick={onLabelEditClick}
+            {...mantine}
+            ref={ref}
+        />
     )
-}
+})
+
+// Compile-time only — fails the build the moment ReadOnlyFieldProps declares a prop with no
+// real, type-compatible home on the real ReadOnlyField (directly, or via the renames below).
+// `layout` is excluded for the same reason DatePicker excludes it: Forge types it as an open
+// `string`, wider than the real `formLayout` union, and the ternary above is the actual
+// translation that gets type-checked. `editIcon` is excluded: a real reshape via
+// `resolveLabelActionArea` above (see header), not a straight rename. `editIconGap` has no
+// real equivalent — dropped.
+type _Wiring = AssertWired<
+    ReadOnlyFieldProps,
+    typeof MantineReadOnlyField,
+    | 'layer'
+    | 'disableTopBottomMargin'
+    | 'mantine'
+    | 'className'
+    | 'style'
+    | 'layout'
+    | 'editIcon'
+    | 'editIconGap',
+    { optional: 'labelOptionalText'; labelAlign: 'labelAlignment' }
+>
+const _wiringCheck: _Wiring = true

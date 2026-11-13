@@ -1,75 +1,52 @@
 /**
- * Mantine TableCell Implementation
+ * Mantine TableCell Adapter
+ *
+ * A Forge TableCell is Table.Td (or Table.Th, when acting as a header cell) upstream — there's
+ * no standalone cell export, so both are pulled off the Table static instead of a plain named
+ * import.
+ *
+ * REAL BUG FIXED HERE: the previous version of this file was `export default Table.Td` — a
+ * static reference, not a function. `isHeader` could never do anything: there was no branching
+ * logic at all, so every "header" cell silently rendered as a plain `<td>`. This is now a real
+ * function that renders `Table.Th` when `isHeader` is true and `Table.Td` otherwise.
+ *
+ * `variant`/`disabled` (2026-08, corrected — previously claimed `variant` "type-matches by
+ * coincidence... not a real capability" and `disabled` has "no equivalent at all, type or
+ * otherwise"): both false, but land differently on the two branches because the real component
+ * splits them asymmetrically:
+ *   - `Table.Td` (body cells) takes `RecursicaTableCellProps`: real `disabled?: boolean` AND
+ *     real `variant?: "default" | "currency"` (applies the currency text style, for
+ *     numeric/monetary columns) — so this branch gets both.
+ *   - `Table.Th` (header cells) takes `RecursicaTableHeaderCellProps`: real `disabled?: boolean`
+ *     but NO `variant` field at all — a header label has no currency styling to apply, so this
+ *     branch only gets `disabled`. Not an oversight; the real type simply doesn't have the slot.
+ * Forge's own `variant` is typed as a wider `string` (for other components' custom-variant-name
+ * conventions), so it's narrowed with a cast on the `Td` branch rather than checked directly —
+ * same pattern as `layout` elsewhere in this codebase.
  */
 
-import { Table as MantineTable } from '@mantine/core'
-import type { TableCellProps as AdapterTableCellProps } from '../../TableCell'
-import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import './TableCell.css'
+import React from 'react'
+import { Table } from '@recursica/adapter-mantine-v8'
+import type { TableCellProps } from '../../common/TableCell'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function TableCell({
-  children,
-  isHeader,
-  layer = 'layer-0',
-  className,
-  style,
-  disabled = false,
-  variant,
-  mantine,
-  ...props
-}: AdapterTableCellProps) {
-  const paddingHVar = getComponentLevelCssVar('TableCell', 'padding-horizontal')
-  const paddingVVar = getComponentLevelCssVar('TableCell', 'padding-vertical')
-  const maxWidthVar = getComponentLevelCssVar('TableCell', 'max-width')
+export default React.forwardRef<any, TableCellProps>(function TableCell({ children, isHeader, variant, disabled, mantine }, ref) {
+    return isHeader ? (
+        <Table.Th ref={ref} disabled={disabled} {...mantine}>{children}</Table.Th>
+    ) : (
+        <Table.Td ref={ref} variant={variant as 'default' | 'currency' | undefined} disabled={disabled} {...mantine}>{children}</Table.Td>
+    )
+})
 
-  const isCurrency = variant === 'currency'
-  const textStyleKey = isCurrency ? 'currency-style' : 'text-style'
-
-  const textFamilyVar = getComponentTextCssVar('TableCell', textStyleKey, 'font-family')
-  const textSizeVar = getComponentTextCssVar('TableCell', textStyleKey, 'font-size')
-  const textWeightVar = getComponentTextCssVar('TableCell', textStyleKey, 'font-weight')
-  const textStyleVar = getComponentTextCssVar('TableCell', textStyleKey, 'font-style')
-  const textLetterSpacingVar = getComponentTextCssVar('TableCell', textStyleKey, 'letter-spacing')
-  const textLineHeightVar = getComponentTextCssVar('TableCell', textStyleKey, 'line-height')
-  const textCaseVar = getComponentTextCssVar('TableCell', textStyleKey, 'text-transform')
-  const textDecorationVar = getComponentTextCssVar('TableCell', textStyleKey, 'text-decoration')
-  const textAlignVar = getComponentTextCssVar('TableCell', textStyleKey, 'text-align')
-
-  // Enabled colours are the base; disabled colours live under variants.states.disabled.
-  const cellBase = (prop: string) => buildComponentCssVarPath('TableCell', 'properties', 'colors', layer, prop)
-  const cellDisabled = (prop: string) => buildComponentCssVarPath('TableCell', 'variants', 'states', 'disabled', 'properties', 'colors', layer, prop)
-  const textColorVar = disabled ? cellDisabled('text-color') : cellBase('text-color')
-  const cellColorVar = disabled ? cellDisabled('cell-color') : cellBase('cell-color')
-  // Disabled cells are dimmed by the global theme disabled opacity ({brand.states.disabled}).
-  const disabledOpacityVar = buildComponentCssVarPath('TableCell', 'variants', 'states', 'disabled', 'properties', 'opacity')
-
-  const Component = isHeader ? MantineTable.Th : MantineTable.Td
-
-  return (
-    <Component
-      className={`recursica-table-cell mantine-table-cell ${disabled ? 'disabled' : ''} ${className || ''}`}
-      style={{
-        ['--table-cell-padding-h' as string]: `var(${paddingHVar})`,
-        ['--table-cell-padding-v' as string]: `var(${paddingVVar})`,
-        ['--table-cell-max-width' as string]: `var(${maxWidthVar})`,
-        ['--table-cell-bg' as string]: `var(${cellColorVar})`,
-        ['--table-cell-color' as string]: `var(${textColorVar})`,
-        ['--table-cell-font-family' as string]: `var(${textFamilyVar})`,
-        ['--table-cell-font-size' as string]: `var(${textSizeVar})`,
-        ['--table-cell-font-weight' as string]: `var(${textWeightVar})`,
-        ['--table-cell-font-style' as string]: `var(${textStyleVar})`,
-        ['--table-cell-letter-spacing' as string]: `var(${textLetterSpacingVar})`,
-        ['--table-cell-line-height' as string]: `var(${textLineHeightVar})`,
-        ['--table-cell-text-case' as string]: `var(${textCaseVar})`,
-        ['--table-cell-text-decoration' as string]: `var(${textDecorationVar})`,
-        ['--table-cell-text-align' as string]: `var(${textAlignVar})`,
-        ...(disabled ? { opacity: `var(${disabledOpacityVar})` } : {}),
-        ...style
-      } as React.CSSProperties}
-      {...mantine}
-      {...props}
-    >
-      {children}
-    </Component>
-  )
-}
+// Compile-time only — fails the build the moment TableCellProps declares a prop with no real,
+// type-compatible home on Table.Td. (Table.Th and Table.Td share the same relevant shape, so
+// checking against one is representative of both here.) `isHeader` is excluded: it's the
+// branch condition adapted above (picks Th vs Td), not a prop forwarded to either real
+// component. `variant` is excluded: Forge's wider `string` is narrowed with a cast above (see
+// header) — the literal attribute is what actually gets checked.
+type _Wiring = AssertWired<
+    TableCellProps,
+    typeof Table.Td,
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'isHeader' | 'variant'
+>
+const _wiringCheck: _Wiring = true

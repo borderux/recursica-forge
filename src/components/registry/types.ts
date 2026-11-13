@@ -2,13 +2,16 @@
  * Component Registry Types
  * 
  * Defines the types for the component adapter system that allows
- * rendering components from different UI libraries (Mantine, Material, Carbon).
+ * rendering components from the local or the published Mantine adapter.
  */
 
 import { ReactNode, ComponentType } from 'react'
 import type { UiKit } from '../../modules/uikit/UiKitContext'
 
 export type { UiKit }
+
+/** A key into the component registries: a UI kit, or the `local` Mantine-based adapter. */
+export type AdapterKey = UiKit | 'local'
 
 export type ComponentName =
   | 'Button'
@@ -54,6 +57,9 @@ export type ComponentName =
   | 'Slider'
   | 'Stepper'
   | 'Tabs'
+  | 'TabsList'
+  | 'TabsTab'
+  | 'TabsPanel'
   | 'TabsItem'
   | 'TimePicker'
   | 'Timeline'
@@ -87,7 +93,5 @@ export interface UiKitPlugin {
 
 export interface LibrarySpecificProps {
   mantine?: Record<string, any>
-  material?: Record<string, any>
-  carbon?: Record<string, any>
 }
 

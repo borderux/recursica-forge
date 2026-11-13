@@ -137,7 +137,6 @@ export default function TokenSlider({
         showInput={false}
         showValueLabel={true}
         valueLabel={displayLabel}
-        tooltipText={displayLabel}
       />
     </div>
   )
