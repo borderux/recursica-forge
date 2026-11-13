@@ -1,15 +1,13 @@
 /**
  * Menu Component Adapter
- * 
- * Unified Menu component that renders the appropriate library implementation
- * based on the current UI kit selection. Contains MenuItem components.
+ *
+ * Thin dispatcher: renders the local adapter's Menu, or the real adapter's via useComponent.
+ * No `maxHeight` default: the real Menu turns any `maxHeight` prop into an inline style that
+ * would override its own `max-height` token (set from the toolbar).
  */
 
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentLevelCssVar } from '../utils/cssVarNames'
-import { parseElevationValue } from '../utils/brandCssVars'
-import { readCssVar } from '../../core/css/readCssVar'
 import type { MenuProps } from './common/Menu'
 import { isLocalAdapter } from '../registry/activeAdapter'
 import { Menu as LocalMenu } from './local/dispatch/Menu'
@@ -18,82 +16,11 @@ import { Menu as LocalMenu } from './local/dispatch/Menu'
 // call sites keep working — the types now live in common/Menu.ts.
 export type { MenuProps } from './common/Menu'
 
-function SharedMenu({
-  children,
-  layer = 'layer-0',
-  elevation,
-  maxHeight,
-  className,
-  style,
-  mantine,
-}: MenuProps) {
+function SharedMenu(props: MenuProps) {
   const Component = useComponent('Menu')
-
-  // Get elevation from CSS vars if not provided as props
-  const elevationVar = getComponentLevelCssVar('Menu', 'elevation')
-  const maxHeightVar = getComponentLevelCssVar('Menu', 'max-height')
-
-  // Reactively read elevation from CSS variable
-  const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
-    const value = readCssVar(elevationVar)
-    return value ? parseElevationValue(value) : undefined
-  })
-
-  // Reactively read max-height from CSS variable
-  const [maxHeightFromVar, setMaxHeightFromVar] = useState<number | undefined>(() => {
-    const value = readCssVar(maxHeightVar)
-    return value ? parseInt(value, 10) : undefined
-  })
-
-  // Listen for CSS variable updates from the toolbar
-  useEffect(() => {
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
-        const value = readCssVar(elevationVar)
-        setElevationFromVar(value ? parseElevationValue(value) : undefined)
-      }
-      if (!detail?.cssVars || detail.cssVars.includes(maxHeightVar)) {
-        const value = readCssVar(maxHeightVar)
-        setMaxHeightFromVar(value ? parseInt(value, 10) : undefined)
-      }
-    }
-
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-
-    // Also watch for direct style changes using MutationObserver
-    const observer = new MutationObserver(() => {
-      const value = readCssVar(elevationVar)
-      setElevationFromVar(value ? parseElevationValue(value) : undefined)
-      const mhValue = readCssVar(maxHeightVar)
-      setMaxHeightFromVar(mhValue ? parseInt(mhValue, 10) : undefined)
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-
-    return () => {
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-      observer.disconnect()
-    }
-  }, [elevationVar, maxHeightVar])
-
-  const componentElevation = elevation ?? elevationFromVar ?? undefined
-  const componentMaxHeight = maxHeight ?? maxHeightFromVar ?? 600
-
-  const libraryProps = {
-    layer,
-    elevation: componentElevation,
-    maxHeight: componentMaxHeight,
-    className,
-    style,
-    mantine,
-  }
-
   return (
     <Suspense fallback={<span />}>
-      <Component {...libraryProps}>{children}</Component>
+      <Component {...props} />
     </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 /**
  * Table Component Adapter
- * 
+ *
  * Unified Table component that renders the appropriate library implementation
  * based on the current UI kit selection.
  */
@@ -15,31 +15,12 @@ import { Table as LocalTable } from './local/dispatch/Table'
 // call sites keep working — the types now live in common/Table.ts.
 export type { TableProps } from './common/Table'
 
-function SharedTable({
-  children,
-  variant,
-  layer = 'layer-0',
-  elevation,
-  className,
-  style,
-  data,
-  mantine,
-}: TableProps) {
+function SharedTable(props: TableProps) {
   const Component = useComponent('Table')
 
   return (
     <Suspense fallback={<div />}>
-      <Component
-        variant={variant}
-        layer={layer}
-        elevation={elevation}
-        className={className}
-        style={style}
-        data={data}
-        mantine={mantine}
-      >
-        {children}
-      </Component>
+      <Component {...props} />
     </Suspense>
   )
 }

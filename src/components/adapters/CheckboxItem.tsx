@@ -1,8 +1,9 @@
 /**
  * CheckboxItem Component Adapter
- * 
- * CheckboxItem represents a Checkbox with a label, configured in the Forge.
- * It wraps the platform-specific implementation.
+ *
+ * Thin dispatcher: renders the local adapter's CheckboxItem, or forwards props to the real
+ * adapter's via useComponent. A CheckboxItem is a Checkbox with a label, used inside a
+ * CheckboxGroup.
  */
 
 import { Suspense } from 'react'
@@ -17,7 +18,6 @@ export type { CheckboxItemProps } from './common/CheckboxItem'
 
 function SharedCheckboxItem(props: CheckboxItemProps) {
   const Component = useComponent('CheckboxItem')
-
   return (
     <Suspense fallback={null}>
       <Component {...props} />

@@ -7,7 +7,7 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { StepperStepData, StepperProps } from './common/Stepper'
+import type { StepperProps } from './common/Stepper'
 import { isLocalAdapter } from '../registry/activeAdapter'
 import { Stepper as LocalStepper } from './local/dispatch/Stepper'
 
@@ -15,37 +15,14 @@ import { Stepper as LocalStepper } from './local/dispatch/Stepper'
 // '.../adapters/Stepper'` call sites keep working — the types now live in common/Stepper.ts.
 export type { StepperStepData, StepperProps } from './common/Stepper'
 
-function SharedStepper({
-    active,
-    onStepClick,
-    orientation = 'horizontal',
-    size = 'large',
-    layer,
-    children,
-    steps,
-    className,
-    style,
-    mantine,
-}: StepperProps) {
-    const Component = useComponent('Stepper')
+function SharedStepper(props: StepperProps) {
+  const Component = useComponent('Stepper')
 
-    const libraryProps = {
-        active,
-        onStepClick,
-        orientation,
-        size,
-        layer,
-        steps,
-        className,
-        style,
-        mantine,
-    }
-
-    return (
-        <Suspense fallback={<span />}>
-            <Component {...libraryProps}>{children}</Component>
-        </Suspense>
-    )
+  return (
+    <Suspense fallback={<span />}>
+      <Component {...props} />
+    </Suspense>
+  )
 }
 
 // The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.

@@ -1,8 +1,8 @@
 /**
  * TableFooter Component Adapter
- * 
- * Unified TableFooter component that renders the appropriate library implementation
- * based on the current UI kit selection.
+ *
+ * Thin dispatcher: renders the local adapter's TableFooter, or forwards props to the real adapter
+ * via useComponent('TableFooter').
  */
 
 import { Suspense } from 'react'
@@ -15,31 +15,11 @@ import { TableFooter as LocalTableFooter } from './local/dispatch/TableFooter'
 // call sites keep working — the types now live in common/TableFooter.ts.
 export type { TableFooterProps } from './common/TableFooter'
 
-function SharedTableFooter({
-  children,
-  variant,
-  layer = 'layer-0',
-  elevation,
-  className,
-  style,
-  disabled,
-  mantine,
-}: TableFooterProps) {
+function SharedTableFooter(props: TableFooterProps) {
   const Component = useComponent('TableFooter')
-
   return (
     <Suspense fallback={<td />}>
-      <Component
-        variant={variant}
-        layer={layer}
-        elevation={elevation}
-        className={className}
-        style={style}
-        disabled={disabled}
-        mantine={mantine}
-      >
-        {children}
-      </Component>
+      <Component {...props} />
     </Suspense>
   )
 }

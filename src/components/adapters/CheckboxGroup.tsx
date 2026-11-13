@@ -1,13 +1,12 @@
 /**
  * CheckboxGroup Component Adapter
- * 
- * Groups multiple CheckboxItems together, handling layout and common properties.
- * Composes Label and AssistiveElement internally, following the TextField pattern.
+ *
+ * Thin dispatcher: renders the local adapter's CheckboxGroup, or forwards props to the real
+ * adapter's via useComponent. Groups multiple CheckboxItems together.
  */
 
-import { Suspense, useState } from 'react'
+import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { buildComponentCssVarPath } from '../utils/cssVarNames'
 import type { CheckboxGroupProps } from './common/CheckboxGroup'
 import { isLocalAdapter } from '../registry/activeAdapter'
 import { CheckboxGroup as LocalCheckboxGroup } from './local/dispatch/CheckboxGroup'
@@ -17,57 +16,12 @@ import { CheckboxGroup as LocalCheckboxGroup } from './local/dispatch/CheckboxGr
 export type { CheckboxGroupProps } from './common/CheckboxGroup'
 
 function SharedCheckboxGroup(props: CheckboxGroupProps) {
-    const Component = useComponent('CheckboxGroup')
-
-    const {
-        label,
-        helpText,
-        errorText,
-        required = false,
-        optional = false,
-        layout = 'stacked',
-        layer = 'layer-0',
-        labelAlign = 'left',
-        labelSize,
-        className,
-        style,
-        children,
-        ...restProps
-    } = props
-
-    // Generate unique ID for accessibility
-    const [groupId] = useState(() => `checkbox-group-${Math.random().toString(36).substr(2, 9)}`)
-    const labelId = `${groupId}-label`
-    const helpId = helpText ? `${groupId}-help` : undefined
-    const errorId = errorText ? `${groupId}-error` : undefined
-
-    // CSS variables for layout-specific spacing
-    const labelFieldGapVar = buildComponentCssVarPath('CheckboxGroup', 'variants', 'layouts', layout, 'properties', 'label-field-gap')
-
-    return (
-        <Suspense fallback={null}>
-            <Component
-                {...restProps}
-                label={label}
-                helpText={helpText}
-                errorText={errorText}
-                required={required}
-                optional={optional}
-                layout={layout}
-                layer={layer}
-                labelAlign={labelAlign}
-                labelSize={labelSize}
-                groupId={groupId}
-                labelId={labelId}
-                helpId={helpId}
-                errorId={errorId}
-                className={className}
-                style={style}
-            >
-                {children}
-            </Component>
-        </Suspense>
-    )
+  const Component = useComponent('CheckboxGroup')
+  return (
+    <Suspense fallback={null}>
+      <Component {...props} />
+    </Suspense>
+  )
 }
 
 // The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.

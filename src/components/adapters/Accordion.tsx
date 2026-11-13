@@ -1,19 +1,17 @@
 /**
  * Accordion Component Adapter
  *
- * Unified Accordion component that renders the appropriate library implementation
- * based on the current UI kit selection.
+ * Thin dispatcher: renders the local adapter's Accordion, or forwards props to the real
+ * adapter's via useComponent.
  *
- * Open/close state is normalized here (controlled vs. uncontrolled, single vs. multiple)
- * because every library needs the same answer to "what's open right now" — duplicating that
- * logic per library would just be three copies of the same bookkeeping. Everything
- * library-specific — translating that state, and `items`, into what Mantine/Material/Carbon
- * actually render — lives in each library's own wrapper under adapters/mantine/Accordion.
+ * The one real conversion here is open/close state: Forge's per-item `open`/`defaultOpen`
+ * flags and per-item `onToggle(id, open)` callback are turned into the `openItems` array and
+ * `onOpenItemsChange` callback that mantine/Accordion/Accordion.tsx reads.
  */
 
-import { Suspense, useMemo, useRef, useState, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { AccordionAdapterProps, AccordionProps } from './common/Accordion'
+import type { AccordionProps } from './common/Accordion'
 import { isLocalAdapter } from '../registry/activeAdapter'
 import { Accordion as LocalAccordion } from './local/dispatch/Accordion'
 
@@ -21,101 +19,46 @@ import { Accordion as LocalAccordion } from './local/dispatch/Accordion'
 // call sites keep working — the types now live in common/Accordion.ts.
 export type { AccordionItem, AccordionProps } from './common/Accordion'
 
-function SharedAccordion({
-  items,
-  layer = 'layer-0',
-  allowMultiple = false,
-  elevation,
-  onToggle,
-  className,
-  style,
-  mantine,
-}: AccordionProps) {
+function SharedAccordion({ items, allowMultiple = false, onToggle, ...rest }: AccordionProps) {
   const Component = useComponent('Accordion')
 
-  const isControlled = useMemo(() => items.some(item => item.open !== undefined), [items])
-  const controlledOpenItems = useMemo(
-    () => items.filter(item => item.open).map(item => item.id),
-    [items]
-  )
-
+  const isControlled = items.some(item => item.open !== undefined)
   const [internalOpenItems, setInternalOpenItems] = useState<string[]>(() =>
     items.filter(item => item.defaultOpen || item.open).map(item => item.id)
   )
 
   useEffect(() => {
+    // Drop any open items that no longer exist
     if (!isControlled) {
-      // Drop any open items that no longer exist
       setInternalOpenItems(prev => prev.filter(id => items.some(item => item.id === id)))
     }
   }, [items, isControlled])
 
-  const openItems = isControlled ? controlledOpenItems : internalOpenItems
-  const prevOpenItemsRef = useRef<string[]>(openItems)
-
-  useEffect(() => {
-    prevOpenItemsRef.current = openItems
-  }, [openItems])
-
-  const normalizeOpenItems = (nextOpenItems: string[]) => {
-    const unique = Array.from(new Set(nextOpenItems)).filter(id =>
-      items.some(item => item.id === id)
-    )
-    return allowMultiple ? unique : unique.slice(0, 1)
-  }
-
-  const applyOpenItems = (nextOpenItems: string[]) => {
-    const normalized = normalizeOpenItems(nextOpenItems)
-    const prev = prevOpenItemsRef.current
-
-    if (!isControlled) {
-      setInternalOpenItems(normalized)
-    }
-
-    if (onToggle) {
-      const prevSet = new Set(prev)
-      const nextSet = new Set(normalized)
-      const allIds = new Set([...prevSet, ...nextSet])
-      allIds.forEach(id => {
-        const wasOpen = prevSet.has(id)
-        const isOpen = nextSet.has(id)
-        if (wasOpen !== isOpen) {
-          onToggle(id, isOpen)
-        }
-      })
-    }
-  }
-
-  const handleItemToggle = (id: string, open: boolean) => {
-    if (open) {
-      const next = allowMultiple ? [...openItems, id] : [id]
-      applyOpenItems(next)
-    } else {
-      const next = openItems.filter(itemId => itemId !== id)
-      applyOpenItems(next)
-    }
-  }
+  const openItems = isControlled
+    ? items.filter(item => item.open).map(item => item.id)
+    : internalOpenItems
 
   const handleOpenItemsChange = (nextOpenItems: string[]) => {
-    applyOpenItems(nextOpenItems)
-  }
-
-  const adapterProps: AccordionAdapterProps = {
-    items,
-    layer,
-    allowMultiple,
-    elevation,
-    openItems,
-    onOpenItemsChange: handleOpenItemsChange,
-    onItemToggle: handleItemToggle,
-    className,
-    style,
-    mantine,
+    const unique = Array.from(new Set(nextOpenItems)).filter(id => items.some(item => item.id === id))
+    const next = allowMultiple ? unique : unique.slice(0, 1)
+    if (!isControlled) setInternalOpenItems(next)
+    if (onToggle) {
+      for (const id of new Set([...openItems, ...next])) {
+        const isOpen = next.includes(id)
+        if (openItems.includes(id) !== isOpen) onToggle(id, isOpen)
+      }
+    }
   }
 
   return (
     <Suspense fallback={<span />}>
-      <Component {...adapterProps} />
+      <Component
+        {...rest}
+        items={items}
+        allowMultiple={allowMultiple}
+        openItems={openItems}
+        onOpenItemsChange={handleOpenItemsChange}
+      />
     </Suspense>
   )
 }

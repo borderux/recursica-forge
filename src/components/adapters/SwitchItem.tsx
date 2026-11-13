@@ -1,14 +1,12 @@
 /**
  * SwitchItem Component Adapter
- * 
+ *
  * SwitchItem represents a Switch with a label, configured in the Forge.
- * It wraps the Switch component.
+ * It wraps the platform-specific implementation.
  */
 
-import { Suspense, useMemo } from 'react'
+import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { genericLayerText } from '../../core/css/cssVarBuilder'
-import { readCssVar } from '../../core/css/readCssVar'
 import type { SwitchItemProps } from './common/SwitchItem'
 import { isLocalAdapter } from '../registry/activeAdapter'
 import { SwitchItem as LocalSwitchItem } from './local/dispatch/SwitchItem'
@@ -18,13 +16,13 @@ import { SwitchItem as LocalSwitchItem } from './local/dispatch/SwitchItem'
 export type { SwitchItemProps } from './common/SwitchItem'
 
 function SharedSwitchItem(props: SwitchItemProps) {
-    const Component = useComponent('SwitchItem')
+  const Component = useComponent('SwitchItem')
 
-    return (
-        <Suspense fallback={null}>
-            <Component {...props} />
-        </Suspense>
-    )
+  return (
+    <Suspense fallback={null}>
+      <Component {...props} />
+    </Suspense>
+  )
 }
 
 // The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.

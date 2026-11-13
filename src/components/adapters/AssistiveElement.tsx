@@ -1,9 +1,8 @@
 /**
  * AssistiveElement Component Adapter
  *
- * Unified AssistiveElement component that renders the appropriate library implementation
- * based on the current UI kit selection.
- * Used for help text and error text in forms.
+ * Thin dispatcher: renders the local adapter's AssistiveElement, or forwards props to the
+ * real adapter's via useComponent. Used for help text and error text in forms.
  */
 
 import { Suspense } from 'react'
@@ -16,28 +15,11 @@ import { AssistiveElement as LocalAssistiveElement } from './local/dispatch/Assi
 // call sites keep working — the types now live in common/AssistiveElement.ts.
 export type { AssistiveElementProps } from './common/AssistiveElement'
 
-function SharedAssistiveElement({
-  text,
-  variant = 'help',
-  icon,
-  layer = 'layer-0',
-  className,
-  style,
-  mantine,
-}: AssistiveElementProps) {
+function SharedAssistiveElement(props: AssistiveElementProps) {
   const Component = useComponent('AssistiveElement')
-
   return (
     <Suspense fallback={<span />}>
-      <Component
-        text={text}
-        variant={variant}
-        icon={icon}
-        layer={layer}
-        className={className}
-        style={style}
-        mantine={mantine}
-      />
+      <Component {...props} />
     </Suspense>
   )
 }

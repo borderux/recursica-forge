@@ -1,15 +1,12 @@
 /**
  * Tabs Component Adapter
  *
- * Unified Tabs component that renders the appropriate library implementation based on the
- * current UI kit selection. `Tabs`, `Tabs.List`, `Tabs.Tab`, and `Tabs.Panel` are each their
- * own registered component (`useComponent('Tabs' | 'TabsList' | 'TabsTab' | 'TabsPanel')`) —
- * same pattern as every other dispatcher (e.g. `Menu`/`MenuItem`), just exposed as static
- * properties on `Tabs` instead of separate named exports, since every call site already uses
- * `<Tabs.List>`/`<Tabs.Tab>`/`<Tabs.Panel>` composition. Per-kit rendering, including
- * `TabsContext` (the active value/orientation/variant/alignment sub-components read), lives
- * entirely in each kit's own `adapters/mantine/Tabs/` files — nothing
- * kit-specific belongs here.
+ * Thin dispatcher: renders the local adapter's Tabs, or forwards props to the real adapter.
+ * `Tabs`, `Tabs.List`, `Tabs.Tab`, and `Tabs.Panel` are each their own registered component
+ * (`useComponent('Tabs' | 'TabsList' | 'TabsTab' | 'TabsPanel')`), exposed as static
+ * properties on `Tabs` since every call site uses `<Tabs.List>`/`<Tabs.Tab>`/`<Tabs.Panel>`
+ * composition. Per-kit rendering, including `TabsContext`, lives in each kit's own
+ * `adapters/mantine/Tabs/` files.
  */
 
 import { Suspense } from 'react'
@@ -22,70 +19,38 @@ import type { TabsProps, TabsListProps, TabsTabProps, TabsPanelProps } from './c
 // from '.../adapters/Tabs'` call sites keep working — the types now live in common/Tabs.ts.
 export type { TabsProps, TabsListProps, TabsTabProps, TabsPanelProps } from './common/Tabs'
 
-function SharedTabs({
-  value,
-  defaultValue,
-  onChange,
-  orientation = 'horizontal',
-  variant = 'default',
-  tabContentAlignment = 'left',
-  inverted,
-  placement,
-  layer = 'layer-0',
-  children,
-  className,
-  style,
-  mantine,
-}: TabsProps) {
+function SharedTabs(props: TabsProps) {
   const Component = useComponent('Tabs')
-
   return (
     <Suspense fallback={<span />}>
-      <Component
-        value={value}
-        defaultValue={defaultValue}
-        onChange={onChange}
-        orientation={orientation}
-        variant={variant}
-        tabContentAlignment={tabContentAlignment}
-        inverted={inverted}
-        placement={placement}
-        layer={layer}
-        className={className}
-        style={style}
-        mantine={mantine}
-      >
-        {children}
-      </Component>
+      <Component {...props} />
     </Suspense>
   )
 }
 
-SharedTabs.List = function TabsList({ children, style, className }: TabsListProps) {
+SharedTabs.List = function TabsList(props: TabsListProps) {
   const Component = useComponent('TabsList')
   return (
     <Suspense fallback={<span />}>
-      <Component style={style} className={className}>{children}</Component>
+      <Component {...props} />
     </Suspense>
   )
 }
 
-SharedTabs.Tab = function TabsTab({ value, children, leftSection, rightSection, disabled, style, className }: TabsTabProps) {
+SharedTabs.Tab = function TabsTab(props: TabsTabProps) {
   const Component = useComponent('TabsTab')
   return (
     <Suspense fallback={<span />}>
-      <Component value={value} leftSection={leftSection} rightSection={rightSection} disabled={disabled} style={style} className={className}>
-        {children}
-      </Component>
+      <Component {...props} />
     </Suspense>
   )
 }
 
-SharedTabs.Panel = function TabsPanel({ value, children, style, className }: TabsPanelProps) {
+SharedTabs.Panel = function TabsPanel(props: TabsPanelProps) {
   const Component = useComponent('TabsPanel')
   return (
     <Suspense fallback={<span />}>
-      <Component value={value} style={style} className={className}>{children}</Component>
+      <Component {...props} />
     </Suspense>
   )
 }

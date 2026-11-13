@@ -1,8 +1,8 @@
 /**
  * TableCell Component Adapter
- * 
- * Unified TableCell component that renders the appropriate library implementation
- * based on the current UI kit selection.
+ *
+ * Thin dispatcher: renders the local adapter's TableCell, or forwards props to the real
+ * adapter via useComponent('TableCell').
  */
 
 import { Suspense } from 'react'
@@ -15,33 +15,11 @@ import { TableCell as LocalTableCell } from './local/dispatch/TableCell'
 // call sites keep working — the types now live in common/TableCell.ts.
 export type { TableCellProps } from './common/TableCell'
 
-function SharedTableCell({
-  children,
-  variant,
-  layer = 'layer-0',
-  elevation,
-  className,
-  style,
-  isHeader,
-  disabled,
-  mantine,
-}: TableCellProps) {
+function SharedTableCell(props: TableCellProps) {
   const Component = useComponent('TableCell')
-
   return (
-    <Suspense fallback={isHeader ? <th /> : <td />}>
-      <Component
-        variant={variant}
-        layer={layer}
-        elevation={elevation}
-        className={className}
-        style={style}
-        isHeader={isHeader}
-        disabled={disabled}
-        mantine={mantine}
-      >
-        {children}
-      </Component>
+    <Suspense fallback={props.isHeader ? <th /> : <td />}>
+      <Component {...props} />
     </Suspense>
   )
 }

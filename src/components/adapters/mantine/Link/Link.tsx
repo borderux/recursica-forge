@@ -18,16 +18,12 @@
  * props, so even forcing it through via `mantine`/`as any` would be silently overwritten.
  * There is no escape hatch that reaches it.
  *
- * `showIcon` / `iconPosition` — dropped from this wrapper's own forwarding. The dispatcher
- * (`adapters/Link.tsx`) already resolves these into `startIcon`/`endIcon` before this
- * component ever sees them (reading the toolbar's icon-name/position CSS vars and rendering
- * the resolved icon into whichever of `startIcon`/`endIcon` applies) — passing the raw flags
- * through again here would have nothing left to do.
+ * `showIcon` / `iconPosition` — dropped. The real Link has no toolbar-driven icon setting;
+ * callers that want an icon pass `startIcon` explicitly.
  *
- * `className` / `style` (and `inlineStyle`, folded into `style` by the dispatcher's own
- * `mapLinkProps` before this wrapper ever runs) are on the adapter's blocked-styling-keys list
- * (the real Link type is `RecursicaOverStyled`-wrapped) and are ignored unless the caller
- * opts in with `overStyled: true` — which the `mantine` escape hatch can still do
+ * `className` / `style` / `inlineStyle` are on the adapter's blocked-styling-keys list (the
+ * real Link type is `RecursicaOverStyled`-wrapped) and are ignored unless the caller opts in
+ * with `overStyled: true` — which the `mantine` escape hatch can still do
  * (`mantine={{ overStyled: true, style: {...} }}`). Nothing in this app currently sets either
  * on `<Link>`, so left dropped rather than forced on.
  *

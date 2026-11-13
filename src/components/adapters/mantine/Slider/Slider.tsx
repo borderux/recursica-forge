@@ -70,7 +70,7 @@
  *     that one.
  *   - `showMinMaxInput` has no real destination, and the Slider dispatcher
  *     (`adapters/Slider.tsx`) never forwards it to this component either — it's consumed
- *     entirely at the dispatcher level to derive `showInput`/`showValueLabel`.
+ *     entirely at the dispatcher level to derive `showInput`.
  */
 
 import React from 'react'

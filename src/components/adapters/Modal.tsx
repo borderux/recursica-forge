@@ -1,15 +1,14 @@
 /**
  * Modal Component Adapter
- * 
- * Unified Modal component that renders the appropriate library implementation
- * based on the current UI kit selection.
+ *
+ * Thin dispatcher: renders the local adapter's Modal, or the real adapter's via useComponent.
+ * Keeps the Forge defaults that change what the real adapter renders: `layer` (layer-1,
+ * applied as a LayerScope by useComponent), the footer button labels, and `centered`
+ * (Mantine defaults to false).
  */
 
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
-import { parseElevationValue } from '../utils/brandCssVars'
-import { readCssVar } from '../../core/css/readCssVar'
 import type { ModalProps } from './common/Modal'
 import { isLocalAdapter } from '../registry/activeAdapter'
 import { Modal as LocalModal } from './local/dispatch/Modal'
@@ -19,153 +18,24 @@ import { Modal as LocalModal } from './local/dispatch/Modal'
 export type { ModalProps } from './common/Modal'
 
 function SharedModal({
-    children,
-    content,
-    isOpen,
-    onClose,
-    title,
-    showHeader = true,
-    showCloseButton = true,
-    showFooter = true,
-    scrollable = false,
-    padding = true,
-    showSecondaryButton = true,
-    primaryActionLabel = 'Save',
-    onPrimaryAction,
-    secondaryActionLabel = 'Cancel',
-    onSecondaryAction,
-    primaryActionDisabled = false,
-    secondaryActionDisabled = false,
-    layer = 'layer-1', // Default to layer-1 for modals as they usually sit on top
-    elevation,
-    className,
-    style,
-    withOverlay = true,
-    centered = true,
-    position,
-    trapFocus,
-    zIndex,
-    draggable,
-    onPositionChange,
-    mantine,
+  layer = 'layer-1',
+  primaryActionLabel = 'Save',
+  secondaryActionLabel = 'Cancel',
+  centered = true,
+  ...props
 }: ModalProps) {
-    const Component = useComponent('Modal')
-
-    /**
-     * Return submits an open modal, the way a form would. A textarea keeps Enter for newlines, and
-     * a disabled primary action means there is nothing valid to submit.
-     */
-    useEffect(() => {
-        if (!isOpen || !onPrimaryAction || primaryActionDisabled) return
-        const onKeyDown = (e: KeyboardEvent) => {
-            if (e.key !== 'Enter' || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.isComposing) return
-            const target = e.target as HTMLElement | null
-            if (target?.tagName === 'TEXTAREA' || target?.isContentEditable) return
-            // A focused button handles its own Enter; do not fire the primary action twice.
-            if (target?.tagName === 'BUTTON' || target?.getAttribute?.('role') === 'button') return
-            e.preventDefault()
-            onPrimaryAction()
-        }
-        // Capture phase: a library modal may stop the event before it bubbles to the document.
-        document.addEventListener('keydown', onKeyDown, true)
-        return () => document.removeEventListener('keydown', onKeyDown, true)
-    }, [isOpen, onPrimaryAction, primaryActionDisabled])
-
-    // Get elevation from CSS vars if not provided as props
-    const elevationVar = getComponentLevelCssVar('Modal', 'elevation')
-
-    // Reactively read elevation from CSS variable
-    const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
-        const value = readCssVar(elevationVar)
-        return value ? parseElevationValue(value) : undefined
-    })
-
-    // State to force re-renders when text CSS variables change
-    const [, setTextVarsUpdate] = useState(0)
-
-    // Listen for CSS variable updates from the toolbar
-    useEffect(() => {
-        // Get text CSS variables for reactive updates
-        const headerStyleVar = getComponentLevelCssVar('Modal', 'header-style')
-
-        const contentStyleVar = getComponentLevelCssVar('Modal', 'content-style')
-
-        const textCssVars = [
-            headerStyleVar,
-            contentStyleVar
-        ]
-
-        const handleCssVarUpdate = (e: Event) => {
-            const detail = (e as CustomEvent).detail
-            const shouldUpdateElevation = !detail?.cssVars || detail.cssVars.includes(elevationVar)
-            const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
-
-            if (shouldUpdateElevation) {
-                const value = readCssVar(elevationVar)
-                setElevationFromVar(value ? parseElevationValue(value) : undefined)
-            }
-
-            if (shouldUpdateText) {
-                setTextVarsUpdate(prev => prev + 1)
-            }
-        }
-
-        window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-
-        const observer = new MutationObserver(() => {
-            const elevationValue = readCssVar(elevationVar)
-            setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
-            setTextVarsUpdate(prev => prev + 1)
-        })
-
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['style'],
-        })
-
-        return () => {
-            window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-            observer.disconnect()
-        }
-    }, [elevationVar])
-
-    const componentElevation = elevation ?? elevationFromVar ?? undefined
-
-    return (
-        <Suspense fallback={null}>
-            <Component
-                isOpen={isOpen}
-                onClose={onClose}
-                title={title}
-                content={content}
-                children={children}
-                showHeader={showHeader}
-                showCloseButton={showCloseButton}
-                showFooter={showFooter}
-                scrollable={scrollable}
-                padding={padding}
-                showSecondaryButton={showSecondaryButton}
-                primaryActionLabel={primaryActionLabel}
-                onPrimaryAction={onPrimaryAction}
-                secondaryActionLabel={secondaryActionLabel}
-                onSecondaryAction={onSecondaryAction}
-                primaryActionDisabled={primaryActionDisabled}
-                secondaryActionDisabled={secondaryActionDisabled}
-                layer={layer}
-                elevation={componentElevation}
-                className={className}
-                style={style}
-                withOverlay={withOverlay}
-                centered={centered}
-                position={position}
-                trapFocus={trapFocus}
-                zIndex={zIndex}
-                draggable={draggable}
-                onPositionChange={onPositionChange}
-                mantine={mantine}
-            />
-        </Suspense>
-    )
+  const Component = useComponent('Modal')
+  return (
+    <Suspense fallback={null}>
+      <Component
+        {...props}
+        layer={layer}
+        primaryActionLabel={primaryActionLabel}
+        secondaryActionLabel={secondaryActionLabel}
+        centered={centered}
+      />
+    </Suspense>
+  )
 }
 
 // The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.

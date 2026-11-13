@@ -1,8 +1,8 @@
 /**
  * Tree Component Adapter
- * 
- * Unified Tree component that renders the appropriate library implementation
- * based on the current UI kit selection.
+ *
+ * Thin dispatcher: renders the local adapter's Tree, or forwards props to the real adapter
+ * via useComponent('Tree').
  */
 
 import { Suspense } from 'react'
@@ -15,37 +15,11 @@ import { Tree as LocalTree } from './local/dispatch/Tree'
 // call sites keep working — the types now live in common/Tree.ts.
 export type { TreeProps } from './common/Tree'
 
-function SharedTree({
-  children,
-  variant,
-  layer = 'layer-0',
-  elevation,
-  className,
-  style,
-  data,
-  selected,
-  onSelect,
-  forceHover,
-  mantine,
-}: TreeProps) {
+function SharedTree(props: TreeProps) {
   const Component = useComponent('Tree')
-
   return (
     <Suspense fallback={<div />}>
-      <Component
-        variant={variant}
-        layer={layer}
-        elevation={elevation}
-        className={className}
-        style={style}
-        data={data}
-        selected={selected}
-        onSelect={onSelect}
-        forceHover={forceHover}
-        mantine={mantine}
-      >
-        {children}
-      </Component>
+      <Component {...props} />
     </Suspense>
   )
 }

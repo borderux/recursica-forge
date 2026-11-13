@@ -1,11 +1,11 @@
 /**
  * SwitchGroup Component Adapter
- * 
- * Groups multiple SwitchItems together, handling layout and common properties.
- * Composes Label and AssistiveElement internally.
+ *
+ * Groups multiple SwitchItems together. Label, assistive text and layout are composed by
+ * each library's own wrapper.
  */
 
-import { Suspense, useState, useMemo } from 'react'
+import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { SwitchGroupProps } from './common/SwitchGroup'
 import { isLocalAdapter } from '../registry/activeAdapter'
@@ -16,54 +16,13 @@ import { SwitchGroup as LocalSwitchGroup } from './local/dispatch/SwitchGroup'
 export type { SwitchGroupProps } from './common/SwitchGroup'
 
 function SharedSwitchGroup(props: SwitchGroupProps) {
-    const Component = useComponent('SwitchGroup')
+  const Component = useComponent('SwitchGroup')
 
-    const {
-        label,
-        helpText,
-        errorText,
-        required = false,
-        optional = false,
-        layout = 'stacked',
-        layer = 'layer-0',
-        labelAlign = 'left',
-        labelSize,
-        className,
-        style,
-        children,
-        ...restProps
-    } = props
-
-    // Generate unique ID for accessibility
-    const [groupId] = useState(() => `switch-group-${Math.random().toString(36).substr(2, 9)}`)
-    const labelId = `${groupId}-label`
-    const helpId = helpText ? `${groupId}-help` : undefined
-    const errorId = errorText ? `${groupId}-error` : undefined
-
-    return (
-        <Suspense fallback={null}>
-            <Component
-                {...restProps}
-                label={label}
-                helpText={helpText}
-                errorText={errorText}
-                required={required}
-                optional={optional}
-                layout={layout}
-                layer={layer}
-                labelAlign={labelAlign}
-                labelSize={labelSize}
-                groupId={groupId}
-                labelId={labelId}
-                helpId={helpId}
-                errorId={errorId}
-                className={className}
-                style={style}
-            >
-                {children}
-            </Component>
-        </Suspense>
-    )
+  return (
+    <Suspense fallback={null}>
+      <Component {...props} />
+    </Suspense>
+  )
 }
 
 // The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.

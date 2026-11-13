@@ -1,15 +1,16 @@
 /**
  * Autocomplete Component Adapter
  *
- * Unified Autocomplete component that renders the appropriate library implementation
- * based on the current UI kit selection.
- * Like Dropdown but with a typeable input instead of a readonly value.
- * Composes Label and AssistiveElement internally.
+ * Thin dispatcher: renders the local adapter's Autocomplete, or forwards props to the real
+ * adapter's via useComponent. Like Dropdown but with a typeable input instead of a readonly
+ * value.
+ *
+ * `defaultValue` is converted to a controlled `value` here because the mantine wrapper only
+ * reads `value`/`onChange`.
  */
 
 import { Suspense, useState } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { buildComponentCssVarPath } from '../utils/cssVarNames'
 import type { AutocompleteProps } from './common/Autocomplete'
 import { isLocalAdapter } from '../registry/activeAdapter'
 import { Autocomplete as LocalAutocomplete } from './local/dispatch/Autocomplete'
@@ -19,88 +20,30 @@ import { Autocomplete as LocalAutocomplete } from './local/dispatch/Autocomplete
 export type { AutocompleteItem, AutocompleteProps } from './common/Autocomplete'
 
 function SharedAutocomplete({
-    items,
-    value: controlledValue,
-    defaultValue,
-    onChange,
-    placeholder = 'Type to search...',
-    label,
-    helpText,
-    errorText,
-    leadingIcon,
-    trailingIcon,
-    state = 'default',
-    layout = 'stacked',
-    layer = 'layer-0',
-    minWidth,
-    required = false,
-    optional = false,
-    labelAlign = 'left',
-    labelSize,
-    id,
-    className,
-    style,
-    disableTopBottomMargin = false,
-    zIndex,
-    mantine,
+  value,
+  defaultValue,
+  onChange,
+  placeholder = 'Type to search...',
+  ...rest
 }: AutocompleteProps) {
-    const Component = useComponent('Autocomplete')
+  const Component = useComponent('Autocomplete')
+  const [internalValue, setInternalValue] = useState(defaultValue || '')
 
-    // Generate unique ID if not provided
-    const [autocompleteId] = useState(() => id || `autocomplete-${Math.random().toString(36).substr(2, 9)}`)
-    const labelId = `${autocompleteId}-label`
-    const helpId = helpText ? `${autocompleteId}-help` : undefined
-    const errorId = errorText ? `${autocompleteId}-error` : undefined
+  const handleChange = (next: string) => {
+    if (value === undefined) setInternalValue(next)
+    onChange?.(next)
+  }
 
-    // Internal state for uncontrolled usage
-    const [internalValue, setInternalValue] = useState(defaultValue || '')
-    const currentValue = controlledValue !== undefined ? controlledValue : internalValue
-
-    const handleChange = (newValue: string) => {
-        if (controlledValue === undefined) {
-            setInternalValue(newValue)
-        }
-        onChange?.(newValue)
-    }
-
-    const topBottomMarginVar = buildComponentCssVarPath('Autocomplete', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
-
-    return (
-        <div style={{
-            marginTop: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
-            marginBottom: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
-        }}>
-            <Suspense fallback={<span />}>
-                <Component
-                    items={items}
-                    value={currentValue}
-                    onChange={handleChange}
-                    placeholder={placeholder}
-                    label={label}
-                    helpText={helpText}
-                    errorText={errorText}
-                    leadingIcon={leadingIcon}
-                    trailingIcon={trailingIcon}
-                    state={state}
-                    layout={layout}
-                    layer={layer}
-                    minWidth={minWidth}
-                    required={required}
-                    optional={optional}
-                    labelAlign={labelAlign}
-                    labelSize={labelSize}
-                    id={autocompleteId}
-                    labelId={labelId}
-                    helpId={helpId}
-                    errorId={errorId}
-                    className={className}
-                    style={style}
-                    zIndex={zIndex}
-                    mantine={mantine}
-                />
-            </Suspense>
-        </div>
-    )
+  return (
+    <Suspense fallback={<span />}>
+      <Component
+        {...rest}
+        value={value !== undefined ? value : internalValue}
+        onChange={handleChange}
+        placeholder={placeholder}
+      />
+    </Suspense>
+  )
 }
 
 // The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.

@@ -72,8 +72,14 @@ import { useVersionCheck } from '../../../core/hooks/useVersionCheck';
 // (after the static core styles above) so its :global(.mantine-*) overrides come later in the
 // cascade and win — loading it from the registry put it BEFORE core styles, so Mantine's own
 // Anchor/Button colours beat the adapter's tokens (blue links).
+//
+// @mantine/dates' own stylesheet is a required peer stylesheet of the adapter (its DatePicker
+// and TimePicker are built on @mantine/dates) — without it the calendar renders as an unstyled
+// list of day buttons. Loaded first so the adapter's overrides still win.
 if (!isLocalAdapter) {
-  void import("@recursica/adapter-mantine-v8/style.css");
+  void import("@mantine/dates/styles.css").then(
+    () => import("@recursica/adapter-mantine-v8/style.css")
+  );
 }
 
 

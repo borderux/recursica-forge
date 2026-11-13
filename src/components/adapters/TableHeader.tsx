@@ -1,8 +1,8 @@
 /**
  * TableHeader Component Adapter
- * 
- * Unified TableHeader component that renders the appropriate library implementation
- * based on the current UI kit selection.
+ *
+ * Thin dispatcher: renders the local adapter's TableHeader, or forwards props to the real adapter
+ * via useComponent('TableHeader').
  */
 
 import { Suspense } from 'react'
@@ -15,35 +15,11 @@ import { TableHeader as LocalTableHeader } from './local/dispatch/TableHeader'
 // call sites keep working — the types now live in common/TableHeader.ts.
 export type { TableHeaderProps } from './common/TableHeader'
 
-function SharedTableHeader({
-  children,
-  variant,
-  layer = 'layer-0',
-  elevation,
-  className,
-  style,
-  disabled,
-  sorted,
-  onClick,
-  mantine,
-}: TableHeaderProps) {
+function SharedTableHeader(props: TableHeaderProps) {
   const Component = useComponent('TableHeader')
-
   return (
     <Suspense fallback={<th />}>
-      <Component
-        variant={variant}
-        layer={layer}
-        elevation={elevation}
-        className={className}
-        style={style}
-        disabled={disabled}
-        sorted={sorted}
-        onClick={onClick}
-        mantine={mantine}
-      >
-        {children}
-      </Component>
+      <Component {...props} />
     </Suspense>
   )
 }

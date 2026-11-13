@@ -12,11 +12,6 @@
  * per-section `withBorder`, so per-section dividers would need per-section control this wrapper
  * has no Forge-level prop for. Dropped rather than half-wired.
  *
- * `cardLayer`/`elevationBoxShadow` are internal to the `Card` dispatcher (`adapters/Card.tsx`),
- * which computes them from the brand layer system purely to feed the box-shadow CSS variables —
- * there's no upstream prop to receive them (`boxShadow` is itself one of the adapter's blocked
- * styling keys), so they're intentionally left unforwarded here, same as before.
- *
  * `className`/`style` aren't forwarded either: the real Card is gated by `RecursicaOverStyled`
  * and ignores both unless the caller opts in with `overStyled: true` — which the `mantine`
  * escape hatch can still do (`mantine={{ overStyled: true, style: {...} }}`).

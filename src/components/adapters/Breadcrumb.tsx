@@ -1,8 +1,9 @@
 /**
  * Breadcrumb Component Adapter
- * 
- * Unified Breadcrumb component that renders the appropriate library implementation
- * based on the current UI kit selection.
+ *
+ * Thin dispatcher: renders the local adapter's Breadcrumb, or forwards props to the real
+ * adapter's via useComponent. The 5-item cap and separator/home-icon translation live in
+ * mantine/Breadcrumb/Breadcrumb.tsx.
  */
 
 import { Suspense } from 'react'
@@ -15,36 +16,11 @@ import { Breadcrumb as LocalBreadcrumb } from './local/dispatch/Breadcrumb'
 // call sites keep working — the types now live in common/Breadcrumb.ts.
 export type { BreadcrumbItem, BreadcrumbProps } from './common/Breadcrumb'
 
-function SharedBreadcrumb({
-  items,
-  separator = 'slash',
-  separatorNode,
-  showHomeIcon = false,
-  layer = 'layer-0',
-  className,
-  style,
-  mantine,
-}: BreadcrumbProps) {
+function SharedBreadcrumb(props: BreadcrumbProps) {
   const Component = useComponent('Breadcrumb')
-
-  // Limit to 5 items maximum
-  const limitedItems = items.slice(0, 5)
-
-  // Map unified props to library-specific props
-  const libraryProps = {
-    items: limitedItems,
-    separator,
-    separatorNode,
-    showHomeIcon,
-    layer,
-    className,
-    style,
-    mantine,
-  }
-
   return (
     <Suspense fallback={<span />}>
-      <Component {...libraryProps} />
+      <Component {...props} />
     </Suspense>
   )
 }

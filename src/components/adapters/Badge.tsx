@@ -1,8 +1,8 @@
 /**
  * Badge Component Adapter
- * 
- * Unified Badge component that renders the appropriate library implementation
- * based on the current UI kit selection.
+ *
+ * Thin dispatcher: renders the local adapter's Badge, or forwards props to the real
+ * adapter's via useComponent.
  */
 
 import { Suspense } from 'react'
@@ -15,31 +15,11 @@ import { Badge as LocalBadge } from './local/dispatch/Badge'
 // call sites keep working — the types now live in common/Badge.ts.
 export type { BadgeProps } from './common/Badge'
 
-function SharedBadge({
-  children,
-  variant = 'primary-color',
-  size,
-  layer = 'layer-0',
-  elevation,
-  className,
-  style,
-  mantine,
-}: BadgeProps) {
+function SharedBadge(props: BadgeProps) {
   const Component = useComponent('Badge')
-
   return (
     <Suspense fallback={<span />}>
-      <Component
-        variant={variant}
-        size={size}
-        layer={layer}
-        elevation={elevation}
-        className={className}
-        style={style}
-        mantine={mantine}
-      >
-        {children}
-      </Component>
+      <Component {...props} />
     </Suspense>
   )
 }
