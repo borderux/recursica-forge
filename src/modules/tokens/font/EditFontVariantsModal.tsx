@@ -9,6 +9,7 @@ import { iconNameToReactComponent } from '../../components/iconUtils'
 import { Modal } from '../../../components/adapters/Modal'
 import { genericLayerProperty, genericLayerText } from '../../../core/css/cssVarBuilder'
 import { sanitizeGoogleFontsUrl } from '../../type/fontUtils'
+import { isGoogleFontsCssUrl } from '../../../core/utils/googleFontsUrl'
 
 export type EditFontVariantsModalProps = {
   open: boolean
@@ -367,7 +368,7 @@ export function EditFontVariantsModal({
   const handleAccept = () => {
     // Only require Google Fonts URL if we're actually editing variants for a Google Font
     // Allow sequence changes without requiring a URL
-    const isGoogleFont = currentUrl && currentUrl.includes('fonts.googleapis.com')
+    const isGoogleFont = isGoogleFontsCssUrl(currentUrl)
 
     // Only require variants selection if we're editing a Google Font
     // For custom fonts or sequence-only changes, allow saving without variants
@@ -485,7 +486,7 @@ export function EditFontVariantsModal({
       onSecondaryAction={handleClose}
       showFooter={true}
       scrollable={true}
-      primaryActionDisabled={Boolean(loading || (currentUrl && currentUrl.includes('fonts.googleapis.com') && selectedCombos.size === 0))}
+      primaryActionDisabled={Boolean(loading || (isGoogleFontsCssUrl(currentUrl) && selectedCombos.size === 0))}
       secondaryActionDisabled={loading}
     >
       <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_general_md)' }}>

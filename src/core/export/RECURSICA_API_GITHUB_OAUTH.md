@@ -97,6 +97,31 @@ If your `redirect_uri` already contains a query string, the server appends `&acc
 
 Again, if `redirect_uri` already has query params, the server uses `&error=...`.
 
+### How Forge reads the callback
+
+Forge does not read the token in React. `public/auth-callback.js` runs first, before Google
+Analytics, moves `access_token` (from the query string or the `#` fragment) into sessionStorage,
+and removes it from the address bar. This keeps the token out of analytics page views and
+browser history. `AuthCallbackPage` then accepts the token only if this tab started the sign-in
+(a mark set in sessionStorage by `startGitHubOAuth`), so a link to `/auth/callback?access_token=...`
+from someone else is ignored. The token is kept in sessionStorage for at most 8 hours.
+
+### Server changes still needed
+
+These cannot be fixed in Forge alone:
+
+1. **Return the token in the fragment** (`<redirect_uri>#access_token=...`) instead of the query
+   string, or return a one-time code that the app exchanges with a POST. Query strings reach
+   server logs and analytics; fragments are never sent to a server. Forge already reads both.
+2. **Check GitHub's `state` parameter** on the server's own callback, and accept a `state` from
+   the app on `/authorize` to send back on the redirect.
+3. **Revoke on logout.** Add an endpoint that calls `DELETE /applications/{client_id}/grant`.
+   Revoking needs the OAuth client secret, so the browser cannot do it.
+4. **Narrow the scope.** `repo` is write access to every repository the user can reach. A GitHub
+   App with fine-grained, per-repository, expiring user tokens would limit this.
+5. **Sandbox PRs.** `/api/sandbox/create-pr` receives the user's full `repo` token only to know
+   who they are. It should not need write access to the user's own repositories.
+
 ### Reading the result on your callback page
 
 On the page that serves `redirect_uri` (e.g. `/auth/callback`):

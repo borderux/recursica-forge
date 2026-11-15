@@ -66,6 +66,7 @@ import {
 
 import { useSaveReminder } from '../../../core/hooks/useSaveReminder';
 import { useVersionCheck } from '../../../core/hooks/useVersionCheck';
+import { sameOriginPath } from '../utils/sameOriginPath';
 
 export default function MantineShell({
   children,
@@ -138,7 +139,7 @@ export default function MantineShell({
     if (urlMode) {
       params.delete('mode');
       const cleanSearch = params.toString();
-      navigate(location.pathname + (cleanSearch ? `?${cleanSearch}` : ''), { replace: true });
+      navigate(sameOriginPath(location.pathname) + (cleanSearch ? `?${cleanSearch}` : ''), { replace: true });
     }
 
     // Handle hidden /random route trigger from Navigate state
@@ -146,7 +147,7 @@ export default function MantineShell({
       setShowRandomizeModal(true);
       const newState = { ...location.state } as any;
       delete newState.showRandom;
-      navigate(location.pathname + location.search, { replace: true, state: Object.keys(newState).length > 0 ? newState : undefined });
+      navigate(sameOriginPath(location.pathname) + location.search, { replace: true, state: Object.keys(newState).length > 0 ? newState : undefined });
     }
   }, [location.search, location.state, location.pathname, mode, navigate, setMode]);
 

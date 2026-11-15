@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
+import { playwright } from '@vitest/browser-playwright'
+import { schemaValidators } from './vite-plugins/schema-validators'
 
 /**
  * Browser test config — component RENDER tests only.
@@ -11,13 +13,13 @@ import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
  * (Playwright Chromium), where rendering behaves normally.
  *
  * Run:   npm run test:browser
- * Setup: npm i -D @vitest/browser playwright && npx playwright install chromium
+ * Setup: npx playwright install chromium
  *
  * This is intentionally SEPARATE from the CI gate (`npm run test`) so it never blocks shipping.
  * Enable it in CI only once the suite is green locally (see .github/workflows/browser-tests.yml).
  */
 export default defineConfig({
-  plugins: [react(), vanillaExtractPlugin()],
+  plugins: [react(), vanillaExtractPlugin(), schemaValidators()],
   test: {
     globals: true,
     setupFiles: ['./vitest.browser.setup.ts'],
@@ -28,7 +30,7 @@ export default defineConfig({
     testTimeout: 30000,
     browser: {
       enabled: true,
-      provider: 'playwright',
+      provider: playwright(),
       headless: true,
       instances: [{ browser: 'chromium' }],
     },

@@ -62,25 +62,42 @@ export interface GitHubFileContent {
   sha?: string;
 }
 
+/** Tokens older than this are dropped and the user signs in again. */
+const AUTH_MAX_AGE_MS = 8 * 60 * 60 * 1000;
+
 /**
- * Stores GitHub authentication token in localStorage
+ * Stores the GitHub token in sessionStorage, so it ends with the tab instead of living on disk.
  */
 export function storeAuth(auth: GitHubAuth): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
   } catch (error) {
     throw new Error("Failed to store GitHub authentication");
   }
 }
 
 /**
- * Retrieves GitHub authentication token from localStorage
+ * Retrieves the GitHub token, or null when there is none or it has expired.
  */
 export function getStoredAuth(): GitHubAuth | null {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    // Older builds kept the token in localStorage with no expiry. Remove it.
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Ignore errors
+  }
+  try {
+    const stored = sessionStorage.getItem(STORAGE_KEY);
     if (!stored) return null;
     const auth = JSON.parse(stored) as GitHubAuth;
+    if (
+      typeof auth?.accessToken !== "string" ||
+      typeof auth.storedAt !== "number" ||
+      Date.now() - auth.storedAt > AUTH_MAX_AGE_MS
+    ) {
+      sessionStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
     return auth;
   } catch {
     return null;
@@ -88,10 +105,12 @@ export function getStoredAuth(): GitHubAuth | null {
 }
 
 /**
- * Removes GitHub authentication token from localStorage
+ * Removes the GitHub token from this browser. The token itself stays valid on GitHub until the
+ * user revokes the app there; revoking needs the OAuth client secret, so it has to be done server side.
  */
 export function clearAuth(): void {
   try {
+    sessionStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_KEY);
   } catch {
     // Ignore errors
@@ -281,7 +300,7 @@ async function getFileSha(
     const response = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(
         path,
-      )}?ref=${branch}`,
+      )}?ref=${encodeURIComponent(branch)}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -328,7 +347,7 @@ export async function getFileContent(
     const response = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(
         path,
-      )}?ref=${branch}`,
+      )}?ref=${encodeURIComponent(branch)}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -10,15 +10,9 @@
  */
 
 import { expandLayers } from '../uikit/expandLayers'
-import Ajv from 'ajv'
-import addFormats from 'ajv-formats'
-import brandSchema from '../../../schemas/brand.schema.json'
-import tokensSchema from '../../../schemas/tokens.schema.json'
-import uikitSchema from '../../../schemas/uikit.schema.json'
+import { validateBrand, validateTokens, validateUikit } from './schemaValidators'
 import type { JsonLike } from '../resolvers/tokens'
 
-const ajv = new Ajv({ allErrors: true, strict: false })
-addFormats(ajv)
 
 // DTCG v2025.10 defined token types
 const DTCG_STANDARD_TYPES = new Set([
@@ -126,7 +120,7 @@ function filterCriticalErrors(errors: any[] | null | undefined): any[] {
  * Validates recursica_brand.json against its schema
  */
 export function validateBrandJson(brandJson: JsonLike): void {
-  const validate = ajv.compile(brandSchema)
+  const validate = validateBrand
   const valid = validate(brandJson)
 
   if (!valid && validate.errors) {
@@ -148,7 +142,7 @@ export function validateBrandJson(brandJson: JsonLike): void {
  * Validates recursica_tokens.json against its schema
  */
 export function validateTokensJson(tokensJson: JsonLike): void {
-  const validate = ajv.compile(tokensSchema)
+  const validate = validateTokens
   const valid = validate(tokensJson)
 
   if (!valid && validate.errors) {
@@ -437,7 +431,7 @@ export function validateUIKitComponentExtensions(uikitJson: JsonLike): void {
  * Validates recursica_ui-kit.json against its schema
  */
 export function validateUIKitJson(uikitJson: JsonLike): void {
-  const validate = ajv.compile(uikitSchema)
+  const validate = validateUikit
   const valid = validate(uikitJson)
 
   if (!valid && validate.errors) {

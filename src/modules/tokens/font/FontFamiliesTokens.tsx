@@ -25,6 +25,7 @@ import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../../components/utils/brandCssVars'
 import { readCssVarResolved } from '../../../core/css/readCssVar'
 import tokensImport from '../../../../recursica_tokens.json'
+import { isGoogleFontsCssUrl } from '../../../core/utils/googleFontsUrl'
 
 type FamilyRow = { name: string; value: string; position: number }
 
@@ -293,7 +294,7 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
           }
 
           // Register the URL in fontUtils' map so ensureFontLoaded can find it.
-          if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
+          if (isGoogleFontsCssUrl(url)) {
             const { setFontUrl } = await import('../../type/fontUtils')
             setFontUrl(cleanFontName, url)
           }
@@ -1101,7 +1102,7 @@ export default function FontFamiliesTokens() {
                 variant="outline"
                 size="default"
                 layer="layer-1"
-                onClick={() => window.open('https://fonts.google.com', '_blank')}
+                onClick={() => window.open('https://fonts.google.com', '_blank', 'noopener,noreferrer')}
                 icon={(() => {
                   const GoogleIcon = iconNameToReactComponent('google-logo')
                   return GoogleIcon ? <GoogleIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
@@ -1211,7 +1212,7 @@ export default function FontFamiliesTokens() {
               }
 
               // Only update URL if provided (custom fonts don't have URLs)
-              if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
+              if (isGoogleFontsCssUrl(url)) {
                 if (!typefaces[fontSlug].$extensions['com.google.fonts']) {
                   typefaces[fontSlug].$extensions['com.google.fonts'] = {}
                 }
@@ -1239,13 +1240,13 @@ export default function FontFamiliesTokens() {
               store.setTokensSilent(tokens)
 
               // Update fontUrlMap with the new URL
-              if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
+              if (isGoogleFontsCssUrl(url)) {
                 const { populateFontUrlMapFromTokens } = await import('../../type/fontUtils')
                 populateFontUrlMapFromTokens(tokens)
               }
 
               // Reload font with new URL (only if URL was provided)
-              if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
+              if (isGoogleFontsCssUrl(url)) {
                 const fontName = editModalRow.value.trim().replace(/^["']|["']$/g, '')
                 if (fontName) {
                   // Remove old link

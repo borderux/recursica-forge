@@ -195,6 +195,8 @@ function applyStringRules(data: any): any {
   if (typeof data === 'object') {
     const migrated: any = {}
     for (const [key, value] of Object.entries(data)) {
+      // `migrated['__proto__'] = x` would set the prototype instead of copying a key.
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue
       migrated[key] = applyStringRules(value)
     }
     return migrated

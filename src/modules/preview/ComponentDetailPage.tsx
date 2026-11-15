@@ -336,7 +336,7 @@ export default function ComponentDetailPage() {
         <Button
           variant="outline"
           size="small"
-          onClick={() => window.open(component.url, '_blank')}
+          onClick={() => window.open(component.url, '_blank', 'noopener,noreferrer')}
           icon={(() => {
             const FileTextIcon = iconNameToReactComponent('document-text')
             return FileTextIcon ? <FileTextIcon style={{ width: 16, height: 16 }} /> : null

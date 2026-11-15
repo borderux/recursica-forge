@@ -8,6 +8,7 @@ import { iconNameToReactComponent } from '../../components/iconUtils'
 import { ensureFontLoaded, getActualFontFamilyName, getCachedFontFamilyName, sanitizeGoogleFontsUrl } from '../../type/fontUtils'
 import { Modal } from '../../../components/adapters/Modal'
 import { genericLayerProperty, genericLayerText } from '../../../core/css/cssVarBuilder'
+import { isGoogleFontsCssUrl } from '../../../core/utils/googleFontsUrl'
 
 export type GoogleFontsModalProps = {
   open: boolean
@@ -212,6 +213,9 @@ export function GoogleFontsModal({
 
   // Load font from Google Fonts URL
   const loadGoogleFontFromUrl = async (url: string, selectedFontName?: string): Promise<string> => {
+    if (!isGoogleFontsCssUrl(url)) {
+      throw new Error('Only https://fonts.googleapis.com URLs can be loaded')
+    }
     const extractedNames = extractFontNamesFromGoogleUrl(url)
     if (extractedNames.length === 0) {
       throw new Error('Could not extract font family name from URL')
@@ -308,8 +312,8 @@ export function GoogleFontsModal({
         }
 
         // Validate it's a Google Fonts URL
-        if (!googleFontsUrl.includes('fonts.googleapis.com')) {
-          setError('Please enter a valid Google Fonts URL (fonts.googleapis.com)')
+        if (!isGoogleFontsCssUrl(googleFontsUrl)) {
+          setError('Please enter a valid Google Fonts URL (https://fonts.googleapis.com/...)')
           setLoading(false)
           return
         }
@@ -616,7 +620,7 @@ export function GoogleFontsModal({
                         setGoogleFontsUrl(url)
                         setError('')
                         // Extract available fonts when URL changes
-                        if (url.includes('fonts.googleapis.com')) {
+                        if (isGoogleFontsCssUrl(url)) {
                           const fonts = extractFontNamesFromGoogleUrl(url)
                           setAvailableFonts(fonts)
                           setSelectedFontIndex(0)
