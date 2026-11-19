@@ -5,6 +5,10 @@ import { watchToolbarIcons } from './vite-plugins/watch-toolbar-icons';
 import { copy404Html } from './vite-plugins/copy-404';
 import { copyUIKit } from './vite-plugins/copy-uikit';
 // https://vitejs.dev/config/
+/** See test.poolOptions below. */
+const NODE_WEBSTORAGE_OFF = process.allowedNodeEnvironmentFlags.has('--experimental-webstorage')
+    ? ['--no-experimental-webstorage']
+    : [];
 export default defineConfig({
     base: '/', // Custom domain, so base is root
     plugins: [react(), vanillaExtractPlugin(), watchToolbarIcons(), copy404Html(), copyUIKit()],
@@ -27,6 +31,14 @@ export default defineConfig({
         setupFiles: ['./vitest.setup.ts'],
         globals: true,
         testTimeout: 30000,
+        // Node 25 enables its own browser-style localStorage global by default. It wins over
+        // happy-dom's, and without --localstorage-file it has no setItem, so every test file
+        // crashed in vitest.setup.ts. Turn it off in the test workers wherever this Node knows
+        // the flag (Node 20, used in CI, doesn't, and would reject it).
+        poolOptions: {
+            forks: { execArgv: NODE_WEBSTORAGE_OFF },
+            threads: { execArgv: NODE_WEBSTORAGE_OFF },
+        },
         exclude: [
             ...configDefaults.exclude,
             'src/components/adapters/__tests__/**',

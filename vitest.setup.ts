@@ -2,8 +2,8 @@ import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 import { configure, cleanup as rtlCleanup } from '@testing-library/react'
 
-// The existing adapter tests exercise the real @recursica/adapter-mantine-v8 wrappers, so default
-// tests to that adapter (the app itself defaults to 'local'). Tests of the local adapter set
+// The existing adapter tests exercise the real @recursica/adapter-mantine-v8 wrappers, so pin
+// tests to that adapter (also the app's default). Tests of the local adapter set
 // the key themselves — see components/registry/activeAdapter.test.ts.
 window.localStorage.setItem('recursica:mantine-adapter', 'mantine')
 

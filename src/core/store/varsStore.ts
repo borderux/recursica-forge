@@ -2984,7 +2984,7 @@ class VarsStore {
       this.lastComputedVars = { ...allVars }
 
       if (typeof document !== 'undefined') {
-        updateScopedCss(allVars)
+        updateScopedCss(allVars, this.state.uikit)
         setThemeAttribute(currentMode === 'dark' ? 'dark' : 'light')
       }
     } finally {

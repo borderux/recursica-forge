@@ -8,6 +8,7 @@
 import type { JsonLike } from './tokens'
 import { buildTokenIndex } from './tokens'
 import { resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../utils/tokenReferenceParser'
+import { typographySubVars } from '../css/typographySubVars'
 
 /**
  * Converts a recursica_ui-kit.json path to a CSS variable name
@@ -217,6 +218,8 @@ function traverseUIKit(
           // Not a brace reference, use as-is
           vars[cssVarName] = trimmed
         }
+        // Per-property companions (`<name>_fontFamily`, …) that the adapter and export read.
+        Object.assign(vars, typographySubVars(cssVarName, vars[cssVarName]) ?? {})
       } else if (type === 'variant' && typeof val === 'string') {
         // Handle variant type: extract the variant name from the reference path
         // e.g., {ui-kit.components.button.variants.styles.solid} -> "solid"

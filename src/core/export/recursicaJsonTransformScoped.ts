@@ -1140,7 +1140,7 @@ function contractPropertyIds(node: unknown, path: string[] = [], out: string[] =
  * JSON key); data-recursica-<state> marks a state. There are no defaults: an unset attribute matches
  * no rule. Each property has one owner, so only states override, and those come last in priority order.
  */
-function renderComponentContracts(uikitDoc: unknown): string {
+export function renderComponentContracts(uikitDoc: unknown): string {
   const components = (uikitDoc as any)?.['ui-kit']?.components ?? (uikitDoc as any)?.components
   if (!isContractNode(components)) return ''
   let out = ''

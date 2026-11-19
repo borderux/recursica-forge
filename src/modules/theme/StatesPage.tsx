@@ -329,17 +329,17 @@ export default function StatesPage() {
     const Underline = iconNameToReactComponent('radix-underline')
     const Strike = iconNameToReactComponent('radix-strikethrough')
     return [
-      { value: 'none', label: 'None', icon: None ? <None size={16} /> : null, tooltip: 'None' },
-      { value: 'underline', label: 'Underline', icon: Underline ? <Underline size={16} /> : null, tooltip: 'Underline' },
-      { value: 'line-through', label: 'Line through', icon: Strike ? <Strike size={16} /> : null, tooltip: 'Line through' },
+      { value: 'none', label: 'None', icon: None ? <None size={16} /> : null },
+      { value: 'underline', label: 'Underline', icon: Underline ? <Underline size={16} /> : null },
+      { value: 'line-through', label: 'Line through', icon: Strike ? <Strike size={16} /> : null },
     ]
   })()
   const linkStyleOptions = (() => {
     const Roman = iconNameToReactComponent('radix-font-roman')
     const Italic = iconNameToReactComponent('radix-font-italic')
     return [
-      { value: 'normal', label: 'Normal', icon: Roman ? <Roman size={16} /> : null, tooltip: 'Normal' },
-      { value: 'italic', label: 'Italic', icon: Italic ? <Italic size={16} /> : null, tooltip: 'Italic' },
+      { value: 'normal', label: 'Normal', icon: Roman ? <Roman size={16} /> : null },
+      { value: 'italic', label: 'Italic', icon: Italic ? <Italic size={16} /> : null },
     ]
   })()
   // Named font weights for the discrete Link-weight slider (like the type-style panel).

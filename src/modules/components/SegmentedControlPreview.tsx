@@ -41,25 +41,21 @@ export default function SegmentedControlPreview({
       value: 'option1',
       label: 'Forge',
       icon: Icon1 ? <Icon1 size={16} /> : undefined,
-      tooltip: 'Forge',
     },
     {
       value: 'option2',
       label: 'Mines',
       icon: Icon2 ? <Icon2 size={16} /> : undefined,
-      tooltip: 'Mines',
     },
     {
       value: 'option3',
       label: 'Armory',
       icon: Icon3 ? <Icon3 size={16} /> : undefined,
-      tooltip: 'Armory',
     },
     {
       value: 'option4',
       label: 'Treasury',
       icon: Icon4 ? <Icon4 size={16} /> : undefined,
-      tooltip: 'Treasury',
     },
   ], [Icon1, Icon2, Icon3, Icon4])
 
@@ -68,22 +64,18 @@ export default function SegmentedControlPreview({
     {
       value: 'option1',
       label: 'Forge',
-      tooltip: 'Forge',
     },
     {
       value: 'option2',
       label: 'Mines',
-      tooltip: 'Mines',
     },
     {
       value: 'option3',
       label: 'Armory',
-      tooltip: 'Armory',
     },
     {
       value: 'option4',
       label: 'Treasury',
-      tooltip: 'Treasury',
     },
   ], [])
 
@@ -93,25 +85,21 @@ export default function SegmentedControlPreview({
       value: 'option1',
       label: 'Forge',
       icon: Icon1 ? <Icon1 size={16} /> : undefined,
-      tooltip: 'Forge',
     },
     {
       value: 'option2',
       label: 'Mines',
       icon: Icon2 ? <Icon2 size={16} /> : undefined,
-      tooltip: 'Mines',
     },
     {
       value: 'option3',
       label: 'Armory',
       icon: Icon3 ? <Icon3 size={16} /> : undefined,
-      tooltip: 'Armory',
     },
     {
       value: 'option4',
       label: 'Treasury',
       icon: Icon4 ? <Icon4 size={16} /> : undefined,
-      tooltip: 'Treasury',
     },
   ], [Icon1, Icon2, Icon3, Icon4])
 

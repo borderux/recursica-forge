@@ -4,9 +4,14 @@
  * @recursica/adapter-mantine-v8's SegmentedControl takes Mantine's `data` array, not Forge's
  * `items`. This wrapper is the one place that translates between the two shapes.
  *
- * `showLabel`, `componentNameForCssVars` and `selectionState` have no upstream equivalent —
- * upstream's selected-segment styling is entirely token-driven — so they're simply not
- * forwarded, the same way an adapter gap is dropped for any other component.
+ * `showLabel` maps onto the real `hideLabels` (2026-11, upstreamed in adapter-mantine-v8
+ * 1.7.0): `showLabel={false}` → `hideLabels`, which renders icon-only segments and uses each
+ * item's required `label` as the radio's accessible name and as a hover/keyboard-focus
+ * tooltip. Upstream throws if an item has no icon or an empty label in that mode.
+ *
+ * `componentNameForCssVars` and `selectionState` have no upstream equivalent — upstream's
+ * selected-segment styling is entirely token-driven — so they're simply not forwarded, the
+ * same way an adapter gap is dropped for any other component.
  *
  * `disabled` (whole-control) (2026-08, upstreamed — see
  * `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md` #8): the real type now has a genuine top-level
@@ -17,8 +22,7 @@
  * composed together with `label` by the real component itself (using its own icon-size/gap
  * tokens) rather than Forge having to inline one ReactNode into `label` by hand. Previously
  * that forced an either/or choice — an item with both `icon` and `label` only ever showed the
- * label once `showLabel` was true, silently dropping the icon — unlike Material/Carbon, which
- * have always shown both together. Now consistent across all three kits.
+ * label once `showLabel` was true, silently dropping the icon.
  *
  * `className`/`style` aren't forwarded either: the adapter styles itself purely from tokens
  * and ignores both unless the caller opts in with `overStyled: true` — which the `mantine`
@@ -41,17 +45,12 @@ export default React.forwardRef<any, SegmentedControlAdapterProps>(function Segm
   showLabel = true,
   mantine,
 }, ref) {
-  const data = items.map((item) => {
-    const label = showLabel === false ? undefined : (item.label ?? item.value)
-    return {
-      value: item.value,
-      icon: item.icon,
-      // Fall back to the raw value as text only when there's neither a label to show nor an
-      // icon to show instead — otherwise the segment would render nothing at all.
-      label: label ?? (item.icon ? undefined : item.value),
-      disabled: item.disabled,
-    }
-  })
+  const data = items.map((item) => ({
+    value: item.value,
+    label: item.label,
+    icon: item.icon,
+    disabled: item.disabled,
+  }))
 
   return (
     <MantineSegmentedControl
@@ -62,15 +61,15 @@ export default React.forwardRef<any, SegmentedControlAdapterProps>(function Segm
       orientation={orientation}
       fullWidth={fullWidth}
       disabled={disabled}
+      hideLabels={!showLabel}
       {...mantine}
       ref={ref}
     />
   )
 })
 
-// `items` is reshaped into `data` above, not forwarded raw. `showLabel` never arrives
-// (stripped by FORGE_ONLY_PROPS before this wrapper runs) — its icon-only branch above only
-// ever sees its own `= true` default for that reason. `disabled` is no longer excluded — it's
+// `items` is reshaped into `data` above, not forwarded raw. `showLabel` is translated onto
+// `hideLabels` (inverted), so it has no same-name counterpart. `disabled` is no longer excluded — it's
 // a direct same-name pass-through now (see header). `layer`/`elevation`/
 // `componentNameForCssVars`/`selectionState` never arrive (FORGE_ONLY_PROPS). `className`/
 // `style` aren't forwarded — see the header comment.

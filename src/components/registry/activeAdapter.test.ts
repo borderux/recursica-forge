@@ -13,17 +13,17 @@ describe('activeAdapter', () => {
     window.history.replaceState({}, '', '/')
   })
 
-  it('defaults to the local adapter', async () => {
-    const m = await load()
-    expect(m.getMantineAdapter()).toBe('local')
-    expect(m.isLocalAdapter).toBe(true)
-  })
-
-  it('reads a stored choice', async () => {
-    window.localStorage.setItem(KEY, 'mantine')
+  it('defaults to the published mantine adapter', async () => {
     const m = await load()
     expect(m.getMantineAdapter()).toBe('mantine')
     expect(m.isLocalAdapter).toBe(false)
+  })
+
+  it('reads a stored choice', async () => {
+    window.localStorage.setItem(KEY, 'local')
+    const m = await load()
+    expect(m.getMantineAdapter()).toBe('local')
+    expect(m.isLocalAdapter).toBe(true)
   })
 
   it('lets ?adapter= win and remembers it', async () => {
@@ -37,6 +37,6 @@ describe('activeAdapter', () => {
   it('ignores unknown values', async () => {
     window.localStorage.setItem(KEY, 'bogus')
     const m = await load()
-    expect(m.getMantineAdapter()).toBe('local')
+    expect(m.getMantineAdapter()).toBe('mantine')
   })
 })

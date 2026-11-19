@@ -2,8 +2,8 @@
  * Active Mantine adapter
  *
  * The Mantine shell can render its components from one of two implementations:
- *   - 'local':   Forge's own Mantine-based adapter (src/components/adapters/local). Default.
- *   - 'mantine': the published @recursica/adapter-mantine-v8 package.
+ *   - 'mantine': the published @recursica/adapter-mantine-v8 package. Default.
+ *   - 'local':   Forge's own Mantine-based adapter (src/components/adapters/local).
  *
  * The choice is read once, synchronously, at module load and is fixed for the life of the
  * page. Changing it reloads the page: each adapter ships global CSS that cannot be unloaded,
@@ -28,7 +28,7 @@ function read(): MantineAdapter {
   } catch {
     // No window/localStorage (SSR, locked-down storage): fall through to the default.
   }
-  return 'local'
+  return 'mantine'
 }
 
 const active: MantineAdapter = read()

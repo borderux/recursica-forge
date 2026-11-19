@@ -8,9 +8,12 @@
  * - :root holds all vars with specific (full-path) names
  * - Theme selectors set generic (short) aliases → var(specificNameOnRoot)
  * - Consumer code reads generic names; cascade resolves the theme/layer
+ * - Component contract rules (shared with the export) point each component's stable
+ *   `..._properties_*` names at the variant its data-recursica-* attributes select
  */
 
 import type { CssVarMap } from './apply'
+import { renderComponentContracts } from '../export/recursicaJsonTransformScoped'
 
 const STYLE_ID = 'recursica-scoped'
 const PREFIX = '--recursica_'
@@ -153,7 +156,7 @@ function aliasesFor(specificName: string): ScopedAlias[] {
 /**
  * Generates the CSS text for scoped alias blocks.
  */
-function generateScopedCss(allSpecificVars: CssVarMap): string {
+function generateScopedCss(allSpecificVars: CssVarMap, uikit?: unknown): string {
   // Collect aliases by scope
   const themeOnly: Map<string, ScopedAlias[]> = new Map()
   const themePlusLayer: Map<string, ScopedAlias[]> = new Map()
@@ -199,6 +202,13 @@ function generateScopedCss(allSpecificVars: CssVarMap): string {
     }
   }
 
+  // Component contracts: the published adapter reads only the stable
+  // `--recursica_ui-kit_components_<c>_properties_*` names and selects the variant with
+  // data-recursica-<axis> attributes. These rules are the same ones the export writes, so the
+  // live preview and an exported theme resolve identically. They alias the generic variant
+  // names emitted above, so like the rest of this sheet they carry names, never values.
+  if (uikit != null) css += renderComponentContracts(uikit)
+
   return css
 }
 
@@ -238,8 +248,11 @@ let lastSignature: string | null = null
  * regenerated only when the SET OF NAMES changes — a variant or component being added or
  * removed — which makes an ordinary prop edit cost one hash instead of rebuilding ~1MB of
  * CSS and reparsing it.
+ *
+ * `uikit` is the expanded ui-kit JSON, used for the component contract rules. Its variant
+ * structure is what produces the variant var names, so the name-set signature covers it too.
  */
-export function updateScopedCss(allSpecificVars: CssVarMap): void {
+export function updateScopedCss(allSpecificVars: CssVarMap, uikit?: unknown): void {
   let styleEl = document.getElementById(STYLE_ID) as HTMLStyleElement | null
   if (!styleEl) {
     styleEl = document.createElement('style')
@@ -250,7 +263,7 @@ export function updateScopedCss(allSpecificVars: CssVarMap): void {
   const signature = nameSetSignature(allSpecificVars)
   if (signature === lastSignature && styleEl.textContent) return
 
-  styleEl.textContent = generateScopedCss(allSpecificVars)
+  styleEl.textContent = generateScopedCss(allSpecificVars, uikit)
   lastSignature = signature
 }
 

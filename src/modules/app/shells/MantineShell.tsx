@@ -551,6 +551,7 @@ export default function MantineShell({
               const modeItems: SegmentedControlItem[] = [
                 {
                   value: "light",
+                  label: "Light theme",
                   icon: SunIcon ? (
                     <SunIcon
                       style={{
@@ -559,10 +560,10 @@ export default function MantineShell({
                       }}
                     />
                   ) : undefined,
-                  tooltip: "Light theme",
                 },
                 {
                   value: "dark",
+                  label: "Dark theme",
                   icon: MoonIcon ? (
                     <MoonIcon
                       style={{
@@ -571,7 +572,6 @@ export default function MantineShell({
                       }}
                     />
                   ) : undefined,
-                  tooltip: "Dark theme",
                 },
               ];
               return (
@@ -589,6 +589,7 @@ export default function MantineShell({
                     fullWidth={false}
                     layer='layer-0'
                     componentNameForCssVars='SegmentedControl'
+                    showLabel={false}
                   />
                 </div>
               );

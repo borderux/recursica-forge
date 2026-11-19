@@ -594,9 +594,9 @@ export default function TextStyleToolbar({
     const UnderlineIcon = iconNameToReactComponent('radix-underline')
     const StrikethroughIcon = iconNameToReactComponent('radix-strikethrough')
     return [
-      { value: 'none', label: 'None', icon: NoneIcon ? <NoneIcon size={16} /> : null, tooltip: 'None' },
-      { value: 'underline', label: 'Underline', icon: UnderlineIcon ? <UnderlineIcon size={16} /> : null, tooltip: 'Underline' },
-      { value: 'line-through', label: 'Line Through', icon: StrikethroughIcon ? <StrikethroughIcon size={16} /> : null, tooltip: 'Line Through' },
+      { value: 'none', label: 'None', icon: NoneIcon ? <NoneIcon size={16} /> : null },
+      { value: 'underline', label: 'Underline', icon: UnderlineIcon ? <UnderlineIcon size={16} /> : null },
+      { value: 'line-through', label: 'Line Through', icon: StrikethroughIcon ? <StrikethroughIcon size={16} /> : null },
     ]
   }, [])
 
@@ -607,10 +607,10 @@ export default function TextStyleToolbar({
     const LowercaseIcon = iconNameToReactComponent('radix-letter-case-lowercase')
     const CapitalizeIcon = iconNameToReactComponent('radix-letter-case-capitalize')
     return [
-      { value: 'none', label: 'Original', icon: TextNoneIcon ? <TextNoneIcon size={16} /> : null, tooltip: 'Original' },
-      { value: 'uppercase', label: 'Uppercase', icon: UppercaseIcon ? <UppercaseIcon size={16} /> : null, tooltip: 'Uppercase' },
-      { value: 'lowercase', label: 'Lowercase', icon: LowercaseIcon ? <LowercaseIcon size={16} /> : null, tooltip: 'Lowercase' },
-      { value: 'titlecase', label: 'Capitalize', icon: CapitalizeIcon ? <CapitalizeIcon size={16} /> : null, tooltip: 'Capitalize' },
+      { value: 'none', label: 'Original', icon: TextNoneIcon ? <TextNoneIcon size={16} /> : null },
+      { value: 'uppercase', label: 'Uppercase', icon: UppercaseIcon ? <UppercaseIcon size={16} /> : null },
+      { value: 'lowercase', label: 'Lowercase', icon: LowercaseIcon ? <LowercaseIcon size={16} /> : null },
+      { value: 'titlecase', label: 'Capitalize', icon: CapitalizeIcon ? <CapitalizeIcon size={16} /> : null },
     ]
   }, [])
 
@@ -620,8 +620,8 @@ export default function TextStyleToolbar({
     const ItalicIcon = iconNameToReactComponent('radix-font-italic')
 
     const allOptions = [
-      { value: 'normal', label: 'Normal', icon: RomanIcon ? <RomanIcon size={16} /> : null, tooltip: 'Normal' },
-      { value: 'italic', label: 'Italic', icon: ItalicIcon ? <ItalicIcon size={16} /> : null, tooltip: 'Italic' },
+      { value: 'normal', label: 'Normal', icon: RomanIcon ? <RomanIcon size={16} /> : null },
+      { value: 'italic', label: 'Italic', icon: ItalicIcon ? <ItalicIcon size={16} /> : null },
     ]
 
     // Filter based on available styles for the current font

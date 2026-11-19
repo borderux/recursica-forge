@@ -276,13 +276,11 @@ export default function IconGroupToolbar({
                 value: 'start',
                 label: 'Start',
                 icon: StartIconComp ? React.createElement(StartIconComp, { size: 16 }) : undefined,
-                tooltip: 'Start'
               },
               {
                 value: 'end',
                 label: 'End',
                 icon: EndIconComp ? React.createElement(EndIconComp, { size: 16 }) : undefined,
-                tooltip: 'End'
               }
             ]}
             value={String(iconPositionValue) || 'end'}

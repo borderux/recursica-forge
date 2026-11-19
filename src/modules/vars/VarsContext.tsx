@@ -113,6 +113,11 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
   return <VarsContext.Provider value={value}>{children}</VarsContext.Provider>
 }
 
+/** Like useVars, but returns undefined outside a VarsProvider instead of throwing. */
+export function useOptionalVars(): VarsContextValue | undefined {
+  return useContext(VarsContext)
+}
+
 export function useVars(): VarsContextValue {
   const ctx = useContext(VarsContext)
   if (!ctx) throw new Error('useVars must be used within VarsProvider')

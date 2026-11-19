@@ -5,10 +5,12 @@
  * when that adapter is active.
  */
 
-import { ReactNode, useState, useEffect } from 'react'
+import { ReactNode, useState, useEffect, useMemo } from 'react'
 import { RecursicaThemeProvider } from '@recursica/adapter-mantine-v8'
 import { isLocalAdapter } from '../registry/activeAdapter'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
+import { useOptionalVars } from '../../modules/vars/VarsContext'
+import { exportManifestJson } from '../../core/export/manifestExport'
 
 // Module-level caches: once a provider resolves, subsequent renders use it synchronously.
 // This ensures that pre-warmed imports (e.g. in test beforeAll) take effect immediately
@@ -50,11 +52,27 @@ const MantineProvider = ({ children }: { children: ReactNode }) => {
  * data-recursica-layer="0" on <html> alongside data-recursica-theme, so layer-0
  * variables resolve on the root and inherit. Letting it inject its own wrapper
  * would add a display:block div around Mantine's AppShell and disturb the layout.
+ *
+ * manifest is the same recursica_manifest.json Forge exports, built live from the current
+ * JSON so edits reach components that read it (Pagination throws without it).
  */
 const RecursicaProvider = ({ children }: { children: ReactNode }) => {
   const { mode } = useThemeMode()
+  const vars = useOptionalVars()
+  const tokens = vars?.tokens
+  const brand = vars?.theme
+  const uikit = vars?.uikit
+  const manifest = useMemo(() => {
+    if (!tokens || !brand || !uikit) return undefined
+    try {
+      return exportManifestJson(tokens, brand, uikit) as Record<string, unknown>
+    } catch (error) {
+      console.error('[UnifiedThemeProvider] Could not build the live manifest:', error)
+      return undefined
+    }
+  }, [tokens, brand, uikit])
   return (
-    <RecursicaThemeProvider theme={mode} initLayer0={false}>
+    <RecursicaThemeProvider theme={mode} initLayer0={false} manifest={manifest}>
       {children}
     </RecursicaThemeProvider>
   )

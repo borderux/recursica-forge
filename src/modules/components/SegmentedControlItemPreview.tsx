@@ -72,13 +72,11 @@ export default function SegmentedControlItemPreview({
       value: 'option1',
       label: 'Forge',
       icon: Icon1 ? <Icon1 size={16} /> : undefined,
-      tooltip: 'Forge',
     },
     {
       value: 'option2',
       label: 'Mines',
       icon: Icon2 ? <Icon2 size={16} /> : undefined,
-      tooltip: 'Mines',
     },
   ]
 
@@ -87,12 +85,10 @@ export default function SegmentedControlItemPreview({
     {
       value: 'option1',
       label: 'Forge',
-      tooltip: 'Forge',
     },
     {
       value: 'option2',
       label: 'Mines',
-      tooltip: 'Mines',
     },
   ]
 
@@ -102,13 +98,11 @@ export default function SegmentedControlItemPreview({
       value: 'option1',
       label: 'Forge',
       icon: Icon1 ? <Icon1 size={16} /> : undefined,
-      tooltip: 'Forge',
     },
     {
       value: 'option2',
       label: 'Mines',
       icon: Icon2 ? <Icon2 size={16} /> : undefined,
-      tooltip: 'Mines',
     },
   ]
 

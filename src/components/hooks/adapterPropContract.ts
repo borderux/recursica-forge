@@ -57,7 +57,9 @@ export const FORGE_ONLY_PROPS = new Set([
   'elevation', // token-driven upstream, not a prop
   'componentNameForCssVars', // Forge's CSS-var lookup hint
   'selectionState', // Forge's custom selection-state variant name
-  'showLabel', // Forge's label visibility toggle
+  // `showLabel` is NOT dropped here (it used to be): SegmentedControl's mantine wrapper
+  // (mantine/SegmentedControl/SegmentedControl.tsx) translates it onto the real adapter's
+  // `hideLabels`, and this table applies before that wrapper runs.
   'disableTopBottomMargin', // Forge layout tweak
   // Preview-only affordances that pin a component into an interaction state without the
   // user interacting. Used by Breadcrumb/Link/Tree as well as the field components, and

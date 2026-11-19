@@ -1,7 +1,7 @@
 /**
  * Local Component Registry
  * 
- * Registers Forge's own Mantine-based implementations (the `local` adapter), used by default
+ * Registers Forge's own Mantine-based implementations (the `local` adapter), selected with ?adapter=local
  */
 
 import { registerComponent } from './index'

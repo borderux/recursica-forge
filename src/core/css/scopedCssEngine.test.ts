@@ -153,13 +153,8 @@ describe('scopedCssEngine', () => {
         'aliasesFor() needs a matching exception for these.'
     ).toEqual([])
 
-    // Two-sided check on one concrete variable: the adapter reads this exact name, and the
-    // engine emits it for the corresponding layered token in the fixture.
-    const badgeName =
-      '--recursica_ui-kit_components_badge_variants_styles_primary-color_properties_colors_background-color'
-    expect(read, 'adapter no longer reads the badge background name this test pins').toContain(
-      badgeName
-    )
-    expect(generate()).toContain(`${badgeName}:`)
+    // Since adapter 1.6.0 the adapter reads only stable `..._properties_*` names; the variant
+    // names this engine emits are reached through the component contract rules. That end-to-end
+    // check, against the real ui-kit JSON, is in scopedCssEngine.contract.test.ts.
   })
 })

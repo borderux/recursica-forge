@@ -97,8 +97,9 @@ function SegmentedControlFromCssVar({
     const IconComp = optIcon ? iconNameToReactComponent(optIcon) : null
     return {
       value: optValue,
+      // Icon-only (showLabel={false}): the label is the segment's accessible name and tooltip.
+      label: optValue.charAt(0).toUpperCase() + optValue.slice(1),
       icon: IconComp ? React.createElement(IconComp, { size: 16 }) : undefined,
-      tooltip: optValue ? optValue.charAt(0).toUpperCase() + optValue.slice(1) : '',
     }
   })
   return (

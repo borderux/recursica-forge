@@ -16,8 +16,10 @@
  * *caller-supplied* blocked keys are honored). `className`/`style` are wired through as a
  * bonus fix for the same reason — they were equally silently dropped before.
  *
- * Renamed 1:1 (same shape, different name): `isOpen` -> `opened`, `showCloseButton` ->
- * `withCloseButton`.
+ * Renamed 1:1 (same shape, different name): `isOpen` -> `opened`.
+ *
+ * `showCloseButton` has no destination since adapter 1.4.0: the adapter's Modal requires
+ * `title` and `onClose` and always renders its icon-only Close button, so it cannot be hidden.
  *
  * `content` and `children` are Forge's two content slots; the real Modal only has one
  * (`children`), so both are rendered together into it.
@@ -76,7 +78,6 @@ export default React.forwardRef<any, ModalProps>(function Modal({
     centered,
     trapFocus,
     zIndex,
-    showCloseButton,
     showFooter,
     showSecondaryButton,
     primaryActionLabel,
@@ -119,7 +120,6 @@ export default React.forwardRef<any, ModalProps>(function Modal({
             opened={isOpen}
             onClose={onClose}
             title={title}
-            withCloseButton={showCloseButton}
             padding={padding === false ? 0 : undefined}
             withOverlay={withOverlay}
             centered={centered}
@@ -155,8 +155,8 @@ export default React.forwardRef<any, ModalProps>(function Modal({
 // are excluded: composed into the `<MantineModal.Footer>` element above (a real reshape, not a
 // rename), so the literal JSX above is what actually gets checked.
 //
-// `showHeader`/`scrollable`/`position`/`draggable`/`onPositionChange` have no real destination
-// at all (see header comment for why).
+// `showHeader`/`scrollable`/`position`/`draggable`/`onPositionChange`/`showCloseButton` have no
+// real destination at all (see header comment for why).
 type _Wiring = AssertWired<
     ModalProps,
     typeof MantineModal,
@@ -165,7 +165,7 @@ type _Wiring = AssertWired<
     | 'showHeader' | 'showFooter' | 'scrollable' | 'showSecondaryButton'
     | 'primaryActionLabel' | 'onPrimaryAction' | 'primaryActionDisabled'
     | 'secondaryActionLabel' | 'onSecondaryAction' | 'secondaryActionDisabled'
-    | 'position' | 'draggable' | 'onPositionChange',
-    { isOpen: 'opened'; showCloseButton: 'withCloseButton' }
+    | 'position' | 'draggable' | 'onPositionChange' | 'showCloseButton',
+    { isOpen: 'opened' }
 >
 const _wiringCheck: _Wiring = true

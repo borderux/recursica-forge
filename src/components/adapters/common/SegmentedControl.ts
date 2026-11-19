@@ -10,10 +10,15 @@ import type { ComponentLayer, LibrarySpecificProps, ComponentName } from '../../
 
 export type SegmentedControlItem = {
   value: string
-  label?: React.ReactNode
+  /**
+   * Required, non-empty. Always the segment's accessible name — shown as text, or, with
+   * `showLabel={false}`, used as the screen-reader name and the hover/focus tooltip. One
+   * string drives all three so they can't drift apart (mirrors the real adapter's
+   * `data[].label: string`, @recursica/adapter-mantine-v8 1.7.0).
+   */
+  label: string
   icon?: React.ReactNode
   disabled?: boolean
-  tooltip?: string // Tooltip text to show when label is hidden
 }
 
 /** Public prop interface. What consumer/demo code uses — identical across every UI kit. */
@@ -38,7 +43,11 @@ export type SegmentedControlProps = {
    * product need for it came up.)
    */
   disabled?: boolean
-  showLabel?: boolean // Whether to show labels (default: true)
+  /**
+   * Whether to show labels (default: true). `false` gives icon-only segments: every item
+   * must then have an `icon`, and its `label` becomes the accessible name and tooltip.
+   */
+  showLabel?: boolean
   componentNameForCssVars?: ComponentName // Component name to use for CSS variables (default: 'SegmentedControl')
   // Optional selection-state variant name for the SegmentedControlItem. Built-in states
   // (selected/unselected) keep the default behavior; any other value is a custom variant whose
