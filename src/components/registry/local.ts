@@ -131,5 +131,9 @@ registerComponent('local', 'Table', () => import('../adapters/local/Table/Table'
 registerComponent('local', 'TableCell', () => import('../adapters/local/TableCell/TableCell'))
 registerComponent('local', 'TableHeader', () => import('../adapters/local/TableHeader/TableHeader'))
 registerComponent('local', 'TableFooter', () => import('../adapters/local/TableFooter/TableFooter'))
+registerComponent('local', 'TableThead', () => import('../adapters/local/TableThead/TableThead'))
+registerComponent('local', 'TableTbody', () => import('../adapters/local/TableTbody/TableTbody'))
+registerComponent('local', 'TableTfoot', () => import('../adapters/local/TableTfoot/TableTfoot'))
+registerComponent('local', 'TableTr', () => import('../adapters/local/TableTr/TableTr'))
 
 // Add more components as they're implemented

@@ -17,6 +17,7 @@ export type TableFooterProps = {
   className?: string
   style?: React.CSSProperties
   disabled?: boolean
+  colSpan?: number
 } & LibrarySpecificProps
 
 export function TableFooter({
@@ -27,6 +28,7 @@ export function TableFooter({
   className,
   style,
   disabled,
+  colSpan,
   mantine,
 }: TableFooterProps) {
   const Component = useComponent('TableFooter')
@@ -44,6 +46,7 @@ export function TableFooter({
         className={className}
         style={style}
         disabled={disabled}
+        colSpan={colSpan}
         mantine={mantine}
       >
         {children}

@@ -18,6 +18,7 @@ export type TableCellProps = {
   style?: React.CSSProperties
   isHeader?: boolean
   disabled?: boolean
+  colSpan?: number
 } & LibrarySpecificProps
 
 export function TableCell({
@@ -29,6 +30,7 @@ export function TableCell({
   style,
   isHeader,
   disabled,
+  colSpan,
   mantine,
 }: TableCellProps) {
   const Component = useComponent('TableCell')
@@ -47,6 +49,7 @@ export function TableCell({
         style={style}
         isHeader={isHeader}
         disabled={disabled}
+        colSpan={colSpan}
         mantine={mantine}
       >
         {children}

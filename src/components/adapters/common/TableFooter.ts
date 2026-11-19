@@ -16,4 +16,6 @@ export type TableFooterProps = {
   className?: string
   style?: React.CSSProperties
   disabled?: boolean
+  /** Native `colSpan`: how many columns this cell spans. */
+  colSpan?: number
 } & LibrarySpecificProps

@@ -100,6 +100,10 @@ registerComponent('mantine', 'MenuItem', () => import('../adapters/mantine/MenuI
 registerComponent('mantine', 'TableCell', () => import('../adapters/mantine/TableCell/TableCell'))
 registerComponent('mantine', 'TableHeader', () => import('../adapters/mantine/TableHeader/TableHeader'))
 registerComponent('mantine', 'TableFooter', () => import('../adapters/mantine/TableFooter/TableFooter'))
+registerComponent('mantine', 'TableThead', () => import('../adapters/mantine/TableThead/TableThead'))
+registerComponent('mantine', 'TableTbody', () => import('../adapters/mantine/TableTbody/TableTbody'))
+registerComponent('mantine', 'TableTfoot', () => import('../adapters/mantine/TableTfoot/TableTfoot'))
+registerComponent('mantine', 'TableTr', () => import('../adapters/mantine/TableTr/TableTr'))
 
 // ─── Intentionally unregistered ──────────────────────────────────────────────
 // No upstream equivalent, so these get NoAdapterImplementation's grey box rather than a

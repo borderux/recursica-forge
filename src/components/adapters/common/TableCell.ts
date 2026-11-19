@@ -17,4 +17,6 @@ export type TableCellProps = {
   style?: React.CSSProperties
   isHeader?: boolean
   disabled?: boolean
+  /** Native `colSpan`: how many columns this cell spans. */
+  colSpan?: number
 } & LibrarySpecificProps

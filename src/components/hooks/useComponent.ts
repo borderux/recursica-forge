@@ -48,6 +48,22 @@ function toWrapperLayer(layer: unknown): 1 | 2 | 3 | null {
   return n === 1 || n === 2 || n === 3 ? n : null
 }
 
+/**
+ * Table parts that render inside a `<table>`. They never get a LayerScope wrapper: its
+ * `<div style="display: contents">` is invalid inside `<table>`/`<tbody>`/`<tr>` (React's
+ * validateDOMNesting warns, and the extra node breaks `tr > td`-style selectors). They don't
+ * need one either — the Table root gets the LayerScope, and custom properties inherit from it.
+ */
+const TABLE_PARTS = new Set<ComponentName>([
+  'TableThead',
+  'TableTbody',
+  'TableTfoot',
+  'TableTr',
+  'TableHeader',
+  'TableCell',
+  'TableFooter',
+])
+
 export function useComponent<T = any>(componentName: ComponentName): React.ComponentType<T> {
   const { kit } = useUiKit()
   // The Mantine shell renders either the local adapter or the real published one (fixed per page load).
@@ -93,7 +109,7 @@ export function useComponent<T = any>(componentName: ComponentName): React.Compo
       // policy apply is the point of using the real adapter.
       const mantineRest = applyPropContract(componentName, rest)
       const element = React.createElement(Component as any, { ...mantineRest, ref })
-      const wrapperLayer = toWrapperLayer(rest.layer)
+      const wrapperLayer = TABLE_PARTS.has(componentName) ? null : toWrapperLayer(rest.layer)
       // LayerScope, not the adapter's <Layer>: Forge's `layer` prop asks for token
       // resolution, whereas <Layer> paints a surface (border, radius, padding, elevation).
       // Using Layer here drew a box around every control that requested a non-zero layer.

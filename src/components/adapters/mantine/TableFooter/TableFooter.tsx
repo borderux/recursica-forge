@@ -1,15 +1,19 @@
 /**
  * Mantine TableFooter Adapter
  *
- * A Forge TableFooter is Table.Tfoot upstream — there's no standalone footer export, so this
- * pulls it off the Table static instead of a plain named import.
+ * A Forge TableFooter is a footer CELL (the local adapter renders it as a `<td>` inside
+ * `<tfoot>`, and its tokens are per-cell: padding, dividers, cell-color, text-color,
+ * text-style/currency-style). Upstream that is `Table.Td` rendered inside `Table.Tfoot`: the
+ * Tfoot provides the "table-footer" section context and Td picks up the footer styling from
+ * it. The footer SECTION itself is TableTfoot.
  *
- * `variant` — TableTfootProps structurally accepts an optional `variant?: string` (inherited
- * generically from Mantine's StylesApiProps, which every compound sub-component gets), but
- * Table.Tfoot has no actual variant-driven styling — it's a type-level coincidence, not a real
- * capability. Dropped; not forwarded.
- * `disabled` — no equivalent at all: a `<tfoot>` has no native `disabled` attribute and
- * RecursicaTableProps (empty) adds none. Dropped.
+ * FIXED (2026-11): this previously rendered `Table.Tfoot`, so every footer cell became a
+ * whole `<tfoot>` nested inside the row — invalid markup, and no footer-cell styling.
+ *
+ * `variant` and `disabled` are real on `Table.Td` (`RecursicaTableCellProps`):
+ * `variant: "default" | "currency"` applies the currency text style, `disabled` the disabled
+ * cell styling. Forge's `variant` is a wider `string`, so it's narrowed with a cast.
+ * `colSpan` is the native `<td>` attribute.
  */
 
 import React from 'react'
@@ -17,18 +21,18 @@ import { Table } from '@recursica/adapter-mantine-v8'
 import type { TableFooterProps } from '../../common/TableFooter'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default React.forwardRef<any, TableFooterProps>(function TableFooter({ children, mantine }, ref) {
-    return <Table.Tfoot ref={ref} {...mantine}>{children}</Table.Tfoot>
+export default React.forwardRef<any, TableFooterProps>(function TableFooter({ children, variant, disabled, colSpan, mantine }, ref) {
+    return (
+        <Table.Td ref={ref} variant={variant as 'default' | 'currency' | undefined} disabled={disabled} colSpan={colSpan} {...mantine}>
+            {children}
+        </Table.Td>
+    )
 })
 
-// Compile-time only — fails the build the moment TableFooterProps declares a prop with no
-// real, type-compatible home on Table.Tfoot. `variant` is excluded: see the comment above —
-// it type-matches by coincidence via Mantine's generic StylesApiProps, not because it's a real
-// capability, so checking it here would be a false positive that hides the actual (documented)
-// gap.
+// `variant` is excluded: Forge's wider `string` is narrowed with a cast above.
 type _Wiring = AssertWired<
     TableFooterProps,
-    typeof Table.Tfoot,
-    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'variant' | 'disabled'
+    typeof Table.Td,
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'variant'
 >
 const _wiringCheck: _Wiring = true

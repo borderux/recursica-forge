@@ -30,11 +30,11 @@ import { Table } from '@recursica/adapter-mantine-v8'
 import type { TableCellProps } from '../../common/TableCell'
 import type { AssertWired } from '../../common/wiringCheck'
 
-export default React.forwardRef<any, TableCellProps>(function TableCell({ children, isHeader, variant, disabled, mantine }, ref) {
+export default React.forwardRef<any, TableCellProps>(function TableCell({ children, isHeader, variant, disabled, colSpan, mantine }, ref) {
     return isHeader ? (
-        <Table.Th ref={ref} disabled={disabled} {...mantine}>{children}</Table.Th>
+        <Table.Th ref={ref} disabled={disabled} colSpan={colSpan} {...mantine}>{children}</Table.Th>
     ) : (
-        <Table.Td ref={ref} variant={variant as 'default' | 'currency' | undefined} disabled={disabled} {...mantine}>{children}</Table.Td>
+        <Table.Td ref={ref} variant={variant as 'default' | 'currency' | undefined} disabled={disabled} colSpan={colSpan} {...mantine}>{children}</Table.Td>
     )
 })
 
