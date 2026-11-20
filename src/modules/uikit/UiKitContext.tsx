@@ -1,12 +1,12 @@
 /**
  * UiKitContext
  *
- * Keeps track of which UI library shell to render ('mantine' | 'material' | 'carbon').
- * Defaults to 'mantine'. The UI selector is disabled, but programmatic changes are allowed for tests.
+ * Keeps track of which UI library shell to render. Mantine is the only kit; which Mantine
+ * adapter renders (local or the published package) is chosen in registry/activeAdapter.ts.
  */
 import { createContext, useContext, useMemo, useState, ReactNode } from 'react'
 
-export type UiKit = 'mantine' | 'material' | 'carbon'
+export type UiKit = 'mantine'
 
 type UiKitContextValue = {
   kit: UiKit
@@ -16,7 +16,6 @@ type UiKitContextValue = {
 const UiKitContext = createContext<UiKitContextValue | undefined>(undefined)
 
 export function UiKitProvider({ children }: { children: ReactNode }) {
-  // Locked to mantine — multi-library shell switching is temporarily disabled
   const [kit] = useState<UiKit>('mantine')
   const setKit = (_next: UiKit) => {}
 

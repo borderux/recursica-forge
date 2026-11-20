@@ -1,178 +1,91 @@
 /**
- * Mantine Popover Implementation
- * 
- * Mantine-specific Popover component that uses CSS variables for theming.
- * Shares recursica_ui-kit.json styling with HoverCard under 'hover-card-popover'.
+ * Mantine Popover Adapter
+ *
+ * Same structural shape as HoverCard: @recursica/adapter-mantine-v8's Popover is a COMPOSITION
+ * api, rendering `Popover.Target` (the trigger) and `Popover.Dropdown` (the panel) as children
+ * rather than accepting Forge's flat `children`/`content` props. This wrapper bridges the two.
+ *
+ * Unlike HoverCard, Popover's real root keeps a genuine controlled-open hook: `isOpen` renames
+ * directly onto Mantine's own `opened`, and `onClose` is already an exact-name, exact-shape
+ * match (`() => void`) — both wired below as real, not dropped.
+ *
+ * `position` is a real, matching field too, and — unlike every other `RecursicaOverStyled`-gated
+ * component — the adapter re-adds it *outside* the blocked-styling-keys gate specifically for
+ * Popover (`RecursicaPopoverProps` doesn't even declare it; it comes back in via a plain
+ * `position?: PopoverProps_2["position"]` intersected onto the exported type), so no
+ * `overStyled` escape hatch is needed to use it.
+ *
+ * `zIndex` has no such carve-out — it's still gated by `BlockedStylingKeys` — so this wrapper
+ * flips `overStyled` on automatically whenever a `zIndex` is actually provided, the same way
+ * HoverCard does. `className`/`style` stay dropped; the `mantine` escape hatch
+ * (`mantine={{ overStyled: true, style: {...} }}`) still reaches them.
  */
 
-import { useState, useEffect } from 'react'
-import { Popover as MantinePopover, Box } from '@mantine/core'
-import type { PopoverProps as AdapterPopoverProps } from '../../Popover'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
-import { genericElevation } from '../../../../core/css/cssVarBuilder'
-import '../HoverCard/HoverCard.css'
+import React from 'react'
+import { Popover as MantinePopover } from '@recursica/adapter-mantine-v8'
+import type { PopoverProps } from '../../common/Popover'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Popover({
-    children,
-    content,
-    isOpen,
-    onClose,
-    layer = 'layer-1',
-    elevation,
-    className,
-    style,
-    withBeak = false,
-    position = 'bottom',
-    zIndex,
-    mantine,
-    ...props
-}: AdapterPopoverProps) {
-    const { mode } = useThemeMode()
-    const [, setUpdateKey] = useState(0)
+export default React.forwardRef<any, PopoverProps>(function Popover({
+  children,
+  content,
+  isOpen,
+  onClose,
+  withBeak = false,
+  position,
+  zIndex,
+  mantine,
+}, ref) {
+  // The real Popover is a plain function component (not wrapped in React.forwardRef
+  // upstream), so its exported prop type has no `ref` slot — spread `{ ref }` from an
+  // `any`-typed object rather than a literal `ref={ref}` attribute to avoid a spurious
+  // excess-property error while still attaching the ref at runtime for whenever upstream
+  // adds support.
+  const target = children !== undefined ? <MantinePopover.Target>{children}</MantinePopover.Target> : null
+  const dropdown = content !== undefined ? <MantinePopover.Dropdown>{content}</MantinePopover.Dropdown> : null
 
-    // Build CSS variable names — use 'HoverCardPopover' as the component name for shared styling
+  return zIndex !== undefined ? (
+    <MantinePopover
+      overStyled
+      opened={isOpen}
+      onClose={onClose}
+      withBeak={withBeak}
+      position={position}
+      zIndex={zIndex}
+      {...mantine}
+      {...({ ref } as any)}
+    >
+      {target}
+      {dropdown}
+    </MantinePopover>
+  ) : (
+    <MantinePopover opened={isOpen} onClose={onClose} withBeak={withBeak} position={position} {...mantine} {...({ ref } as any)}>
+      {target}
+      {dropdown}
+    </MantinePopover>
+  )
+})
 
-    const bgVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'background-color')
-    const contentColorVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'content')
-    const borderColorVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'border-color')
-
-
-    const borderRadiusVar = getComponentLevelCssVar('HoverCardPopover', 'border-radius')
-    const borderSizeVar = getComponentLevelCssVar('HoverCardPopover', 'border-size')
-    const horizontalPaddingVar = getComponentLevelCssVar('HoverCardPopover', 'horizontal-padding')
-    const verticalPaddingVar = getComponentLevelCssVar('HoverCardPopover', 'vertical-padding')
-    const minWidthVar = getComponentLevelCssVar('HoverCardPopover', 'min-width')
-    const maxWidthVar = getComponentLevelCssVar('HoverCardPopover', 'max-width')
-    const beakSizeVar = getComponentLevelCssVar('HoverCardPopover', 'beak-size')
-
-    // Text properties
-    const contentFontFamilyVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-family')
-    const contentFontSizeVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-size')
-    const contentFontWeightVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-weight')
-    const contentLetterSpacingVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'letter-spacing')
-    const contentLineHeightVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'line-height')
-    const contentFontStyleVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-style')
-    const contentTextDecorationVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'text-decoration')
-    const contentTextTransformVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'text-transform')
-
-    // Elevation variable
-    const internalElevationVar = getComponentLevelCssVar('HoverCardPopover', 'elevation')
-
-    useEffect(() => {
-        const textCssVars = [
-            contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar,
-            contentLetterSpacingVar, contentLineHeightVar, contentFontStyleVar,
-            contentTextDecorationVar, contentTextTransformVar,
-            internalElevationVar, beakSizeVar
-        ]
-
-        const handleCssVarUpdate = (e: Event) => {
-            const detail = (e as CustomEvent).detail
-            const shouldUpdate = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
-            if (shouldUpdate) {
-                setUpdateKey(prev => prev + 1)
-            }
-        }
-
-        window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-
-        const observer = new MutationObserver(() => {
-            setUpdateKey(prev => prev + 1)
-        })
-
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['style'],
-        })
-
-        return () => {
-            window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-            observer.disconnect()
-        }
-    }, [contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar, contentLetterSpacingVar, contentLineHeightVar, contentFontStyleVar, contentTextDecorationVar, contentTextTransformVar, internalElevationVar, beakSizeVar])
-
-    const beakSizeValue = parseInt(readCssVar(beakSizeVar) || '16')
-
-    // Get elevation value
-    const activeElevation = elevation || parseElevationValue(readCssVar(internalElevationVar))
-    const elevationBoxShadow = getElevationBoxShadow(mode, activeElevation)
-
-    // Calculate drop-shadow parameters for the beak
-    const shadowParams = (() => {
-        if (!activeElevation || activeElevation === 'elevation-0') return '0 0 0 rgba(0,0,0,0)'
-        const match = activeElevation.match(/elevation-(\d+)/)
-        if (!match) return '0 0 0 rgba(0,0,0,0)'
-        const level = match[1]
-        const xAxis = `var(${genericElevation(level, 'x-axis')})`
-        const yAxis = `var(${genericElevation(level, 'y-axis')})`
-        const blur = `var(${genericElevation(level, 'blur')})`
-        const color = `var(${genericElevation(level, 'shadow-color')})`
-        return `${xAxis} ${yAxis} ${blur} ${color}`
-    })()
-
-    const dropdownStyles = {
-        '--hcp-bg': `var(${bgVar})`,
-        '--hcp-content-color': `var(${contentColorVar})`,
-        '--hcp-border-color': `var(${borderColorVar})`,
-        '--hcp-border-radius': `var(${borderRadiusVar})`,
-        '--hcp-border-size': `var(${borderSizeVar})`,
-        '--hcp-padding-x': `var(${horizontalPaddingVar})`,
-        '--hcp-padding-y': `var(${verticalPaddingVar})`,
-        '--hcp-min-width': `var(${minWidthVar})`,
-        '--hcp-max-width': `var(${maxWidthVar})`,
-        '--hcp-content-font-family': `var(${contentFontFamilyVar})`,
-        '--hcp-content-font-size': `var(${contentFontSizeVar})`,
-        '--hcp-content-font-weight': `var(${contentFontWeightVar})`,
-        '--hcp-content-letter-spacing': `var(${contentLetterSpacingVar})`,
-        '--hcp-content-line-height': `var(${contentLineHeightVar})`,
-        '--hcp-content-font-style': `var(${contentFontStyleVar})`,
-        '--hcp-content-text-decoration': `var(${contentTextDecorationVar})`,
-        '--hcp-content-text-transform': `var(${contentTextTransformVar})`,
-        '--hcp-box-shadow': elevationBoxShadow || 'none',
-        '--hcp-shadow-params': shadowParams,
-        ...style,
-    } as React.CSSProperties
-
-    return (
-        <MantinePopover
-            opened={isOpen}
-            onChange={(opened) => { if (!opened) onClose?.() }}
-            position={position}
-            withArrow={withBeak}
-            arrowSize={beakSizeValue}
-            zIndex={zIndex ?? 300}
-            {...mantine}
-            {...props}
-        >
-            <MantinePopover.Target>
-                <Box component="span" className={className} style={{ display: 'inline-block' }}>
-                    {children}
-                </Box>
-            </MantinePopover.Target>
-            <MantinePopover.Dropdown
-                className="recursica-hcp-dropdown"
-                style={dropdownStyles}
-            >
-                <Box
-                    className="recursica-hcp-content"
-                    style={{
-                        color: 'var(--hcp-content-color)',
-                        fontFamily: 'var(--hcp-content-font-family)',
-                        fontSize: 'var(--hcp-content-font-size)',
-                        fontWeight: 'var(--hcp-content-font-weight)',
-                        letterSpacing: 'var(--hcp-content-letter-spacing)',
-                        lineHeight: 'var(--hcp-content-line-height)',
-                        fontStyle: 'var(--hcp-content-font-style)',
-                        textDecoration: 'var(--hcp-content-text-decoration)',
-                        textTransform: 'var(--hcp-content-text-transform)',
-                    } as any}
-                >
-                    {content}
-                </Box>
-            </MantinePopover.Dropdown>
-        </MantinePopover>
-    )
-}
+// `children`/`content` are composed into `Popover.Target`/`Popover.Dropdown` above, not
+// forwarded raw. `isOpen` renames onto the real `opened` field (see `Rename` below).
+// `zIndex` IS wired above (the `overStyled` branch) but still has to be listed here: it only
+// exists on the `overStyled: true` half of the real component's `RecursicaOverStyled` union,
+// and `keyof` over a union only keeps keys common to every member, so the static check can't
+// see it on the type as a whole even though the literal JSX attribute above is fully
+// type-checked against the real (narrowed) prop shape. `position` needs no such exemption —
+// the adapter re-adds it outside the union entirely, so it's left wired and checked normally.
+// `className`/`style` are dropped per the comment above.
+type _Wiring = AssertWired<
+  PopoverProps,
+  typeof MantinePopover,
+  | 'children'
+  | 'content'
+  | 'zIndex'
+  | 'layer'
+  | 'elevation'
+  | 'className'
+  | 'style'
+  | 'mantine',
+  { isOpen: 'opened' }
+>
+const _wiringCheck: _Wiring = true

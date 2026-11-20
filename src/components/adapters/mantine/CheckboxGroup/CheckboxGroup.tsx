@@ -1,150 +1,84 @@
 /**
- * Mantine CheckboxGroup Implementation
- * 
- * Supports Label integration and stacked/side-by-side layout variants.
- */
+ * Mantine CheckboxGroup Adapter
+ *
+ * Was a bare pass-through re-export with no wrapper-level translation and, until now, no
+ * central PROP_CONTRACT entry either — so `helpText`, `errorText`, `optional`, `layout`, and
+ * `labelAlign` silently did nothing under Mantine despite the identical names working on
+ * sibling field components. Wired up here for real, verified against
+ * `RecursicaCheckboxGroupProps`/`RecursicaFormControlWrapperProps`/`RecursicaLabelProps`:
+ *
+ *   - helpText -> assistiveText (RecursicaFormControlWrapperProps.assistiveText)
+ *   - errorText -> error (mantine core's own InputWrapperProps.error, ReactNode)
+ *   - optional -> labelOptionalText (RecursicaLabelProps.labelOptionalText: boolean | ReactNode)
+ *   - layout -> formLayout (RecursicaFormControlWrapperProps.formLayout)
+ *   - labelAlign -> labelAlignment (RecursicaLabelProps.labelAlignment)
+ *   - labelSize matches by name already (RecursicaLabelProps.labelSize)
+ *
+ * `orientation` (2026-08, upstream resolution — see `docs/MANTINE_ADAPTER_UPSTREAM_REQUESTS.md`
+ * #3): used to reshape onto a `row?: boolean` field that was confirmed dead (declared but
+ * never read by the real implementation, just silently spread onto a Mantine primitive with
+ * no `row` prop of its own). Rather than wiring it up, the field was removed from the real
+ * type entirely — so `orientation` now has no real destination at all and is dropped. */
 
-import { useMemo } from 'react'
-import type { CheckboxGroupProps as AdapterCheckboxGroupProps } from '../../CheckboxGroup'
-import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
-import { Label } from '../../Label'
-import { AssistiveElement } from '../../AssistiveElement'
-import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
-import './CheckboxGroup.css'
+import React from 'react'
+import { CheckboxGroup as MantineCheckboxGroup } from '@recursica/adapter-mantine-v8'
+import type { CheckboxGroupProps } from '../../common/CheckboxGroup'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function CheckboxGroup({
+export default React.forwardRef<any, CheckboxGroupProps>(function CheckboxGroup({
     children,
     label,
+    description,
     helpText,
     errorText,
-    required = false,
-    optional = false,
-    layout = 'stacked',
-    layer = 'layer-0',
-    labelAlign = 'left',
+    required,
+    optional,
+    layout,
+    labelAlign,
     labelSize,
-    itemGap,
-    padding,
-    orientation,
-    groupId,
-    labelId,
-    helpId,
-    errorId,
-    className,
-    style,
-    ...props
-}: AdapterCheckboxGroupProps & { groupId?: string; labelId?: string; helpId?: string; errorId?: string }) {
-    // Configurable Properties
-    const itemGapVar = buildComponentCssVarPath('CheckboxGroup', 'properties', 'item-gap')
-    const paddingVar = buildComponentCssVarPath('CheckboxGroup', 'properties', 'padding')
-
-    // Layout-specific spacing
-    const labelFieldGapVar = buildComponentCssVarPath('CheckboxGroup', 'variants', 'layouts', layout, 'properties', 'label-field-gap')
-    const topBottomMarginVar = buildComponentCssVarPath('CheckboxGroup', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
-    const labelGutterVar = layout === 'side-by-side'
-        ? buildComponentCssVarPath('CheckboxGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
-        : undefined
-
-    const cssVars = {
-        '--checkbox-group-gap': `var(${itemGapVar})`,
-        '--checkbox-group-padding': `var(${paddingVar})`,
-    }
-
-    // Render Label component if label text is provided
-    const labelElement = label ? (
-        <Label
-            htmlFor={groupId}
-            variant={required ? 'required' : (optional ? 'optional' : 'default')}
-            size={labelSize}
-            layout={layout}
-            align={labelAlign}
-            layer={layer}
-            id={labelId}
-        >
-            {label}
-        </Label>
-    ) : null
-
-    // Get icon components for AssistiveElement
-    const HelpIcon = useMemo(() => iconNameToReactComponent('info'), [])
-    const ErrorIcon = useMemo(() => iconNameToReactComponent('warning'), [])
-
-    // Render AssistiveElement for help or error
-    const assistiveElement = errorText ? (
-        <AssistiveElement
-            text={errorText}
-            variant="error"
-            layer={layer}
-            id={errorId}
-            icon={ErrorIcon ? <ErrorIcon /> : <span>⚠</span>}
-        />
-    ) : helpText ? (
-        <AssistiveElement
-            text={helpText}
-            variant="help"
-            layer={layer}
-            id={helpId}
-            icon={HelpIcon ? <HelpIcon /> : <span>ℹ</span>}
-        />
-    ) : null
-
-    // The checkbox items container
-    const itemsContent = (
-        <div
-            className="recursica-checkbox-group-items"
-            style={{
-                ...cssVars,
-                flexDirection: orientation === 'horizontal' ? 'row' : 'column',
-            } as React.CSSProperties}
+    mantine,
+}, ref) {
+    return (
+        <MantineCheckboxGroup
+            label={label}
+            description={description}
+            assistiveText={helpText}
+            error={errorText}
+            required={required}
+            labelOptionalText={optional}
+            formLayout={layout === 'side-by-side' ? 'side-by-side' : 'stacked'}
+            labelAlignment={labelAlign}
+            labelSize={labelSize}
+            {...mantine}
+            ref={ref}
         >
             {children}
-        </div>
+        </MantineCheckboxGroup>
     )
+})
 
-    // Side-by-side layout
-    if (layout === 'side-by-side' && labelElement) {
-        const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
-        return (
-            <div
-                role="group"
-                aria-labelledby={label ? labelId : undefined}
-                className={`${className || ''} recursica-checkbox-group recursica-checkbox-group-side-by-side`}
-                style={{
-                    ...style,
-                    marginTop: `var(${topBottomMarginVar})`,
-                    marginBottom: `var(${topBottomMarginVar})`,
-                } as React.CSSProperties}
-            >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: gapValue, width: '100%' }}>
-                    <div style={{ flexShrink: 0 }}>
-                        {labelElement}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
-                        {itemsContent}
-                        {assistiveElement}
-                    </div>
-                </div>
-            </div>
-        )
+// Compile-time only — fails the build the moment CheckboxGroupProps declares a prop with no
+// real, type-compatible home on the real CheckboxGroup (directly, or via the renames below).
+// `children` is excluded because the real CheckboxGroup requires it non-optional while Forge
+// declares it optional — passed through as JSX children above rather than a literal
+// attribute. `layout` is excluded: Forge deliberately types it as an open `string`, wider than
+// the real `formLayout` union — the ternary above is the actual translation. `orientation` is a
+// genuine adapter gap — see file header.
+type _Wiring = AssertWired<
+    CheckboxGroupProps,
+    typeof MantineCheckboxGroup,
+    | 'layer'
+    | 'mantine'
+    | 'className'
+    | 'style'
+    | 'children'
+    | 'layout'
+    | 'orientation',
+    {
+        helpText: 'assistiveText'
+        errorText: 'error'
+        optional: 'labelOptionalText'
+        labelAlign: 'labelAlignment'
     }
-
-    // Stacked layout (default)
-    return (
-        <div
-            role="group"
-            aria-labelledby={label ? labelId : undefined}
-            className={`${className || ''} recursica-checkbox-group recursica-checkbox-group-stacked`}
-            style={{
-                ...style,
-                marginTop: `var(${topBottomMarginVar})`,
-                marginBottom: `var(${topBottomMarginVar})`,
-            } as React.CSSProperties}
-        >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelFieldGapVar})`, width: '100%', alignItems: labelAlign === 'right' ? 'flex-end' : 'stretch' }}>
-                {labelElement}
-                {itemsContent}
-                {assistiveElement}
-            </div>
-        </div>
-    )
-}
+>
+const _wiringCheck: _Wiring = true

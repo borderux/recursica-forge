@@ -80,15 +80,13 @@ import { getComponentLevelCssVar, buildComponentCssVarPath } from '../../utils/c
     // This is more lenient and avoids hanging on specific selectors
     const element = await waitFor(() => {
       // Try multiple selectors in order of preference
-      const carbonElement = container.querySelector('.recursica-segmented-control.carbon-segmented-control')
-      const materialElement = container.querySelector('.recursica-segmented-control.material-segmented-control')
       const mantineRoot = container.querySelector('.mantine-SegmentedControl-root')
       const wrapper = container.querySelector('.recursica-segmented-control-wrapper')
       const nativeElement = container.querySelector('.recursica-segmented-control')
       const buttons = container.querySelectorAll('button')
       
       // Prefer library-specific elements, but also accept buttons or native fallback
-      const found = carbonElement || materialElement || mantineRoot || 
+      const found = mantineRoot || 
                    (wrapper?.querySelector('.mantine-SegmentedControl-root') || null) || 
                    nativeElement ||
                    (buttons.length > 0 ? buttons[0].parentElement : null)
@@ -282,7 +280,7 @@ import { getComponentLevelCssVar, buildComponentCssVarPath } from '../../utils/c
       })
 
       await waitFor(() => {
-        const newElement = container.querySelector('.recursica-segmented-control, .mantine-SegmentedControl-root, .recursica-segmented-control.material-segmented-control, .recursica-segmented-control-fallback')
+        const newElement = container.querySelector('.recursica-segmented-control, .mantine-SegmentedControl-root, .recursica-segmented-control-fallback')
         expect(newElement).toBeInTheDocument()
         const styles = window.getComputedStyle(newElement!)
         // Should have vertical orientation styling

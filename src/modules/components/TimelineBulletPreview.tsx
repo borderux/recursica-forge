@@ -12,7 +12,6 @@ import { ThemeIcon } from '@mantine/core'
 import { Timeline } from '../../components/adapters/Timeline'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from './iconUtils'
-import '../../components/adapters/mantine/Timeline/Timeline.css'
 
 interface TimelineBulletPreviewProps {
     selectedVariants: Record<string, string>
@@ -164,19 +163,13 @@ function buildCssVars(layer: string, bulletType: string) {
             '--timeline-icon-alt-bullet-border-radius': `var(${bulletPropVar('border-radius')})`,
         })
     } else if (bulletType === 'avatar') {
-        // Read the stored avatar-size string and resolve to the correct Avatar size
         const sizeVarName = bulletPropVar('avatar-size')
-        const sizeValue = typeof document !== 'undefined'
-            ? getComputedStyle(document.documentElement).getPropertyValue(sizeVarName).trim().replace(/^["']|["']$/g, '')
-            : 'default'
-        const sizeKey = sizeValue === 'small' || sizeValue === 'large' ? sizeValue : 'default'
-        const avatarSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeKey, 'properties', 'width')
         Object.assign(baseVars, {
-            '--_tl-bullet-size': `var(${avatarSizeVar}, 40px)`,
+            '--_tl-bullet-size': `var(${sizeVarName}, 40px)`,
             '--timeline-avatar-size-small': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'small', 'properties', 'width')}, 32px)`,
             '--timeline-avatar-size-default': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'default', 'properties', 'width')}, 40px)`,
             '--timeline-avatar-size-large': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'large', 'properties', 'width')}, 64px)`,
-            '--timeline-avatar-bullet-size': `var(--timeline-avatar-size-${sizeKey}, 40px)`,
+            '--timeline-avatar-bullet-size': `var(${sizeVarName}, 40px)`,
             '--timeline-avatar-active-bg': `var(${bulletColorVar('active-background')})`,
             '--timeline-avatar-inactive-bg': `var(${bulletColorVar('inactive-background')})`,
             '--timeline-avatar-active-border': `var(${bulletColorVar('active-border-color')})`,

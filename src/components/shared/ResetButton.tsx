@@ -72,7 +72,6 @@ export function ResetButton({
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         title="Reset"
-        size="sm"
         layer="layer-1"
         primaryActionLabel="Reset"
         onPrimaryAction={() => {
@@ -88,12 +87,12 @@ export function ResetButton({
             </p>
             <RadioButtonGroup label="Version" required>
               <RadioButtonItem
-                selected={resetTarget === 'imported'}
+                checked={resetTarget === 'imported'}
                 onChange={() => setResetTarget('imported')}
                 label="Reset to last imported version"
               />
               <RadioButtonItem
-                selected={resetTarget === 'original'}
+                checked={resetTarget === 'original'}
                 onChange={() => setResetTarget('original')}
                 label="Reset to Forge defaults"
               />

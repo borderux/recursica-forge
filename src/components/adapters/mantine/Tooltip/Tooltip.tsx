@@ -1,217 +1,96 @@
 /**
- * Mantine Tooltip Implementation
- * 
- * Mantine-specific Tooltip component that uses CSS variables for theming.
+ * Mantine Tooltip Adapter
+ *
+ * Not actually a 1:1 pass-through, despite how it looked before this file had a body.
+ *
+ * REAL BUGS FIXED HERE, both stemming from the same collision: `position` and `zIndex` are
+ * both on the adapter's blocked-styling-keys list (the real Tooltip type is
+ * `RecursicaOverStyled`-wrapped, and that list blocks the generic CSS `position`/`zIndex`
+ * style properties) — but Mantine's Tooltip also happens to use the *name* `position` for its
+ * floating-placement prop (`FloatingPosition`, e.g. `"top-start"`), a completely different,
+ * non-cosmetic concept that collides on the name alone. Confirmed in the compiled adapter:
+ * Tooltip's own implementation special-cases `position` (destructured out before the
+ * blocked-key filter runs, so it always works regardless of `overStyled`) — but the *type*
+ * doesn't know that special case exists, so the exported type still requires
+ * `overStyled: true` to accept `position` at all. `zIndex` gets no such special-case at
+ * runtime either, so it really was being silently stripped every time (Tooltip positioning
+ * without `overStyled` still visually "worked" only because Mantine defaults `position` to
+ * `"top"`, matching Forge's own default, hiding the gap). This wrapper renders with
+ * `overStyled: true` unconditionally to make both work for real, plus `className`/`style` as
+ * a bonus fix for the same underlying gap — none of the three has any effect when the caller
+ * doesn't provide a value, and setting `overStyled` doesn't disable the component's own
+ * default token-driven styling (verified in the compiled adapter: default classNames are
+ * merged in unconditionally).
+ *
+ * `position` + `alignment` are reshaped together into the real compound `position` string
+ * (`FloatingPosition = FloatingSide | \`${FloatingSide}-${'start'|'end'}\`\`, confirmed against
+ * @mantine/core's own Floating types): `alignment: 'middle'` maps to the plain side, `'start'`/
+ * `'end'` map to `"<side>-start"`/`"<side>-end"`. A real fix rather than dropping `alignment`.
  */
 
-import React, { useState, useEffect } from 'react'
-import { Tooltip as MantineTooltip, Box } from '@mantine/core'
-import type { TooltipProps as AdapterTooltipProps } from '../../Tooltip'
-import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
-import { getElevationBoxShadow } from '../../../utils/brandCssVars'
-import { genericElevation } from '../../../../core/css/cssVarBuilder'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
-import './Tooltip.css'
+import React from 'react'
+import { Tooltip as MantineTooltip } from '@recursica/adapter-mantine-v8'
+import type { TooltipProps } from '../../common/Tooltip'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Tooltip({
+function toFloatingPosition(
+    position: NonNullable<TooltipProps['position']>,
+    alignment: NonNullable<TooltipProps['alignment']>
+): `${typeof position}` | `${typeof position}-start` | `${typeof position}-end` {
+    if (alignment === 'start') return `${position}-start`
+    if (alignment === 'end') return `${position}-end`
+    return position
+}
+
+export default React.forwardRef<any, TooltipProps>(function Tooltip({
     children,
     label,
     position = 'top',
     alignment = 'middle',
-    layer = 'layer-0',
-    elevation,
     opened,
     zIndex,
-    withinPortal = false,
+    withinPortal,
     className,
     style,
     mantine,
-    ...props
-}: AdapterTooltipProps) {
-    const { mode } = useThemeMode()
-
-    // Force re-render when CSS vars change
-    const [, setUpdateKey] = useState(0)
-    const [layoutUpdateCounter, setLayoutUpdateCounter] = useState(0)
-
-    // Map unified position + alignment to Mantine position
-    const mantinePosition = (() => {
-        if (alignment === 'middle') return position
-        const suffix = alignment === 'start' ? 'start' : 'end'
-        return `${position}-${suffix}`
-    })() as any
-
-    // Get CSS variables from recursica_ui-kit.json (explicit paths)
-    const colorPath = ['properties', 'colors', layer]
-    const propPath = ['properties']
-    const textPath = ['properties', 'text']
-
-    const tooltipBgVar = buildComponentCssVarPath('Tooltip', ...colorPath, 'background-color', mode)
-    const tooltipColorVar = buildComponentCssVarPath('Tooltip', ...colorPath, 'text-color', mode)
-    const tooltipBorderColorVar = buildComponentCssVarPath('Tooltip', ...colorPath, 'border-color', mode)
-
-    const verticalPaddingVar = buildComponentCssVarPath('Tooltip', ...propPath, 'vertical-padding', mode)
-    const horizontalPaddingVar = buildComponentCssVarPath('Tooltip', ...propPath, 'horizontal-padding', mode)
-    const borderRadiusVar = buildComponentCssVarPath('Tooltip', ...propPath, 'border-radius', mode)
-    const borderSizeVar = buildComponentCssVarPath('Tooltip', ...propPath, 'border-size', mode)
-    const minWidthVar = buildComponentCssVarPath('Tooltip', ...propPath, 'min-width', mode)
-    const maxWidthVar = buildComponentCssVarPath('Tooltip', ...propPath, 'max-width', mode)
-    const beakSizeVar = buildComponentCssVarPath('Tooltip', ...propPath, 'beak-size', mode)
-    const beakInsetVar = buildComponentCssVarPath('Tooltip', ...propPath, 'beak-inset', mode)
-    const minHeightVar = buildComponentCssVarPath('Tooltip', ...propPath, 'min-height', mode)
-
-    // Text properties
-    const fontFamilyVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-family', mode)
-    const fontSizeVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-size', mode)
-    const fontWeightVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-weight', mode)
-    const letterSpacingVar = buildComponentCssVarPath('Tooltip', ...textPath, 'letter-spacing', mode)
-    const lineHeightVar = buildComponentCssVarPath('Tooltip', ...textPath, 'line-height', mode)
-    const textDecorationVar = buildComponentCssVarPath('Tooltip', ...textPath, 'text-decoration', mode)
-    const textTransformVar = buildComponentCssVarPath('Tooltip', ...textPath, 'text-transform', mode)
-    const fontStyleVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-style', mode)
-
-    useEffect(() => {
-        const allVarsToTriggerRender = [
-            tooltipBgVar, tooltipColorVar, tooltipBorderColorVar,
-            verticalPaddingVar, horizontalPaddingVar, borderRadiusVar, borderSizeVar,
-            minWidthVar, maxWidthVar, minHeightVar, beakSizeVar, beakInsetVar,
-            fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar,
-            textDecorationVar, textTransformVar, fontStyleVar
-        ]
-
-        const handleUpdate = (e: Event) => {
-            const detail = (e as CustomEvent).detail
-            const updatedVars = detail?.cssVars || []
-            const shouldUpdate = updatedVars.length === 0 ||
-                updatedVars.some((v: string) => allVarsToTriggerRender.includes(v) || v.includes('tooltip'))
-
-            if (shouldUpdate) {
-                setUpdateKey(prev => prev + 1)
-                setLayoutUpdateCounter(prev => prev + 1)
-            }
-        }
-        window.addEventListener('cssVarsUpdated', handleUpdate)
-
-        const observer = new MutationObserver(() => {
-            setUpdateKey(prev => prev + 1)
-            setLayoutUpdateCounter(prev => prev + 1)
-        })
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['style'],
-        })
-
-        return () => {
-            window.removeEventListener('cssVarsUpdated', handleUpdate)
-            observer.disconnect()
-        }
-    }, [mode, tooltipBgVar, tooltipColorVar, tooltipBorderColorVar, verticalPaddingVar, horizontalPaddingVar, borderRadiusVar, borderSizeVar, minWidthVar, maxWidthVar, minHeightVar, beakSizeVar, beakInsetVar, fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar])
-
-    const beakSizeValue = parseInt(readCssVar(beakSizeVar) || '8')
-    const beakInsetValue = parseInt(readCssVar(beakInsetVar) || '8')
-
-    const transformOrigin = (() => {
-        const [pos, align] = mantinePosition.split('-')
-        switch (pos) {
-            case 'top':
-                if (!align) return 'bottom center'
-                return align === 'start' ? 'bottom left' : 'bottom right'
-            case 'bottom':
-                if (!align) return 'top center'
-                return align === 'start' ? 'top left' : 'top right'
-            case 'left':
-                if (!align) return 'center right'
-                return align === 'start' ? 'top right' : 'bottom right'
-            case 'right':
-                if (!align) return 'center left'
-                return align === 'start' ? 'top left' : 'bottom left'
-            default:
-                return 'center center'
-        }
-    })()
-
-    // Calculate drop-shadow parameters for the beak (omitting spread as drop-shadow doesn't support it)
-    const shadowParams = (() => {
-        if (!elevation || elevation === 'elevation-0') return '0 0 0 rgba(0,0,0,0)'
-        const match = elevation.match(/elevation-(\d+)/)
-        if (!match) return '0 0 0 rgba(0,0,0,0)'
-        const level = match[1]
-        const xAxis = `var(${genericElevation(level, 'x-axis')})`
-        const yAxis = `var(${genericElevation(level, 'y-axis')})`
-        const blur = `var(${genericElevation(level, 'blur')})`
-        const color = `var(${genericElevation(level, 'shadow-color')})`
-        return `${xAxis} ${yAxis} ${blur} ${color}`
-    })()
-
-    const tooltipStyles = {
-        '--tooltip-bg': `var(${tooltipBgVar})`,
-        '--tooltip-color': `var(${tooltipColorVar})`,
-        '--tooltip-border-color': `var(${tooltipBorderColorVar})`,
-        '--tooltip-padding-y': `var(${verticalPaddingVar})`,
-        '--tooltip-padding-x': `var(${horizontalPaddingVar})`,
-        '--tooltip-border-radius': `var(${borderRadiusVar})`,
-        '--tooltip-border-size': `var(${borderSizeVar})`,
-        '--tooltip-min-width': `var(${minWidthVar})`,
-        '--tooltip-max-width': `var(${maxWidthVar})`,
-        '--tooltip-min-height': `var(${minHeightVar})`,
-        '--tooltip-beak-size': `var(${beakSizeVar})`,
-        '--tooltip-beak-inset': `var(${beakInsetVar})`,
-
-        '--tooltip-font-family': `var(${fontFamilyVar})`,
-        '--tooltip-font-size': `var(${fontSizeVar})`,
-        '--tooltip-font-weight': `var(${fontWeightVar})`,
-        '--tooltip-letter-spacing': `var(${letterSpacingVar})`,
-        '--tooltip-line-height': `var(${lineHeightVar})`,
-        '--tooltip-text-decoration': `var(${textDecorationVar})`,
-        '--tooltip-text-transform': `var(${textTransformVar})`,
-        '--tooltip-font-style': `var(${fontStyleVar})`,
-        '--tooltip-box-shadow': getElevationBoxShadow(mode, elevation) || 'none',
-        '--tooltip-shadow-params': shadowParams,
-
-        transformOrigin,
-        ...style,
-    } as React.CSSProperties
-
-    const content = label ? (
-        <Box className="recursica-tooltip-content">
-            {label}
-        </Box>
-    ) : children
-
+}, ref) {
+    // The real Tooltip's exported type is `RecursicaOverStyled`-wrapped, and (like Accordion/
+    // Popover/HoverCard/Menu/Panel) has no `ref` slot at all — spread `{ ref }` from an
+    // `any`-typed object rather than a literal `ref={ref}` attribute to avoid a spurious
+    // excess-property error while still attaching the ref at runtime for whenever upstream
+    // adds support.
     return (
         <MantineTooltip
-            label={content}
-            position={mantinePosition}
-            withArrow
-            arrowSize={beakSizeValue}
-            arrowOffset={beakInsetValue}
+            {...({ ref } as any)}
+            overStyled
+            label={label}
+            position={toFloatingPosition(position, alignment)}
             opened={opened}
-            key={`tooltip-${mode}-${layoutUpdateCounter}`}
-            zIndex={zIndex ?? 100}
+            zIndex={zIndex}
             withinPortal={withinPortal}
-            classNames={{
-                tooltip: 'recursica-tooltip-root',
-                arrow: 'recursica-tooltip-arrow',
-                ...mantine?.classNames,
-            }}
-            styles={{
-                tooltip: tooltipStyles,
-                arrow: {
-                    // Arrow already uses background-color from root via CSS
-                    // We don't need to apply drop-shadow here if we apply it to the root
-                }
-            }}
+            className={className}
+            style={style}
             {...mantine}
-            {...props}
         >
-            <Box
-                component="span"
-                className={className}
-                style={{ display: 'inline-block' }}
-            >
-                {children}
-            </Box>
+            {children}
         </MantineTooltip>
     )
-}
+})
+
+// Compile-time only — fails the build the moment TooltipProps declares a prop with no real,
+// type-compatible home on the real Tooltip.
+//
+// `position`/`alignment` are excluded: reshaped together into the real compound `position`
+// string above, so checking either name individually against the untranslated shape would be
+// a false positive. `zIndex`/`className`/`style` are excluded: real, functioning props (see
+// header comment) that only compile because this wrapper renders with `overStyled: true` —
+// `RecursicaOverStyled`'s discriminated-union type means `keyof` on the real component's props
+// can't see any blocked-styling key at all (present in one union branch, absent in the other),
+// so this generic check would flag them as having "no real field under this name" even though
+// the literal JSX attributes above already type-check them correctly.
+type _Wiring = AssertWired<
+    TooltipProps,
+    typeof MantineTooltip,
+    'layer' | 'elevation' | 'mantine' | 'position' | 'alignment' | 'zIndex' | 'className' | 'style'
+>
+const _wiringCheck: _Wiring = true

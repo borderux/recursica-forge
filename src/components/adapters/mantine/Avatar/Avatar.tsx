@@ -1,181 +1,76 @@
 /**
- * Mantine Avatar Implementation
- * 
- * Mantine-specific Avatar component that uses CSS variables for theming.
+ * Mantine Avatar Adapter
+ *
+ * Not a 1:1 pass-through. Confirmed against @recursica/adapter-mantine-v8's own Avatar source
+ * (its `RecursicaAvatarProps` plus the underlying Mantine `AvatarProps`, with `variant` |
+ * `size` | `color` | `radius` re-declared by Recursica):
+ *
+ *   - `fallback` maps onto `children` (JSX content), not a prop.
+ *   - `sizeVariant` -> `size`: Forge's 'small' | 'default' | 'large' union is *exactly*
+ *     `RecursicaAvatarProps['size']` — a clean rename, values line up 1:1.
+ *   - `colorVariant` -> `variant` is NOT a clean rename, despite that being the initial
+ *     assumption: Forge's colorVariant is a compound value (content type + style, e.g.
+ *     'icon-ghost', 'text-solid', 'image' — see utils/getComponentColorVars.ts and
+ *     adapters/Avatar.tsx, which already split it exactly this way for CSS var lookups),
+ *     while the real `variant` is style-only ('solid' | 'outline' | 'ghost'). The real
+ *     component (confirmed from the adapter's own source, not just its .d.ts) auto-detects
+ *     content type from *which* of `src` / `icon` / `children` is actually populated — it
+ *     doesn't take a content-type prop at all — so the two halves of colorVariant have two
+ *     different real destinations: the style suffix resolves to `variant`, and the content
+ *     prefix decides whether `fallback` is routed into `icon` (content type "icon") or
+ *     `children` (content type "text"). Both are genuine reshapes, done as literal
+ *     attributes below so each is independently type-checked.
+ *
+ * `shape` removed from AvatarProps entirely (2026-08) — see common/Avatar.ts.
  */
 
-import { Avatar as MantineAvatar } from '@mantine/core'
-import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
-import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
-import { getElevationBoxShadow } from '../../../utils/brandCssVars'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { useCssVar } from '../../../hooks/useCssVar'
-import { readCssVarResolved } from '../../../../core/css/readCssVar'
-import { useState, useEffect } from 'react'
-import './Avatar.css'
+import React from 'react'
+import { Avatar as MantineAvatar } from '@recursica/adapter-mantine-v8'
+import type { AvatarProps } from '../../common/Avatar'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Avatar({
-  src,
-  alt,
-  fallback,
-  colorVariant = 'text-ghost',
-  sizeVariant = 'default',
-  layer = 'layer-0',
-  elevation,
-  shape = 'circle',
-  className,
-  style,
-  mantine,
-  ...props
-}: AdapterAvatarProps) {
-  const { mode } = useThemeMode()
-  
-  // Derive style type and secondary type from colorVariant (e.g., 'text-ghost' → style='text', type='ghost')
-  const paddingStyleType = colorVariant.split('-')[0]
-  const styleType = colorVariant.split('-').slice(1).join('-') || 'solid'
-
-  // Build color CSS variable paths directly matching the JSON hierarchy:
-  // avatar.variants.styles.{style}.variants.types.{type}.properties.colors.{layer}.{property}
-  const bgVar = paddingStyleType === 'image'
-    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'colors', layer, 'background-color')
-    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', 'types', styleType, 'properties', 'colors', layer, 'background-color')
-  const borderVar = paddingStyleType === 'image'
-    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'colors', layer, 'border-color')
-    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', 'types', styleType, 'properties', 'colors', layer, 'border-color')
-  const labelVar = paddingStyleType === 'text'
-    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'text', 'variants', 'types', styleType, 'properties', 'colors', layer, 'text-color')
-    : paddingStyleType === 'icon'
-      ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'icon', 'variants', 'types', styleType, 'properties', 'colors', layer, 'icon-color')
-      : bgVar
-
-  // Reactively read border color to trigger re-renders when it changes
-  const borderColorValue = useCssVar(borderVar, '')
-  // Image style variant uses a flat path (no secondary solid/outline/ghost nesting)
-  // For text/icon styles, border-size is under styles.{type}.variants.types.{secondary}.properties.border-size
-  const borderSizeStyleVar = paddingStyleType === 'image'
-    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'border-size')
-    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', 'types', styleType, 'properties', 'border-size')
-  
-  const sizeBorderColorVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-color')
-  const sizeBorderSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-size')
-  
-  const sizeBorderColorRaw = useCssVar(sizeBorderColorVar, '')
-  const sizeBorderSizeRaw = useCssVar(sizeBorderSizeVar, '')
-  const borderRadiusVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'border-radius')
-  const paddingVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'padding')
-  const iconWidthVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'width')
-  const iconHeightVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'height')
-  const iconSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'icon-size')
-  
-  // Reactively read border-radius to trigger re-renders when it changes
-  const borderRadiusValueRaw = useCssVar(borderRadiusVar, '')
-  // Resolve the border-radius value (handles var() references)
-  const [borderRadiusValue, setBorderRadiusValue] = useState(() => {
-    const resolved = readCssVarResolved(borderRadiusVar, 10)
-    return resolved || borderRadiusValueRaw || `var(${borderRadiusVar})`
-  })
-  
-  useEffect(() => {
-    const updateBorderRadius = () => {
-      const resolved = readCssVarResolved(borderRadiusVar, 10)
-      if (resolved) {
-        setBorderRadiusValue(resolved)
-        return
-      }
-      setBorderRadiusValue(borderRadiusValueRaw || `var(${borderRadiusVar})`)
-    }
-    
-    updateBorderRadius()
-    
-    // Listen for CSS variable updates
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      if (!detail?.cssVars || detail.cssVars.includes(borderRadiusVar)) {
-        updateBorderRadius()
-      }
-    }
-    
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
-    // Also watch for direct style changes
-    const observer = new MutationObserver(() => {
-      updateBorderRadius()
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-    
-    return () => {
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-      observer.disconnect()
-    }
-  }, [borderRadiusVar, borderRadiusValueRaw])
-  
-  // Get text CSS variables - use size variant for variant-specific text properties
-  const fontFamilyVar = getComponentTextCssVar('Avatar', 'text', 'font-family', sizeVariant)
-  const fontSizeVar = getComponentTextCssVar('Avatar', 'text', 'font-size', sizeVariant)
-  const fontWeightVar = getComponentTextCssVar('Avatar', 'text', 'font-weight', sizeVariant)
-  const letterSpacingVar = getComponentTextCssVar('Avatar', 'text', 'letter-spacing', sizeVariant)
-  const lineHeightVar = getComponentTextCssVar('Avatar', 'text', 'line-height', sizeVariant)
-  const textDecorationVar = getComponentTextCssVar('Avatar', 'text', 'text-decoration', sizeVariant)
-  const textTransformVar = getComponentTextCssVar('Avatar', 'text', 'text-transform', sizeVariant)
-  const fontStyleVar = getComponentTextCssVar('Avatar', 'text', 'font-style', sizeVariant)
-  
-  // Map unified size to Mantine size
-  const mantineSize = sizeVariant === 'small' ? 'xs' : sizeVariant === 'default' ? 'md' : 'lg'
-  
-  // Handle elevation
-  const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
-  
-  // Calculate border radius value for Mantine's radius prop and inline style
-  const borderRadiusForMantine = shape === 'circle' ? '50%' : (borderRadiusValue || `var(${borderRadiusVar})`)
-  
-  return (
-    <MantineAvatar
-      src={src || (paddingStyleType === 'image' ? 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' : undefined)}
-      alt={alt}
-      size={mantineSize}
-      className={className}
-      data-avatar-type={paddingStyleType}
-      // Don't set radius prop - let our CSS and inline styles handle it
-      style={{
-        // Set CSS custom properties that reference the UIKit CSS vars directly
-        '--avatar-bg': `var(${bgVar})`,
-        backgroundColor: paddingStyleType === 'image' ? `var(${bgVar})` : undefined,
-        '--avatar-border': borderColorValue || `var(${borderVar})`,
-        '--avatar-label': paddingStyleType === 'image' 
-          ? (borderColorValue || `var(${borderVar})`) 
-          : `var(${labelVar})`,
-        '--avatar-size': `var(${iconWidthVar})`,
-        '--avatar-width': `var(${iconWidthVar})`,
-        '--avatar-height': `var(${iconHeightVar})`,
-        '--avatar-icon-size': `var(${iconSizeVar})`,
-        '--avatar-border-size': borderSizeStyleVar ? `var(${borderSizeStyleVar})` : `var(${sizeBorderSizeVar})`,
-        // Set the CSS variable - for circle, use 50%, otherwise use the resolved value
-        '--avatar-border-radius': borderRadiusForMantine,
-        // Also set borderRadius directly to ensure it applies (Mantine might override CSS custom properties)
-        borderRadius: borderRadiusForMantine,
-        '--avatar-padding': `var(${paddingVar})`,
-        '--avatar-icon-width': `var(${iconWidthVar})`,
-        '--avatar-icon-height': `var(${iconHeightVar})`,
-        '--avatar-font-family': `var(${fontFamilyVar})`,
-        '--avatar-font-size': `var(${fontSizeVar})`,
-        '--avatar-font-weight': `var(${fontWeightVar})`,
-        '--avatar-letter-spacing': `var(${letterSpacingVar})`,
-        '--avatar-line-height': `var(${lineHeightVar})`,
-        '--avatar-text-decoration': `var(${textDecorationVar})`,
-        '--avatar-text-transform': `var(${textTransformVar})`,
-        '--avatar-font-style': `var(${fontStyleVar})`,
-        // Only set non-CSS-variable styles here (like boxShadow for elevation)
-        ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
-        ...style,
-      } as React.CSSProperties}
-      {...mantine}
-      {...props}
-    >
-      {fallback}
-    </MantineAvatar>
-  )
+/** Style suffix of a compound colorVariant ('text-ghost', 'icon-solid', 'icon', 'image', ...)
+ *  translated to the real Avatar's style-only `variant`. Mirrors the default-to-"solid"
+ *  behavior in utils/getComponentColorVars.ts; 'image' has no real style equivalent. */
+function resolveAvatarVariant(
+    colorVariant: AvatarProps['colorVariant']
+): 'solid' | 'outline' | 'ghost' | undefined {
+    if (!colorVariant || colorVariant === 'image') return undefined
+    return colorVariant.endsWith('-ghost') ? 'ghost' : 'solid'
 }
 
+export default React.forwardRef<any, AvatarProps>(function Avatar({
+    src,
+    alt,
+    fallback,
+    colorVariant,
+    sizeVariant,
+    mantine,
+}, ref) {
+    const isIconContent = colorVariant?.startsWith('icon') ?? false
+    return (
+        <MantineAvatar
+            src={src}
+            alt={alt}
+            icon={isIconContent ? fallback : undefined}
+            children={isIconContent ? undefined : fallback}
+            variant={resolveAvatarVariant(colorVariant)}
+            size={sizeVariant}
+            {...mantine}
+            ref={ref}
+        />
+    )
+})
+
+// Compile-time only — fails the build the moment AvatarProps declares a prop with no real,
+// type-compatible home on the real Avatar (directly, or via the rename below). `fallback` and
+// `colorVariant` are excluded: both are explicitly translated above (see header comment for
+// why `colorVariant` is a reshape, not a straight rename), so checking their untranslated
+// shape here would be a false positive.
+type _Wiring = AssertWired<
+    AvatarProps,
+    typeof MantineAvatar,
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'fallback' | 'colorVariant',
+    { sizeVariant: 'size' }
+>
+const _wiringCheck: _Wiring = true

@@ -47,7 +47,6 @@ export default function AvatarPreview({
         sizeVariant={sizeVariant as 'small' | 'default' | 'large'}
         layer={actualLayer}
         elevation={componentElevation}
-        shape="square"
         fallback={fallback}
         src={colorVariant === 'image' ? '/avatar-goblin.png' : undefined}
       />

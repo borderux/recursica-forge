@@ -915,7 +915,6 @@ export default function DimensionTokenSelector({
       showInput={false}
       showValueLabel={true}
       valueLabel={getValueLabel}
-      tooltipText={getValueLabel}
       minLabel={minToken?.label || 'None'}
       maxLabel={maxToken?.label || 'Xl'}
       showMinMaxLabels={false}

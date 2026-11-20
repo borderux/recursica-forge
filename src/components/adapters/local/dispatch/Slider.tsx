@@ -1,0 +1,991 @@
+/**
+ * Slider Component Adapter
+ * 
+ * Unified Slider component that renders the appropriate library implementation
+ * based on the current UI kit selection.
+ */
+
+import { Suspense, useState, useEffect, useRef } from 'react'
+import { useComponent } from '../../../hooks/useComponent'
+import { getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
+import { layerText } from '../../../../core/css/cssVarBuilder'
+import { Label } from './Label'
+import { TextField } from './TextField'
+import { NumberInput } from './NumberInput'
+import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
+import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
+import { AssistiveElement } from './AssistiveElement'
+import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
+import type { ComponentLayer, LibrarySpecificProps } from '../../../registry/types'
+
+export type SliderProps = {
+  value: number | [number, number]
+  onChange: (value: number | [number, number]) => void
+  onChangeCommitted?: (value: number | [number, number]) => void
+  min?: number
+  max?: number
+  step?: number
+  disabled?: boolean
+  state?: 'default' | 'focus' | 'error' | 'disabled'
+  errorText?: React.ReactNode
+  type?: 'continuous' | 'discrete'
+  layout?: string  // accepts custom layout variant names
+  layer?: ComponentLayer
+  label?: React.ReactNode
+  showInput?: boolean
+  showMinMaxInput?: boolean
+  showValueLabel?: boolean
+  valueLabel?: string | ((value: number) => string)
+  tooltipText?: string | ((value: number) => string)
+  minLabel?: React.ReactNode
+  maxLabel?: React.ReactNode
+  showMinMaxLabels?: boolean
+  minIcon?: React.ReactNode
+  maxIcon?: React.ReactNode
+  iconSize?: number | string
+  readOnly?: boolean
+  className?: string
+  style?: React.CSSProperties
+} & LibrarySpecificProps
+
+export function Slider({
+  value,
+  onChange,
+  onChangeCommitted,
+  min = 0,
+  max = 100,
+  step = 1,
+  disabled = false,
+  state = 'default',
+  errorText,
+  type = 'continuous',
+  layout = 'stacked',
+  layer = 'layer-0',
+  label,
+  showInput,
+  showMinMaxInput = false,
+  showValueLabel = false,
+  valueLabel,
+  tooltipText,
+  minLabel,
+  maxLabel,
+  showMinMaxLabels,
+  minIcon,
+  maxIcon,
+  iconSize,
+  readOnly = false,
+  className,
+  style,
+  mantine,
+}: SliderProps) {
+  // Use showMinMaxInput as a master toggle if showInput/showMinMaxLabels/showValueLabel aren't explicitly provided
+  let finalShowInput = showInput ?? (showMinMaxInput ? true : false)
+  const finalShowMinMaxLabels = showMinMaxLabels ?? true
+  let finalShowValueLabel = showValueLabel || (showMinMaxInput && !finalShowInput)
+
+  const Component = useComponent('Slider')
+  const { mode } = useThemeMode()
+
+  const isRange = Array.isArray(value)
+  const singleValue = isRange ? value[0] : value
+
+  // Calculate tooltip text - call function if provided, otherwise use string directly
+  let computedTooltipText: string | undefined
+  try {
+    if (tooltipText) {
+      if (typeof tooltipText === 'function') {
+        computedTooltipText = tooltipText(singleValue)
+      } else {
+        computedTooltipText = tooltipText
+      }
+    }
+  } catch (_e) {
+    computedTooltipText = undefined
+  }
+
+  // Get read-only value text styling CSS variables using getComponentTextCssVar (for text style toolbar)
+  const readOnlyValueFontFamilyVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-family')
+  const readOnlyValueFontSizeVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-size')
+  const readOnlyValueFontWeightVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-weight')
+  const readOnlyValueLetterSpacingVar = getComponentTextCssVar('Slider', 'read-only-value', 'letter-spacing')
+  const readOnlyValueLineHeightVar = getComponentTextCssVar('Slider', 'read-only-value', 'line-height')
+  const readOnlyValueTextDecorationVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-decoration')
+  const readOnlyValueTextTransformVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-transform')
+  const readOnlyValueFontStyleVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-style')
+
+  // State to force re-render when text CSS variables change
+  const [textVarsUpdate, setTextVarsUpdate] = useState(0)
+
+  // Listen for CSS variable updates from the toolbar
+  useEffect(() => {
+    const textCssVars = [
+      readOnlyValueFontFamilyVar, readOnlyValueFontSizeVar, readOnlyValueFontWeightVar, readOnlyValueLetterSpacingVar,
+      readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
+    ]
+
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
+      // Update if any text CSS var was updated, or if no specific vars were mentioned (global update)
+      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      if (shouldUpdate) {
+        // Force re-render by updating state
+        setTextVarsUpdate(prev => prev + 1)
+      }
+    }
+
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+
+    // Also watch for direct style changes using MutationObserver
+    const observer = new MutationObserver(() => {
+      // Force re-render for text vars
+      setTextVarsUpdate(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [
+    readOnlyValueFontFamilyVar, readOnlyValueFontSizeVar, readOnlyValueFontWeightVar, readOnlyValueLetterSpacingVar,
+    readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
+  ])
+
+  if (!Component) {
+    // Fallback to native input range
+    const isRange = Array.isArray(value)
+    const singleValue = isRange ? value[0] : value
+
+    // Determine effective state
+    const effectiveState = disabled ? 'disabled' : state
+
+    // Get CSS variables for colors
+    const trackVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'track')
+    const trackActiveVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'track-active')
+    const thumbVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'thumb')
+
+    // Get CSS variables for sizes
+    const trackHeightVar = getComponentLevelCssVar('Slider', 'track-height')
+    const thumbSizeVar = getComponentLevelCssVar('Slider', 'thumb-size')
+    const trackBorderRadiusVar = getComponentLevelCssVar('Slider', 'track-border-radius')
+    const thumbBorderRadiusVar = getComponentLevelCssVar('Slider', 'thumb-border-radius')
+    const thumbElevationVar = getComponentLevelCssVar('Slider', 'thumb-elevation')
+    const iconSizeVar = getComponentLevelCssVar('Slider', 'icon-size')
+    const iconColorVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'icon-color')
+
+    // Get Label's gutter for side-by-side layout (Label component manages spacing)
+    const labelGutterVar = layout === 'side-by-side'
+      ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
+      : null
+
+    // Get top-bottom-margin from layout variant (needed early for use in return statements)
+    const topBottomMarginVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
+
+    // Get input width and gap if showing input
+    const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
+    const inputHeightVar = getComponentLevelCssVar('Slider', 'input-height')
+    const inputPaddingVerticalVar = getComponentLevelCssVar('Slider', 'input-padding-vertical')
+    const inputPaddingLeftVar = getComponentLevelCssVar('Slider', 'input-padding-left')
+    const inputPaddingRightVar = getComponentLevelCssVar('Slider', 'input-padding-right')
+    const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
+
+    // Get disabled opacity CSS variable
+    const disabledOpacityVar = getBrandStateCssVar(mode, 'disabled')
+
+    // Reactively read thumb elevation from CSS variable
+    const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
+      if (!thumbElevationVar) return undefined
+      const value = readCssVar(thumbElevationVar)
+      return value ? parseElevationValue(value) : undefined
+    })
+
+    // Force re-render when CSS variables change (including colors)
+    const [, forceUpdate] = useState(0)
+
+    // Get top-bottom-margin CSS variables for BOTH layout variants (needed for update listener)
+    // We need to listen for updates to both variants regardless of current layout
+    const topBottomMarginVarStacked = buildComponentCssVarPath('Slider', 'variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin')
+    const topBottomMarginVarSideBySide = buildComponentCssVarPath('Slider', 'variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin')
+
+    // Listen for CSS variable updates from the toolbar
+    useEffect(() => {
+      const handleCssVarUpdate = (e: Event) => {
+        const detail = (e as CustomEvent).detail
+        const updatedVars = detail?.cssVars || []
+
+        // Check if any slider-related CSS vars were updated
+        const sliderVars = [
+          trackVar, trackActiveVar, thumbVar,
+          trackHeightVar, thumbSizeVar, trackBorderRadiusVar, thumbBorderRadiusVar, thumbElevationVar,
+          disabledOpacityVar, topBottomMarginVarStacked, topBottomMarginVarSideBySide
+        ].filter(Boolean)
+
+        // Check if top-bottom-margin was updated (for any layout variant)
+        const topBottomMarginUpdated = updatedVars.length === 0 || updatedVars.some((v: string) =>
+          v.includes('top-bottom-margin') || v === topBottomMarginVarStacked || v === topBottomMarginVarSideBySide
+        )
+
+        const shouldUpdate = updatedVars.length === 0 || updatedVars.some((v: string) =>
+          sliderVars.some(sliderVar => v === sliderVar || v.includes('slider') || v.includes('track') || v.includes('thumb') || v.includes('state-disabled')) || topBottomMarginUpdated
+        )
+
+        if (shouldUpdate) {
+          // Update thumb elevation if it changed
+          if (thumbElevationVar && (!updatedVars.length || updatedVars.includes(thumbElevationVar))) {
+            const value = readCssVar(thumbElevationVar)
+            setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
+          }
+
+          // Force re-render to ensure colors and other CSS vars update
+          requestAnimationFrame(() => {
+            forceUpdate(prev => prev + 1)
+          })
+        }
+      }
+
+      window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+      window.addEventListener('cssVarsReset', handleCssVarUpdate)
+
+      // Also watch for direct style changes using MutationObserver
+      // Debounced to avoid re-render storms during slider drag
+      let mutationTimer: ReturnType<typeof setTimeout> | null = null
+      const observer = new MutationObserver(() => {
+        if (mutationTimer) clearTimeout(mutationTimer)
+        mutationTimer = setTimeout(() => {
+          if (thumbElevationVar) {
+            const value = readCssVar(thumbElevationVar)
+            setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
+          }
+          forceUpdate(prev => prev + 1)
+        }, 500)
+      })
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['style'],
+      })
+
+      return () => {
+        window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+        window.removeEventListener('cssVarsReset', handleCssVarUpdate)
+        if (mutationTimer) clearTimeout(mutationTimer)
+        observer.disconnect()
+      }
+    }, [thumbElevationVar, trackVar, trackActiveVar, thumbVar, trackHeightVar, thumbSizeVar, trackBorderRadiusVar, thumbBorderRadiusVar, disabledOpacityVar, topBottomMarginVarStacked, topBottomMarginVarSideBySide, layout])
+
+    // Determine thumb elevation from recursica_ui-kit.json
+    const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = Number(e.target.value)
+      if (isRange) {
+        onChange([newValue, value[1]])
+      } else {
+        onChange(newValue)
+      }
+    }
+
+    const sliderId = `slider-${Math.random().toString(36).substr(2, 9)}`
+    const percentage = ((singleValue - min) / (max - min)) * 100
+
+    // Read resolved values for thumb styling (CSS variables in template strings need resolved values)
+    const thumbSizeValue = readCssVarResolved(thumbSizeVar) || readCssVar(thumbSizeVar) || '20px'
+    const thumbColorValue = readCssVarResolved(thumbVar) || readCssVar(thumbVar) || '#000000'
+    const thumbBorderRadiusValue = readCssVarResolved(thumbBorderRadiusVar) || readCssVar(thumbBorderRadiusVar) || '50%'
+    const trackHeightValue = readCssVarResolved(trackHeightVar) || readCssVar(trackHeightVar) || '4px'
+    const thumbElevationValue = thumbElevationBoxShadow || '0 1px 2px rgba(0, 0, 0, 0.15)'
+
+    // Parse thumb size to calculate padding (account for thumb half-width on each side)
+    const thumbSizeNum = parseFloat(thumbSizeValue) || 20
+    const thumbSizeUnit = thumbSizeValue.replace(/[\d.-]/g, '') || 'px'
+    const thumbHalfSize = `${thumbSizeNum / 2}${thumbSizeUnit}`
+
+    // Use ref to measure container and calculate active track width
+    const trackContainerRef = useRef<HTMLDivElement>(null)
+    const [activeTrackWidth, setActiveTrackWidth] = useState<string>('0%')
+
+    useEffect(() => {
+      const updateActiveTrackWidth = () => {
+        if (!trackContainerRef.current) return
+
+        const containerWidth = trackContainerRef.current.offsetWidth
+        const thumbWidthPx = thumbSizeNum
+
+        // The thumb center is positioned at percentage% of the usable track width
+        // Usable track width = containerWidth - thumbWidthPx
+        // Thumb center position = thumbHalfSize + (percentage / 100) * (containerWidth - thumbWidthPx)
+        // Active track should extend to thumb right edge = thumb center + thumbHalfSize
+        const usableWidth = containerWidth - thumbWidthPx
+        const thumbCenterPosition = (percentage / 100) * usableWidth
+        const thumbRightEdge = thumbCenterPosition + thumbWidthPx
+
+        // Convert to percentage of container width
+        const activeTrackWidthPercent = (thumbRightEdge / containerWidth) * 100
+        setActiveTrackWidth(`${activeTrackWidthPercent}%`)
+      }
+
+      updateActiveTrackWidth()
+
+      // Update on resize
+      const resizeObserver = new ResizeObserver(updateActiveTrackWidth)
+      if (trackContainerRef.current) {
+        resizeObserver.observe(trackContainerRef.current)
+      }
+
+      return () => {
+        resizeObserver.disconnect()
+      }
+    }, [percentage, thumbSizeNum, singleValue])
+
+    const labelsBelow = layout === 'labels-below'
+
+    const labelsBelowContent = labelsBelow && (showMinMaxLabels || minIcon || maxIcon) ? (
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {minIcon && (
+            <span style={{ 
+              display: 'flex', 
+              fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`, 
+              color: `var(${iconColorVar}, var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')}))`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : 1 
+            }}>
+              {minIcon}
+            </span>
+          )}
+          {finalShowMinMaxLabels && (
+            <span style={{
+              fontSize: 12,
+              color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+              flexShrink: 0,
+            }}>
+              {minLabel ?? min}
+            </span>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {finalShowMinMaxLabels && (
+            <span style={{
+              fontSize: 12,
+              color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+              flexShrink: 0,
+            }}>
+              {maxLabel ?? max}
+            </span>
+          )}
+          {maxIcon && (
+            <span style={{ 
+              display: 'flex', 
+              fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`, 
+              color: `var(${iconColorVar}, var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')}))`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : 1 
+            }}>
+              {maxIcon}
+            </span>
+          )}
+        </div>
+      </div>
+    ) : null;
+
+    const sliderElement = (
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div
+        style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: `var(${inputGapVar}, 8px)`, overflow: 'visible' }}>
+        {/* Min value display */}
+        {!labelsBelow && (finalShowMinMaxLabels || minIcon) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            {minIcon && (
+              <span style={{ 
+                display: 'flex', 
+                fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`, 
+                color: `var(${iconColorVar}, var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')}))`,
+                opacity: disabled ? `var(${disabledOpacityVar})` : 1 
+              }}>
+                {minIcon}
+              </span>
+            )}
+            {finalShowMinMaxLabels && (
+              <span style={{
+                fontSize: 12,
+                color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+                opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+                flexShrink: 0,
+              }}>
+                {minLabel ?? min}
+              </span>
+            )}
+          </div>
+        )}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+          <div
+            ref={trackContainerRef}
+            style={{
+              position: 'relative',
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            overflow: 'visible',
+            minWidth: 0,
+          }}>
+          {/* Track background */}
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: thumbHalfSize,
+            right: thumbHalfSize,
+            height: `var(${trackHeightVar}, 4px)`,
+            transform: 'translateY(-50%)',
+            backgroundColor: `var(${trackVar})`,
+            borderRadius: `var(${trackBorderRadiusVar})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : 1,
+          }} />
+
+          {/* Active track */}
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: 0,
+            width: activeTrackWidth,
+            height: `var(${trackHeightVar}, 4px)`,
+            transform: 'translateY(-50%)',
+            backgroundColor: `var(${trackActiveVar})`,
+            borderRadius: `var(${trackBorderRadiusVar})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : 1,
+          }} />
+
+          {/* Slider input */}
+          <input
+            id={sliderId}
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={singleValue}
+            onChange={handleChange}
+            onMouseUp={() => {
+              if (onChangeCommitted) {
+                if (isRange) onChangeCommitted([singleValue, value[1]]);
+                else onChangeCommitted(singleValue);
+              }
+            }}
+            onTouchEnd={() => {
+              if (onChangeCommitted) {
+                if (isRange) onChangeCommitted([singleValue, value[1]]);
+                else onChangeCommitted(singleValue);
+              }
+            }}
+            onKeyUp={(e) => {
+              if (onChangeCommitted && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End' || e.key === 'PageUp' || e.key === 'PageDown')) {
+                if (isRange) onChangeCommitted([singleValue, value[1]]);
+                else onChangeCommitted(singleValue);
+              }
+            }}
+            onBlur={() => {
+              if (onChangeCommitted) {
+                if (isRange) onChangeCommitted([singleValue, value[1]]);
+                else onChangeCommitted(singleValue);
+              }
+            }}
+            disabled={disabled || state === 'disabled'}
+            title={computedTooltipText}
+            style={{
+              position: 'relative',
+              width: '100%',
+              height: `var(${thumbSizeVar}, 20px)`,
+              margin: 0,
+              padding: 0,
+              appearance: 'none',
+              WebkitAppearance: 'none',
+              MozAppearance: 'none',
+              background: 'transparent',
+              cursor: disabled ? 'not-allowed' : 'pointer',
+              zIndex: 1,
+            }}
+            className={className}
+          />
+
+          {/* Custom thumb styling */}
+          <style>{`
+            #${sliderId}::-webkit-slider-thumb {
+              appearance: none;
+              -webkit-appearance: none;
+              width: ${thumbSizeValue};
+              height: ${thumbSizeValue};
+              border-radius: ${thumbBorderRadiusValue};
+              background: ${thumbColorValue};
+              border: none;
+              cursor: ${disabled ? 'not-allowed' : 'pointer'};
+              box-shadow: ${thumbElevationValue};
+              opacity: ${disabled ? `var(${disabledOpacityVar})` : 1};
+              margin-top: calc(-1 * (${thumbSizeValue} - ${trackHeightValue}) / 2);
+            }
+            
+            #${sliderId}::-moz-range-thumb {
+              width: ${thumbSizeValue};
+              height: ${thumbSizeValue};
+              border-radius: ${thumbBorderRadiusValue};
+              background: ${thumbColorValue};
+              border: none;
+              cursor: ${disabled ? 'not-allowed' : 'pointer'};
+              box-shadow: ${thumbElevationValue};
+              opacity: ${disabled ? `var(${disabledOpacityVar})` : 1};
+            }
+            
+            #${sliderId}::-ms-thumb {
+              width: ${thumbSizeValue};
+              height: ${thumbSizeValue};
+              border-radius: ${thumbBorderRadiusValue};
+              background: ${thumbColorValue};
+              border: none;
+              cursor: ${disabled ? 'not-allowed' : 'pointer'};
+              box-shadow: ${thumbElevationValue};
+              opacity: ${disabled ? `var(${disabledOpacityVar})` : 1};
+            }
+            
+            #${sliderId}::-webkit-slider-runnable-track {
+              width: 100%;
+              height: ${trackHeightValue};
+              background: transparent;
+              border: none;
+            }
+            
+            #${sliderId}::-moz-range-track {
+              width: 100%;
+              height: ${trackHeightValue};
+              background: transparent;
+              border: none;
+            }
+            
+            #${sliderId}::-ms-track {
+              width: 100%;
+              height: ${trackHeightValue};
+              background: transparent;
+              border: none;
+              color: transparent;
+            }
+          `}</style>
+          </div>
+          {labelsBelowContent}
+        </div>
+        {/* Max value display */}
+        {!labelsBelow && (finalShowMinMaxLabels || maxIcon) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            {finalShowMinMaxLabels && (
+              <span style={{
+                fontSize: 12,
+                color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+                opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+                flexShrink: 0,
+              }}>
+                {maxLabel ?? max}
+              </span>
+            )}
+            {maxIcon && (
+              <span style={{ 
+                display: 'flex', 
+                fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`, 
+                color: `var(${iconColorVar}, var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')}))`,
+                opacity: disabled ? `var(${disabledOpacityVar})` : 1 
+              }}>
+                {maxIcon}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Value label (when showValueLabel is true and no input) */}
+        {finalShowValueLabel && !finalShowInput && (
+          <span style={{
+            fontSize: 12,
+            color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+          }}>
+            {valueLabel ? (typeof valueLabel === 'function' ? valueLabel(singleValue) : valueLabel) : singleValue}
+          </span>
+        )}
+
+        {/* Input field (single or range 2) */}
+        {finalShowInput && (
+          <NumberInput
+            min={min}
+            max={max}
+            step={step}
+            value={isRange ? value[1] : singleValue}
+            state={disabled ? 'disabled' : state}
+            onChange={(e) => {
+              if (!readOnly) {
+                const newValue = Number(e.target.value)
+                if (!isNaN(newValue)) {
+                  if (isRange) {
+                    onChange([value[0], newValue])
+                  } else {
+                    onChange(newValue)
+                  }
+                }
+              }
+            }}
+            onBlur={() => {
+              if (!readOnly) {
+                if (isRange) {
+                  const clampedValue = Math.max(value[0], Math.min(max, value[1]))
+                  if (value[1] !== clampedValue) {
+                    onChange([value[0], clampedValue])
+                  }
+                  if (onChangeCommitted) onChangeCommitted([value[0], clampedValue])
+                } else {
+                  const clampedValue = Math.max(min, Math.min(max, singleValue))
+                  if (singleValue !== clampedValue) {
+                    onChange(clampedValue)
+                  }
+                  if (onChangeCommitted) onChangeCommitted(clampedValue)
+                }
+              }
+            }}
+            onKeyDown={(e) => {
+              if (!readOnly && e.key === 'Enter') {
+                if (isRange) {
+                  const clampedValue = Math.max(value[0], Math.min(max, value[1]))
+                  if (value[1] !== clampedValue) {
+                    onChange([value[0], clampedValue])
+                  }
+                  if (onChangeCommitted) onChangeCommitted([value[0], clampedValue])
+                } else {
+                  const clampedValue = Math.max(min, Math.min(max, singleValue))
+                  if (singleValue !== clampedValue) {
+                    onChange(clampedValue)
+                  }
+                  if (onChangeCommitted) onChangeCommitted(clampedValue)
+                }
+              }
+            }}
+            readOnly={readOnly}
+            layer="layer-0"
+            disableTopBottomMargin={true}
+            className="recursica-slider-number-input"
+            style={{
+              fontSize: 'var(--recursica_brand_typography_caption-font-size)',
+              margin: 0,
+              width: `var(${inputWidthVar})`,
+              height: `var(${inputHeightVar})`,
+              paddingTop: `var(${inputPaddingVerticalVar})`,
+              paddingBottom: `var(${inputPaddingVerticalVar})`,
+              paddingLeft: `var(${inputPaddingLeftVar})`,
+              paddingRight: `var(${inputPaddingRightVar})`
+            }}
+          />
+        )}
+      </div>
+      {!Component && state === 'error' && errorText && (() => {
+        const ErrorIcon = iconNameToReactComponent('warning')
+        return <AssistiveElement text={typeof errorText === 'string' ? errorText : ''} icon={typeof errorText !== 'string' ? errorText : (ErrorIcon ? <ErrorIcon /> : undefined)} variant="error" layer={layer} />
+      })()}
+    </div>
+  )
+
+    // Calculate the width of the max value display to align value label above it
+    const maxValueWidth = 30 // Approximate width for max value display
+
+    if (layout === 'side-by-side' && label) {
+      // For side-by-side, use Label's gutter property
+      const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
+      // topBottomMarginVar is already declared at the top level
+      return (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: gapValue,
+          width: '100%',
+          marginTop: `var(${topBottomMarginVar})`,
+          marginBottom: `var(${topBottomMarginVar})`,
+          ...style
+        }}>
+          <div style={{ flexShrink: 0, minWidth: 100, width: 100 }}>
+            {label}
+          </div>
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+          }}>
+            {sliderElement}
+          </div>
+        </div>
+      )
+    }
+
+    // For stacked layout, Label's bottom-padding handles the spacing, so no gap needed
+    // topBottomMarginVar is already declared at the top level
+    // Extract flex and flexGrow from style prop if present, but always ensure flexGrow is 1
+    const { flex, flexGrow: styleFlexGrow, flexDirection: _, ...restStyle } = style || {}
+    const wrapperStyle: React.CSSProperties = {
+      display: 'flex',
+      flexDirection: 'column',
+      marginTop: `var(${topBottomMarginVar})`,
+      marginBottom: `var(${topBottomMarginVar})`,
+      minWidth: 0,
+      ...restStyle,
+      // Always set flexGrow to 1, overriding any value from style prop
+      flexGrow: 1,
+    }
+
+    return (
+      <div
+        style={{
+          ...wrapperStyle,
+          flexGrow: 1,
+        }}>
+        {label && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {label}
+          </div>
+        )}
+        {sliderElement}
+      </div>
+    )
+  }
+
+  // Calculate display value - call function if provided, otherwise use value directly
+  let displayValue: string | number | undefined
+  try {
+    if (valueLabel) {
+      if (typeof valueLabel === 'function') {
+        displayValue = valueLabel(singleValue)
+      } else {
+        displayValue = valueLabel
+      }
+    } else {
+      displayValue = singleValue
+    }
+  } catch (_e) {
+    displayValue = singleValue
+  }
+  // Ensure displayValue is always a non-empty string for rendering
+  const displayValueStr = (displayValue !== undefined && displayValue !== null && String(displayValue).trim() !== '')
+    ? String(displayValue).trim()
+    : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '—')
+
+  // Calculate the width of the max value display to align value label above it
+  const maxValueWidth = 30 // Approximate width for max value display
+
+  // When showValueLabel is true, we handle the label row ourselves to avoid duplicates
+  // and to position the value label correctly
+  const shouldHandleLabelRow = finalShowValueLabel && label && !finalShowInput
+
+  const sliderComponent = (
+    <Suspense fallback={<span />}>
+      <Component
+        value={value}
+        onChange={onChange}
+        onChangeCommitted={onChangeCommitted}
+        min={min}
+        max={max}
+        step={step}
+        disabled={disabled || state === 'disabled'}
+        state={state}
+        errorText={errorText}
+        type={type}
+        layout={layout}
+        layer={layer}
+        label={shouldHandleLabelRow ? undefined : label}
+        showInput={finalShowInput}
+        showValueLabel={finalShowValueLabel}
+        valueLabel={valueLabel}
+        tooltipText={computedTooltipText}
+        minLabel={minLabel}
+        maxLabel={maxLabel}
+        showMinMaxLabels={finalShowMinMaxLabels}
+        minIcon={minIcon}
+        maxIcon={maxIcon}
+        iconSize={iconSize}
+        readOnly={readOnly}
+        className={className}
+        style={style}
+        mantine={mantine}
+      />
+    </Suspense>
+  )
+
+  // Force re-render when top-bottom-margin CSS variable changes
+  // Note: topBottomMarginVar is declared earlier in the fallback function scope
+  const topBottomMarginVar = buildComponentCssVarPath('Slider', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
+  const [, forceMarginUpdate] = useState(0)
+
+  useEffect(() => {
+    const handleMarginUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars || []
+      if (updatedVars.length === 0 || updatedVars.some((v: string) => v === topBottomMarginVar || v.includes('top-bottom-margin'))) {
+        forceMarginUpdate(prev => prev + 1)
+      }
+    }
+
+    window.addEventListener('cssVarsUpdated', handleMarginUpdate)
+    const observer = new MutationObserver(() => {
+      forceMarginUpdate(prev => prev + 1)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleMarginUpdate)
+      observer.disconnect()
+    }
+  }, [topBottomMarginVar, layout])
+
+  // Get Label's gutter for side-by-side layout (Label component manages spacing)
+  const labelGutterVarForLibrary = layout === 'side-by-side'
+    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
+    : null
+
+  // Get Label's bottom-padding for stacked layout to match spacing
+  const labelBottomPaddingVar = layout === 'stacked'
+    ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'stacked', 'properties', 'bottom-padding')
+    : null
+
+  // Render value label using Label component to match label styling
+  // Always show the value label when showValueLabel is true
+  // Ensure we always have a non-empty value to display
+  const finalDisplayValue = (displayValueStr && displayValueStr.trim() !== '')
+    ? displayValueStr
+    : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '0')
+
+  // Use layer text color directly for value labels
+  const layerNum = parseInt(layer.replace('layer-', ''))
+  const layerTextColorVar = layerText(mode, layerNum, 'color')
+  const layerTextEmphasisVar = layerText(mode, layerNum, 'high-emphasis')
+
+  const valueLabelElement = finalShowValueLabel ? (
+    <span
+      style={{
+        flexShrink: 1,
+        whiteSpace: 'nowrap',
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        fontFamily: readOnlyValueFontFamilyVar ? `var(${readOnlyValueFontFamilyVar})` : undefined,
+        fontSize: readOnlyValueFontSizeVar ? `var(${readOnlyValueFontSizeVar})` : undefined,
+        fontWeight: readOnlyValueFontWeightVar ? `var(${readOnlyValueFontWeightVar})` : undefined,
+        letterSpacing: readOnlyValueLetterSpacingVar ? `var(${readOnlyValueLetterSpacingVar})` : undefined,
+        lineHeight: readOnlyValueLineHeightVar ? `var(${readOnlyValueLineHeightVar})` : undefined,
+        textDecoration: readOnlyValueTextDecorationVar ? (readCssVar(readOnlyValueTextDecorationVar) || 'none') : 'none',
+        textTransform: readOnlyValueTextTransformVar ? (readCssVar(readOnlyValueTextTransformVar) || 'none') : 'none',
+        fontStyle: readOnlyValueFontStyleVar ? (readCssVar(readOnlyValueFontStyleVar) || 'normal') : 'normal',
+        color: `var(${layerTextColorVar})`,
+        opacity: disabled ? 0.5 : `var(${layerTextEmphasisVar})`,
+        textAlign: 'right',
+        paddingBottom: labelBottomPaddingVar ? `var(${labelBottomPaddingVar})` : undefined,
+      } as React.CSSProperties}
+    >
+      {finalDisplayValue}
+    </span>
+  ) : null
+
+  // When using library components, they handle their own label rendering
+  // We only override this when showValueLabel is true to position the value label correctly
+  // So we should NOT wrap with additional label rendering when shouldHandleLabelRow is false
+  if (!shouldHandleLabelRow) {
+    // Let the library component handle label rendering
+    // Apply top-bottom-margin wrapper (forceMarginUpdate hook above ensures re-render on CSS var change)
+    return (
+      <div style={{
+        marginTop: `var(${topBottomMarginVar})`,
+        marginBottom: `var(${topBottomMarginVar})`,
+        flexGrow: 1,
+        minWidth: 0,
+        ...style,
+      }}>
+        {sliderComponent}
+      </div>
+    )
+  }
+
+  // When layout is side-by-side, always let the Component handle it
+  // This ensures proper side-by-side rendering regardless of showValueLabel
+  if (layout === 'side-by-side' && label && Component) {
+    return (
+      <div style={{
+        marginTop: `var(${topBottomMarginVar})`,
+        marginBottom: `var(${topBottomMarginVar})`,
+        flexGrow: 1,
+        minWidth: 0,
+        ...style,
+      }}>
+        <Suspense fallback={<span />}>
+          <Component
+            value={value}
+            onChange={onChange}
+            onChangeCommitted={onChangeCommitted}
+            min={min}
+            max={max}
+            step={step}
+            type={type}
+            disabled={disabled || state === 'disabled'}
+            state={state}
+            errorText={errorText}
+            layout={layout}
+            layer={layer}
+            label={label}
+            showInput={finalShowInput}
+            showValueLabel={finalShowValueLabel}
+            valueLabel={valueLabel}
+            tooltipText={tooltipText}
+            minLabel={minLabel}
+            maxLabel={maxLabel}
+            showMinMaxLabels={finalShowMinMaxLabels}
+            minIcon={minIcon}
+            maxIcon={maxIcon}
+            iconSize={iconSize}
+            readOnly={readOnly}
+            className={className}
+            style={style}
+            mantine={mantine}
+          />
+        </Suspense>
+      </div>
+    )
+  }
+
+  // For stacked layout, Label's bottom-padding handles the spacing, so no gap needed
+  const gapValueForLibrary = labelGutterVarForLibrary ? `var(${labelGutterVarForLibrary})` : '0px'
+
+  // When Component is not null, sliderComponent wraps it but has showValueLabel={false}
+  // So we need to render the value label ourselves in the label row
+  // When Component is null, we return early in the fallback block, so sliderElement is used
+  // Extract marginTop/marginBottom from style prop to prevent them from overriding component margins
+  const { marginTop: styleMarginTop, marginBottom: styleMarginBottom, ...restStyle } = style || {};
+  const marginTopValue = `var(${topBottomMarginVar})`;
+  const marginBottomValue = `var(${topBottomMarginVar})`;
+  const finalMarginTop = styleMarginTop ?? marginTopValue;
+  const finalMarginBottom = styleMarginBottom ?? marginBottomValue;
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: gapValueForLibrary,
+      width: '100%',
+      minWidth: 0,
+      marginTop: finalMarginTop,
+      marginBottom: finalMarginBottom,
+      ...restStyle,
+      flexGrow: 1, // Always override any flexGrow from style prop
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', minWidth: 0, gap: '8px' }}>
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>{label}</div>
+        {valueLabelElement}
+      </div>
+      {sliderComponent}
+    </div>
+  )
+}

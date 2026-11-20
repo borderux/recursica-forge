@@ -1,0 +1,55 @@
+/**
+ * Mantine SwitchItem Adapter
+ *
+ * Not previously implemented for Mantine at all — no folder existed here and it was not
+ * registered in registry/mantine.ts. The real adapter's Switch (from
+ * @recursica/adapter-mantine-v8) already accepts a `label` prop directly, so this is cheap to
+ * wire up, but it carries the same class of bug already fixed on Checkbox: the real
+ * Switch's `onChange` fires the native input event (`(event: ChangeEvent<HTMLInputElement>)
+ * => void`, confirmed against @mantine/core's own Switch.d.ts — it composes
+ * `ElementProps<'input', 'size' | 'children'>`, i.e. native input attributes), not the
+ * `(checked: boolean) => void` Forge declares. Adapted here the same way.
+ *
+ * `elevation` is token-driven, not a prop, same as every other component.
+ */
+
+import React from 'react'
+import { Switch as MantineSwitch } from '@recursica/adapter-mantine-v8'
+import type { SwitchItemProps } from '../../common/SwitchItem'
+import type { AssertWired } from '../../common/wiringCheck'
+
+export default React.forwardRef<any, SwitchItemProps>(function SwitchItem({
+    checked,
+    onChange,
+    disabled,
+    label,
+    mantine,
+}, ref) {
+    return (
+        <MantineSwitch
+            checked={checked}
+            onChange={(event) => onChange(event.currentTarget.checked)}
+            disabled={disabled}
+            label={label}
+            {...mantine}
+            ref={ref}
+        />
+    )
+})
+
+// Compile-time only — fails the build the moment SwitchItemProps declares a prop with no
+// real, type-compatible home on the real Switch. `onChange` is excluded: it's explicitly
+// adapted above (event -> boolean), not passed through unchanged. `elevation` is a genuine
+// adapter gap — see file header. `colorVariant`/`sizeVariant` removed from the type entirely
+// (2026-08), no longer need excluding.
+type _Wiring = AssertWired<
+    SwitchItemProps,
+    typeof MantineSwitch,
+    | 'layer'
+    | 'mantine'
+    | 'className'
+    | 'style'
+    | 'onChange'
+    | 'elevation'
+>
+const _wiringCheck: _Wiring = true

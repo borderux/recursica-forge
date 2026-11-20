@@ -35,7 +35,6 @@ export default function ModalPreview({
     // only in that overflowing state — never on a modal whose content fits.
     const scrollingBodyRef = useRef<HTMLDivElement>(null)
     const [scrollingOverflows, setScrollingOverflows] = useState(false)
-    const sizeVariant = selectedVariants.size || 'md'
     const showHeader = selectedVariants.header !== 'false'
     const showFooter = selectedVariants.footer !== 'false'
     const scrollable = selectedVariants.scrollable === 'true'
@@ -364,7 +363,6 @@ export default function ModalPreview({
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
                 title="The Legend of Zog"
-                size={sizeVariant as any}
                 layer={selectedLayer as any}
                 elevation={componentElevation}
                 showHeader={showHeader}

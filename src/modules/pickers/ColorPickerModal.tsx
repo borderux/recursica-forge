@@ -84,7 +84,6 @@ export function ColorPickerModal({
       isOpen={open}
       onClose={onClose}
       title="Add color scale"
-      size={360}
       layer="layer-3"
       primaryActionLabel="Create Scale"
       onPrimaryAction={handleAccept}

@@ -23,7 +23,7 @@ These are foundational tokens that CSS variables reference. However, changes to 
 These components read overrides for display purposes but don't modify them.
 
 ### Reset Functionality
-- Shell components (`MaterialShell.tsx`, `MantineShell.tsx`, `CarbonShell.tsx`) use `clearOverrides()` to reset to defaults
+- The shell component (`MantineShell.tsx`) uses `clearOverrides()` to reset to defaults
 
 ## Problem
 
@@ -66,9 +66,7 @@ According to the plan: **"minimize overrides so users change CSS vars directly"*
 - `src/modules/type/TypeSample.tsx` - `readOverrides()`
 
 ### Clearing Overrides
-- `src/modules/app/shells/MaterialShell.tsx` - `clearOverrides()`
 - `src/modules/app/shells/MantineShell.tsx` - `clearOverrides()`
-- `src/modules/app/shells/CarbonShell.tsx` - `clearOverrides()`
 
 ## Conclusion
 

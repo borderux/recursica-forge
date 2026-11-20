@@ -208,7 +208,6 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
       secondaryActionLabel="Cancel"
       onSecondaryAction={onCancel}
       layer="layer-3"
-      size="md"
       scrollable={true}
       content={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

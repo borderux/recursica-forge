@@ -1,8 +1,0 @@
-/* Carbon RadioButtonGroup Overrides */
-
-.recursica-radio-group-items {
-    display: flex;
-    flex-direction: column;
-    gap: var(--radio-group-gap) !important;
-    padding: var(--radio-group-padding) !important;
-}

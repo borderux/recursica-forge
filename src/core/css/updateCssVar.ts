@@ -15,6 +15,7 @@ import { getVarsStore } from '../store/varsStore'
 import { checkForGlobalRef } from './globalRefInterceptor'
 import { checkForOnToneConflict, readCurrentDtcgRef } from './onToneInterceptor'
 import { updateBrandValue } from './updateBrandValue'
+import { typographySubVars } from './typographySubVars'
 
 // Global flag to suppress events during bulk updates
 let suppressEvents = false
@@ -180,6 +181,19 @@ export function updateCssVar(
     } else if (cssVarName.includes('_modes_dark_')) {
       const lightVarName = cssVarName.replace('_modes_dark_', '_modes_light_')
       root.style.setProperty(lightVarName, trimmedValue)
+    }
+  }
+
+  // A typography-style property also has per-property companions (`<name>_fontFamily`, …) that
+  // the published adapter reads. Keep them pointing at the newly chosen style, in both modes.
+  if (isUIKitVar) {
+    const counterpart = cssVarName.includes('_modes_light_')
+      ? cssVarName.replace('_modes_light_', '_modes_dark_')
+      : cssVarName.includes('_modes_dark_') ? cssVarName.replace('_modes_dark_', '_modes_light_') : null
+    for (const name of counterpart ? [cssVarName, counterpart] : [cssVarName]) {
+      for (const [sub, subValue] of Object.entries(typographySubVars(name, trimmedValue) ?? {})) {
+        root.style.setProperty(sub, subValue)
+      }
     }
   }
 

@@ -347,7 +347,6 @@ export function GitHubExportModal({
       title={getModalTitle()}
       showFooter={false}
       layer='layer-3'
-      size='md'
     >
       <div
         style={{

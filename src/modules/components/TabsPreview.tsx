@@ -31,8 +31,9 @@ function TabSet({
     variant,
     orientation,
     tabContentAlignment = 'left',
+    inverted,
+    placement,
     layer,
-    mantineOverrides,
     contentPanel,
 }: {
     value: string | null
@@ -40,11 +41,15 @@ function TabSet({
     variant: 'default' | 'pills' | 'outline'
     orientation: 'horizontal' | 'vertical'
     tabContentAlignment?: 'left' | 'center' | 'right'
+    inverted?: boolean
+    placement?: 'left' | 'right'
     layer: string
-    mantineOverrides?: { inverted?: boolean; placement?: 'left' | 'right' }
     contentPanel: React.CSSProperties
 }) {
-    const isInverted = mantineOverrides?.inverted
+    // `inverted` (horizontal) and `placement="right"` (vertical) each need the same DOM
+    // reordering — Tabs.Panel before Tabs.List — to actually move the list to the far side;
+    // the props themselves only correct corner-radius/native Mantine styling on top of that.
+    const reordered = inverted || placement === 'right'
     return (
         <Tabs
             value={value ?? undefined}
@@ -52,10 +57,11 @@ function TabSet({
             variant={variant}
             orientation={orientation}
             tabContentAlignment={tabContentAlignment}
+            inverted={inverted}
+            placement={placement}
             layer={layer}
-            mantine={mantineOverrides}
         >
-            {isInverted ? (
+            {reordered ? (
                 <>
                     <Tabs.Panel value="gallery" style={contentPanel}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
                     <Tabs.Panel value="messages" style={contentPanel}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
@@ -119,7 +125,7 @@ export default function TabsPreview({
                     </div>
                     <div>
                         <h4 style={headerStyle}>Bottom</h4>
-                        <TabSet value={value2} onChange={setValue2} {...tabSetProps} mantineOverrides={{ inverted: true }} />
+                        <TabSet value={value2} onChange={setValue2} {...tabSetProps} inverted />
                     </div>
                 </>
             ) : (
@@ -130,7 +136,7 @@ export default function TabsPreview({
                     </div>
                     <div>
                         <h4 style={headerStyle}>Right</h4>
-                        <TabSet value={value2} onChange={setValue2} {...tabSetProps} mantineOverrides={{ placement: 'right' }} />
+                        <TabSet value={value2} onChange={setValue2} {...tabSetProps} placement="right" />
                     </div>
                 </>
             )}

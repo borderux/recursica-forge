@@ -326,7 +326,6 @@ export function ImportModal({
       onClose={onClose}
       title='Import'
       layer='layer-1'
-      size='md'
       primaryActionLabel='Import'
       onPrimaryAction={handleImport}
       primaryActionDisabled={selectedFileNames.length === 0 || loading}

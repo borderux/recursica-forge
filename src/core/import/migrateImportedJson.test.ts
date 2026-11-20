@@ -150,7 +150,7 @@ describe('migrateImportedJson — brand 1.x → 2.x states', () => {
 
   it('stamps the current structure version', () => {
     const out = migrateImportedJson(brand1x(), 'brand')
-    expect(out.$extensions['recursica.metadata'].version).toBe('2.1.1')
+    expect(out.$extensions['recursica.metadata'].version).toBe('2.2.0')
   })
 
   it('is idempotent — a 2.x brand is left unchanged', () => {
@@ -759,7 +759,7 @@ describe('2.1.0 → 2.1.1: repair Google Fonts URLs corrupted by pasted @import 
 
   it('stamps the current structure version', () => {
     const out = repairCorruptedGoogleFontsUrls(tokensWith(CLEAN))
-    expect(out.$extensions['recursica.metadata'].version).toBe('2.1.1')
+    expect(out.$extensions['recursica.metadata'].version).toBe('2.2.0')
   })
 
   it('runs as part of the tokens import path', () => {
@@ -1048,5 +1048,34 @@ describe('brand.themes → brand.modes', () => {
     const out = renameBrandThemesToModes(both)
     expect(out.brand.themes).toBeUndefined()
     expect(out.brand.modes.light.marker).toBe('new')
+  })
+})
+
+describe('2.1.1 → 2.2.0: one owner per property', () => {
+  const uikit = () => ({
+    'ui-kit': {
+      components: {
+        button: {
+          variants: {
+            styles: { text: { properties: { colors: { layers: { 'layer-0': { 'text-color': { $value: 'a' } }, 'layer-3': { 'border-color': { $value: 'b' } } } } } } },
+            sizes: { small: { properties: { height: { $value: 'h' }, 'min-width': { $value: 'm' }, 'horizontal-padding': { $value: 'p' } } } },
+          },
+        },
+        avatar: { variants: { sizes: { large: { properties: { width: { $value: 'w' }, 'border-size': { $value: 's' }, 'border-color': { $value: 'c' } } } } } },
+      },
+    },
+  })
+
+  it('removes the duplicate keys and keeps their siblings', () => {
+    const out = migrateImportedJson(uikit(), 'uikit')['ui-kit'].components
+    expect(out.button.variants.sizes.small.properties).toEqual({ height: { $value: 'h' } })
+    expect(out.button.variants.styles.text.properties.colors.layers).toEqual({ 'layer-0': { 'text-color': { $value: 'a' } } })
+    expect(out.avatar.variants.sizes.large.properties).toEqual({ width: { $value: 'w' } })
+  })
+
+  it('stamps 2.2.0 and is idempotent', () => {
+    const once = migrateImportedJson(uikit(), 'uikit')
+    expect(once.$extensions['recursica.metadata'].version).toBe('2.2.0')
+    expect(migrateImportedJson(JSON.parse(JSON.stringify(once)), 'uikit')).toEqual(once)
   })
 })

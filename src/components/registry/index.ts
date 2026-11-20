@@ -6,13 +6,12 @@
  */
 
 import { lazy, ComponentType } from 'react'
-import type { UiKit, ComponentName } from './types'
+import type { AdapterKey, ComponentName } from './types'
 
 // Registry maps: kit -> componentName -> Component Loader
-const registries: Record<UiKit, Partial<Record<ComponentName, () => Promise<{ default: ComponentType<any> }>>>> = {
+const registries: Record<AdapterKey, Partial<Record<ComponentName, () => Promise<{ default: ComponentType<any> }>>>> = {
   mantine: {},
-  material: {},
-  carbon: {},
+  local: {},
 }
 
 // Cache for lazy-loaded components
@@ -22,7 +21,7 @@ const lazyComponentCache: Record<string, ComponentType<any>> = {}
  * Registers a component implementation for a specific UI kit
  */
 export function registerComponent(
-  kit: UiKit,
+  kit: AdapterKey,
   componentName: ComponentName,
   loader: () => Promise<{ default: ComponentType<any> }>
 ) {
@@ -37,7 +36,7 @@ export function registerComponent(
  * Returns null if component is not available for that kit
  */
 export function getComponent(
-  kit: UiKit,
+  kit: AdapterKey,
   componentName: ComponentName
 ): ComponentType<any> | null {
   const cacheKey = `${kit}-${componentName}`
@@ -68,7 +67,7 @@ export function getComponent(
  * Preloads a component for a specific kit
  */
 export async function preloadComponent(
-  kit: UiKit,
+  kit: AdapterKey,
   componentName: ComponentName
 ): Promise<void> {
   const cacheKey = `${kit}-${componentName}`

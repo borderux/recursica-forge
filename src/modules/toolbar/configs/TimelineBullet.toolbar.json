@@ -76,13 +76,7 @@
           "label": "Icon size"
         },
         "properties.avatar-size": {
-          "label": "Avatar size",
-          "control": "dropdown",
-          "options": [
-            "small",
-            "default",
-            "large"
-          ]
+          "label": "Avatar size"
         }
       }
     }

@@ -48,7 +48,7 @@ describe('RadioButtonItem Toolbar Props Integration', () => {
                 const result = renderWithProviders(
                     <RadioButtonItem
                         label="Test Radio"
-                        selected={true}
+                        checked={true}
                         onChange={() => { }}
                         layer="layer-0"
                     />
@@ -84,7 +84,7 @@ describe('RadioButtonItem Toolbar Props Integration', () => {
                 const result = renderWithProviders(
                     <RadioButtonItem
                         label="Test Radio"
-                        selected={false}
+                        checked={false}
                         onChange={() => { }}
                         layer="layer-0"
                     />
@@ -117,7 +117,7 @@ describe('RadioButtonItem Toolbar Props Integration', () => {
                 const result = renderWithProviders(
                     <RadioButtonItem
                         label="Test Radio"
-                        selected={true}
+                        checked={true}
                         onChange={() => { }}
                         layer="layer-0"
                     />
@@ -152,7 +152,7 @@ describe('RadioButtonItem Toolbar Props Integration', () => {
                 const result = renderWithProviders(
                     <RadioButtonItem
                         label="Test Radio"
-                        selected={false}
+                        checked={false}
                         onChange={() => { }}
                         layer="layer-0"
                     />
@@ -185,7 +185,7 @@ describe('RadioButtonItem Toolbar Props Integration', () => {
                 const result = renderWithProviders(
                     <RadioButtonItem
                         label="Test Radio"
-                        selected={false}
+                        checked={false}
                         onChange={() => { }}
                         layer="layer-0"
                     />
@@ -218,7 +218,7 @@ describe('RadioButtonItem Toolbar Props Integration', () => {
                 const result = renderWithProviders(
                     <RadioButtonItem
                         label="Test Radio"
-                        selected={false}
+                        checked={false}
                         onChange={() => { }}
                         layer="layer-0"
                     />
@@ -253,7 +253,7 @@ describe('RadioButtonItem Toolbar Props Integration', () => {
                 const result = renderWithProviders(
                     <RadioButtonItem
                         label="Test Radio"
-                        selected={false}
+                        checked={false}
                         onChange={() => { }}
                         layer="layer-0"
                     />
@@ -286,7 +286,7 @@ describe('RadioButtonItem Toolbar Props Integration', () => {
                 const result = renderWithProviders(
                     <RadioButtonItem
                         label="Test Radio"
-                        selected={false}
+                        checked={false}
                         onChange={() => { }}
                         layer="layer-0"
                     />

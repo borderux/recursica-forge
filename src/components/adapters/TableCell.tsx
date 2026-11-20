@@ -1,60 +1,28 @@
 /**
  * TableCell Component Adapter
- * 
- * Unified TableCell component that renders the appropriate library implementation
- * based on the current UI kit selection.
+ *
+ * Thin dispatcher: renders the local adapter's TableCell, or forwards props to the real
+ * adapter via useComponent('TableCell').
  */
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import type { TableCellProps } from './common/TableCell'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { TableCell as LocalTableCell } from './local/dispatch/TableCell'
 
-export type TableCellProps = {
-  children?: React.ReactNode
-  variant?: string
-  layer?: ComponentLayer
-  elevation?: string
-  className?: string
-  style?: React.CSSProperties
-  isHeader?: boolean
-  disabled?: boolean
-} & LibrarySpecificProps
+// Re-exported so existing `import type { TableCellProps } from '.../adapters/TableCell'`
+// call sites keep working — the types now live in common/TableCell.ts.
+export type { TableCellProps } from './common/TableCell'
 
-export function TableCell({
-  children,
-  variant,
-  layer = 'layer-0',
-  elevation,
-  className,
-  style,
-  isHeader,
-  disabled,
-  mantine,
-  material,
-  carbon,
-}: TableCellProps) {
+function SharedTableCell(props: TableCellProps) {
   const Component = useComponent('TableCell')
-
-  if (!Component) {
-    return null
-  }
-
   return (
-    <Suspense fallback={isHeader ? <th /> : <td />}>
-      <Component
-        variant={variant}
-        layer={layer}
-        elevation={elevation}
-        className={className}
-        style={style}
-        isHeader={isHeader}
-        disabled={disabled}
-        mantine={mantine}
-        material={material}
-        carbon={carbon}
-      >
-        {children}
-      </Component>
+    <Suspense fallback={props.isHeader ? <th /> : <td />}>
+      <Component {...props} />
     </Suspense>
   )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const TableCell = (isLocalAdapter ? LocalTableCell : SharedTableCell) as typeof SharedTableCell

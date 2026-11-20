@@ -7,7 +7,6 @@
  * user per-style choices.
  */
 import { useEffect, useMemo, useState } from 'react'
-import { useUiKit } from '../uikit/UiKitContext'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import TypeControls, { readChoices, writeChoices } from './TypeControls'
@@ -151,7 +150,6 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
   const Tag = tag as any
   const [livePreview, setLivePreview] = useState<Partial<Style> | null>(null)
   // Rely on VarsContext subscription to re-render when overrides or choices change
-  const { kit } = useUiKit()
   const { tokens, theme } = useVars()
   // removed choicesVersion state (not needed)
   const overrides = useMemo(() => readOverrides(), [])
@@ -362,7 +360,6 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
 
   const previewFamily = extractBaseFamily(previewStyle.fontFamily as string)
   const fontAvailable = isFontAvailable(previewFamily)
-  const kitLabel = kit === 'mantine' ? 'Mantine' : kit === 'material' ? 'Material UI' : 'Carbon'
 
   return (
     <div style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, padding: 16 }}>
@@ -370,7 +367,7 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
       {!fontAvailable && previewFamily && (
         <div style={{ marginTop: 6 }}>
           <span style={{ display: 'inline-block', fontSize: 11, border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 999, padding: '2px 8px', color: 'var(--layers-layer-1-elements-text-color)', opacity: 'var(--layers-layer-1-elements-text-low-emphasis)' }}>
-            Font unavailable in Recursica Forge, displaying fallback from {kitLabel}
+            Font unavailable in Recursica Forge, displaying fallback from Mantine
           </span>
         </div>
       )}

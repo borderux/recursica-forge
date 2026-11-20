@@ -1,154 +1,51 @@
 /**
- * Mantine Badge Implementation
- * 
- * Mantine-specific Badge component that uses CSS variables for theming.
+ * Mantine Badge Adapter
+ *
+ * Not a 1:1 pass-through: confirmed against @mantine/core's own BadgeProps (the real
+ * component's base, `Omit<BadgeProps, "variant" | "size" | "color" | "radius"> &
+ * RecursicaBadgeProps`) that `size` has no real destination — Mantine's own sizing is
+ * explicitly omitted upstream with nothing to replace it.
+ *
+ * `variant` maps onto a real, matching slot (`RecursicaBadgeProps.variant`), but Forge
+ * deliberately types its own `variant` as an open `string` so CSS vars can be keyed off
+ * arbitrary custom variant names (e.g. `'my-badge'`) — wider than the real adapter's
+ * `'alert' | 'primary-color' | 'success' | 'warning'` union, which only enumerates its four
+ * known values. The cast below is the actual translation (same spirit as DatePicker's
+ * `layout`): a custom variant name still flows through unchanged at runtime (it's a plain
+ * string prop with no runtime validation), it just isn't statically provable to be one of the
+ * four known members.
  */
 
-import { useState, useEffect } from 'react'
-import { Badge as MantineBadge } from '@mantine/core'
-import type { BadgeProps as AdapterBadgeProps } from '../../Badge'
-import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
-import './Badge.css'
+import React from 'react'
+import { Badge as MantineBadge } from '@recursica/adapter-mantine-v8'
+import type { BadgeProps } from '../../common/Badge'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Badge({
-  children,
-  variant = 'primary-color',
-  size,
-  layer = 'layer-0',
-  elevation,
-  className,
-  style,
-  mantine,
-  ...props
-}: AdapterBadgeProps) {
-  const { mode } = useThemeMode()
+export default React.forwardRef<any, BadgeProps>(function Badge({
+    children,
+    variant,
+    mantine,
+}, ref) {
+    return (
+        <MantineBadge
+            variant={variant as 'alert' | 'primary-color' | 'success' | 'warning' | undefined}
+            {...mantine}
+            ref={ref}
+        >
+            {children}
+        </MantineBadge>
+    )
+})
 
-  // Get CSS variables — use buildVariantColorCssVar so any variant name (including
-  // custom variants like 'my-badge') maps directly to the correct CSS var path.
-  const resolvedVariant = variant === 'warn' ? 'warning' : variant
-  const bgVar = buildVariantColorCssVar('Badge', resolvedVariant, 'background-color', layer as any)
-  const textVar = buildVariantColorCssVar('Badge', resolvedVariant, 'text-color', layer as any)
-  const borderColorVar = buildVariantColorCssVar('Badge', resolvedVariant, 'border-color', layer as any)
-
-  // Get text CSS variables
-  const fontFamilyVar = getComponentTextCssVar('Badge', 'text', 'font-family')
-  const fontSizeVar = getComponentTextCssVar('Badge', 'text', 'font-size')
-  const fontWeightVar = getComponentTextCssVar('Badge', 'text', 'font-weight')
-  const letterSpacingVar = getComponentTextCssVar('Badge', 'text', 'letter-spacing')
-  const lineHeightVar = getComponentTextCssVar('Badge', 'text', 'line-height')
-  const textDecorationVar = getComponentTextCssVar('Badge', 'text', 'text-decoration')
-  const textTransformVar = getComponentTextCssVar('Badge', 'text', 'text-transform')
-  const fontStyleVar = getComponentTextCssVar('Badge', 'text', 'font-style')
-
-  // Get level CSS variables (border-radius, border-size, padding)
-  const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
-  const borderSizeVar = getComponentLevelCssVar('Badge', 'border-size')
-  const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
-  const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
-
-  // Reactively read elevation from CSS variable
-  const elevationVar = getComponentLevelCssVar('Badge', 'elevation')
-  const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
-    const value = readCssVar(elevationVar)
-    return value ? parseElevationValue(value) : undefined
-  })
-
-  // Force re-render when CSS vars change (needed for Mantine to pick up CSS var changes)
-  const [, setUpdateKey] = useState(0)
-
-  useEffect(() => {
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-
-      // Update elevation if it was changed
-      if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
-        const value = readCssVar(elevationVar)
-        setElevationFromVar(value ? parseElevationValue(value) : undefined)
-      }
-
-      // Always trigger re-render on CSS var updates to catch color/font changes
-      setUpdateKey(prev => prev + 1)
-    }
-
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-
-    const observer = new MutationObserver(() => {
-      const value = readCssVar(elevationVar)
-      setElevationFromVar(value ? parseElevationValue(value) : undefined)
-      setUpdateKey(prev => prev + 1)
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-
-    return () => {
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-      observer.disconnect()
-    }
-  }, [elevationVar])
-
-  // Determine elevation to apply - prioritize prop, then CSS variable
-  const componentElevation = elevation ?? elevationFromVar
-  const elevationBoxShadow = getElevationBoxShadow(mode, componentElevation)
-
-  return (
-    <MantineBadge
-      className={`mantine-badge ${className || ''}`}
-      style={{
-        // Set component-level CSS custom properties for colors and text styles
-        // The CSS file will use these to style the badge
-        '--badge-bg': `var(${bgVar})`,
-        '--badge-text': `var(${textVar})`,
-        '--badge-font-family': `var(${fontFamilyVar})`,
-        '--badge-font-size': `var(${fontSizeVar})`,
-        '--badge-font-weight': `var(${fontWeightVar})`,
-        '--badge-letter-spacing': `var(${letterSpacingVar})`,
-        '--badge-line-height': `var(${lineHeightVar})`,
-        '--badge-text-decoration': `var(${textDecorationVar})`,
-        '--badge-text-transform': `var(${textTransformVar})`,
-        '--badge-font-style': `var(${fontStyleVar})`,
-        '--badge-border-radius': `var(${borderRadiusVar})`,
-        '--badge-border-size': `var(${borderSizeVar})`,
-        '--badge-border-color': `var(${borderColorVar})`,
-        '--badge-padding-vertical': `var(${paddingVerticalVar})`,
-        '--badge-padding-horizontal': `var(${paddingHorizontalVar})`,
-
-        // Direct CSS property application to prevent styling loss during navigation
-        backgroundColor: `var(${bgVar})`,
-        color: `var(${textVar})`,
-        fontFamily: `var(${fontFamilyVar})`,
-        fontSize: `var(${fontSizeVar})`,
-        fontWeight: `var(${fontWeightVar})`,
-        letterSpacing: `var(${letterSpacingVar})`,
-        lineHeight: `var(${lineHeightVar})`,
-        textDecoration: `var(${textDecorationVar})`,
-        textTransform: `var(${textTransformVar})`,
-        fontStyle: `var(${fontStyleVar})`,
-        padding: `var(${paddingVerticalVar}) var(${paddingHorizontalVar})`,
-        borderRadius: `var(${borderRadiusVar})`,
-        borderWidth: `var(${borderSizeVar})`,
-        borderStyle: 'solid',
-        borderColor: `var(${borderColorVar})`,
-
-        // Set height to auto to override Mantine Badge's default height
-        height: 'auto',
-        minHeight: '20px',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        // Apply elevation box-shadow if set
-        ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
-        ...style,
-      } as React.CSSProperties}
-      {...mantine}
-      {...props}
-    >
-      {children}
-    </MantineBadge>
-  )
-}
-
+// Compile-time only — fails the build the moment BadgeProps declares a prop with no real,
+// type-compatible home on the real Badge. `variant` is excluded: Forge deliberately types it
+// as an open `string` (to accept custom variant names elsewhere in the app), wider than the
+// real 'alert' | 'primary-color' | 'success' | 'warning' union — the cast above is the actual
+// translation, and it's what gets type-checked. `size` is excluded with no rename: confirmed
+// omitted upstream with no replacement — an adapter gap, not an oversight.
+type _Wiring = AssertWired<
+    BadgeProps,
+    typeof MantineBadge,
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style' | 'variant' | 'size'
+>
+const _wiringCheck: _Wiring = true

@@ -1,69 +1,29 @@
 /**
  * CheckboxItem Component Adapter
- * 
- * CheckboxItem represents a Checkbox with a label, configured in the Forge.
- * It wraps the platform-specific implementation.
+ *
+ * Thin dispatcher: renders the local adapter's CheckboxItem, or forwards props to the real
+ * adapter's via useComponent. A CheckboxItem is a Checkbox with a label, used inside a
+ * CheckboxGroup.
  */
 
-import { Suspense, useRef, useEffect } from 'react'
+import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import type { CheckboxProps } from './Checkbox'
-import type { LibrarySpecificProps } from '../registry/types'
+import type { CheckboxItemProps } from './common/CheckboxItem'
+import { isLocalAdapter } from '../registry/activeAdapter'
+import { CheckboxItem as LocalCheckboxItem } from './local/dispatch/CheckboxItem'
 
-export type CheckboxItemProps = CheckboxProps & LibrarySpecificProps
+// Re-exported so existing `import type { CheckboxItemProps } from '.../adapters/CheckboxItem'`
+// call sites keep working — the types now live in common/CheckboxItem.ts.
+export type { CheckboxItemProps } from './common/CheckboxItem'
 
-export function CheckboxItem(props: CheckboxItemProps) {
+function SharedCheckboxItem(props: CheckboxItemProps) {
   const Component = useComponent('CheckboxItem')
-  
-  // Fallback behavior if component not found (same as Checkbox fallback)
-  if (!Component) {
-    const { 
-      checked, 
-      indeterminate, 
-      onChange, 
-      disabled, 
-      label, 
-      className, 
-      style 
-    } = props
-
-    const checkboxRef = useRef<HTMLInputElement>(null)
-    
-    useEffect(() => {
-      if (checkboxRef.current) {
-        checkboxRef.current.indeterminate = !!indeterminate
-      }
-    }, [indeterminate])
-    
-    return (
-      <label
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          ...style,
-        }}
-        className={className}
-      >
-        <input
-          ref={checkboxRef}
-          type="checkbox"
-          checked={checked && !indeterminate}
-          onChange={(e) => onChange(e.target.checked)}
-          disabled={disabled}
-          style={{
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          }}
-        />
-        {label && <span style={{ opacity: disabled ? 0.6 : 1 }}>{label}</span>}
-      </label>
-    )
-  }
-  
   return (
     <Suspense fallback={null}>
       <Component {...props} />
     </Suspense>
   )
 }
+
+// The Mantine shell renders either the local adapter's dispatcher or this shared one; fixed per page load.
+export const CheckboxItem = (isLocalAdapter ? LocalCheckboxItem : SharedCheckboxItem) as typeof SharedCheckboxItem

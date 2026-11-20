@@ -376,7 +376,6 @@ export function randomizeStringValue(propName: string, oldVal: string): string {
         'position': ['top', 'bottom', 'left', 'right'],
         'alignment': ['start', 'center', 'end'],
         'search-icon-position': ['left', 'right'],
-        'avatar-size': ['small', 'default', 'large'],
         'border-style': ['solid', 'dashed', 'dotted'],
         'tab-content-alignment': ['left', 'center', 'right'],
         'text-decoration': ['none', 'underline', 'line-through'],

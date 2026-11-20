@@ -1,324 +1,109 @@
 /**
- * Mantine Textarea Implementation
- * 
- * Mantine-specific Textarea component that uses CSS variables for theming.
- * Uses native HTML elements since we're composing Label and AssistiveElement.
- * Cloned from TextField, adapted for multi-line text input (no icons).
+ * Mantine Textarea Adapter
+ *
+ * Almost a clean rename onto the shared field vocabulary. The real TextArea's `onChange`,
+ * `onKeyDown`, `onBlur`, `onClick`, `value`/`defaultValue`, `id`, `name`, `autoFocus` all come
+ * straight off native `<textarea>` attributes (via @mantine/core's `__BaseInputProps` ->
+ * `ElementProps<'textarea', 'size'>`) and already match Forge's declared shapes one-for-one.
+ * `leftSection`/`rightSection` are real too — confirmed on `__BaseInputProps`'s own
+ * `__InputProps` half, not on `RecursicaTextAreaProps_2` (which only adds `withAsterisk`/
+ * `maxRows`/`minRows`/`autosize`).
+ *
+ * `editIcon` (2026-08, corrected — previously dropped on the incorrect claim "no real slot"):
+ * translated via the shared `resolveLabelActionArea` helper (`../labelActionArea.tsx`) into the
+ * real `labelActionArea`/`labelWithEditIcon` — see that file. Note `TextareaProps` (unlike
+ * TextField's/Label's) has no `editIconTitle`/`onEditIconClick` of its own — a narrower, but
+ * genuine, gap in Forge's own common type for this component, not addressed here — so those two
+ * are passed as `undefined` to the helper; only the plain-icon and boolean-shorthand cases are
+ * reachable through Textarea today. `editIconGap` still has no real equivalent.
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
-import type { TextareaProps as AdapterTextareaProps } from '../../Textarea'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
-import { Label } from '../../Label'
-import { AssistiveElement } from '../../AssistiveElement'
-import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
-import './Textarea.css'
+import React from 'react'
+import { TextArea as MantineTextarea } from '@recursica/adapter-mantine-v8'
+import { resolveLabelActionArea } from '../labelActionArea'
+import type { TextareaProps } from '../../common/Textarea'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Textarea({
+export default React.forwardRef<any, TextareaProps>(function Textarea({
     value,
     defaultValue,
     onChange,
+    onKeyDown,
+    onBlur,
+    onClick,
     placeholder,
     label,
     helpText,
     errorText,
-    state = 'default',
-    layout = 'stacked',
-    layer = 'layer-0',
-    required = false,
+    layout,
+    layer,
+    required,
+    optional,
+    labelAlign,
+    labelSize,
     id,
-    labelId,
-    helpId,
-    errorId,
     name,
-    className,
-    style,
+    autoFocus,
+    readOnly,
+    leadingIcon,
+    trailingIcon,
+    editIcon,
     mantine,
-    ...restProps
-}: AdapterTextareaProps & { labelId?: string; helpId?: string; errorId?: string }) {
-    const { mode } = useThemeMode()
+}, ref) {
+    const { labelActionArea, labelWithEditIcon, onLabelEditClick } =
+        resolveLabelActionArea(editIcon, undefined, undefined, layer)
 
-    // Extract props that shouldn't be passed to DOM elements
-    const { optional, labelAlign, labelSize, editIcon, editIconGap, leadingIcon, trailingIcon, ...domProps } = restProps
-
-    // Generate unique ID if not provided (needed for scoped styles)
-    const uniqueId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`
-
-    // Determine effective state
-    const effectiveState = state
-
-    // Get CSS variables for colors based on state variant
-    const backgroundVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
-    const borderVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
-    const textVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text-color')
-
-    // Get CSS variables for focus state border (when focused)
-    const focusBorderVar = buildComponentCssVarPath('Textarea', 'variants', 'states', 'focus', 'properties', 'colors', layer, 'border-color')
-    const focusBorderSizeVar = buildComponentCssVarPath('Textarea', 'variants', 'states', 'focus', 'properties', 'border-size')
-
-    // Get variant-specific border size
-    const borderSizeVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'border-size')
-
-    // Get component-level properties
-    const borderRadiusVar = getComponentLevelCssVar('Textarea', 'border-radius')
-    const horizontalPaddingVar = getComponentLevelCssVar('Textarea', 'horizontal-padding')
-    const verticalPaddingVar = getComponentLevelCssVar('Textarea', 'vertical-padding')
-    const maxWidthVar = buildComponentCssVarPath('Textarea', 'variants', 'layouts', layout, 'properties', 'max-width')
-    const minWidthVar = buildComponentCssVarPath('Textarea', 'variants', 'layouts', layout, 'properties', 'min-width')
-    const placeholderOpacityVar = getComponentLevelCssVar('Textarea', 'placeholder-opacity')
-    const rowsVar = getComponentLevelCssVar('Textarea', 'rows')
-
-    // Get Label's gutter for side-by-side layout (Label component manages spacing)
-    const labelGutterVar = layout === 'side-by-side'
-        ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
-        : undefined
-
-    // Get text style CSS variables
-    const valueFontSizeVar = getComponentTextCssVar('Textarea', 'text', 'font-size')
-    const valueFontFamilyVar = getComponentTextCssVar('Textarea', 'text', 'font-family')
-    const valueFontWeightVar = getComponentTextCssVar('Textarea', 'text', 'font-weight')
-    const valueLetterSpacingVar = getComponentTextCssVar('Textarea', 'text', 'letter-spacing')
-    const valueLineHeightVar = getComponentTextCssVar('Textarea', 'text', 'line-height')
-    const valueTextDecorationVar = getComponentTextCssVar('Textarea', 'text', 'text-decoration')
-    const valueTextTransformVar = getComponentTextCssVar('Textarea', 'text', 'text-transform')
-    const valueFontStyleVar = getComponentTextCssVar('Textarea', 'text', 'font-style')
-
-    // State to force re-renders when text CSS variables change
-    const [, setTextVarsUpdate] = useState(0)
-
-    // Read rows from CSS variable
-    const [rows, setRows] = useState<number>(() => {
-        const val = readCssVar(rowsVar)
-        return val ? parseInt(val, 10) || 4 : 4
-    })
-
-    // Listen for CSS variable updates from the toolbar
-    useEffect(() => {
-        const textCssVars = [
-            valueFontSizeVar, valueFontFamilyVar, valueFontWeightVar, valueLetterSpacingVar,
-            valueLineHeightVar, valueTextDecorationVar, valueTextTransformVar, valueFontStyleVar
-        ]
-
-        const dimensionCssVars = [
-            borderSizeVar, borderRadiusVar, horizontalPaddingVar, verticalPaddingVar,
-            maxWidthVar, minWidthVar, placeholderOpacityVar, rowsVar
-        ]
-
-        const handleUpdate = (e: Event) => {
-            const detail = (e as CustomEvent).detail
-            const updatedVars = detail?.cssVars || []
-            if (updatedVars.length === 0 || updatedVars.some((v: string) => {
-                return [...textCssVars, ...dimensionCssVars].some(tv => {
-                    const tvWithoutPrefix = tv.replace('--', '')
-                    return v === tv || v.includes(tvWithoutPrefix) || tvWithoutPrefix.includes(v.replace('--', ''))
-                })
-            })) {
-                setTextVarsUpdate(prev => prev + 1)
-                // Re-read rows
-                const val = readCssVar(rowsVar)
-                if (val) {
-                    const parsed = parseInt(val, 10)
-                    if (!isNaN(parsed)) setRows(parsed)
-                }
-            }
-        }
-        window.addEventListener('cssVarsUpdated', handleUpdate)
-
-        // Also watch for direct CSS variable changes using MutationObserver
-        const observer = new MutationObserver(() => {
-            setTextVarsUpdate(prev => prev + 1)
-            const val = readCssVar(rowsVar)
-            if (val) {
-                const parsed = parseInt(val, 10)
-                if (!isNaN(parsed)) setRows(parsed)
-            }
-        })
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['style'],
-        })
-
-        return () => {
-            window.removeEventListener('cssVarsUpdated', handleUpdate)
-            observer.disconnect()
-        }
-    }, [valueFontSizeVar, valueFontFamilyVar, valueFontWeightVar, valueLetterSpacingVar, valueLineHeightVar, valueTextDecorationVar, valueTextTransformVar, valueFontStyleVar, borderSizeVar, borderRadiusVar, horizontalPaddingVar, verticalPaddingVar, maxWidthVar, minWidthVar, placeholderOpacityVar, rowsVar, textVar])
-
-    // Render Label component if provided
-    const labelElement = label ? (
-        <Label
-            htmlFor={uniqueId}
-            variant={required ? 'required' : (optional ? 'optional' : 'default')}
-            size={labelSize}
-            layout={layout}
-            align={labelAlign || 'left'}
-            layer={layer}
-            id={labelId}
-            editIcon={editIcon}
-            editIconGap={editIconGap}
-        >
-            {label}
-        </Label>
-    ) : null
-
-    // Get icon components for AssistiveElement
-    const HelpIcon = useMemo(() => iconNameToReactComponent('info'), [])
-    const ErrorIcon = useMemo(() => iconNameToReactComponent('warning'), [])
-
-    // Render AssistiveElement for help or error with icons
-    const assistiveElement = errorText ? (
-        <AssistiveElement
-            text={errorText}
-            variant="error"
-            layer={layer}
-            id={errorId}
-            icon={ErrorIcon ? <ErrorIcon /> : <span>⚠</span>}
-        />
-    ) : helpText ? (
-        <AssistiveElement
-            text={helpText}
-            variant="help"
-            layer={layer}
-            id={helpId}
-            icon={HelpIcon ? <HelpIcon /> : <span>ℹ</span>}
-        />
-    ) : null
-
-    // Textarea element
-    const iconSizeVar = getComponentLevelCssVar('Textarea', 'icon-size')
-    const iconTextGapVar = getComponentLevelCssVar('Textarea', 'icon-text-gap')
-
-    const iconStyle: React.CSSProperties = {
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        paddingTop: `var(${verticalPaddingVar})`,
-        paddingLeft: leadingIcon ? `var(${horizontalPaddingVar}, 12px)` : undefined,
-        paddingRight: trailingIcon ? `var(${horizontalPaddingVar}, 12px)` : undefined,
-        flexShrink: 0,
-        width: `var(${iconSizeVar}, 16px)`,
-        color: `var(${textVar})`,
-        fontSize: `var(${iconSizeVar}, 16px)`,
-        lineHeight: 1,
-        pointerEvents: 'none',
-    }
-
-    const textareaWrapper = (
-        <div
-            className={`recursica-textarea-wrapper ${state === 'focus' ? 'focus' : ''}`}
-            onClick={domProps.onClick}
-            style={{
-                display: 'flex',
-                width: '100%',
-                maxWidth: `var(${maxWidthVar}, 100%)`,
-                minWidth: `var(${minWidthVar})`,
-                flexShrink: 0,
-                border: 'none',
-                borderRadius: `var(${borderRadiusVar})`,
-                backgroundColor: `var(${backgroundVar})`,
-                boxShadow: `inset 0 0 0 var(${borderSizeVar}) var(${borderVar})`,
-                transition: 'box-shadow 0.2s',
-                cursor: domProps.onClick ? 'pointer' : undefined,
-            }}
-        >
-            {leadingIcon && (
-                <span style={iconStyle}>
-                    {leadingIcon}
-                </span>
-            )}
-            <textarea
-                id={uniqueId}
-                name={name}
-                value={value}
-                defaultValue={defaultValue}
-                onChange={onChange}
-                onKeyDown={domProps.onKeyDown}
-                onBlur={domProps.onBlur}
-                placeholder={placeholder}
-                disabled={state === 'disabled'}
-                readOnly={domProps.readOnly}
-                autoFocus={domProps.autoFocus}
-                rows={rows}
-                className={`recursica-textarea-input ${className || ''}`}
-                style={{
-                    flex: 1,
-                    minWidth: 0,
-                    maxWidth: '100%',
-                    paddingLeft: leadingIcon ? `var(${iconTextGapVar}, 8px)` : `var(${horizontalPaddingVar}, 12px)`,
-                    paddingRight: trailingIcon ? `var(${iconTextGapVar}, 8px)` : `var(${horizontalPaddingVar}, 12px)`,
-                    paddingTop: `var(${verticalPaddingVar})`,
-                    paddingBottom: `var(${verticalPaddingVar})`,
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    color: `var(${textVar})`,
-                    outline: 'none',
-                    resize: 'vertical',
-                    textAlign: labelAlign === 'right' && layout === 'stacked' ? 'right' : 'left',
-                } as React.CSSProperties}
-                {...mantine}
-                {...domProps}
-            />
-            {trailingIcon && (
-                <span style={{ ...iconStyle, paddingLeft: undefined, paddingRight: `var(${horizontalPaddingVar}, 12px)` }}>
-                    {trailingIcon}
-                </span>
-            )}
-            <style>{`
-        /* Value text styles - applied directly to textarea element - scoped to this instance */
-        #${uniqueId}.recursica-textarea-input {
-          font-family: var(${valueFontFamilyVar}) !important;
-          font-size: var(${valueFontSizeVar}) !important;
-          font-weight: var(${valueFontWeightVar}) !important;
-          letter-spacing: var(${valueLetterSpacingVar}) !important;
-          line-height: var(${valueLineHeightVar}) !important;
-          text-decoration: var(${valueTextDecorationVar}) !important;
-          text-transform: var(${valueTextTransformVar}) !important;
-          font-style: var(${valueFontStyleVar}) !important;
-        }
-        /* Placeholder styles */
-        #${uniqueId}.recursica-textarea-input::placeholder {
-          color: var(${textVar}) !important;
-          opacity: var(${placeholderOpacityVar}) !important;
-        }
-        #${uniqueId}.recursica-textarea-input:focus {
-          /* Focus styles are handled by wrapper */
-        }
-        .recursica-textarea-wrapper:has(#${uniqueId}:focus),
-        .recursica-textarea-wrapper.focus {
-          box-shadow: inset 0 0 0 var(${focusBorderSizeVar}) var(${focusBorderVar}) !important;
-        }
-      `}</style>
-        </div>
-    )
-
-    // Render based on layout
-    if (layout === 'side-by-side' && labelElement) {
-        const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
-        return (
-            <div className={`recursica-textarea recursica-textarea-side-by-side ${className || ''}`} style={style}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: gapValue, width: '100%' }}>
-                    <div style={{ flexShrink: 0 }}>
-                        {labelElement}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
-                        {textareaWrapper}
-                        {assistiveElement}
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    // Stacked layout (default)
     return (
-        <div className={`recursica-textarea recursica-textarea-stacked ${className || ''}`} style={style}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', alignItems: labelAlign === 'right' && layout === 'stacked' ? 'flex-end' : 'stretch' }}>
-                {labelElement}
-                {textareaWrapper}
-                {assistiveElement}
-            </div>
-        </div>
+        <MantineTextarea
+            ref={ref}
+            value={value}
+            defaultValue={defaultValue}
+            onChange={onChange}
+            onKeyDown={onKeyDown}
+            onBlur={onBlur}
+            onClick={onClick}
+            placeholder={placeholder}
+            label={label}
+            assistiveText={helpText}
+            error={errorText}
+            formLayout={layout === 'side-by-side' ? 'side-by-side' : 'stacked'}
+            required={required}
+            labelOptionalText={optional}
+            labelAlignment={labelAlign}
+            labelSize={labelSize}
+            id={id}
+            name={name}
+            autoFocus={autoFocus}
+            readOnly={readOnly}
+            leftSection={leadingIcon}
+            rightSection={trailingIcon}
+            labelActionArea={labelActionArea}
+            labelWithEditIcon={labelWithEditIcon}
+            onLabelEditClick={onLabelEditClick}
+            {...mantine}
+        />
     )
-}
+})
+
+// Compile-time only — fails the build the moment TextareaProps declares a prop with no real,
+// type-compatible home on the real TextArea (directly, or via the renames below). `layout` is
+// excluded like DatePicker's: Forge types it as an open `string`, wider than the real
+// `formLayout` union, and the ternary above is the real translation. `editIcon` is excluded:
+// it's a real reshape via `resolveLabelActionArea` above (see header), not a straight rename.
+// `state`/`editIconGap` are excluded with no rename and no adaptation: confirmed no real
+// equivalent exists for either.
+type _Wiring = AssertWired<
+    TextareaProps,
+    typeof MantineTextarea,
+    | 'layer'
+    | 'disableTopBottomMargin'
+    | 'mantine'
+    | 'className'
+    | 'style'
+    | 'layout'
+    | 'state'
+    | 'editIcon'
+    | 'editIconGap',
+    { helpText: 'assistiveText'; errorText: 'error'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment'; leadingIcon: 'leftSection'; trailingIcon: 'rightSection' }
+>
+const _wiringCheck: _Wiring = true

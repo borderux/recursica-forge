@@ -7,7 +7,7 @@ import { tokenColor, parseBrandCssVar, extractColorToken, extractColorTokenFromC
 import { contrastRatio } from '../theme/contrastUtil'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
-import { TextField } from '../../components/adapters/TextField'
+import { ColorTriggerControl } from './ColorTriggerControl'
 import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../components/utils/cssVarNames'
 import { useGlobalRefControl } from '../../core/css/globalRefInterceptor'
 import './PaletteColorControl.css'
@@ -822,7 +822,10 @@ export default function PaletteColorControl({
     return null
   }, [contrastColorCssVar, displayCssVar, tokens, refreshKey, mode]) // Include mode and refreshKey to re-check when colors change
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement | HTMLInputElement>) => {
+  // SyntheticEvent rather than MouseEvent: the control activates on click AND on Enter/Space,
+  // and the body only needs stopPropagation(), which both event kinds have. This is what the
+  // old call site was casting away with `as any`.
+  const handleClick = (e: React.SyntheticEvent) => {
     // Stop propagation to prevent closing parent panels/popovers
     e.stopPropagation()
 
@@ -981,28 +984,35 @@ export default function PaletteColorControl({
   return (
     <>
       <div ref={textFieldRef}>
-        <TextField
+        {/*
+          A Forge-local control, not the adapter's TextField. This row looks like a field but
+          behaves like a button — swatch plus resolved token name, click to open the picker.
+          The adapter's TextField cannot do that: its `readOnly` swaps the whole input for a
+          ReadOnlyField text renderer, dropping the swatch, the chevron and the click target,
+          which is exactly how this row degraded to plain text. See ColorTriggerControl.
+        */}
+        <ColorTriggerControl
           label={label}
           value={displayLabel}
-          leadingIcon={swatchIcon}
-          trailingIcon={trailingIcon}
-          state={disabled || isAttached ? "disabled" : "default"}
-          readOnly={true}
-          onClick={disabled || isAttached ? undefined : handleClick}
-          onKeyDown={(e) => {
-            if ((e.key === 'Enter' || e.key === ' ') && !disabled && !isAttached) {
-              e.preventDefault()
-              handleClick(e as any)
-            }
-          }}
-          layer="layer-0"
-          editIcon={finalEditIcon}
-          onEditIconClick={finalOnEditIconClick}
-          editIconTitle={finalEditIconTitle}
-          style={{
-            fontSize,
-            cursor: disabled || isAttached ? 'not-allowed' : 'pointer',
-          }}
+          swatch={swatchIcon}
+          trailing={trailingIcon}
+          disabled={disabled || isAttached}
+          onActivate={handleClick}
+          ariaLabel={typeof label === 'string' ? label : undefined}
+          labelAction={
+            finalEditIcon ? (
+              <button
+                type="button"
+                className="palette-color-control-label-action"
+                title={finalEditIconTitle}
+                aria-label={finalEditIconTitle}
+                onClick={finalOnEditIconClick}
+              >
+                {finalEditIcon}
+              </button>
+            ) : undefined
+          }
+          style={{ fontSize }}
           className="palette-color-control-textfield"
         />
       </div>

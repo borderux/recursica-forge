@@ -96,7 +96,7 @@ function OptionCard({
 
       {/* Radio dot + label — the real RadioButtonItem component */}
       <RadioButtonItem
-        selected={selected}
+        checked={selected}
         onChange={() => onSelect()}
         label={label}
         layer="layer-1"
@@ -147,7 +147,6 @@ export function OnToneModal({ isOpen, onClose, conflict }: OnToneModalProps) {
       isOpen={isOpen}
       onClose={onClose}
       title="Use AA compliant colors?"
-      size={560}
       layer="layer-1"
       showCloseButton={false}
       primaryActionLabel="Save"

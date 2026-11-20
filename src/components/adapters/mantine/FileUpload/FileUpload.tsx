@@ -1,247 +1,121 @@
 /**
- * Mantine FileUpload Implementation
- * 
- * Mantine-specific FileUpload component that uses CSS variables for theming.
+ * Mantine FileUpload Adapter
+ *
+ * Forge's FileUpload models the current file list as pure metadata
+ * (`FileUploadItem = {id, name, size?, type?, status?}` — no `.file: File` at all), reported
+ * outward via `onUpload(files: File[])` / `onRemove(fileId: string)`. The real adapter's
+ * FileUpload is the mirror image: its `files` prop is a controlled list of
+ * `RecursicaFileUploadItem` (`{file: File, id?}`), and there is genuinely no way to turn
+ * Forge's metadata back into a real, byte-holding browser `File` object — a `File` isn't
+ * serializable data, it's a real object the browser handed us once, at pick/drop time.
+ *
+ * So this wrapper keeps its own cache of every real `File` it has actually seen (via the
+ * real component's `onFilesAdded`), keyed by file name — the one field guaranteed to appear
+ * in both Forge's metadata item and the real File object — and uses that cache, not Forge's
+ * `files` prop, to supply the real `File` objects. Forge's `files` prop still governs WHICH
+ * ids are currently shown (so an externally-driven removal is honoured), but an id introduced
+ * from outside that this wrapper never saw a real File for cannot be rendered by the real
+ * dropzone — there is no way to fabricate the bytes of a file nobody ever picked. That's a
+ * genuine, permanent boundary of the metadata-only Forge shape, not a bug here.
+ *
+ * `onUpload`/`onRemove` themselves need no reshaping at all: Forge's `onUpload(files: File[])`
+ * and `onRemove(fileId: string)` already have the exact same signatures as the real
+ * `onFilesAdded(files: File[])`/`onFileRemove(id: string)` — confirmed against
+ * RecursicaFileUploadProps in node_modules/@recursica/adapter-mantine-v8/dist/index.d.ts. They
+ * are still listed in `Ignore` below because they are renamed (different prop names), not
+ * because their value shape changed.
+ *
+ * `state` — the real component does have a real `disabled?: boolean` (confirmed on
+ * RecursicaFileUploadProps), so `state === 'disabled'` is wired to it for real, the same way
+ * Dropdown does it. Shared field vocabulary (`helpText`, etc.) is translated the same way as
+ * every other field component, just inline here rather than through the central
+ * FIELD_CONTRACT table — this component now has its own wrapper translation, so (per that
+ * table's own rule) it's been removed from FIELD_COMPONENTS there.
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
-import type { FileUploadProps as AdapterFileUploadProps } from '../../FileUpload'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { getBrandStateCssVar } from '../../../utils/brandCssVars'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { Label } from '../../Label'
-import { AssistiveElement } from '../../AssistiveElement'
-import { Button } from '../../Button'
-import { Chip } from '../../Chip'
-import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
-import './FileUpload.css'
+import React, { useRef } from 'react'
+import { FileUpload as MantineFileUpload, type RecursicaFileUploadItem } from '@recursica/adapter-mantine-v8'
+import type { FileUploadAdapterProps } from '../../common/FileUpload'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function FileUpload({
+export default React.forwardRef<any, FileUploadAdapterProps>(function FileUpload({
     files = [],
     onUpload,
     onRemove,
     label,
     helpText,
     errorText,
-    state = 'default',
-    layout = 'stacked',
-    layer = 'layer-0',
+    layout,
+    state,
     multiple = true,
     accept,
-    required = false,
+    required,
+    optional,
+    labelAlign,
+    labelSize,
     id,
-    labelId,
-    helpId,
-    errorId,
-    className,
-    style,
+    labelId: _labelId,
+    helpId: _helpId,
+    errorId: _errorId,
     mantine,
-    ...restProps
-}: AdapterFileUploadProps & { labelId?: string; helpId?: string; errorId?: string }) {
-    const { mode } = useThemeMode()
+}, ref) {
+    // Every real File object this wrapper has actually seen, keyed by name — Forge's own
+    // `files` prop only ever carries metadata, never the File itself, so this cache is the
+    // only source of real File objects available to feed the real, file-object-shaped
+    // `files` prop. See file header for the genuine limitation this implies.
+    const cache = useRef(new Map<string, File>())
 
-    // Extract props that shouldn't be passed to DOM elements
-    const { optional, labelAlign, labelSize, disableTopBottomMargin, ...domProps } = restProps
-
-    const uniqueId = id || `file-upload-${Math.random().toString(36).substr(2, 9)}`
-
-    // Get CSS variables for colors based on state variant
-    const backgroundVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'background-color')
-    const borderColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'border-color')
-    const textColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'text-color')
-    const uploadIconColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'upload-icon')
-    const borderSizeVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'border-size')
-
-    // Get component-level properties
-    const borderRadiusVar = getComponentLevelCssVar('FileUpload', 'border-radius')
-    const borderStyleVar = getComponentLevelCssVar('FileUpload', 'border-style')
-    const itemGapVar = getComponentLevelCssVar('FileUpload', 'item-gap')
-    const listSpacingVar = getComponentLevelCssVar('FileUpload', 'list-spacing')
-    const paddingVar = getComponentLevelCssVar('FileUpload', 'padding')
-    const verticalElementGapVar = getComponentLevelCssVar('FileUpload', 'vertical-element-gap')
-
-    // Get text style CSS variables
-    const fontSizeVar = getComponentTextCssVar('FileUpload', 'text', 'font-size')
-    const fontFamilyVar = getComponentTextCssVar('FileUpload', 'text', 'font-family')
-    const fontWeightVar = getComponentTextCssVar('FileUpload', 'text', 'font-weight')
-    const letterSpacingVar = getComponentTextCssVar('FileUpload', 'text', 'letter-spacing')
-    const lineHeightVar = getComponentTextCssVar('FileUpload', 'text', 'line-height')
-    const textDecorationVar = getComponentTextCssVar('FileUpload', 'text', 'text-decoration')
-    const textTransformVar = getComponentTextCssVar('FileUpload', 'text', 'text-transform')
-    const fontStyleVar = getComponentTextCssVar('FileUpload', 'text', 'font-style')
-
-    // Listen for CSS variable updates
-    const [, setUpdate] = useState(0)
-    useEffect(() => {
-        const handleUpdate = () => setUpdate(prev => prev + 1)
-        window.addEventListener('cssVarsUpdated', handleUpdate)
-        return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-    }, [])
-
-    // Render Label
-    const labelElement = label ? (
-        <Label
-            htmlFor={uniqueId}
-            variant={required ? 'required' : (optional ? 'optional' : 'default')}
-            size={labelSize}
-            layout={layout}
-            align={labelAlign || 'left'}
-            layer={layer}
-            id={labelId}
-            style={layout === 'side-by-side' ? { minHeight: '48px' } : undefined} // Fallback minHeight
-        >
-            {label}
-        </Label>
-    ) : null
-
-    // Get icons
-    const UploadIcon = useMemo(() => iconNameToReactComponent('upload'), [])
-    const XIcon = useMemo(() => iconNameToReactComponent('x'), [])
-    const HelpIcon = useMemo(() => iconNameToReactComponent('info'), [])
-    const ErrorIcon = useMemo(() => iconNameToReactComponent('warning'), [])
-
-    // Render AssistiveElement
-    const assistiveElement = errorText ? (
-        <AssistiveElement
-            text={errorText}
-            variant="error"
-            layer={layer}
-            id={errorId}
-            icon={ErrorIcon ? <ErrorIcon /> : null}
-        />
-    ) : helpText ? (
-        <AssistiveElement
-            text={helpText}
-            variant="help"
-            layer={layer}
-            id={helpId}
-            icon={HelpIcon ? <HelpIcon /> : null}
-        />
-    ) : null
-
-    const uploadArea = (
-        <div
-            className="recursica-file-upload-area"
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: `var(${verticalElementGapVar}, 12px)`,
-                padding: `var(${paddingVar}, 24px)`,
-                backgroundColor: `var(${backgroundVar})`,
-                border: `var(${borderSizeVar}, 1px) var(${borderStyleVar}, dashed) var(${borderColorVar})`,
-                borderRadius: `var(${borderRadiusVar})`,
-                transition: 'all 0.2s',
-                width: '100%',
-                boxSizing: 'border-box'
-            }}
-        >
-            {UploadIcon && (
-                <div style={{
-                    color: `var(${uploadIconColorVar})`,
-                    width: '2em',
-                    height: '2em',
-                    flexShrink: 0,
-                    opacity: state === 'disabled' ? `var(${getBrandStateCssVar(mode, 'disabled')})` : undefined,
-                }}>
-                    <UploadIcon width="100%" height="100%" />
-                </div>
-            )}
-            <div style={{
-                color: `var(${textColorVar})`,
-                fontFamily: `var(${fontFamilyVar})`,
-                fontSize: `var(${fontSizeVar})`,
-                fontWeight: `var(${fontWeightVar})`,
-                letterSpacing: `var(${letterSpacingVar})`,
-                lineHeight: `var(${lineHeightVar})`,
-                textDecoration: `var(${textDecorationVar})`,
-                textTransform: `var(${textTransformVar})` as any,
-                fontStyle: `var(${fontStyleVar})`,
-                opacity: state === 'disabled' ? `var(${getBrandStateCssVar(mode, 'disabled')})` : 0.8,
-                textAlign: 'center'
-            } as React.CSSProperties}>
-                Drag and drop files here to upload
-            </div>
-            <Button
-                variant="outline"
-                layer={layer}
-                disabled={state === 'disabled'}
-                onClick={() => {
-                    if (state === 'disabled') return
-                    const input = document.createElement('input')
-                    input.type = 'file'
-                    input.multiple = multiple
-                    input.accept = accept || ''
-                    input.onchange = (e) => {
-                        const target = e.target as HTMLInputElement
-                        if (target.files) {
-                            onUpload?.(Array.from(target.files))
-                        }
-                    }
-                    input.click()
-                }}
-            >
-                Browse files
-            </Button>
-        </div>
-    )
-
-    const fileList = files.length > 0 && (
-        <div
-            className="recursica-file-upload-list"
-            style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: `var(${itemGapVar}, 8px)`,
-                marginTop: `var(${listSpacingVar}, 12px)`,
-                width: '100%'
-            }}
-        >
-            {files.map(file => (
-                <Chip
-                    key={file.id}
-                    variant="unselected"
-                    size="small"
-                    layer={layer}
-                    deletable={state !== 'disabled'}
-                    onDelete={(e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        if (state === 'disabled') return;
-                        onRemove?.(file.id);
-                    }}
-                >
-                    {file.name}
-                </Chip>
-            ))}
-        </div>
-    )
-
-    if (layout === 'side-by-side' && labelElement) {
-        const gapValue = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
-        return (
-            <div className={`recursica-file-upload recursica-file-upload-side-by-side ${className || ''}`} style={style}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: `var(${gapValue}, 16px)`, width: '100%' }}>
-                    <div style={{ flexShrink: 0 }}>
-                        {labelElement}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
-                        {uploadArea}
-                        {assistiveElement}
-                        {fileList}
-                    </div>
-                </div>
-            </div>
-        )
+    const realFiles: RecursicaFileUploadItem[] = []
+    for (const item of files) {
+        const file = cache.current.get(item.name)
+        if (file) realFiles.push({ id: item.id, file })
+        // else: Forge knows about this id but this wrapper never saw a real File for it
+        // (e.g. seeded from outside) — it cannot be rendered by the real dropzone.
     }
 
     return (
-        <div className={`recursica-file-upload recursica-file-upload-stacked ${className || ''}`} style={style}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', alignItems: labelAlign === 'right' ? 'flex-end' : 'stretch' }}>
-                {labelElement}
-                {uploadArea}
-                {assistiveElement}
-                {fileList}
-            </div>
-        </div>
+        <MantineFileUpload
+            files={realFiles}
+            onFilesAdded={(added) => {
+                for (const file of added) cache.current.set(file.name, file)
+                onUpload?.(added)
+            }}
+            onFileRemove={(removedId) => {
+                const removed = files.find((item) => item.id === removedId)
+                if (removed) cache.current.delete(removed.name)
+                onRemove?.(removedId)
+            }}
+            label={label}
+            assistiveText={helpText}
+            error={errorText}
+            formLayout={layout === 'side-by-side' ? 'side-by-side' : 'stacked'}
+            required={required}
+            labelOptionalText={optional}
+            labelAlignment={labelAlign}
+            labelSize={labelSize}
+            id={id}
+            multiple={multiple}
+            accept={accept}
+            disabled={state === 'disabled'}
+            {...mantine}
+            ref={ref}
+        />
     )
-}
+})
+
+// `files`/`onUpload`/`onRemove` are excluded: adapted above between Forge's metadata-only
+// list and the real File-object-holding one — see file header for why a straight rename
+// can't bridge them, even though the callback signatures themselves already match. `state`
+// is excluded: translated into the literal `disabled` attribute above. `layout` is excluded:
+// Forge types it as an open `string` for custom variant names, wider than the real
+// `formLayout` union — the ternary above is the real translation. `labelId`/`helpId`/
+// `errorId` are excluded: the real component wires its own aria relationships.
+type _Wiring = AssertWired<
+    FileUploadAdapterProps,
+    typeof MantineFileUpload,
+    | 'layer' | 'disableTopBottomMargin' | 'mantine' | 'className' | 'style'
+    | 'files' | 'onUpload' | 'onRemove' | 'state' | 'layout'
+    | 'labelId' | 'helpId' | 'errorId',
+    { helpText: 'assistiveText'; errorText: 'error'; optional: 'labelOptionalText'; labelAlign: 'labelAlignment' }
+>
+const _wiringCheck: _Wiring = true

@@ -5,6 +5,10 @@ import { watchToolbarIcons } from './vite-plugins/watch-toolbar-icons';
 import { copy404Html } from './vite-plugins/copy-404';
 import { copyUIKit } from './vite-plugins/copy-uikit';
 // https://vitejs.dev/config/
+/** See test.poolOptions below. */
+const NODE_WEBSTORAGE_OFF = process.allowedNodeEnvironmentFlags.has('--experimental-webstorage')
+    ? ['--no-experimental-webstorage']
+    : [];
 export default defineConfig({
     base: '/', // Custom domain, so base is root
     plugins: [react(), vanillaExtractPlugin(), watchToolbarIcons(), copy404Html(), copyUIKit()],
@@ -19,7 +23,7 @@ export default defineConfig({
     test: {
         // This is the node/unit run and the CI gate (`npm run test`). Component render tests
         // (src/components/adapters/__tests__/**.test.tsx + App.test.tsx) that mount the real
-        // MUI/Mantine/Carbon adapters are EXCLUDED here: rendering three CSS-in-JS libraries in a
+        // Mantine adapters are EXCLUDED here: rendering them in a
         // headless DOM OOMs the worker. Those run in a REAL browser via `npm run test:browser`
         // (see vitest.browser.config.ts). Logic tests (*.test.ts) run here; some read `document`,
         // so we keep a lightweight DOM environment (happy-dom).
@@ -27,6 +31,14 @@ export default defineConfig({
         setupFiles: ['./vitest.setup.ts'],
         globals: true,
         testTimeout: 30000,
+        // Node 25 enables its own browser-style localStorage global by default. It wins over
+        // happy-dom's, and without --localstorage-file it has no setItem, so every test file
+        // crashed in vitest.setup.ts. Turn it off in the test workers wherever this Node knows
+        // the flag (Node 20, used in CI, doesn't, and would reject it).
+        poolOptions: {
+            forks: { execArgv: NODE_WEBSTORAGE_OFF },
+            threads: { execArgv: NODE_WEBSTORAGE_OFF },
+        },
         exclude: [
             ...configDefaults.exclude,
             'src/components/adapters/__tests__/**',
@@ -49,23 +61,12 @@ export default defineConfig({
                     //   id.includes('node_modules/react/jsx-runtime')) {
                     //   return 'react-vendor'
                     // }
-                    // MUI + Emotion must be in the SAME chunk to avoid Safari
-                    // initialization-order crash (Emotion styled helper must be
-                    // defined before MUI references it)
-                    if (id.includes('node_modules/@mui/') ||
-                        id.includes('node_modules/@emotion/')) {
-                        return 'mui-vendor';
-                    }
                     // Mantine
                     if (id.includes('node_modules/@mantine/core')) {
                         return 'mantine-core';
                     }
                     if (id.includes('node_modules/@mantine/hooks')) {
                         return 'mantine-hooks';
-                    }
-                    // Carbon
-                    if (id.includes('node_modules/@carbon/')) {
-                        return 'carbon-core';
                     }
                     // Icon libraries
                     if (id.includes('node_modules/@phosphor-icons/')) {

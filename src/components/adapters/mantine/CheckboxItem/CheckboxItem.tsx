@@ -1,70 +1,44 @@
 /**
- * Mantine CheckboxItem Implementation
- * 
- * CheckboxItem wraps Checkbox and applies label styling and gap.
+ * Mantine CheckboxItem Adapter
+ *
+ * An item in a Forge CheckboxGroup is just a plain Checkbox upstream — there's no separate
+ * "item" export. Same underlying real component, and the exact same bug already fixed on
+ * `mantine/Checkbox/Checkbox.tsx`: the real Checkbox's `onChange` fires a native
+ * `ChangeEvent<HTMLInputElement>`, not the `(checked: boolean) => void` Forge declares.
+ * Adapted here the same way.
  */
 
-import Checkbox from '../Checkbox/Checkbox'
-import type { CheckboxItemProps as AdapterCheckboxItemProps } from '../../CheckboxItem'
-import { buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { useCssVar } from '../../../hooks/useCssVar'
-import './CheckboxItem.css'
+import React from 'react'
+import { Checkbox as MantineCheckbox } from '@recursica/adapter-mantine-v8'
+import type { CheckboxItemProps } from '../../common/CheckboxItem'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function CheckboxItem({
+export default React.forwardRef<any, CheckboxItemProps>(function CheckboxItem({
+    checked,
+    indeterminate,
+    onChange,
+    disabled,
     label,
-    className,
-    style,
-    layer = 'layer-0',
-    ...props
-}: AdapterCheckboxItemProps) {
-    // Label gap
-    const labelGapVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'label-gap')
-    const maxWidthVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'max-width')
-
-    // Text Styles
-    const fontFamilyVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-family')
-    const fontSizeVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-size')
-    const fontWeightVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-weight')
-    const lineHeightVar = getComponentTextCssVar('CheckboxItem', 'text', 'line-height')
-    const letterSpacingVar = getComponentTextCssVar('CheckboxItem', 'text', 'letter-spacing')
-    const fontStyleVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-style')
-    const textDecorationVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-decoration')
-    const textTransformVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-transform')
-
-    const getCheckboxItemColorVar = (prop: string) => `var(${buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, prop)})`
-
-    // CheckboxItem owns its disabled opacity (driven by the global disabled state). Set it here so
-    // it overrides the base Checkbox value and reflects edits made on the CheckboxItem toolbar.
-    const disabledOpacityVar = buildComponentCssVarPath('CheckboxItem', 'variants', 'states', 'disabled', 'properties', 'opacity')
-
-    // NOTE: the checkbox box's own size/color vars are set by the base Checkbox
-    // adapter (from the current variants.selection-states.* JSON structure). We must
-    // NOT re-specify them here — the old flat paths no longer exist and would
-    // override the correct values with empty vars. Only item-level vars belong here.
-    const cssVars = {
-        '--checkbox-item-gap': `var(${labelGapVar})`,
-        '--checkbox-item-font-family': `var(${fontFamilyVar})`,
-        '--checkbox-item-font-size': `var(${fontSizeVar})`,
-        '--checkbox-item-font-weight': `var(${fontWeightVar})`,
-        '--checkbox-item-line-height': `var(${lineHeightVar})`,
-        '--checkbox-item-letter-spacing': `var(${letterSpacingVar})`,
-        '--checkbox-item-font-style': `var(${fontStyleVar})`,
-        '--checkbox-item-text-decoration': `var(${textDecorationVar})`,
-        '--checkbox-item-text-transform': `var(${textTransformVar})`,
-        '--checkbox-item-color': getCheckboxItemColorVar('text'),
-        '--checkbox-item-disabled-color': getCheckboxItemColorVar('disabled-text'),
-        '--checkbox-item-max-width': `var(${maxWidthVar})`,
-        // Override the base Checkbox's disabled opacity with the CheckboxItem's own value.
-        '--checkbox-disabled-opacity': `var(${disabledOpacityVar})`,
-    }
-
+    mantine,
+}, ref) {
     return (
-        <Checkbox
+        <MantineCheckbox
+            checked={checked}
+            indeterminate={indeterminate}
+            onChange={(event) => onChange(event.currentTarget.checked)}
+            disabled={disabled}
             label={label}
-            layer={layer}
-            className={`${className || ''} recursica-checkbox-item`}
-            style={{ ...style, ...cssVars }}
-            {...props}
+            {...mantine}
+            ref={ref}
         />
     )
-}
+})
+
+// Compile-time only — see Checkbox's wrapper for the full explanation. `onChange` is
+// excluded: it's explicitly adapted above (event -> boolean), not passed through unchanged.
+type _Wiring = AssertWired<
+    CheckboxItemProps,
+    typeof MantineCheckbox,
+    'layer' | 'mantine' | 'className' | 'style' | 'onChange'
+>
+const _wiringCheck: _Wiring = true

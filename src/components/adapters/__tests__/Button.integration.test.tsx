@@ -8,7 +8,7 @@ import { Button } from '../Button'
 import { itDom, describeDom } from '../../../test-utils/conditionalTests'
 
 // Helper component to switch kits
-function KitSwitcher({ kit }: { kit: 'mantine' | 'material' | 'carbon' }) {
+function KitSwitcher({ kit }: { kit: 'mantine' }) {
   const { setKit } = useUiKit()
   useEffect(() => {
     setKit(kit)
@@ -21,7 +21,7 @@ describe('Button Integration', () => {
     document.documentElement.style.cssText = ''
   })
 
-  const renderWithKit = async (kit: 'mantine' | 'material' | 'carbon') => {
+  const renderWithKit = async (kit: 'mantine') => {
     let result: ReturnType<typeof render>
     await act(async () => {
       result = render(
@@ -35,8 +35,7 @@ describe('Button Integration', () => {
         </UiKitProvider>
       )
       // Give time for kit switching and component initialization
-      // Material UI especially needs more time when running full test suite
-      await new Promise(resolve => setTimeout(resolve, kit === 'material' ? 100 : 50))
+      await new Promise(resolve => setTimeout(resolve, 50))
     })
     return result!
   }
@@ -62,43 +61,8 @@ describe('Button Integration', () => {
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  it('renders Material button when Material is selected', async () => {
-    const { container } = await renderWithKit('material')
-
-    // Material UI can take longer to initialize, especially in full test suite
-    // Wait for the button to appear with proper text (not loading state)
-    // Use screen.getByText which queries the document directly (more reliable)
-    const button = await waitFor(() => {
-      const btn = screen.getByText('Test Button')
-      if (btn.tagName.toLowerCase() !== 'button') {
-        throw new Error('Element is not a button')
-      }
-      return btn
-    }, { timeout: 20000 })
-
-    expect(button).toBeInTheDocument()
-    expect(screen.getByText('Test Button')).toBeInTheDocument()
-  })
-
-  it('renders Carbon button when Carbon is selected', async () => {
-    const { container } = await renderWithKit('carbon')
-
-    // Carbon can take longer to initialize in CI environments
-    // Use screen.getByText which queries the document directly (more reliable)
-    const button = await waitFor(() => {
-      const btn = screen.getByText('Test Button')
-      if (btn.tagName.toLowerCase() !== 'button') {
-        throw new Error('Element is not a button')
-      }
-      return btn
-    }, { timeout: 20000 })
-
-    expect(button).toBeInTheDocument()
-    expect(screen.getByText('Test Button')).toBeInTheDocument()
-  })
-
   itDom.skip('maintains consistent props across libraries', async () => {
-    // This test runs 72 combinations (3 variants × 2 sizes × 4 layers × 3 kits)
+    // This test runs 24 combinations (3 variants × 2 sizes × 4 layers)
     // Disabled in CI due to timeout issues - too slow for CI environment
     // Also skipped in local dev due to timeout - takes over 60 seconds
     const variants: Array<'solid' | 'outline' | 'text'> = ['solid', 'outline', 'text']
@@ -108,7 +72,7 @@ describe('Button Integration', () => {
     for (const variant of variants) {
       for (const size of sizes) {
         for (const layer of layers) {
-          for (const kit of ['mantine', 'material', 'carbon'] as const) {
+          for (const kit of ['mantine'] as const) {
             let container: HTMLElement
             let unmount: () => void
             await act(async () => {
@@ -146,7 +110,7 @@ describe('Button Integration', () => {
   })
 
   itDom.skip('handles disabled state consistently across libraries', async () => {
-    for (const kit of ['mantine', 'material', 'carbon'] as const) {
+    for (const kit of ['mantine'] as const) {
       let container: HTMLElement
       let unmount: () => void
       await act(async () => {
@@ -177,7 +141,7 @@ describe('Button Integration', () => {
   itDom.skip('handles icon prop consistently across libraries', async () => {
     const TestIcon = () => <svg data-testid="icon"><circle /></svg>
 
-    for (const kit of ['mantine', 'material', 'carbon'] as const) {
+    for (const kit of ['mantine'] as const) {
       let container: HTMLElement
       let unmount: () => void
       await act(async () => {
@@ -200,14 +164,14 @@ describe('Button Integration', () => {
       expect(screen.getByText('With Icon')).toBeInTheDocument()
 
       // Wait for icon to be rendered (it might be rendered asynchronously)
-      // Some libraries (like Carbon) might render icons differently
+      // Icons may render differently
       // Note: waitFor already uses act() internally, so we don't wrap it
       try {
         await waitFor(() => {
           expect(screen.getByTestId('icon')).toBeInTheDocument()
         }, { timeout: 3000 })
       } catch (error) {
-        // If icon not found, check if it's rendered in a different way (e.g., Carbon uses SVG differently)
+        // If icon not found, check if it's rendered in a different way 
         // For now, just verify the button rendered successfully
         const button = container!.querySelector('button')
         if (button && button.textContent?.includes('With Icon')) {

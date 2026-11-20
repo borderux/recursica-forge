@@ -1,77 +1,51 @@
 /**
- * Mantine RadioButton Implementation
- * 
- * Mantine-specific RadioButton component that uses CSS variables for theming.
+ * Mantine RadioButton Adapter
+ *
+ * `checked` is now a straight, same-name pass-through to the real Radio's own `checked` —
+ * both raw @mantine/core and raw @mui/material already agree the name is `checked`
+ * (confirmed native `<input>`-based on both), so Forge's former `selected` was its own
+ * unforced divergence, not something the adapter needed bridging. `onChange` is still
+ * adapted: the real Radio's `onChange` is the native input event (`(event:
+ * ChangeEvent<HTMLInputElement>) => void`, confirmed against @mantine/core's own Radio.d.ts
+ * — it composes `ElementProps<'input', 'size' | 'children'>`), not the `(checked: boolean)
+ * => void` Forge declares. Same class of adaptation as Checkbox.
  */
 
-import { Radio as MantineRadio } from '@mantine/core'
-import type { RadioButtonProps as AdapterRadioButtonProps } from '../../RadioButton'
-import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
-import { useCssVar } from '../../../hooks/useCssVar'
-import './RadioButton.css'
+import React from 'react'
+import { Radio as MantineRadio } from '@recursica/adapter-mantine-v8'
+import type { RadioButtonProps } from '../../common/RadioButton'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function RadioButton({
-    selected,
+export default React.forwardRef<any, RadioButtonProps>(function RadioButton({
+    checked,
     onChange,
-    disabled = false,
+    disabled,
     label,
     value,
-    layer = 'layer-0',
-    className,
-    style,
     mantine,
-    ...props
-}: AdapterRadioButtonProps) {
-    // RadioButton Colors — now nested under variants.selections.<sel>[.variants.states.disabled]
-    const selBase = (sel: string, prop: string) => buildComponentCssVarPath('RadioButton', 'variants', 'selection-states', sel, 'properties', 'colors', layer, prop)
-    const selDisabled = (sel: string, prop: string) => buildComponentCssVarPath('RadioButton', 'variants', 'selection-states', sel, 'variants', 'states', 'disabled', 'properties', 'colors', layer, prop)
-    const bgSelectedVar = selBase('selected', 'background-color')
-    const bgUnselectedVar = selBase('unselected', 'background-color')
-    const borderSelectedVar = selBase('selected', 'border-color')
-    const borderUnselectedVar = selBase('unselected', 'border-color')
-    const iconColorVar = selBase('selected', 'icon-color')
-    const disabledBgVar = selDisabled('selected', 'background-color')
-    const disabledBorderVar = selDisabled('selected', 'border-color')
-    const disabledIconVar = selDisabled('selected', 'icon-color')
-    const disabledOpacityVar = buildComponentCssVarPath('RadioButton', 'variants', 'selection-states', 'selected', 'variants', 'states', 'disabled', 'properties', 'opacity')
-
-    // Size and spacing
-    const sizeVar = buildComponentCssVarPath('RadioButton', 'properties', 'size')
-    const borderRadiusVar = buildComponentCssVarPath('RadioButton', 'properties', 'border-radius')
-    const borderWidthVar = buildComponentCssVarPath('RadioButton', 'properties', 'border-size')
-    const iconSizeVar = buildComponentCssVarPath('RadioButton', 'properties', 'icon-size')
-
-    // CSS Variables object for inline styles
-    const cssVars = {
-        '--radio-bg-selected': `var(${bgSelectedVar})`,
-        '--radio-bg-unselected': `var(${bgUnselectedVar})`,
-        '--radio-border-selected': `var(${borderSelectedVar})`,
-        '--radio-border-unselected': `var(${borderUnselectedVar})`,
-        '--radio-icon-color': `var(${iconColorVar})`,
-        '--radio-disabled-bg': `var(${disabledBgVar})`,
-        '--radio-disabled-border': `var(${disabledBorderVar})`,
-        '--radio-disabled-icon': `var(${disabledIconVar})`,
-        '--radio-disabled-opacity': `var(${disabledOpacityVar})`,
-        '--radio-size': `var(${sizeVar})`,
-        '--radio-radius': `var(${borderRadiusVar})`,
-        '--radio-border-width': `var(${borderWidthVar})`,
-        '--radio-icon-size': `var(${iconSizeVar})`,
-    }
-
-    // Reactively consume variables
-    useCssVar(sizeVar)
-
+}, ref) {
     return (
         <MantineRadio
-            checked={selected}
-            onChange={(e) => onChange(e.currentTarget.checked)}
+            checked={checked}
+            onChange={(event) => onChange(event.currentTarget.checked)}
             disabled={disabled}
             label={label}
             value={value}
-            className={`${className || ''} recursica-radio-root`}
-            style={{ ...cssVars, ...style }}
             {...mantine}
-            {...props}
+            ref={ref}
         />
     )
-}
+})
+
+// Compile-time only — fails the build the moment RadioButtonProps declares a prop with no
+// real, type-compatible home on the real Radio. `onChange` is excluded: it's explicitly
+// adapted above (event -> boolean), not passed through unchanged, so checking its
+// untranslated shape here would be a false positive — that adaptation is exactly what the
+// literal `onChange={...}` attribute above already type-checks on its own. No `Rename` map
+// needed anymore — `checked` now matches the real prop name directly.
+type _Wiring = AssertWired<
+    RadioButtonProps,
+    typeof MantineRadio,
+    'layer' | 'mantine' | 'className' | 'style' | 'onChange'
+>
+const _wiringCheck: _Wiring = true

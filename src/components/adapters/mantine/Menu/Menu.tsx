@@ -1,156 +1,57 @@
 /**
- * Mantine Menu Implementation
+ * Mantine Menu Adapter
+ *
+ * The real Menu is Mantine's composable Menu (confirmed via @recursica/adapter-mantine-v8's own
+ * `MenuProps_2 & RecursicaMenuProps`, the latter contributing nothing beyond the Mantine
+ * shape) — `children` is expected to be `Menu.Target`/`Menu.Dropdown` composition; Forge's own
+ * `MenuItem` is separately registered as `Menu.Item`, confirming composition is how callers
+ * of the real component use this.
+ *
+ * Forge's own `MenuProps` has no Target/Dropdown concept, though — every Forge caller (see
+ * MenuPreview.tsx) just passes a flat list of MenuItems, wanting an always-visible menu body
+ * rather than a real click-to-open dropdown. `Menu.Dropdown` is what actually supplies the
+ * floating box's background/border/shadow/vertical-stack styling (`Menu` itself renders
+ * neither), and `Menu.Target` needs a real anchor element to position against — without both,
+ * `Menu.Item`s fall back to raw inline buttons with no container, which is why they used to
+ * render as a horizontal, undropdown-shaped row. So this wrapper synthesizes an invisible
+ * `Menu.Target` and defaults `opened` to true, mirroring `Panel.tsx`'s identical "force the
+ * real Popover-based component open for a static preview" fix. `withinPortal` defaults to
+ * false so the dropdown stays a normal DOM descendant instead of escaping to `document.body`
+ * (Forge's preview canvas may apply CSS transforms for zoom/pan, which a portaled element
+ * would no longer inherit). Both are overridable via the `mantine` escape hatch.
  */
 
-import React, { useRef, useEffect, useState, useCallback } from 'react'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { getComponentLevelCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
-import { getElevationBoxShadow } from '../../../utils/brandCssVars'
-import { readCssVar } from '../../../../core/css/readCssVar'
-import type { MenuProps as AdapterMenuProps } from '../../Menu'
-import './Menu.css'
+import React from 'react'
+import { Menu as MantineMenu } from '@recursica/adapter-mantine-v8'
+import type { MenuProps } from '../../common/Menu'
+import type { AssertWired } from '../../common/wiringCheck'
 
-export default function Menu({
-  children,
-  layer = 'layer-0',
-  elevation,
-  maxHeight = 600,
-  className,
-  style,
-  mantine,
-  ...props
-}: AdapterMenuProps) {
-  const { mode } = useThemeMode()
+export default React.forwardRef<any, MenuProps>(function Menu({
+    children,
+    maxHeight,
+    mantine,
+}, ref) {
+    // The real Menu is a plain function component (not wrapped in React.forwardRef upstream),
+    // so its exported prop type has no `ref` slot — spread `{ ref }` from an `any`-typed
+    // object rather than a literal `ref={ref}` attribute to avoid a spurious excess-property
+    // error while still attaching the ref at runtime for whenever upstream adds support.
+    return (
+        <MantineMenu opened withinPortal={false} maxHeight={maxHeight} {...mantine} {...({ ref } as any)}>
+            <MantineMenu.Target>
+                <span aria-hidden style={{ display: 'inline-block', width: 0, height: 0 }} />
+            </MantineMenu.Target>
+            <MantineMenu.Dropdown>
+                {children}
+            </MantineMenu.Dropdown>
+        </MantineMenu>
+    )
+})
 
-  // Get CSS variables for colors
-  const bgVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'background-color')
-  const borderVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'border-color')
-  const dividerColorVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'divider-color')
-
-  // Get component-level properties
-  const borderSizeVar = getComponentLevelCssVar('Menu', 'border-size')
-  const borderRadiusVar = getComponentLevelCssVar('Menu', 'border-radius')
-  const minWidthVar = getComponentLevelCssVar('Menu', 'min-width')
-  const maxWidthVar = getComponentLevelCssVar('Menu', 'max-width')
-  const paddingVar = getComponentLevelCssVar('Menu', 'padding')
-  const itemGapVar = getComponentLevelCssVar('Menu', 'item-gap')
-  const dividerHeightVar = getComponentLevelCssVar('Menu', 'divider-height')
-  const dividerOpacityVar = getComponentLevelCssVar('Menu', 'divider-opacity')
-
-  // Determine if a divider line is configured (height > 0)
-  const dividerHeightValue = readCssVar(dividerHeightVar)
-  const showDividers = dividerHeightValue && dividerHeightValue !== '0px' && dividerHeightValue !== '0'
-
-  // Compute elevation box-shadow if elevation is provided
-  const elevationBoxShadow = elevation && elevation !== 'elevation-0'
-    ? getElevationBoxShadow(mode, elevation)
-    : undefined
-
-  // Viewport-aware max-height clamping
-  const menuRef = useRef<HTMLDivElement>(null)
-  const [clampedMaxHeight, setClampedMaxHeight] = useState(maxHeight)
-
-  const updateClampedHeight = useCallback(() => {
-    if (menuRef.current) {
-      const rect = menuRef.current.getBoundingClientRect()
-      // If the menu is not visible or has an empty rect during mounting, fallback to maxHeight
-      if (rect.width === 0 && rect.height === 0) {
-        setClampedMaxHeight(maxHeight)
-        return
-      }
-      const viewportHeight = window.innerHeight
-      const availableHeight = viewportHeight - rect.top
-      // Clamp only if availableHeight is positive and reasonable (e.g., > 100px); otherwise fallback to maxHeight
-      const finalHeight = availableHeight > 100 ? availableHeight : maxHeight
-      setClampedMaxHeight(Math.min(maxHeight, finalHeight))
-    } else {
-      setClampedMaxHeight(maxHeight)
-    }
-  }, [maxHeight])
-
-  useEffect(() => {
-    updateClampedHeight()
-    window.addEventListener('resize', updateClampedHeight)
-    window.addEventListener('scroll', updateClampedHeight, true)
-    return () => {
-      window.removeEventListener('resize', updateClampedHeight)
-      window.removeEventListener('scroll', updateClampedHeight, true)
-    }
-  }, [updateClampedHeight])
-
-  // Roving focus: only one menu item is tabbable; arrows move focus between items.
-  useEffect(() => {
-    const el = menuRef.current
-    if (!el) return
-    const items = Array.from(el.querySelectorAll<HTMLElement>('.mantine-menu-item'))
-    if (!items.length) return
-    const selIdx = items.findIndex((it) => it.getAttribute('data-selected') === 'true')
-    const active = selIdx >= 0 ? selIdx : 0
-    items.forEach((it, i) => { it.tabIndex = i === active ? 0 : -1 })
-  }, [children])
-
-  const handleMenuKeyDown = (e: React.KeyboardEvent) => {
-    const el = menuRef.current
-    if (!el) return
-    const items = Array.from(el.querySelectorAll<HTMLElement>('.mantine-menu-item:not([disabled])'))
-    if (!items.length) return
-    const cur = items.indexOf(document.activeElement as HTMLElement)
-    let next = -1
-    if (e.key === 'ArrowDown') next = cur < 0 ? 0 : (cur + 1) % items.length
-    else if (e.key === 'ArrowUp') next = cur < 0 ? items.length - 1 : (cur - 1 + items.length) % items.length
-    else if (e.key === 'Home') next = 0
-    else if (e.key === 'End') next = items.length - 1
-    else return
-    e.preventDefault()
-    items.forEach((it, i) => { it.tabIndex = i === next ? 0 : -1 })
-    items[next].focus()
-  }
-
-  // Interleave divider elements between children when configured
-  const childArray = React.Children.toArray(children)
-  const renderedChildren = showDividers && childArray.length > 1
-    ? childArray.reduce<React.ReactNode[]>((acc, child, index) => {
-        acc.push(child)
-        if (index < childArray.length - 1) {
-          acc.push(
-            <div
-              key={`divider-${index}`}
-              className="mantine-menu-divider"
-              aria-hidden="true"
-            />
-          )
-        }
-        return acc
-      }, [])
-    : children
-
-  return (
-    <div
-      ref={menuRef}
-      className={`mantine-menu ${className || ''}`}
-      data-layer={layer}
-      role="menu"
-      onKeyDown={handleMenuKeyDown}
-      style={{
-        ['--menu-bg' as string]: `var(${bgVar})`,
-        ['--menu-border' as string]: `var(${borderVar})`,
-        ['--menu-border-size' as string]: `var(${borderSizeVar})`,
-        ['--menu-border-radius' as string]: `var(${borderRadiusVar})`,
-        ['--menu-min-width' as string]: `var(${minWidthVar})`,
-        ['--menu-max-width' as string]: `var(${maxWidthVar})`,
-        ['--menu-padding' as string]: `var(${paddingVar})`,
-        ['--menu-item-gap' as string]: `var(${itemGapVar})`,
-        ['--menu-max-height' as string]: `${clampedMaxHeight}px`,
-        ['--menu-divider-color' as string]: `var(${dividerColorVar})`,
-        ['--menu-divider-height' as string]: `var(${dividerHeightVar})`,
-        ['--menu-divider-opacity' as string]: `var(${dividerOpacityVar}, 1)`,
-        boxShadow: elevationBoxShadow,
-        ...style,
-      } as React.CSSProperties}
-      {...mantine}
-      {...props}
-    >
-      {renderedChildren}
-    </div>
-  )
-}
+// Compile-time only — fails the build the moment MenuProps declares a prop with no real,
+// type-compatible home on the real Menu.
+type _Wiring = AssertWired<
+    MenuProps,
+    typeof MantineMenu,
+    'layer' | 'elevation' | 'mantine' | 'className' | 'style'
+>
+const _wiringCheck: _Wiring = true

@@ -7,7 +7,7 @@ import { renderMantine } from '../../../test-utils/renderMantine'
 
 // BROWSER-ONLY suite. This runs under `npm run test:browser` (vitest.browser.config.ts), in a
 // real Playwright Chromium browser — NOT in the node/unit run, which excludes *.test.tsx. In a
-// headless DOM the Mantine/MUI/Carbon adapters churn and OOM the worker; in a real browser they
+// headless DOM the Mantine adapters churn and OOM the worker; in a real browser they
 // render normally. This is the template for the other adapter suites (convert their describe.skip
 // -> describe once verified locally).
 describe('Accordion Component (Adapter)', () => {
@@ -23,7 +23,9 @@ describe('Accordion Component (Adapter)', () => {
 
   const waitForAccordion = async (container: HTMLElement) => {
     return await waitFor(() => {
-      const el = container.querySelector('.recursica-accordion')
+      // `.recursica-accordion` only exists on the local adapter; the real adapter's root is
+      // Mantine's Accordion root.
+      const el = container.querySelector('.mantine-Accordion-root')
       if (!el) throw new Error('Accordion not found')
       return el
     })

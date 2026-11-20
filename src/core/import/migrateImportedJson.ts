@@ -35,7 +35,7 @@ import uikitTemplate from '../../../recursica_ui-kit.json'
 import { expandLayers } from '../uikit/expandLayers'
 import { sanitizeGoogleFontsUrl } from '../../modules/type/fontUtils'
 
-const TARGET_STRUCTURE_VERSION = '2.1.1'
+const TARGET_STRUCTURE_VERSION = '2.2.0'
 
 export interface MigrationRule {
   description: string
@@ -941,6 +941,45 @@ export function repairCorruptedGoogleFontsUrls(root: any): any {
   return root
 }
 
+// ── 2.1.1 → 2.2.0: one owner per property (see docs/UIKIT_GENERATOR_DECISIONS.md, decision 4) ─────
+//
+// The CSS export now emits one stable root property per ui-kit property, taken from the single
+// variant node that owns it. These keys were a second definition of a property another node owns,
+// with nothing in the JSON saying which wins, so they are removed:
+//   - button `sizes.<size>.properties.min-width` / `horizontal-padding` (owned by `content`)
+//   - button `styles.text.properties.colors.layers.layer-3` (stray border-color the other styles lack)
+//   - avatar `sizes.<size>.properties.border-size` / `border-color` (owned by the style)
+
+const DUPLICATE_PROPERTY_OWNERS: string[][] = [
+  ['button', 'variants', 'styles', 'text', 'properties', 'colors', 'layers', 'layer-3'],
+  ...['default', 'small'].flatMap(size =>
+    ['min-width', 'horizontal-padding'].map(key => ['button', 'variants', 'sizes', size, 'properties', key]),
+  ),
+  ...['small', 'default', 'large'].flatMap(size =>
+    ['border-size', 'border-color'].map(key => ['avatar', 'variants', 'sizes', size, 'properties', key]),
+  ),
+]
+
+/**
+ * ui-kit: delete the duplicate property definitions listed above. Idempotent — an absent key is
+ * left alone — and removal only, so it never adds or rewrites a value.
+ */
+export function removeDuplicatePropertyOwnersTo2_2(root: any): any {
+  const components = (root?.['ui-kit'] ?? root)?.components
+  if (!components || typeof components !== 'object') return root
+
+  for (const path of DUPLICATE_PROPERTY_OWNERS) {
+    let parent: any = components
+    for (const segment of path.slice(0, -1)) {
+      parent = parent && typeof parent === 'object' ? parent[segment] : undefined
+    }
+    if (parent && typeof parent === 'object') delete parent[path[path.length - 1]]
+  }
+
+  stampVersion(root)
+  return root
+}
+
 /**
  * Deep clones and migrates an imported JSON file to the current (2.x) structure.
  * Applies string rules to every file; applies file-type-specific structural
@@ -949,7 +988,7 @@ export function repairCorruptedGoogleFontsUrls(root: any): any {
 export function migrateImportedJson(data: any, fileType?: 'tokens' | 'brand' | 'uikit'): any {
   const migrated = applyStringRules(data)
   if (fileType === 'brand') return migrateInteractiveElementTo2_1(migrateBrandTo2x(renameBrandThemesToModes(migrated)))
-  if (fileType === 'uikit') return repointInteractiveRefsTo2_1(migrateUikitTo2x(migrated))
+  if (fileType === 'uikit') return removeDuplicatePropertyOwnersTo2_2(repointInteractiveRefsTo2_1(migrateUikitTo2x(migrated)))
   if (fileType === 'tokens') return repairCorruptedGoogleFontsUrls(migrated)
   return migrated
 }

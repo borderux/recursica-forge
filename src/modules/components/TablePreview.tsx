@@ -10,6 +10,10 @@ import { Table } from '../../components/adapters/Table'
 import { TableCell } from '../../components/adapters/TableCell'
 import { TableHeader } from '../../components/adapters/TableHeader'
 import { TableFooter } from '../../components/adapters/TableFooter'
+import { TableThead } from '../../components/adapters/TableThead'
+import { TableTbody } from '../../components/adapters/TableTbody'
+import { TableTfoot } from '../../components/adapters/TableTfoot'
+import { TableTr } from '../../components/adapters/TableTr'
 import { TextField } from '../../components/adapters/TextField'
 import { Badge } from '../../components/adapters/Badge'
 import { Avatar } from '../../components/adapters/Avatar'
@@ -294,8 +298,8 @@ export default function TablePreview({
           style={{ width: '100%', height: singleRowMode ? 'auto' : '100%' }}
         >
           {showHeader && (
-          <thead>
-            <tr style={{
+          <TableThead>
+            <TableTr style={{
               background: mode === 'dark' ? '#1e272e' : '#f5f6fa',
             }}>
               <TableHeader style={{ ...headerTextStyle, width: 48 }} layer={selectedLayer as any}>
@@ -362,17 +366,17 @@ export default function TablePreview({
               <TableHeader style={headerTextStyle} layer={selectedLayer as any}>
                 Responsible Party
               </TableHeader>
-            </tr>
-          </thead>
+            </TableTr>
+          </TableThead>
           )}
-          <tbody>
+          <TableTbody>
             {processedData.length > 0 ? (
               processedData.map((row) => {
                 const statusStyles = getStatusColor(row.status)
                 const priorityStyles = getPriorityStyle(row.priority)
 
                 return (
-                  <tr key={row.id} data-selected={selectedRowIds.has(row.id) ? "true" : undefined} style={{
+                  <TableTr key={row.id} selected={selectedRowIds.has(row.id)} style={{
                     borderBottom: `1px solid var(--recursica_brand_layers_${selectedLayer}_properties_border-color, rgba(120, 120, 120, 0.1))`
                   }}>
                     <TableCell style={{ width: 48 }} layer={selectedLayer as any}>
@@ -452,25 +456,25 @@ export default function TablePreview({
                         <span>{row.assignee.name}</span>
                       </div>
                     </TableCell>
-                  </tr>
+                  </TableTr>
                 )
               })
             ) : (
-              <tr>
-                <td colSpan={7} style={{
+              <TableTr>
+                <TableCell colSpan={8} style={{
                   ...cellTextStyle,
                   textAlign: 'center',
                   padding: '40px 0',
                   color: mode === 'dark' ? '#8f9cae' : '#7f8c8d'
                 }}>
                   No missions match your search query.
-                </td>
-              </tr>
+                </TableCell>
+              </TableTr>
             )}
-          </tbody>
+          </TableTbody>
           {showFooter && (
-          <tfoot>
-            <tr>
+          <TableTfoot>
+            <TableTr>
               <TableFooter style={{ width: 48 }} layer={selectedLayer as any} />
               <TableFooter layer={selectedLayer as any}>
                 <span>Total Loot:</span>
@@ -485,8 +489,8 @@ export default function TablePreview({
               </TableFooter>
               <TableFooter layer={selectedLayer as any} />
               <TableFooter layer={selectedLayer as any} />
-            </tr>
-          </tfoot>
+            </TableTr>
+          </TableTfoot>
           )}
         </Table>
       </div>

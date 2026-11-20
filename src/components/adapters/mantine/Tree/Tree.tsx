@@ -1,172 +1,67 @@
-import { useMemo } from 'react'
-import { Tree as MantineTree, useTree } from '@mantine/core'
-import type { TreeProps as AdapterTreeProps } from '../../Tree'
-import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../../utils/cssVarNames'
-import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
-import { Button } from '../../Button'
-import './Tree.css'
+/**
+ * Mantine Tree Adapter
+ *
+ * Not actually a 1:1 pass-through, despite how it looked before this file had a body.
+ *
+ * Renamed 1:1 (same shape, different name — previously documented in
+ * adapterPropContract.ts's PROP_CONTRACT['Tree'], moved here now that this wrapper does its
+ * own translation):
+ *   - `onSelect` -> `onSelectedChange`. Without this rename the handler lands on the `<ul>` as
+ *     an unknown prop: a node highlights on click and nothing else happens.
+ *   - `selected` -> `initialSelectedValues`. Forge drives selection as controlled state (e.g.
+ *     the component from the URL); upstream only offers an uncontrolled initial value. Mapping
+ *     keeps the node highlighted on mount, but selection will not re-sync if the route changes
+ *     by some other means.
+ *
+ * `data` is `RecursicaTreeNode[]` (required) upstream but optional (`any[]`) in Forge's type;
+ * defaulted to `[]` here so the real, required prop always gets a real array.
+ *
+ * `children` is dropped and never rendered: the real Tree's own type explicitly omits
+ * `children` even from its native `<ul>` element merge (`Omit<ComponentPropsWithoutRef<'ul'>,
+ * "children">`) — Tree is purely `data`-driven, so there is no slot for arbitrary child nodes
+ * at all, not even a theoretical one.
+ *
+ * `variant` has no real prop — dropped.
+ *
+ * `className`/`style` are on the adapter's blocked-styling-keys list (the real Tree type is
+ * `RecursicaOverStyled`-wrapped) and are ignored unless the caller opts in with
+ * `overStyled: true` — which the `mantine` escape hatch can still do
+ * (`mantine={{ overStyled: true, style: {...} }}`). Not forwarded here.
+ *
+ * `forceHover` is Forge-internal (see FORGE_ONLY_PROPS in adapterPropContract.ts) and is
+ * already handled centrally — left alone, not touched by this wrapper.
+ */
 
-export default function Tree({
-  data = [],
-  selected = [],
-  onSelect,
-  layer = 'layer-0',
-  className,
-  style,
-  forceHover = false,
-  mantine,
-  ...props
-}: AdapterTreeProps) {
-  const indentVar = getComponentLevelCssVar('Tree', 'indent')
-  const itemGapVar = getComponentLevelCssVar('Tree', 'item-gap')
-  const buttonNodeGapVar = getComponentLevelCssVar('Tree', 'button-node-gap')
-  const maxWidthVar = getComponentLevelCssVar('Tree', 'max-width')
-  const verticalPaddingVar = getComponentLevelCssVar('Tree', 'vertical-padding')
+import React from 'react'
+import { Tree as MantineTree } from '@recursica/adapter-mantine-v8'
+import type { TreeProps } from '../../common/Tree'
+import type { AssertWired } from '../../common/wiringCheck'
 
-  // Helper to find all parent values of selected nodes
-  const initialExpandedState = useMemo(() => {
-    const state: Record<string, boolean> = {}
-    if (!selected || selected.length === 0) return state
+export default React.forwardRef<any, TreeProps>(function Tree({ data, selected, onSelect, mantine }, ref) {
+    return (
+        <MantineTree
+            ref={ref}
+            data={data ?? []}
+            initialSelectedValues={selected}
+            onSelectedChange={onSelect}
+            {...mantine}
+        />
+    )
+})
 
-    function traverse(nodes: any[], parentValue?: string) {
-      for (const node of nodes) {
-        if (selected.includes(node.value) && parentValue) {
-          state[parentValue] = true
-        }
-        if (node.children) {
-          traverse(node.children, node.value)
-          // If any child is expanded, parent must be expanded too
-          if (node.children.some((c: any) => state[c.value])) {
-            state[node.value] = true
-          }
-        }
-      }
-    }
-    traverse(data)
-    return state
-  }, [data, selected])
-
-  const treeController = useTree({
-    initialExpandedState
-  })
-
-  const selectedKey = selected.join(',')
-  const horizontalPaddingVar = getComponentLevelCssVar('Tree', 'horizontal-padding')
-  
-  const borderSizeVar = getComponentLevelCssVar('Tree', 'border-size')
-  const borderRadiusVar = getComponentLevelCssVar('Tree', 'border-radius')
-
-  // Colors + text style live under variants.selection-states.<sel>.properties…
-  // (hover is a GLOBAL state now — no per-component hover colors)
-  const baseColorVar = (sel: string, prop: string) =>
-    buildComponentCssVarPath('Tree', 'variants', 'selection-states', sel, 'properties', 'colors', layer, prop)
-  const textStyleVar = (sel: string, prop: string) =>
-    buildComponentCssVarPath('Tree', 'variants', 'selection-states', sel, 'properties', 'text', prop)
-
-  const TEXT_PROPS = ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'text-decoration', 'text-transform', 'font-style']
-
-  const treeVars: Record<string, string> = {
-    '--tree-indent': `var(${indentVar}, 16px)`,
-    '--tree-item-gap': `var(${itemGapVar}, 4px)`,
-    '--tree-button-node-gap': `var(${buttonNodeGapVar}, 8px)`,
-    '--tree-max-width': `var(${maxWidthVar}, 100%)`,
-    '--tree-vertical-padding': `var(${verticalPaddingVar}, 6px)`,
-    '--tree-horizontal-padding': `var(${horizontalPaddingVar}, 12px)`,
-    '--tree-border-size': `var(${borderSizeVar}, 0px)`,
-    '--tree-border-radius': `var(${borderRadiusVar}, 4px)`,
-    // selected / unselected base + hover colors
-    '--tree-selected-bg': `var(${baseColorVar('selected', 'background-color')}, transparent)`,
-    '--tree-selected-border-color': `var(${baseColorVar('selected', 'border-color')}, transparent)`,
-    '--tree-selected-text': `var(${baseColorVar('selected', 'text-color')})`,
-    '--tree-unselected-bg': `var(${baseColorVar('unselected', 'background-color')}, transparent)`,
-    '--tree-unselected-border-color': `var(${baseColorVar('unselected', 'border-color')}, transparent)`,
-    '--tree-unselected-text': `var(${baseColorVar('unselected', 'text-color')})`,
-  }
-  for (const p of TEXT_PROPS) {
-    treeVars[`--tree-selected-${p}`] = `var(${textStyleVar('selected', p)})`
-    treeVars[`--tree-unselected-${p}`] = `var(${textStyleVar('unselected', p)})`
-  }
-
-  return (
-    <div 
-      className={`recursica-tree mantine-tree ${forceHover ? 'force-hover' : ''} ${className || ''}`}
-      style={{ ...treeVars, ...style } as React.CSSProperties}
-    >
-      <MantineTree
-        key={selectedKey}
-        tree={treeController}
-        data={data}
-        levelOffset="var(--tree-indent)"
-        {...mantine}
-        renderNode={({ node, expanded, hasChildren, elementProps, level }) => {
-          const isSelected = selected.includes(node.value)
-          const ChevronRightIcon = iconNameToReactComponent('chevron-right')
-          const ChevronDownIcon = iconNameToReactComponent('chevron-down')
-
-          const { paddingLeft, paddingInlineStart, ...otherStyles } = (elementProps.style as any) || {}
-
-          return (
-            <div
-              {...elementProps}
-              style={{
-                ...otherStyles,
-                '--tree-node-level': level
-              } as React.CSSProperties}
-              onClick={(e) => {
-                if (!expanded) {
-                  elementProps.onClick?.(e)
-                }
-                if (onSelect) {
-                  onSelect([node.value])
-                }
-              }}
-              className={`recursica-tree-node ${isSelected ? 'selected' : ''}`}
-            >
-              <div 
-                className={`recursica-tree-chevron`}
-                style={{ visibility: hasChildren ? 'visible' : 'hidden' }}
-              >
-                {hasChildren && (
-                  <Button
-                    variant="text"
-                    size="small"
-                    /* Not a separate tab stop — the tree node (treeitem) is the focus target
-                       and gets the global focus glow; the chevron toggles expand on node click. */
-                    {...({ tabIndex: -1, 'aria-hidden': true } as any)}
-                    icon={expanded ? (
-                      ChevronDownIcon ? <ChevronDownIcon /> : '▼'
-                    ) : (
-                      ChevronRightIcon ? <ChevronRightIcon /> : '▶'
-                    )}
-                    style={{
-                      padding: 0,
-                      minWidth: 0,
-                      width: '24px',
-                      height: '24px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      color: 'inherit'
-                    }}
-                    /* Never take focus on click — it's aria-hidden, and a focused aria-hidden
-                       element is an a11y violation. preventDefault on mousedown stops focus while
-                       still letting onClick toggle. Focus stays on the treeitem. */
-                    onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      elementProps.onClick?.(e)
-                    }}
-                  />
-                )}
-              </div>
-              <span className="recursica-tree-label">{node.label}</span>
-              {isSelected && <div className="recursica-tree-active-bar" />}
-            </div>
-          )
-        }}
-      />
-    </div>
-  )
-}
+// Compile-time only — fails the build the moment TreeProps declares a prop with no real,
+// type-compatible home on the real Tree — directly, or via the renames below.
+//
+// `data` is excluded: Forge declares it optional, the real prop requires it — the literal
+// `data={data ?? []}` above already guarantees a real array at the call site, but the
+// optionality mismatch would otherwise show up as a false positive here. `children` is
+// excluded: genuinely dropped (see header comment), not rendered at all. `variant` has no
+// real destination. `className`/`style` are dropped (see header comment). `forceHover` is
+// Forge-internal, handled centrally, not this wrapper's concern.
+type _Wiring = AssertWired<
+    TreeProps,
+    typeof MantineTree,
+    'layer' | 'elevation' | 'mantine' | 'data' | 'children' | 'variant' | 'className' | 'style' | 'forceHover',
+    { selected: 'initialSelectedValues'; onSelect: 'onSelectedChange' }
+>
+const _wiringCheck: _Wiring = true

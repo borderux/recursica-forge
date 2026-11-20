@@ -1,6 +1,6 @@
 # Browser Component Tests (component RENDER tests, real browser)
 #
-# These are the *.test.tsx adapter render tests, which mount the real MUI/Mantine/Carbon
+# These are the *.test.tsx adapter render tests, which mount the real Mantine
 # components. They can't run in the node/unit pipeline (headless DOM OOMs — see vite.config.ts
 # test.exclude), so they run here in a real Playwright browser via `npm run test:browser`.
 #
