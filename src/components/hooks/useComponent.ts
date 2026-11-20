@@ -107,8 +107,17 @@ export function useComponent<T = any>(componentName: ComponentName): React.Compo
       // `style` and `className` are deliberately NOT stripped. The adapter runs its own
       // filterStylingProps() and ignores them unless overStyled is set — letting its real
       // policy apply is the point of using the real adapter.
+      //
+      // `mantine` (the escape hatch) is handed to the wrapper as-is, outside the contract table:
+      // every mantine/<X> wrapper destructures it and spreads it onto the real component last,
+      // which is how `overStyled` and raw Mantine props reach it. It was previously dropped
+      // here, so the escape hatch silently did nothing on the real adapter.
       const mantineRest = applyPropContract(componentName, rest)
-      const element = React.createElement(Component as any, { ...mantineRest, ref })
+      const element = React.createElement(Component as any, {
+        ...mantineRest,
+        ...(mantine !== undefined ? { mantine } : {}),
+        ref,
+      })
       const wrapperLayer = TABLE_PARTS.has(componentName) ? null : toWrapperLayer(rest.layer)
       // LayerScope, not the adapter's <Layer>: Forge's `layer` prop asks for token
       // resolution, whereas <Layer> paints a surface (border, radius, padding, elevation).

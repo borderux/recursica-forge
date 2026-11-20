@@ -23,7 +23,9 @@ describe('Accordion Component (Adapter)', () => {
 
   const waitForAccordion = async (container: HTMLElement) => {
     return await waitFor(() => {
-      const el = container.querySelector('.recursica-accordion')
+      // `.recursica-accordion` only exists on the local adapter; the real adapter's root is
+      // Mantine's Accordion root.
+      const el = container.querySelector('.mantine-Accordion-root')
       if (!el) throw new Error('Accordion not found')
       return el
     })

@@ -52,13 +52,13 @@ describe('Accordion Integration', () => {
     )
   }
 
-  // Look for the kit-specific class (.mantine-accordion) rather than the generic
-  // .recursica-accordion.
+  // The real adapter renders Mantine's Accordion, whose root carries `.mantine-Accordion-root`
+  // (`.recursica-accordion` / `.mantine-accordion` only ever existed on the local adapter).
   // Mantine's CSS-in-JS is synchronous/blocking in JSDOM (~70s first cold render),
   // so the waitFor timeout must exceed that.
   const waitForAccordion = async (container: HTMLElement, kit: 'mantine') => {
     return await waitFor(() => {
-      const el = container.querySelector(`.${kit}-accordion`)
+      const el = container.querySelector(`.${kit}-Accordion-root`)
       if (!el) throw new Error(`${kit} Accordion not found`)
       return el
     }, { timeout: 90000 })

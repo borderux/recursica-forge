@@ -1,15 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Button } from '../Button'
+import { preloadComponent } from '../../registry'
 import { describeDom, itDom } from '../../../test-utils/conditionalTests'
 
 // Mock icon component for testing
 const TestIcon = () => <svg data-testid="test-icon"><circle /></svg>
 
 describe('Button Component (Adapter)', () => {
+  beforeAll(async () => {
+    await preloadComponent('mantine', 'Button')
+  })
+
   beforeEach(async () => {
     // Clear any CSS variables set in previous tests
     document.documentElement.style.cssText = ''
@@ -95,15 +100,26 @@ describe('Button Component (Adapter)', () => {
       expect(button).toHaveAttribute('type', 'submit')
     })
 
-    it('applies className', async () => {
+    // The real adapter styles itself purely from tokens: a plain className/style is ignored
+    // (see mantine/Button/Button.tsx). Over-styling is an explicit opt-in through the
+    // `mantine` escape hatch with `overStyled: true`.
+    it('ignores className unless over-styled', async () => {
       const { container } = renderWithProviders(<Button className="custom-class">Test</Button>)
+      const button = await waitForButton(container, 'Test')
+      expect(button).not.toHaveClass('custom-class')
+    })
+
+    it('applies className when over-styled', async () => {
+      const { container } = renderWithProviders(
+        <Button mantine={{ overStyled: true, className: 'custom-class' }}>Test</Button>
+      )
       const button = await waitForButton(container, 'Test')
       expect(button).toHaveClass('custom-class')
     })
 
-    it('applies custom style', async () => {
+    it('applies custom style when over-styled', async () => {
       const { container } = renderWithProviders(
-        <Button style={{ marginTop: '10px' }}>Test</Button>
+        <Button mantine={{ overStyled: true, style: { marginTop: '10px' } }}>Test</Button>
       )
       const button = await waitForButton(container, 'Test')
       expect(button).toHaveStyle({ marginTop: '10px' })
@@ -174,10 +190,8 @@ describe('Button Component (Adapter)', () => {
 
   })
 
-  describe('Fallback Behavior', () => {
-    it('renders native button when component not available', async () => {
-      // This tests the fallback when useComponent returns null
-      // In a real scenario, this would happen if the component isn't registered
+  describe('Rendered output', () => {
+    it('renders a native <button> with its text', async () => {
       const { container } = renderWithProviders(<Button>Fallback</Button>)
       const button = await waitForButton(container, 'Fallback')
       expect(button).toBeInTheDocument()
@@ -190,8 +204,8 @@ describe('Button Component (Adapter)', () => {
       const { container } = renderWithProviders(
         <Button mantine={{ 'data-testid': 'mantine-button' }}>Mantine</Button>
       )
-      const button = await waitForButton(container, 'Mantine')
-      expect(button).toBeInTheDocument()
+      await waitForButton(container, 'Mantine')
+      expect(screen.getByTestId('mantine-button')).toBeInTheDocument()
     })
   })
 })
